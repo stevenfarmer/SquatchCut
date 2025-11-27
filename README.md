@@ -21,11 +21,11 @@ SquatchCut is designed for real-world workshop use, but completely open and exte
 
 ### **FreeCAD Workbench**
 - Extract rectangles/panels from active FreeCAD document  
-- CSV import for panel lists  
-- User-configurable sheet size + kerf  
-- Multi-sheet rectangular nesting (Skyline / Guillotine hybrid)  
+- CSV import for panel lists (optional `allow_rotate` column; defaults to no rotation)  
+- User-configurable sheet size + separate kerf (between parts) and gap/halo (around parts)  
+- Multi-sheet rectangular nesting (Skyline / Guillotine hybrid) with per-part 0°/90° rotation  
 - Generate 2D panel layout geometry per sheet  
-- Export PDF + CSV nesting reports  
+- Export PDF + CSV nesting reports, plus an on-demand “Export Nesting CSV” dialog  
 - Preferences pane integration  
 
 ### **TypeScript Tools**
@@ -113,9 +113,16 @@ You will receive:
 - A group for each sheet  
 - Rectangles representing panel placements  
 - A summary stored in memory for reporting  
+- A “SourcePanels” group containing the originals (hidden by default)  
+- Optional rotation of parts if `allow_rotate` is set for that row in the CSV  
 
 ### **4. Export Report**
 Choose a directory → PDF + CSV written there.
+
+### **5. Export Nesting CSV**
+Use **Export Nesting CSV** to save the most recent layout as a CSV to a path you choose.  
+The export includes sheet index, part id, true width/height, x/y, and chosen angle (0 or 90).  
+Kerf and gap are layout parameters only and are not included in the dimensions.
 
 ---
 

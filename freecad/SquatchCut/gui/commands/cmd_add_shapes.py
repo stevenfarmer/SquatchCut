@@ -95,6 +95,20 @@ class AddShapesCommand:
                 obj = doc.addObject("Part::Feature", obj_name)
                 obj.Shape = face
 
+                # Optional rotation flag from CSV panels
+                allow_rotate = bool(panel.get("allow_rotate", False))
+                try:
+                    if not hasattr(obj, "SquatchCutCanRotate"):
+                        obj.addProperty(
+                            "App::PropertyBool",
+                            "SquatchCutCanRotate",
+                            "SquatchCut",
+                            "Whether this panel may be rotated 90 degrees during nesting",
+                        )
+                    obj.SquatchCutCanRotate = allow_rotate
+                except Exception:
+                    pass
+
                 # Tag this object so other commands (e.g. RunNesting) can find it
                 try:
                     if not hasattr(obj, "SquatchCutPanel"):
@@ -130,6 +144,13 @@ class AddShapesCommand:
         App.Console.PrintMessage(
             f"[SquatchCut] AddShapesCommand created {count} shapes in the document.\n"
         )
+
+        # Auto-fit view so newly created shapes are visible without manual zoom
+        if count > 0:
+            try:
+                Gui.SendMsgToActiveView("ViewFit")
+            except Exception:
+                pass
 
     def IsActive(self):
         return True

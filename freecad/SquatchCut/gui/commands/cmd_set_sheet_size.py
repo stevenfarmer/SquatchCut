@@ -39,9 +39,9 @@ class SC_SetSheetSizeCommand:
 
     def GetResources(self):  # noqa: N802  (FreeCAD API)
         return {
-            "MenuText": "Sheet Size",
-            "ToolTip": "Configure sheet size and spacing preferences.",
-            "Pixmap": os.path.join(ICONS_DIR, "set_sheet_size.svg"),
+            "Pixmap": ":/icons/Draft_Rectangle.svg",
+            "MenuText": "Set Sheet Size",
+            "ToolTip": "Set the sheet width and height for nesting",
         }
 
     def Activated(self):  # noqa: N802  (FreeCAD API)

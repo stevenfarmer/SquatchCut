@@ -59,6 +59,21 @@ class CsvLoader:
         }
         if row.get("grain_direction"):
             cleaned["grain_direction"] = str(row["grain_direction"]).strip()
+        allow_rotate_raw = None
+        # Support both exact and case-insensitive allow_rotate
+        for key in row.keys():
+            if key and key.strip().lower() == "allow_rotate":
+                allow_rotate_raw = row.get(key)
+                break
+        if allow_rotate_raw is not None:
+            cleaned["allow_rotate"] = str(allow_rotate_raw).strip().lower() in (
+                "1",
+                "true",
+                "yes",
+                "y",
+            )
+        else:
+            cleaned["allow_rotate"] = False
         return cleaned
 
     def to_panel_object(self, row: dict) -> dict:
@@ -67,7 +82,7 @@ class CsvLoader:
             "id": row["id"],
             "width": row["width"],
             "height": row["height"],
-            "rotation_allowed": True,
+            "allow_rotate": bool(row.get("allow_rotate", False)),
         }
         grain = row.get("grain_direction")
         if grain:
@@ -135,6 +150,15 @@ def load_csv(path: str) -> list[dict]:
 
                     label = str(row.get("label", "") or "").strip()
                     material = str(row.get("material", "") or "").strip()
+                    allow_raw = None
+                    if "allow_rotate" in headers:
+                        allow_raw = row.get("allow_rotate", "")
+                    allow_rotate = str(allow_raw).strip().lower() in (
+                        "1",
+                        "true",
+                        "yes",
+                        "y",
+                    )
 
                     panels.append(
                         {
@@ -143,6 +167,7 @@ def load_csv(path: str) -> list[dict]:
                             "qty": int(qty),
                             "label": label,
                             "material": material,
+                            "allow_rotate": allow_rotate,
                         }
                     )
                 except Exception as exc:

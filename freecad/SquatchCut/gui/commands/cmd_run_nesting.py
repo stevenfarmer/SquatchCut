@@ -2,10 +2,14 @@
 FreeCAD command to run the SquatchCut nesting engine and create geometry.
 """
 
+import os
 import traceback
 
+import FreeCAD  # type: ignore
+import FreeCADGui  # type: ignore
 import FreeCAD as App  # type: ignore
 import FreeCADGui as Gui  # type: ignore
+from PySide2 import QtWidgets  # type: ignore
 
 # Geometry
 try:
@@ -20,10 +24,22 @@ except ImportError:
     from PySide2 import QtWidgets, QtCore, QtGui  # type: ignore
 
 try:
-    from SquatchCut.core import session_state as ss, nesting as nesting_core  # type: ignore
+    from SquatchCut.core import session_state as ss  # type: ignore
+    from SquatchCut.core.nesting import Part, nest_on_multiple_sheets  # type: ignore
 except Exception:
     import SquatchCut.core.session_state as ss  # type: ignore
-    import SquatchCut.core.nesting as nesting_core  # type: ignore
+    from SquatchCut.core.nesting import Part, nest_on_multiple_sheets  # type: ignore
+
+from SquatchCut.core.session_state import (
+    get_gap_mm,
+    get_kerf_mm,
+    get_last_layout,
+    get_sheet_size,
+    set_gap_mm,
+    set_kerf_mm,
+    set_last_layout,
+)
+from SquatchCut.ui.messages import show_error, show_info, show_warning
 
 
 class RunNestingCommand:
@@ -43,44 +59,17 @@ class RunNestingCommand:
 
     def GetResources(self):
         return {
+            "Pixmap": ":/icons/Draft_Rectangle.svg",
             "MenuText": "Run Nesting",
-            "ToolTip": "Run the nesting engine and generate sheet geometry.",
-            "Pixmap": "SquatchCut_RunNesting",
+            "ToolTip": "Nest panels onto one or more sheets",
         }
 
     def Activated(self):
-        App.Console.PrintMessage(
-            ">>> [SquatchCut] RunNestingCommand.Activated() entered\n"
-        )
-
         try:
-            sess = ss.SESSION
-
-            panels = getattr(sess, "panels", None)
-            if not panels:
-                App.Console.PrintMessage(
-                    ">>> [SquatchCut] RunNesting: no panels loaded in session\n"
-                )
-                return
-
-            sheet_w = getattr(sess, "sheet_width", 0)
-            sheet_h = getattr(sess, "sheet_height", 0)
-            if not sheet_w or not sheet_h:
-                App.Console.PrintMessage(
-                    ">>> [SquatchCut] RunNesting: sheet size not defined in session\n"
-                )
-                return
-
-            placements = nesting_core.run_shelf_nesting(
-                sheet_width=sheet_w,
-                sheet_height=sheet_h,
-                panels=panels,
-                margin=5.0,
-            )
-
-            if not placements:
-                App.Console.PrintMessage(
-                    ">>> [SquatchCut] RunNesting: no placements generated\n"
+            sess = getattr(ss, "SESSION", None)
+            if sess is None:
+                App.Console.PrintError(
+                    ">>> [SquatchCut] RunNesting: session not available\n"
                 )
                 return
 
@@ -89,116 +78,223 @@ class RunNestingCommand:
                 App.Console.PrintMessage(">>> [SquatchCut] RunNesting: no active document\n")
                 return
 
-            # Collect all SquatchCut panel objects from the active document
-            panel_objs = []
-            for obj in doc.Objects:
-                try:
-                    if hasattr(obj, "SquatchCutPanel") and bool(obj.SquatchCutPanel):
-                        panel_objs.append(obj)
-                except Exception:
-                    continue
-
-            num_panels = len(panel_objs)
-            num_places = len(placements)
-
-            App.Console.PrintMessage(
-                f">>> [SquatchCut] RunNesting: placements={num_places}, panels={num_panels}\n"
-            )
-
-            if num_panels == 0 or num_places == 0:
-                App.Console.PrintMessage(
-                    ">>> [SquatchCut] RunNesting: nothing to place (no panels or no placements)\n"
-                )
+            try:
+                sheet_w, sheet_h = self._get_sheet_size_mm(sess)
+            except Exception as e:
+                App.Console.PrintError(f">>> [SquatchCut] Cannot read sheet size: {e}\n")
                 return
-
-            # Sort panels by Name so placement order is stable
-            panel_objs.sort(key=lambda o: o.Name)
-
-            count = min(num_panels, num_places)
-
-            placed_objs = []
-
-            # Apply ABSOLUTE placements to each panel
-            for i in range(count):
-                obj = panel_objs[i]
-                place = placements[i]
-
-                x = float(place.get("x", 0.0))
-                y = float(place.get("y", 0.0))
-
-                base_vec = App.Vector(x, y, 0.0)
-                rotation = App.Rotation(0.0, 0.0, 0.0)
-                obj.Placement = App.Placement(base_vec, rotation)
-                placed_objs.append(obj)
-
-            # Remove existing sheet outline
-            for obj in list(doc.Objects):
-                if getattr(obj, "Label", "") == "SquatchCut_Sheet":
+            # Ensure document has kerf/gap settings and sync to session
+            if not hasattr(doc, "SquatchCutKerfMM"):
+                try:
+                    doc.addObject("App::FeaturePython", "SquatchCutSettings")
+                except Exception:
+                    pass
+                try:
+                    if not hasattr(doc, "SquatchCutKerfMM"):
+                        doc.addProperty(
+                            "App::PropertyFloat",
+                            "SquatchCutKerfMM",
+                            "SquatchCut",
+                            "Kerf spacing between adjacent parts (mm)",
+                        )
+                        doc.SquatchCutKerfMM = 0.0
+                except Exception:
                     try:
-                        doc.removeObject(obj.Name)
+                        doc.SquatchCutKerfMM = 0.0
+                    except Exception:
+                        pass
+                try:
+                    if not hasattr(doc, "SquatchCutGapMM"):
+                        doc.addProperty(
+                            "App::PropertyFloat",
+                            "SquatchCutGapMM",
+                            "SquatchCut",
+                            "Gap/halo spacing around parts (mm)",
+                        )
+                        doc.SquatchCutGapMM = 0.0
+                except Exception:
+                    try:
+                        doc.SquatchCutGapMM = 0.0
                     except Exception:
                         pass
 
-            if Part is not None:
-                p0 = App.Vector(0, 0, 0)
-                p1 = App.Vector(sheet_w, 0, 0)
-                p2 = App.Vector(sheet_w, sheet_h, 0)
-                p3 = App.Vector(0, sheet_h, 0)
-                wire = Part.makePolygon([p0, p1, p2, p3, p0])
-                face = Part.Face(wire)
-                sheet_obj = doc.addObject("Part::Feature", "SquatchCut_Sheet")
-                sheet_obj.Label = "SquatchCut_Sheet"
-                sheet_obj.Shape = face
+            try:
+                set_kerf_mm(getattr(doc, "SquatchCutKerfMM", 0.0))
+                set_gap_mm(getattr(doc, "SquatchCutGapMM", 0.0))
+            except Exception:
+                pass
 
-            # Visually highlight placed panels so the user can see them clearly
-            if placed_objs:
-                App.Console.PrintMessage(
-                    f">>> [SquatchCut] RunNesting: highlighting {len(placed_objs)} placed panels\n"
+            kerf_mm = get_kerf_mm()
+            gap_mm = get_gap_mm()
+
+            panel_objs = self._get_panel_objects(doc)
+
+            # Manage SourcePanels group: move originals aside and hide them
+            if not panel_objs:
+                msg = (
+                    "No panels were selected for nesting.\n\n"
+                    "Select one or more panel objects (rectangles/faces) and try again."
                 )
+                show_warning(msg)
+                FreeCAD.Console.PrintMessage("[SquatchCut] No panels selected for nesting.\n")
+                return
 
-            for pobj in placed_objs:
-                try:
-                    vobj = getattr(pobj, "ViewObject", None)
-                    if vobj is None:
+            source_group = doc.getObject("SourcePanels")
+            if source_group is None:
+                source_group = doc.addObject("App::DocumentObjectGroup", "SourcePanels")
+
+            SHEET_MARGIN = sheet_w * 0.25
+            offset_x = -(sheet_w + SHEET_MARGIN)
+
+            # Offset the source panels group to the left of all sheets
+            try:
+                placement = source_group.Placement
+                base = placement.Base
+                base.x = offset_x
+                base.y = 0.0
+                base.z = 0.0
+                placement.Base = base
+                source_group.Placement = placement
+            except Exception:
+                # If the group cannot be moved as a whole, shift members instead
+                for obj in panel_objs:
+                    try:
+                        placement = obj.Placement
+                        base = placement.Base
+                        base.x += offset_x
+                        placement.Base = base
+                        obj.Placement = placement
+                    except Exception:
                         continue
 
-                    # Loud magenta-ish color so it stands out
-                    highlight_line = (1.0, 0.0, 1.0)
-                    highlight_face = (1.0, 0.6, 1.0)
+            # Move original selected panel objects into the SourcePanels group
+            for obj in panel_objs:
+                if obj not in source_group.Group:
+                    source_group.addObject(obj)
 
-                    # Set basic colors
-                    if hasattr(vobj, "LineColor"):
-                        vobj.LineColor = highlight_line
-                    if hasattr(vobj, "ShapeColor"):
-                        vobj.ShapeColor = highlight_face
+            # Hide SourcePanels group by default
+            try:
+                source_group.ViewObject.Visibility = False
+            except Exception:
+                pass
 
-                    # If DiffuseColor exists (some Part::Feature types),
-                    # make all entries the same highlight color.
-                    if hasattr(vobj, "DiffuseColor"):
-                        try:
-                            dc = list(vobj.DiffuseColor)
-                            if dc:
-                                vobj.DiffuseColor = [highlight_face] * len(dc)
-                        except Exception:
-                            pass
-
-                    # Thicken the outline if supported
-                    if hasattr(vobj, "LineWidth"):
-                        try:
-                            vobj.LineWidth = max(getattr(vobj, "LineWidth", 1.0), 3.0)
-                        except Exception:
-                            pass
-
+            parts: list[Part] = []
+            for obj in panel_objs:
+                try:
+                    w, h = self._get_obj_dimensions_mm(obj)
                 except Exception:
-                    # View styling is non-critical; ignore failures
                     continue
+                can_rotate = False
+                if hasattr(obj, "SquatchCutCanRotate"):
+                    try:
+                        can_rotate = bool(obj.SquatchCutCanRotate)
+                    except Exception:
+                        can_rotate = False
+                parts.append(Part(id=obj.Name, width=w, height=h, can_rotate=can_rotate))
+
+            if not parts:
+                App.Console.PrintMessage(
+                    ">>> [SquatchCut] RunNesting: no valid panel dimensions found\n"
+                )
+                return
+
+            try:
+                placed_parts = nest_on_multiple_sheets(
+                    parts,
+                    sheet_w,
+                    sheet_h,
+                    kerf_mm=kerf_mm,
+                    gap_mm=gap_mm,
+                )
+            except ValueError as e:
+                show_error(
+                    f"Nesting failed due to panel size constraints:\n\n{e}",
+                    title="SquatchCut Nesting Failed",
+                )
+                FreeCAD.Console.PrintError(f"[SquatchCut] Nesting failed: {e}\n")
+                return
+            except Exception as e:
+                show_error(
+                    f"An unexpected error occurred during nesting:\n\n{e}",
+                    title="SquatchCut Nesting Error",
+                )
+                FreeCAD.Console.PrintError(f"[SquatchCut] Unexpected nesting error: {e}\n")
+                return
+            set_last_layout(placed_parts)
+            if not placed_parts:
+                show_warning(
+                    "Nesting completed but no panels were placed.\n"
+                    "Check that your panel sizes and sheet size are valid."
+                )
+                FreeCAD.Console.PrintWarning("[SquatchCut] Nesting produced no placements.\n")
+                return
+
+            # Create sheet groups and place clones from placed_parts
+            sheet_groups = {}  # sheet_index -> (group, sheet_origin_x)
+            SHEET_MARGIN = sheet_w * 0.25  # space between sheets
+
+            for pp in placed_parts:
+                sheet_index = pp.sheet_index
+
+                # Create / fetch group for this sheet
+                if sheet_index not in sheet_groups:
+                    sheet_origin_x = sheet_index * (sheet_w + SHEET_MARGIN)
+                    group_name = f"Sheet_{sheet_index + 1}"
+                    group = doc.addObject("App::DocumentObjectGroup", group_name)
+
+                    # Optional boundary rectangle for the sheet
+                    try:
+                        import Draft
+                        rect = Draft.makeRectangle(length=sheet_w, height=sheet_h)
+                        rect.Label = f"{group_name}_Boundary"
+                        rect.Placement.Base.x = sheet_origin_x
+                        rect.Placement.Base.y = 0.0
+                        group.addObject(rect)
+                    except Exception:
+                        pass
+
+                    sheet_groups[sheet_index] = (group, sheet_origin_x)
+
+                sheet_group, sheet_origin_x = sheet_groups[sheet_index]
+
+                # Find original source object by id
+                src_obj = doc.getObject(pp.id)
+                if src_obj is None:
+                    FreeCAD.Console.PrintError(f"[SquatchCut] Object {pp.id} not found.\n")
+                    continue
+
+                # Clone into this sheet group
+                try:
+                    import Draft
+                    clone = Draft.clone(src_obj)
+                except Exception:
+                    clone = doc.copyObject(src_obj)
+
+                sheet_group.addObject(clone)
+
+                # Reset placement and set new coordinates
+                placement = clone.Placement
+                placement.Base.x = 0.0
+                placement.Base.y = 0.0
+                placement.Base.z = 0.0
+                try:
+                    rotation = FreeCAD.Rotation(FreeCAD.Vector(0, 0, 1), pp.rotation_deg)
+                except Exception:
+                    rotation = FreeCAD.Rotation()
+                placement.Rotation = rotation
+
+                placement.Base.x = sheet_origin_x + pp.x
+                placement.Base.y = pp.y
+                clone.Placement = placement
+
+                FreeCAD.Console.PrintMessage(
+                    f"[SquatchCut] Placed {pp.id} on sheet {sheet_index + 1} "
+                    f"at ({sheet_origin_x + pp.x:.1f}, {pp.y:.1f}) "
+                    f"size {pp.width:.1f} x {pp.height:.1f} mm\n"
+                )
 
             if doc is not None:
                 doc.recompute()
-
-            App.Console.PrintMessage(
-                f">>> [SquatchCut] RunNesting: placed {len(placed_objs)} panels on sheet {sheet_w} x {sheet_h} {getattr(sess, 'sheet_units', 'mm')}\n"
-            )
 
         except Exception as exc:
             App.Console.PrintError(
@@ -211,14 +307,197 @@ class RunNestingCommand:
                 f"An error occurred while running nesting:\n{exc}",
             )
         finally:
-            App.Console.PrintMessage(
-                ">>> [SquatchCut] RunNestingCommand.Activated() completed\n"
-            )
+            FreeCAD.Console.PrintMessage("[SquatchCut] RunNestingCommand.Activated() completed\n")
 
     def IsActive(self):
         # For now, always active.
         return True
 
+    # Helper methods wired into existing helpers/state -----------------
+
+    def _get_sheet_size_mm(self, session) -> tuple[float, float]:
+        """Return sheet size from SessionState or raise if missing."""
+        sheet_w = getattr(session, "sheet_width", None)
+        sheet_h = getattr(session, "sheet_height", None)
+        if not sheet_w or not sheet_h:
+            raise ValueError("sheet size not defined")
+        return float(sheet_w), float(sheet_h)
+
+    def _get_panel_objects(self, doc):
+        """Return a list of FreeCAD objects to be treated as rectangular panels."""
+        try:
+            sel = Gui.Selection.getSelection()
+            if sel:
+                all_flagged = [
+                    obj for obj in getattr(doc, "Objects", []) if getattr(obj, "SquatchCutPanel", False)
+                ]
+                if all_flagged and len(sel) < len(all_flagged):
+                    show_warning(
+                        f"{len(sel)} panel(s) selected, but {len(all_flagged)} are available.\n"
+                        "Only selected panels will be nested.",
+                        title="SquatchCut Nesting Selection",
+                    )
+                return sel
+        except Exception:
+            pass
+
+        panels = []
+        for obj in getattr(doc, "Objects", []):
+            try:
+                if hasattr(obj, "SquatchCutPanel") and bool(obj.SquatchCutPanel):
+                    panels.append(obj)
+            except Exception:
+                continue
+        return panels
+
+    def _get_obj_dimensions_mm(self, obj) -> tuple[float, float]:
+        """Given a panel object, return (width_mm, height_mm) using its bounding box."""
+        bb = obj.Shape.BoundBox
+        width = bb.XLength
+        height = bb.YLength
+        return float(width), float(height)
+
+    def _create_sheet_group(
+        self, doc, sheet_index: int, sheet_w: float, sheet_h: float, sheet_origin_x: float = 0.0
+    ):
+        """Create and return a Group to hold one sheet's panels."""
+        group_name = f"Sheet_{sheet_index + 1}"
+        group = doc.addObject("App::DocumentObjectGroup", group_name)
+
+        try:
+            import Draft
+
+            rect = Draft.makeRectangle(length=sheet_w, height=sheet_h)
+            rect.Label = f"{group_name}_Boundary"
+            rect.Placement.Base.x = sheet_origin_x
+            rect.Placement.Base.y = 0.0
+            group.addObject(rect)
+        except Exception:
+            pass
+
+        return group
+
+    def _clone_into_group(self, doc, src_obj, group):
+        """Clone src_obj into group and return the clone."""
+        try:
+            import Draft
+
+            clone = Draft.clone(src_obj)
+        except Exception:
+            clone = doc.copyObject(src_obj)
+        group.addObject(clone)
+        return clone
+
+
+# Toggle command to show/hide SourcePanels group
+class ToggleSourcePanelsCommand:
+    def GetResources(self):
+        return {
+            "Pixmap": ":/icons/Std_ToggleVisibility.svg",
+            "MenuText": "Toggle Source Panels",
+            "ToolTip": "Show or hide the original source panel objects",
+        }
+
+    def Activated(self):
+        doc = FreeCAD.ActiveDocument
+        if doc is None:
+            FreeCAD.Console.PrintError("[SquatchCut] No active document.\n")
+            return
+
+        group = doc.getObject("SourcePanels")
+        if group is None:
+            FreeCAD.Console.PrintMessage("[SquatchCut] No SourcePanels group exists.\n")
+            return
+
+        try:
+            group.ViewObject.Visibility = not group.ViewObject.Visibility
+            state = "shown" if group.ViewObject.Visibility else "hidden"
+            FreeCAD.Console.PrintMessage(
+                f"[SquatchCut] SourcePanels group {state}.\n"
+            )
+        except Exception as e:
+            FreeCAD.Console.PrintError(
+                f"[SquatchCut] Failed toggling SourcePanels: {e}\n"
+            )
+
+    def IsActive(self):
+        return FreeCAD.ActiveDocument is not None
+
+
+class ExportNestingCSVCommand:
+    def GetResources(self):
+        return {
+            "Pixmap": ":/icons/Spreadsheet_Export.svg",
+            "MenuText": "Export Nesting CSV",
+            "ToolTip": "Export the last SquatchCut nesting layout as a CSV file",
+        }
+
+    def Activated(self):
+        doc = FreeCAD.ActiveDocument
+        if doc is None:
+            FreeCAD.Console.PrintError("[SquatchCut] No active document for export.\n")
+            return
+
+        layout = get_last_layout()
+        if not layout:
+            show_info(
+                "There is no nesting layout to export.\n"
+                "Run the nesting command first, then try again.",
+                title="SquatchCut Export",
+            )
+            FreeCAD.Console.PrintMessage("[SquatchCut] No layout available for export.\n")
+            return
+
+        # Determine default path suggestion
+        if doc.FileName:
+            base, _ = os.path.splitext(doc.FileName)
+            default_path = base + "_squatchcut_nesting.csv"
+        else:
+            default_path = os.path.join(os.path.expanduser("~"), "squatchcut_nesting.csv")
+
+        # Ask user where to save
+        mw = FreeCADGui.getMainWindow()
+        filename, _ = QtWidgets.QFileDialog.getSaveFileName(
+            mw,
+            "Export SquatchCut Nesting CSV",
+            default_path,
+            "CSV Files (*.csv)"
+        )
+        if not filename:
+            show_info("Export canceled.", title="SquatchCut Export")
+            FreeCAD.Console.PrintMessage("[SquatchCut] Export canceled by user.\n")
+            return
+
+        try:
+            with open(filename, "w", encoding="utf-8") as f:
+                # Include rotation column
+                f.write("sheet_index,part_id,width_mm,height_mm,x_mm,y_mm,angle_deg\n")
+                for pp in layout:
+                    line = (
+                        f"{pp.sheet_index},{pp.id},"
+                        f"{pp.width:.3f},{pp.height:.3f},"
+                        f"{pp.x:.3f},{pp.y:.3f},{pp.rotation_deg}\n"
+                    )
+                    f.write(line)
+
+            FreeCAD.Console.PrintMessage(
+                f"[SquatchCut] Exported nesting CSV to: {filename}\n"
+            )
+        except Exception as e:
+            show_error(
+                f"Failed to export nesting CSV:\n\n{e}",
+                title="SquatchCut Export Error",
+            )
+            FreeCAD.Console.PrintError(
+                f"[SquatchCut] Failed to export nesting CSV: {e}\n"
+            )
+
+    def IsActive(self):
+        return FreeCAD.ActiveDocument is not None
+
+
+FreeCADGui.addCommand("SquatchCut_ToggleSourcePanels", ToggleSourcePanelsCommand())
+FreeCADGui.addCommand("SquatchCut_ExportNestingCSV", ExportNestingCSVCommand())
 
 # Exported command instance used by InitGui.py
 COMMAND = RunNestingCommand()

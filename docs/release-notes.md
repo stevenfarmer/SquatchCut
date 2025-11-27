@@ -1,5 +1,17 @@
 # Release Notes
 
+## Unreleased
+
+### Highlights
+- Per-part 0°/90° rotation support driven by optional `allow_rotate` CSV column and `SquatchCutCanRotate` property; defaults to no rotation when missing.
+- Separate kerf (between adjacent parts) and gap/halo (around parts and sheet edges) controls passed into nesting.
+- New Export Nesting CSV command with a save dialog; exports sheet index, part id, true dimensions, x/y, and angle without inflating sizes.
+- Hardened CSV import with required-column validation, per-row skipping with warnings, and user-facing error dialogs.
+
+### Notes
+- `allow_rotate` is optional; omitting the column keeps rotation disabled for all parts.
+- Kerf applies only between parts; gap pushes parts away from sheet edges.
+
 ## v0.1.0 — First prototype release
 
 ### Highlights

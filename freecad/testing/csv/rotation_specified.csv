@@ -1,0 +1,8 @@
+id,width,height,grain_direction,allow_rotate
+A,300,800,none,1
+B,400,600,none,0
+C,600,300,vertical,1
+D,200,900,none,1
+E,900,200,horizontal,0
+F,500,700,vertical,1
+G,700,500,none,0

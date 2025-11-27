@@ -6,6 +6,13 @@ All real state now lives on SquatchCut.core.session.SESSION.
 This module just forwards to that singleton.
 """
 
+from typing import Any, List
+
+try:
+    from SquatchCut.core.nesting import PlacedPart
+except Exception:  # pragma: no cover - fallback for environments without the module
+    PlacedPart = Any
+
 from . import session as _session
 
 
@@ -44,6 +51,11 @@ class SessionState:
         self._backend.sheet_width = w
         self._backend.sheet_height = h
         self._backend.sheet_units = units or "mm"
+
+
+def get_sheet_size() -> tuple[float | None, float | None]:
+    """Return (sheet_width, sheet_height) from the session backend."""
+    return getattr(SESSION, "sheet_width", None), getattr(SESSION, "sheet_height", None)
 
 
 # Global session object used across commands
@@ -98,3 +110,43 @@ def set_last_report_data(data: dict | None) -> None:
 def get_last_report_data() -> dict | None:
     """Return the last generated report payload, if any."""
     return getattr(SESSION, "last_report_data", None)
+
+
+_last_layout: List[PlacedPart] = []
+
+_kerf_mm = 0.0
+_gap_mm = 0.0
+
+
+def set_last_layout(layout: List[PlacedPart]) -> None:
+    """Store the last computed nesting layout."""
+    global _last_layout
+    # make a shallow copy so callers can reuse their list safely
+    _last_layout = list(layout)
+
+
+def get_last_layout() -> List[PlacedPart]:
+    """Return a copy of the last nesting layout, or an empty list if none."""
+    return list(_last_layout)
+
+
+def set_kerf_mm(value: float) -> None:
+    """Set kerf spacing (mm) applied between adjacent parts."""
+    global _kerf_mm
+    _kerf_mm = float(value)
+
+
+def get_kerf_mm() -> float:
+    """Return kerf spacing (mm)."""
+    return float(_kerf_mm)
+
+
+def set_gap_mm(value: float) -> None:
+    """Set gap/halo spacing (mm) applied around parts (and sheet edges)."""
+    global _gap_mm
+    _gap_mm = float(value)
+
+
+def get_gap_mm() -> float:
+    """Return gap/halo spacing (mm)."""
+    return float(_gap_mm)

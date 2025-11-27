@@ -51,6 +51,8 @@ class SquatchCutWorkbench(Gui.Workbench):
             "SquatchCut_AddShapes",
             "SquatchCut_SetSheetSize",
             "SquatchCut_RunNesting",
+            "SquatchCut_ToggleSourcePanels",
+            "SquatchCut_ExportNestingCSV",
             "SquatchCut_ExportReport",
             "SquatchCut_Preferences",
         ]
@@ -59,6 +61,8 @@ class SquatchCutWorkbench(Gui.Workbench):
         Gui.addCommand("SquatchCut_AddShapes", cmd_add_shapes.COMMAND)
         Gui.addCommand("SquatchCut_SetSheetSize", cmd_set_sheet_size.COMMAND)
         Gui.addCommand("SquatchCut_RunNesting", cmd_run_nesting.COMMAND)
+        Gui.addCommand("SquatchCut_ToggleSourcePanels", cmd_run_nesting.ToggleSourcePanelsCommand())
+        Gui.addCommand("SquatchCut_ExportNestingCSV", cmd_run_nesting.ExportNestingCSVCommand())
         Gui.addCommand("SquatchCut_ExportReport", cmd_export_report.COMMAND)
         Gui.addCommand("SquatchCut_Preferences", cmd_preferences.COMMAND)
 
