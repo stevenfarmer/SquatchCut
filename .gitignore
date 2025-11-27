@@ -1,0 +1,23 @@
+# Python
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+
+# FreeCAD temp/cache
+*.FCStd1
+*.FCBak
+*.FCStd~
+*.FCStd#
+*.FCStd##
+*.tmp
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# Build output
+dist/
+build/

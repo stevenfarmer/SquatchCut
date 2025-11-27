@@ -1,0 +1,8 @@
+id,width,height,grain_direction
+P1,600,400,none
+P2,800,500,none
+P3,300,300,vertical
+P4,1200,600,horizontal
+P5,500,700,vertical
+P6,400,200,none
+P7,900,400,horizontal

@@ -1,0 +1,11 @@
+id,width,height,grain_direction,extra_col
+P_good_1,500,300,none,foo
+,600,400,vertical,missing_id
+P_bad_width,abc,200,none,bad_width
+P_bad_height,400,-50,vertical,bad_height
+P_good_2,300,300,horizontal,ok
+,,,
+P_good_3,250,200,none,extra
+P_missing_height,200,,none,missing_height
+P_negative, -100,100,none,negative_width
+P_good_4,150,120,vertical,ok

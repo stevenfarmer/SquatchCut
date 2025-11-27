@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package format="1">
+  <name>SquatchCut</name>
+  <description>
+    SquatchCut is a nesting workbench for FreeCAD focused on sheet goods
+    (plywood, MDF, etc.). It extracts rectangles from the active document
+    or CSV, optimizes layouts across multiple sheets, and generates
+    2D cut plans plus exportable reports.
+  </description>
+
+  <!-- Replace with your actual name / handle -->
+  <maintainer email="squatchcut@nowhere.invalid">via GitHub Issues</maintainer>
+
+  <!-- Replace with your real repo URL -->
+  <url type="repository">https://github.com/stevenfarmer/SquatchCut</url>
+  <url type="bugtracker">https://github.com/stevenfarmer/SquatchCut/issues</url>
+  <url type="documentation">https://stevenfarmer.github.io/SquatchCut/</url>
+
+  <version>0.1.0</version>
+  <license>MIT</license>
+
+  <tagline>Cryptid-powered sheet nesting for wood nerds.</tagline>
+  <icon>resources/icons/squatchcut.svg</icon>
+
+  <freecad>
+    <version_min>0.21</version_min>
+  </freecad>
+
+  <content>
+    <workbench>SquatchCut</workbench>
+  </content>
+
+  <tags>
+    <tag>nesting</tag>
+    <tag>woodworking</tag>
+    <tag>sheet-goods</tag>
+    <tag>FreeCAD</tag>
+  </tags>
+</package>

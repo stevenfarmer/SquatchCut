@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Add Shapes</title>
+  <g fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="10" y="14" width="28" height="24" rx="2" ry="2"/>
+    <path d="M44 32h14M51 25v14"/>
+  </g>
+</svg>

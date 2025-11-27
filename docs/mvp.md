@@ -1,4 +1,4 @@
-# SquatchCut — MVP Scope Document
+# MVP Scope
 
 FreeCAD Nesting Workbench
 Version: MVP Specification

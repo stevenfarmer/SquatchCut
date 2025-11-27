@@ -1,0 +1,85 @@
+"""FreeCAD command to export nesting reports after a run completes."""
+
+from __future__ import annotations
+
+"""@codex
+Command: Export PDF/CSV nesting reports.
+Interactions: Should use SC_ExportReportDialog and call core report_generator outputs.
+Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
+"""
+
+# Qt bindings (FreeCAD ships PySide / PySide2, not PySide6)
+try:
+    from PySide import QtWidgets, QtCore, QtGui
+except ImportError:
+    from PySide2 import QtWidgets, QtCore, QtGui
+
+import os
+
+import FreeCAD as App  # type: ignore
+
+from ...core.report_generator import ReportGenerator
+from ...core import session_state
+from ..dialogs.dlg_export_report import SC_ExportReportDialog
+
+ICONS_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),  # .../freecad/SquatchCut
+    "resources",
+    "icons",
+)
+
+
+class SC_ExportReportCommand:
+    """Export PDF/CSV reports after nesting."""
+
+    COMMAND_NAME = "SC_ExportReport"
+
+    def GetResources(self):  # noqa: N802  (FreeCAD API)
+        return {
+            "MenuText": "Export Report",
+            "ToolTip": "Export nesting results to PDF and CSV.",
+            "Pixmap": os.path.join(ICONS_DIR, "export_report.svg"),
+        }
+
+    def Activated(self):  # noqa: N802  (FreeCAD API)
+        report_data = session_state.get_last_report_data()
+        if not report_data:
+            QtWidgets.QMessageBox.information(
+                None, "SquatchCut", "No nesting results available. Run nesting first."
+            )
+            return
+
+        dialog = SC_ExportReportDialog()
+        if dialog.exec() != QtWidgets.QDialog.Accepted:
+            return
+        data = dialog.get_data()
+        directory = data.get("directory") or ""
+        if not directory:
+            QtWidgets.QMessageBox.information(
+                None, "SquatchCut", "Please select an export directory."
+            )
+            return
+
+        pdf_path = os.path.join(directory, "squatchcut_nesting_report.pdf")
+        csv_path = os.path.join(directory, "squatchcut_nesting_report.csv")
+
+        generator = ReportGenerator()
+        try:
+            generator.generate_pdf(report_data, pdf_path)
+            if data.get("generate_csv") or data.get("include_csv"):
+                generator.generate_csv(report_data, csv_path)
+        except Exception as exc:
+            QtWidgets.QMessageBox.critical(
+                None, "SquatchCut", f"Export failed:\n{exc}"
+            )
+            return
+
+        QtWidgets.QMessageBox.information(
+            None, "SquatchCut", f"Report exported to:\n{pdf_path}"
+        )
+
+    def IsActive(self):  # noqa: N802  (FreeCAD API)
+        return App.ActiveDocument is not None
+
+
+COMMAND = SC_ExportReportCommand()

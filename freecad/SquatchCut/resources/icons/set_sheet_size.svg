@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>Set Sheet Size</title>
+  <g fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="12" y="14" width="40" height="30" rx="2" ry="2"/>
+    <path d="M22 48h20M22 48l4-4M22 48l4 4M42 48l-4-4M42 48l-4 4"/>
+    <path d="M56 24v12M56 24l-4 4M56 24l4 4M56 36l-4-4M56 36l4-4"/>
+  </g>
+</svg>

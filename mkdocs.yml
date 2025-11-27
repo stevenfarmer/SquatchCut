@@ -1,0 +1,36 @@
+site_name: "SquatchCut"
+site_description: "A cryptid-powered nesting workbench for FreeCAD."
+# site_url:
+repo_url: "https://github.com/<YOUR_GITHUB_USERNAME>/SquatchCut"
+repo_name: "SquatchCut"
+theme:
+  name: "material"
+  features:
+    - navigation.sections
+    - navigation.instant
+    - content.code.copy
+  palette:
+    - scheme: slate
+      primary: "deep purple"
+      accent: "orange"
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Basic Workflow: getting-started/workflow.md
+  - User Guide:
+      - Commands & Tools: user/commands.md
+      - CSV & TS Tools: user/csv_and_ts_tools.md
+  - Developer Guide:
+      - Architecture Overview: architecture.md
+      - MVP Scope: mvp.md
+      - Codex Workflows: codex_workflows.md
+  - Testing: dev/testing.md
+docs_dir: "docs"
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - tables
+  - fenced_code
+  - codehilite
