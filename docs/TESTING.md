@@ -11,7 +11,7 @@ It is written assuming:
 
 ## 1. Core Tests (No FreeCAD Required)
 
-These tests cover the pure Python core logic under `SquatchCut/core`:
+These tests cover the pure Python core logic under `freecad/SquatchCut/core` (imported as `SquatchCut.core`):
 - Nesting algorithm (no overlaps, rotation, multiple sheets).
 - Session state storage (sheet size, kerf, gap, last layout).
 
@@ -38,10 +38,10 @@ From the repository root:
 pytest -v
 ```
 
-Or with coverage:
+Or with coverage (core modules exercised by the unit tests):
 
 ```
-pytest --cov=SquatchCut/core --cov-report=term-missing -v
+pytest --cov=SquatchCut.core.nesting --cov=SquatchCut.core.session_state --cov-report=term-missing -v
 ```
 
 Expected results:

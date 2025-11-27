@@ -28,4 +28,4 @@ jobs:
         env:
           PYTHONPATH: freecad
         run: |
-          pytest --cov=SquatchCut/core --cov-report=term-missing --cov-fail-under=80
+          pytest --cov=SquatchCut.core.nesting --cov=SquatchCut.core.session_state --cov-report=term-missing --cov-fail-under=80

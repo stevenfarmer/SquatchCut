@@ -209,7 +209,7 @@ pytest
 With coverage:
 
 ```
-pytest --cov=SquatchCut/core --cov-report=term-missing
+pytest --cov=SquatchCut.core.nesting --cov=SquatchCut.core.session_state --cov-report=term-missing
 ```
 
 ## Testing

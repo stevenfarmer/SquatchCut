@@ -2,7 +2,14 @@
 Tests for the core nesting algorithm (overlaps, rotation, multi-sheet behavior).
 """
 
-from SquatchCut.core.nesting import Part, PlacedPart, nest_on_multiple_sheets
+import pytest
+
+from SquatchCut.core.nesting import (
+    Part,
+    PlacedPart,
+    nest_on_multiple_sheets,
+    run_shelf_nesting,
+)
 
 
 def _rects_overlap(a: PlacedPart, b: PlacedPart) -> bool:
@@ -101,3 +108,44 @@ def test_nesting_rotation_flag_preserved():
     assert rot_ok.rotation_deg in (0, 90)
     # rot_no must never be rotated by the algorithm
     assert rot_no.rotation_deg == 0
+
+
+def test_nesting_rejects_unfittable_part():
+    """Parts that cannot fit a sheet in any orientation should raise ValueError."""
+    too_big = Part(id="huge", width=5000, height=5000, can_rotate=False)
+    with pytest.raises(ValueError):
+        nest_on_multiple_sheets([too_big], sheet_width=1000, sheet_height=1000)
+
+
+def test_run_shelf_nesting_handles_empty_and_invalid():
+    """run_shelf_nesting should filter bad input and expand quantities."""
+    assert run_shelf_nesting(200, 200, None) == []
+
+    panels = [
+        {"width": 500, "height": 500},        # too large for usable area → skipped
+        {"width": "oops", "height": 50},  # parsing fails → skipped
+        {"width": 0, "height": 10},         # zero dims → skipped
+        {"width": 10, "height": -1},        # negative dims → skipped
+        {"width": 50, "height": 50, "qty": 2},
+    ]
+
+    placements = run_shelf_nesting(200, 200, panels, margin=5)
+    assert len(placements) == 2
+    assert placements[0]["panel_index"] == len(panels) - 1
+    assert placements[0]["instance_index"] == 0
+    assert placements[1]["instance_index"] == 1
+
+
+def test_run_shelf_nesting_wraps_rows_and_stops_on_height_limit():
+    """Ensure row wrapping occurs and stops when height is exceeded."""
+    panels = [
+        {"width": 120, "height": 140},
+        {"width": 150, "height": 60},
+        {"width": 200, "height": 60},  # forces wrap, then triggers height stop
+    ]
+
+    placements = run_shelf_nesting(260, 200, panels, margin=10)
+
+    # Only the first should place; wrap on second triggers height stop for the rest
+    assert len(placements) == 1
+    assert placements[0]["y"] == 10  # first row at top margin

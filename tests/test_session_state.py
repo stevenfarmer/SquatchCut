@@ -11,6 +11,12 @@ from SquatchCut.core.session_state import (
     get_gap_mm,
     set_last_layout,
     get_last_layout,
+    set_default_allow_rotate,
+    get_default_allow_rotate,
+    set_panels,
+    add_panels,
+    get_panels,
+    clear_panels,
 )
 from SquatchCut.core.nesting import PlacedPart
 
@@ -48,3 +54,34 @@ def test_last_layout_roundtrip_is_copy():
     assert got[0].id == "p1"
     # But list should be a copy, not the same reference
     assert got is not layout
+
+
+def test_last_layout_none_returns_none():
+    set_last_layout(None)
+    assert get_last_layout() is None
+
+
+def test_default_allow_rotate_roundtrip():
+    set_default_allow_rotate(True)
+    assert get_default_allow_rotate() is True
+    set_default_allow_rotate(False)
+    assert get_default_allow_rotate() is False
+
+
+def test_panels_set_add_clear_are_copied():
+    clear_panels()
+
+    set_panels([{"id": "a"}])
+    initial = get_panels()
+
+    # Mutating the returned list should not affect stored panels
+    initial.append({"id": "mutate"})
+    assert get_panels() == [{"id": "a"}]
+
+    add_panels(None)
+    add_panels([])
+    add_panels([{"id": "b"}])
+    assert get_panels() == [{"id": "a"}, {"id": "b"}]
+
+    clear_panels()
+    assert get_panels() == []
