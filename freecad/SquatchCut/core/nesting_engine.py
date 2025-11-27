@@ -7,7 +7,6 @@ Note: Update incrementally; do not overwrite this module when adding logic.
 
 from __future__ import annotations
 
-import math
 
 
 class NestingEngine:

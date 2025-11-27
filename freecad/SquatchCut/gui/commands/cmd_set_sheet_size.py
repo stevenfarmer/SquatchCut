@@ -12,17 +12,17 @@ Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 try:
     from PySide import QtWidgets, QtCore, QtGui
 except ImportError:
-    from PySide2 import QtWidgets, QtCore, QtGui
+    from PySide2 import QtWidgets
 
 import os
 import FreeCAD as App  # type: ignore
-import FreeCADGui as Gui  # type: ignore
 
 try:
-    from SquatchCut.core import session_state  # type: ignore
+    from SquatchCut.core import session, session_state  # type: ignore
     from SquatchCut.gui.dialogs.dlg_sheet_size import SC_SheetSizeDialog  # type: ignore
 except Exception:
     import SquatchCut.core.session_state as session_state  # type: ignore
+    import SquatchCut.core.session as session  # type: ignore
     from SquatchCut.gui.dialogs.dlg_sheet_size import SC_SheetSizeDialog  # type: ignore
 
 ICONS_DIR = os.path.join(
@@ -59,20 +59,20 @@ class SC_SetSheetSizeCommand:
 
             width, height, units = dialog.get_values()
 
-            sess = getattr(session_state, "SESSION", None)
-            if not sess:
-                raise RuntimeError("SESSION singleton not available in session_state")
-
-            sess.set_sheet_size(width, height, units)
+            doc = App.ActiveDocument
+            if doc is None:
+                doc = App.newDocument("SquatchCut")
+            session_state.set_sheet_size(width, height)
+            session.sync_doc_from_state(doc)
 
             App.Console.PrintMessage(
-                f">>> [SquatchCut] SetSheetSize: updated to {sess.sheet_width} x {sess.sheet_height} {sess.sheet_units}\n"
+                f">>> [SquatchCut] SetSheetSize: updated to {width} x {height} {units}\n"
             )
 
             QtWidgets.QMessageBox.information(
                 None,
                 "SquatchCut",
-                f"Sheet size saved: {sess.sheet_width} x {sess.sheet_height} ({sess.sheet_units}).",
+                f"Sheet size saved: {width} x {height} ({units}).",
             )
         except Exception as exc:
             App.Console.PrintError(

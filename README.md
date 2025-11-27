@@ -192,6 +192,98 @@ Run validator:
 npx squatchcut-csv path/to/panels.csv
 ```
 
+## Running Tests
+
+Install dev dependencies:
+
+```
+pip install -r requirements-dev.txt
+```
+
+Run tests:
+
+```
+pytest
+```
+
+With coverage:
+
+```
+pytest --cov=SquatchCut/core --cov-report=term-missing
+```
+
+## Testing
+
+For detailed instructions on how to run core tests, FreeCAD integration tests,
+and manual QA checks, see:
+
+```
+docs/TESTING.md
+```
+
+### Pre-commit Hooks
+
+To automatically run syntax checks and linting before each commit:
+
+1. Install dev dependencies (once):
+
+   ```
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements-dev.txt
+   ```
+
+2. Install pre-commit hooks (once):
+
+   ```
+   pre-commit install
+   ```
+
+After this, every `git commit` will automatically:
+- Run `check-ast` to catch Python syntax/indent errors.
+- Run `ruff` on the SquatchCut source and tests.
+
+You can also run all checks manually with:
+
+```
+npm run check
+```
+
+## Integration Tests (FreeCAD-based)
+
+In addition to the core Python tests, SquatchCut provides integration tests
+that run inside FreeCAD and exercise the actual workbench commands.
+
+1. Ensure your SquatchCut workbench is installed in a location FreeCAD can see
+   (for example `~/.FreeCAD/Mod/SquatchCut`).
+
+2. Make sure `pytest` is installed in the Python environment used by FreeCAD.
+   You can usually install it by running:
+
+   ```
+   FreeCADCmd -c "import sys, subprocess; subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'pytest'])"
+   ```
+
+3. From the SquatchCut repository root, run:
+
+   ```
+   FreeCADCmd -c "import run_freecad_tests"
+   ```
+
+   This will run all tests in `tests_integration/`.
+
+   On macOS with the official FreeCAD .app, `FreeCADCmd` is typically located at:
+
+   ```
+   /Applications/FreeCAD.app/Contents/MacOS/FreeCADCmd
+   ```
+
+   So you can run:
+
+   ```
+   /Applications/FreeCAD.app/Contents/MacOS/FreeCADCmd -c "import run_freecad_tests"
+   ```
+
 ---
 
 ## 🤝 Contributing

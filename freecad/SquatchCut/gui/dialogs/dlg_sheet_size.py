@@ -12,7 +12,7 @@ Note: UI only; do not implement business logic here.
 try:
     from PySide import QtWidgets, QtCore, QtGui
 except ImportError:
-    from PySide2 import QtWidgets, QtCore, QtGui
+    from PySide2 import QtWidgets
 
 
 class SC_SheetSizeDialog(QtWidgets.QDialog):

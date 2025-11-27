@@ -12,7 +12,7 @@ Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 try:
     from PySide import QtWidgets, QtCore, QtGui
 except ImportError:
-    from PySide2 import QtWidgets, QtCore, QtGui
+    from PySide2 import QtWidgets
 
 import os
 

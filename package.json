@@ -1,0 +1,13 @@
+{
+  "name": "squatchcut-dev-tools",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test:core": ".venv/bin/pytest",
+    "test:core:cov": ".venv/bin/pytest --cov=SquatchCut/core --cov-report=term-missing",
+    "test:freecad": "sh ./run-freecad-tests.sh",
+    "test:syntax": "python -m compileall .",
+    "lint": "ruff check freecad/SquatchCut tests tests_integration",
+    "check": "npm run test:syntax && npm run lint && npm run test:core"
+  }
+}

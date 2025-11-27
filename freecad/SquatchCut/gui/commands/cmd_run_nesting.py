@@ -17,26 +17,13 @@ try:
 except Exception:
     Part = None
 
-# Qt imports (for message boxes)
-try:
-    from PySide import QtWidgets, QtCore, QtGui  # type: ignore
-except ImportError:
-    from PySide2 import QtWidgets, QtCore, QtGui  # type: ignore
-
-try:
-    from SquatchCut.core import session_state as ss  # type: ignore
-    from SquatchCut.core.nesting import Part, nest_on_multiple_sheets  # type: ignore
-except Exception:
-    import SquatchCut.core.session_state as ss  # type: ignore
-    from SquatchCut.core.nesting import Part, nest_on_multiple_sheets  # type: ignore
-
+from SquatchCut.core import session
+from SquatchCut.core.nesting import Part, nest_on_multiple_sheets  # type: ignore
 from SquatchCut.core.session_state import (
     get_gap_mm,
     get_kerf_mm,
     get_last_layout,
     get_sheet_size,
-    set_gap_mm,
-    set_kerf_mm,
     set_last_layout,
 )
 from SquatchCut.ui.messages import show_error, show_info, show_warning
@@ -47,14 +34,13 @@ class RunNestingCommand:
     SquatchCut - Run Nesting command.
 
     Uses:
-        - session_state.SESSION.panels
-        - session_state.SESSION.sheet_width / sheet_height / sheet_units
+        - session_state for sheet width / sheet height / kerf / gap
 
     Steps:
         1) Validate prerequisites.
         2) Call nesting_engine.compute_layout(...).
         3) Create geometry via geometry_output.create_geometry_from_layout(...).
-        4) Store layout in SESSION.last_layout (if available).
+        4) Store layout in session_state.
     """
 
     def GetResources(self):
@@ -66,63 +52,24 @@ class RunNestingCommand:
 
     def Activated(self):
         try:
-            sess = getattr(ss, "SESSION", None)
-            if sess is None:
-                App.Console.PrintError(
-                    ">>> [SquatchCut] RunNesting: session not available\n"
-                )
-                return
-
             doc = App.ActiveDocument
             if doc is None:
                 App.Console.PrintMessage(">>> [SquatchCut] RunNesting: no active document\n")
                 return
 
+            # Sync session_state from document properties
             try:
-                sheet_w, sheet_h = self._get_sheet_size_mm(sess)
-            except Exception as e:
-                App.Console.PrintError(f">>> [SquatchCut] Cannot read sheet size: {e}\n")
-                return
-            # Ensure document has kerf/gap settings and sync to session
-            if not hasattr(doc, "SquatchCutKerfMM"):
-                try:
-                    doc.addObject("App::FeaturePython", "SquatchCutSettings")
-                except Exception:
-                    pass
-                try:
-                    if not hasattr(doc, "SquatchCutKerfMM"):
-                        doc.addProperty(
-                            "App::PropertyFloat",
-                            "SquatchCutKerfMM",
-                            "SquatchCut",
-                            "Kerf spacing between adjacent parts (mm)",
-                        )
-                        doc.SquatchCutKerfMM = 0.0
-                except Exception:
-                    try:
-                        doc.SquatchCutKerfMM = 0.0
-                    except Exception:
-                        pass
-                try:
-                    if not hasattr(doc, "SquatchCutGapMM"):
-                        doc.addProperty(
-                            "App::PropertyFloat",
-                            "SquatchCutGapMM",
-                            "SquatchCut",
-                            "Gap/halo spacing around parts (mm)",
-                        )
-                        doc.SquatchCutGapMM = 0.0
-                except Exception:
-                    try:
-                        doc.SquatchCutGapMM = 0.0
-                    except Exception:
-                        pass
-
-            try:
-                set_kerf_mm(getattr(doc, "SquatchCutKerfMM", 0.0))
-                set_gap_mm(getattr(doc, "SquatchCutGapMM", 0.0))
+                session.sync_state_from_doc(doc)
             except Exception:
                 pass
+
+            try:
+                sheet_w, sheet_h = get_sheet_size()
+            except Exception:
+                sheet_w = sheet_h = None
+            if not sheet_w or not sheet_h:
+                App.Console.PrintError(">>> [SquatchCut] Cannot read sheet size from session_state.\n")
+                return
 
             kerf_mm = get_kerf_mm()
             gap_mm = get_gap_mm()
@@ -203,8 +150,6 @@ class RunNestingCommand:
                     parts,
                     sheet_w,
                     sheet_h,
-                    kerf_mm=kerf_mm,
-                    gap_mm=gap_mm,
                 )
             except ValueError as e:
                 show_error(
@@ -295,6 +240,9 @@ class RunNestingCommand:
 
             if doc is not None:
                 doc.recompute()
+                FreeCAD.Console.PrintMessage(
+                    f"[SquatchCut] Nesting complete: {len(placed_parts)} parts across {len(sheet_groups)} sheet(s).\n"
+                )
 
         except Exception as exc:
             App.Console.PrintError(
@@ -427,7 +375,7 @@ class ToggleSourcePanelsCommand:
 class ExportNestingCSVCommand:
     def GetResources(self):
         return {
-            "Pixmap": ":/icons/Spreadsheet_Export.svg",
+            "Pixmap": ":/icons/Std_Export.svg",
             "MenuText": "Export Nesting CSV",
             "ToolTip": "Export the last SquatchCut nesting layout as a CSV file",
         }
@@ -481,7 +429,7 @@ class ExportNestingCSVCommand:
                     f.write(line)
 
             FreeCAD.Console.PrintMessage(
-                f"[SquatchCut] Exported nesting CSV to: {filename}\n"
+                f"[SquatchCut] Exported nesting CSV with {len(layout)} rows to: {filename}\n"
             )
         except Exception as e:
             show_error(

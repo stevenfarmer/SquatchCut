@@ -150,15 +150,20 @@ def load_csv(path: str) -> list[dict]:
 
                     label = str(row.get("label", "") or "").strip()
                     material = str(row.get("material", "") or "").strip()
+                    from SquatchCut.core.session_state import get_default_allow_rotate
+
                     allow_raw = None
                     if "allow_rotate" in headers:
                         allow_raw = row.get("allow_rotate", "")
-                    allow_rotate = str(allow_raw).strip().lower() in (
-                        "1",
-                        "true",
-                        "yes",
-                        "y",
-                    )
+                    if allow_raw is None or str(allow_raw).strip() == "":
+                        allow_rotate = get_default_allow_rotate()
+                    else:
+                        allow_rotate = str(allow_raw).strip().lower() in (
+                            "1",
+                            "true",
+                            "yes",
+                            "y",
+                        )
 
                     panels.append(
                         {
@@ -175,7 +180,7 @@ def load_csv(path: str) -> list[dict]:
                         f">>> [SquatchCut] load_csv: skipping row {idx} due to error: {exc}\n"
                     )
                     continue
-    except FileNotFoundError as exc:
+    except FileNotFoundError:
         App.Console.PrintError(f">>> [SquatchCut] load_csv: file not found: {path}\n")
         raise
     except Exception:

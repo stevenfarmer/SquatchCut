@@ -12,7 +12,7 @@ Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 try:
     from PySide import QtWidgets, QtCore, QtGui
 except ImportError:
-    from PySide2 import QtWidgets, QtCore, QtGui
+    from PySide2 import QtWidgets
 
 import os
 
@@ -20,13 +20,8 @@ import FreeCAD as App
 import FreeCADGui as Gui
 import Part
 
-try:
-    import SquatchCut.core.session as session
-except ImportError:
-    # Fallback for older or alternate layout
-    from SquatchCut.core import session_state as session  # type: ignore
+from SquatchCut.core import session_state
 
-from typing import Optional, List
 
 ICONS_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(__file__))),  # .../freecad/SquatchCut
@@ -46,14 +41,8 @@ class AddShapesCommand:
         }
 
     def Activated(self):
-        sess = getattr(session, "SESSION", None)
-        if sess is None:
-            App.Console.PrintError(
-                "[SquatchCut] SESSION object not available in session module.\n"
-            )
-            return
-
-        if not getattr(sess, "panels", []):
+        panels = session_state.get_panels()
+        if not panels:
             App.Console.PrintError("[SquatchCut] No panels loaded. Import CSV first.\n")
             QtWidgets.QMessageBox.warning(
                 None, "SquatchCut", "No panels loaded. Import CSV first."
@@ -67,7 +56,7 @@ class AddShapesCommand:
         shapes_per_row = 5
         count = 0
 
-        for panel in getattr(sess, "panels", []):
+        for panel in panels:
             width = float(panel.get("width", 0) or 0)
             height = float(panel.get("height", 0) or 0)
             qty = int(panel.get("qty", 1) or 1)
@@ -135,9 +124,6 @@ class AddShapesCommand:
                 y_offset = row * (height + 5)
                 obj.Placement.Base = App.Vector(x_offset, y_offset, 0)
 
-                if not hasattr(sess, "shapes"):
-                    sess.shapes = []
-                sess.shapes.append(obj)
                 count += 1
 
         App.Console.PrintMessage(f"[SquatchCut] Added {count} shapes to document.\n")

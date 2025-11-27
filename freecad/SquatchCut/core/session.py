@@ -1,111 +1,182 @@
-"""@codex
-Central SquatchCut session state (in-memory only for current FreeCAD session).
-Pure data container; no GUI code here.
-"""
-
+# @codex
+# File: freecad/SquatchCut/core/session.py
+# Summary: FreeCAD-aware adapter syncing document properties into session_state.
+# Details:
+#   - Ensures sheet size, kerf/gap, and default rotation flags mirror doc properties.
+#   - Provides helpers to sync state to/from the active FreeCAD document.
 from __future__ import annotations
 
-from typing import Any
+import FreeCADGui as Gui  # noqa: F401
 
-import FreeCAD as App
+from SquatchCut.core import session_state
 
 
-class SquatchCutSession:
+def update_sheet_size_from_doc(doc):
+    """Read sheet size from document properties into session_state."""
+    try:
+        w = float(getattr(doc, "SquatchCutSheetWidth"))
+        h = float(getattr(doc, "SquatchCutSheetHeight"))
+        session_state.set_sheet_size(w, h)
+    except Exception:
+        pass
+
+
+def update_kerf_gap_from_doc(doc):
+    """Read kerf/gap from document properties into session_state."""
+    try:
+        session_state.set_kerf_mm(float(getattr(doc, "SquatchCutKerfMM")))
+    except Exception:
+        pass
+    try:
+        session_state.set_gap_mm(float(getattr(doc, "SquatchCutGapMM")))
+    except Exception:
+        pass
+    try:
+        session_state.set_default_allow_rotate(bool(getattr(doc, "SquatchCutDefaultAllowRotate")))
+    except Exception:
+        pass
+
+
+def push_last_layout_to_state(layout):
+    """Push last layout into session_state."""
+    session_state.set_last_layout(layout)
+
+
+def set_sheet_properties(doc, width, height, units="mm"):
+    """Helper to set sheet size on doc and mirror into session_state."""
+    try:
+        doc.SquatchCutSheetWidth = float(width)
+        doc.SquatchCutSheetHeight = float(height)
+        session_state.set_sheet_size(float(width), float(height))
+    except Exception:
+        pass
+    try:
+        doc.SquatchCutSheetUnits = units or "mm"
+    except Exception:
+        pass
+    # Also mirror current kerf/gap/default rotate into doc
+    try:
+        doc.SquatchCutKerfMM = float(session_state.get_kerf_mm())
+    except Exception:
+        pass
+    try:
+        doc.SquatchCutGapMM = float(session_state.get_gap_mm())
+    except Exception:
+        pass
+    try:
+        doc.SquatchCutDefaultAllowRotate = bool(session_state.get_default_allow_rotate())
+    except Exception:
+        pass
+
+
+def ensure_doc_settings(doc):
     """
-    Shared in-memory state for SquatchCut commands and workflows.
+    Ensure the active document has the SquatchCut settings properties.
     """
-
-    def __init__(self) -> None:
-        self.panels: list[dict] = []
-        self.sheets: list[dict] = []
-        self.shapes: list[Any] = []
-        self.active_csv_path: str | None = None
-        self.last_nesting_result: Any | None = None
-        self.last_layout: Any | None = None
-        self.sheet_width: float | None = None
-        self.sheet_height: float | None = None
-        self.sheet_units: str = "mm"
-
-    def load_csv_panels(self, panels_list: list[dict], csv_path: str | None = None) -> None:
-        """
-        Replace current panels with those loaded from CSV.
-        """
-        self.panels = list(panels_list or [])
-        self.active_csv_path = csv_path
-        App.Console.PrintMessage(
-            f">>> [SquatchCut] Loaded {len(self.panels)} panels from CSV\n"
-        )
-
-    def clear_panels(self) -> None:
-        """
-        Clear only panel data.
-        """
-        self.panels.clear()
-        self.active_csv_path = None
-        App.Console.PrintMessage(">>> [SquatchCut] Cleared panels\n")
-
-    def clear_all(self) -> None:
-        """
-        Reset all session state fields.
-        """
-        self.panels.clear()
-        self.sheets.clear()
-        self.shapes.clear()
-        self.active_csv_path = None
-        self.last_nesting_result = None
-        self.last_layout = None
-        self.sheet_width = None
-        self.sheet_height = None
-        self.sheet_units = "mm"
-        App.Console.PrintMessage(">>> [SquatchCut] Cleared entire session\n")
-
-    def set_last_layout(self, layout):
-        """
-        Store the most recent nesting layout.
-        """
-        self.last_layout = layout
+    if not hasattr(doc, "SquatchCutSheetWidth"):
         try:
-            App.Console.PrintMessage(
-                ">>> [SquatchCut] SessionState.set_last_layout: layout updated\n"
+            doc.addProperty(
+                "App::PropertyFloat",
+                "SquatchCutSheetWidth",
+                "SquatchCut",
+                "Sheet width (mm)",
             )
         except Exception:
             pass
-
-    def add_panels(self, panels: list[dict]) -> None:
-        """
-        Append panels to the existing list.
-        """
-        if not panels:
-            return
-        if not hasattr(self, "panels"):
-            self.panels = []
-        self.panels.extend(panels)
-
-    def set_sheet_size(self, width, height, units="mm"):
-        """
-        Update the active sheet size in the session.
-        width, height are numeric (mm or inches depending on units).
-        """
         try:
-            w = float(width)
-            h = float(height)
-        except Exception as exc:
-            raise ValueError(f"Invalid sheet size values: {width!r}, {height!r}") from exc
-
-        if w <= 0 or h <= 0:
-            raise ValueError(f"Sheet dimensions must be positive, got {w} x {h}")
-
-        self.sheet_width = w
-        self.sheet_height = h
-        self.sheet_units = units or "mm"
-
+            doc.SquatchCutSheetWidth = 1220.0
+        except Exception:
+            pass
+    if not hasattr(doc, "SquatchCutSheetHeight"):
         try:
-            App.Console.PrintMessage(
-                f">>> [SquatchCut] SessionState.set_sheet_size: {w} x {h} {self.sheet_units}\n"
+            doc.addProperty(
+                "App::PropertyFloat",
+                "SquatchCutSheetHeight",
+                "SquatchCut",
+                "Sheet height (mm)",
             )
+        except Exception:
+            pass
+        try:
+            doc.SquatchCutSheetHeight = 2440.0
+        except Exception:
+            pass
+
+    if not hasattr(doc, "SquatchCutKerfMM"):
+        try:
+            doc.addProperty(
+                "App::PropertyFloat",
+                "SquatchCutKerfMM",
+                "SquatchCut",
+                "Kerf spacing between adjacent parts (mm)",
+            )
+        except Exception:
+            pass
+        try:
+            doc.SquatchCutKerfMM = 3.0
+        except Exception:
+            pass
+    if not hasattr(doc, "SquatchCutGapMM"):
+        try:
+            doc.addProperty(
+                "App::PropertyFloat",
+                "SquatchCutGapMM",
+                "SquatchCut",
+                "Gap/halo spacing around parts (mm)",
+            )
+        except Exception:
+            pass
+        try:
+            doc.SquatchCutGapMM = 0.0
+        except Exception:
+            pass
+
+    if not hasattr(doc, "SquatchCutDefaultAllowRotate"):
+        try:
+            doc.addProperty(
+                "App::PropertyBool",
+                "SquatchCutDefaultAllowRotate",
+                "SquatchCut",
+                "Allow rotation by default when CSV does not specify allow_rotate.",
+            )
+        except Exception:
+            pass
+        try:
+            doc.SquatchCutDefaultAllowRotate = False
         except Exception:
             pass
 
 
-# Module-level singleton for shared access
-SESSION = SquatchCutSession()
+def sync_state_from_doc(doc):
+    """
+    Read settings from the FreeCAD document and push them into session_state.
+    """
+    ensure_doc_settings(doc)
+
+    session_state.set_sheet_size(
+        float(doc.SquatchCutSheetWidth),
+        float(doc.SquatchCutSheetHeight),
+    )
+    session_state.set_kerf_mm(float(doc.SquatchCutKerfMM))
+    session_state.set_gap_mm(float(doc.SquatchCutGapMM))
+
+    default_allow = bool(doc.SquatchCutDefaultAllowRotate)
+    session_state.set_default_allow_rotate(default_allow)
+
+
+def sync_doc_from_state(doc):
+    """
+    Write current session_state values back into the document properties.
+    Useful if state was changed directly.
+    """
+    ensure_doc_settings(doc)
+
+    w, h = session_state.get_sheet_size()
+    if w is not None:
+        doc.SquatchCutSheetWidth = float(w)
+    if h is not None:
+        doc.SquatchCutSheetHeight = float(h)
+
+    doc.SquatchCutKerfMM = float(session_state.get_kerf_mm())
+    doc.SquatchCutGapMM = float(session_state.get_gap_mm())
+    doc.SquatchCutDefaultAllowRotate = bool(session_state.get_default_allow_rotate())

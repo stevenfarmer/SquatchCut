@@ -30,6 +30,7 @@ class SquatchCutWorkbench(Gui.Workbench):
         from SquatchCut.gui.commands import (
             cmd_import_csv,
             cmd_add_shapes,
+            cmd_settings,
             cmd_set_sheet_size,
             cmd_run_nesting,
             cmd_export_report,
@@ -47,6 +48,7 @@ class SquatchCutWorkbench(Gui.Workbench):
 
         # Command names as registered in each cmd_*.py module
         commands = [
+            "SquatchCut_Settings",
             "SquatchCut_ImportCSV",
             "SquatchCut_AddShapes",
             "SquatchCut_SetSheetSize",
@@ -59,6 +61,8 @@ class SquatchCutWorkbench(Gui.Workbench):
 
         Gui.addCommand("SquatchCut_ImportCSV", cmd_import_csv.COMMAND)
         Gui.addCommand("SquatchCut_AddShapes", cmd_add_shapes.COMMAND)
+        Gui.addCommand("SquatchCut_Settings", cmd_settings.SquatchCutSettingsCommand())
+        # Settings command registered on import
         Gui.addCommand("SquatchCut_SetSheetSize", cmd_set_sheet_size.COMMAND)
         Gui.addCommand("SquatchCut_RunNesting", cmd_run_nesting.COMMAND)
         Gui.addCommand("SquatchCut_ToggleSourcePanels", cmd_run_nesting.ToggleSourcePanelsCommand())

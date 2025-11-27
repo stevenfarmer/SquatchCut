@@ -5,7 +5,6 @@ Geometry helpers to turn SquatchCut nesting layouts into FreeCAD objects.
 from __future__ import annotations
 
 import FreeCAD as App  # type: ignore
-import FreeCADGui as Gui  # type: ignore
 
 try:
     import Part  # type: ignore

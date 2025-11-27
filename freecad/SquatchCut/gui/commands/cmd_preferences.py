@@ -12,10 +12,9 @@ Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 try:
     from PySide import QtWidgets, QtCore, QtGui
 except ImportError:
-    from PySide2 import QtWidgets, QtCore, QtGui
+    from PySide2 import QtWidgets
 
 import os
-import FreeCAD as App  # type: ignore
 
 ICONS_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(__file__))),  # .../freecad/SquatchCut
