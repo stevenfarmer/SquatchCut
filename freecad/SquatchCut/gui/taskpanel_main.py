@@ -16,6 +16,7 @@ import webbrowser
 from SquatchCut.gui.qt_compat import QtWidgets, QtCore
 
 from SquatchCut.core import session, session_state, logger
+from SquatchCut.core import units as sc_units
 from SquatchCut.core.nesting import compute_utilization, estimate_cut_counts
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.core import exporter
@@ -44,7 +45,8 @@ class SquatchCutTaskPanel:
         self.has_valid_kerf = False
         self.overlaps_count = 0
         self._prefs = SquatchCutPreferences()
-        self.measurement_system = self._prefs.get_measurement_system()
+        units_pref = sc_units.get_units()
+        self.measurement_system = "imperial" if units_pref == "in" else "metric"
         self._presets: list[tuple[str, tuple[float, float] | None]] = [
             ("Custom…", None),
             ("1220 x 2440 mm (4x8 ft)", (1220.0, 2440.0)),
@@ -125,8 +127,8 @@ class SquatchCutTaskPanel:
         layout.addWidget(self.status_label)
 
         # Wire actions
-        self.preview_button.clicked.connect(lambda: self._run_nesting(apply_to_doc=False))
-        self.run_button.clicked.connect(lambda: self._run_nesting(apply_to_doc=True))
+        self.preview_button.clicked.connect(self.on_preview_clicked)
+        self.run_button.clicked.connect(self.on_apply_clicked)
         self.show_source_button.clicked.connect(self.on_show_source_panels)
         self.report_bug_button.clicked.connect(self.on_report_bug_clicked)
         self._set_run_buttons_enabled(False)
@@ -372,7 +374,9 @@ class SquatchCutTaskPanel:
         cut_mode = session_state.get_optimize_for_cut_path()
         kerf_width = session_state.get_kerf_width_mm()
         rotations = set(session_state.get_allowed_rotations_deg())
-        self.measurement_system = self._prefs.get_measurement_system()
+        # units stored via sc_units helpers ("mm" or "in")
+        units_pref = sc_units.get_units()
+        self.measurement_system = "imperial" if units_pref == "in" else "metric"
         include_labels = self._prefs.get_export_include_labels()
         include_dims = self._prefs.get_export_include_dimensions()
 
@@ -411,6 +415,12 @@ class SquatchCutTaskPanel:
         self.mode_combo.blockSignals(True)
         self.mode_combo.setCurrentIndex(mode_idx)
         self.mode_combo.blockSignals(False)
+        # Units combo reflects sc_units preference
+        unit_value = sc_units.get_units()
+        units_idx = 0 if unit_value == "mm" else 1
+        self.units_combo.blockSignals(True)
+        self.units_combo.setCurrentIndex(units_idx)
+        self.units_combo.blockSignals(False)
         self._populate_table(session_state.get_panels())
         self._reset_summary(mode)
         self._refresh_summary()
@@ -784,7 +794,7 @@ class SquatchCutTaskPanel:
         if system not in ("metric", "imperial"):
             system = "metric"
         self.measurement_system = system
-        self._prefs.set_measurement_system(system)
+        sc_units.set_units("in" if system == "imperial" else "mm")
         self._update_unit_labels()
         # Re-apply stored mm values to display in new units
         sheet_w, sheet_h = session_state.get_sheet_size()
@@ -812,19 +822,15 @@ class SquatchCutTaskPanel:
 
     def _to_mm(self, value: float) -> float:
         """Convert a displayed value to mm based on current measurement system."""
-        if self.measurement_system == "imperial":
-            return value * self.MM_PER_INCH
-        return value
+        return sc_units.display_to_mm(value)
 
     def _to_display_units(self, value_mm: float) -> float:
         """Convert mm to display units (mm or in)."""
-        if self.measurement_system == "imperial":
-            return value_mm / self.MM_PER_INCH
-        return value_mm
+        return sc_units.mm_to_display(value_mm)
 
     def _update_unit_labels(self) -> None:
         """Update labels to reflect current measurement system."""
-        unit = "mm" if self.measurement_system == "metric" else "in"
+        unit = sc_units.get_unit_label()
         self.sheet_width_label.setText(f"Width ({unit}):")
         self.sheet_height_label.setText(f"Height ({unit}):")
         self.kerf_label.setText(f"Kerf width ({unit}):")
@@ -1084,13 +1090,28 @@ class SquatchCutTaskPanel:
         except Exception:
             pass
 
+    def on_preview_clicked(self):
+        try:
+            Gui.runCommand("SquatchCut_RunNesting")
+        except Exception as e:
+            logger.error(f"Failed to run preview nesting: {e!r}")
+
+    def on_apply_clicked(self):
+        try:
+            Gui.runCommand("SquatchCut_ApplyNesting")
+        except Exception as e:
+            logger.error(f"Failed to apply nesting: {e!r}")
+
     # ---------------- Task panel API ----------------
 
     def getStandardButtons(self):
         return QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
 
     def accept(self):
-        self._run_nesting(apply_to_doc=True)
+        try:
+            Gui.Control.closeDialog()
+        except Exception:
+            pass
 
     def reject(self):
         try:
