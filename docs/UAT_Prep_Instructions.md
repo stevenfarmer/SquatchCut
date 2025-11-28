@@ -44,6 +44,8 @@ You will be provided with:
 
 - **UAT_Feedback_Form.txt**  
   A simple notes file for reporting anything weird.
+- Metric and Imperial test CSVs  
+  If you use the imperial CSV, set CSV units to “Imperial (in)” before importing.
 
 ## How to Run the Test
 

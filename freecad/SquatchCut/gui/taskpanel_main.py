@@ -125,6 +125,15 @@ class SquatchCutTaskPanel:
         top_row.addWidget(self.csv_path_label, 1)
         vbox.addLayout(top_row)
 
+        csv_units_row = QtWidgets.QHBoxLayout()
+        csv_units_row.addWidget(QtWidgets.QLabel("CSV units:"))
+        self.csv_units_combo = QtWidgets.QComboBox()
+        self.csv_units_combo.addItem("Metric (mm)", "metric")
+        self.csv_units_combo.addItem("Imperial (in)", "imperial")
+        csv_units_row.addWidget(self.csv_units_combo)
+        csv_units_row.addStretch(1)
+        vbox.addLayout(csv_units_row)
+
         self.parts_table = QtWidgets.QTableWidget()
         self.parts_table.setColumnCount(5)
         self.parts_table.setHorizontalHeaderLabels(
@@ -345,16 +354,22 @@ class SquatchCutTaskPanel:
             self.units_combo.blockSignals(True)
             self.units_combo.setCurrentIndex(unit_idx)
             self.units_combo.blockSignals(False)
+        csv_units = self._prefs.get_csv_units(self.measurement_system)
+        csv_units_idx = self.csv_units_combo.findData(csv_units)
+        if csv_units_idx >= 0:
+            self.csv_units_combo.blockSignals(True)
+            self.csv_units_combo.setCurrentIndex(csv_units_idx)
+            self.csv_units_combo.blockSignals(False)
         self._update_unit_labels()
         self._validate_inputs()
         self.update_run_button_state()
 
     def _apply_settings_to_session(self) -> None:
         """Sync widget values to session_state and the document."""
-        sheet_w = float(self.sheet_width_spin.value())
-        sheet_h = float(self.sheet_height_spin.value())
-        kerf_mm = float(self.kerf_spin.value())
-        margin_mm = float(self.margin_spin.value())
+        sheet_w = self._to_mm(float(self.sheet_width_spin.value()))
+        sheet_h = self._to_mm(float(self.sheet_height_spin.value()))
+        kerf_mm = self._to_mm(float(self.kerf_spin.value()))
+        margin_mm = self._to_mm(float(self.margin_spin.value()))
         # session_state tracks a single default rotation flag; map from 90° toggle.
         default_allow = bool(self.allow_90_check.isChecked() or self.allow_180_check.isChecked())
         mode = self.mode_combo.currentData() or "material"
@@ -466,7 +481,9 @@ class SquatchCutTaskPanel:
 
         try:
             self._apply_settings_to_session()
-            run_csv_import(doc, file_path)
+            csv_units = self.csv_units_combo.currentData() or self.measurement_system or "metric"
+            run_csv_import(doc, file_path, csv_units=csv_units)
+            self._prefs.set_csv_units(csv_units)
             self._last_csv_path = file_path
             self._set_csv_label(file_path)
             self._populate_table(session_state.get_panels())

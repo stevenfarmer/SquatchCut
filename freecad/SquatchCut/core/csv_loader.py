@@ -9,17 +9,27 @@ from __future__ import annotations
 
 import csv
 
-import FreeCAD as App
+try:
+    import FreeCAD as App
+except Exception:  # pragma: no cover
+    App = None
+
+MM_PER_INCH = 25.4
+
+
+def in_to_mm(value_in_inch: float) -> float:
+    """Convert inches to millimeters."""
+    return float(value_in_inch) * MM_PER_INCH
 
 
 class CsvLoader:
     """Loads panel definitions from CSV and returns normalized panel objects."""
 
-    def load_file(self, path: str) -> list[dict]:
+    def load_file(self, path: str, csv_units: str = "metric") -> list[dict]:
         """Load a CSV file and return panel objects."""
-        return self.load_csv(path)
+        return self.load_csv(path, csv_units=csv_units)
 
-    def load_csv(self, path: str) -> list[dict]:
+    def load_csv(self, path: str, csv_units: str = "metric") -> list[dict]:
         """Load CSV rows, validate, and convert to panel objects."""
         import csv
         rows = []
@@ -27,14 +37,14 @@ class CsvLoader:
             with open(path, newline="", encoding="utf-8") as fh:
                 reader = csv.DictReader(fh)
                 for idx, row in enumerate(reader, start=1):
-                    cleaned = self.validate_row(row, idx)
+                    cleaned = self.validate_row(row, idx, csv_units=csv_units)
                     panel = self.to_panel_object(cleaned)
                     rows.append(panel)
         except FileNotFoundError as exc:
             raise ValueError(f"CSV file not found: {path}") from exc
         return rows
 
-    def validate_row(self, row: dict, row_number: int | None = None) -> dict:
+    def validate_row(self, row: dict, row_number: int | None = None, csv_units: str = "metric") -> dict:
         """Validate a single CSV row, ensuring required fields exist."""
         missing = [key for key in ("id", "width", "height") if not row.get(key)]
         if missing:
@@ -51,6 +61,10 @@ class CsvLoader:
         if width <= 0 or height <= 0:
             prefix = f"Row {row_number}: " if row_number else ""
             raise ValueError(f"{prefix}Width/height must be greater than zero")
+
+        if str(csv_units).lower() == "imperial":
+            width = in_to_mm(width)
+            height = in_to_mm(height)
 
         cleaned = {
             "id": str(row["id"]).strip(),
@@ -110,7 +124,7 @@ class CsvLoader:
         return [self.to_panel_object(row) for row in rows]
 
 
-def load_csv(path: str) -> list[dict]:
+def load_csv(path: str, csv_units: str = "metric") -> list[dict]:
     """
     Simple CSV loader for SquatchCut panels.
 
@@ -123,14 +137,16 @@ def load_csv(path: str) -> list[dict]:
             reader = csv.DictReader(fh)
             if not reader.fieldnames:
                 msg = f">>> [SquatchCut] load_csv: missing header row in {path}\n"
-                App.Console.PrintError(msg)
+                if App:
+                    App.Console.PrintError(msg)
                 raise ValueError("Missing CSV header row")
             headers = {name.strip().lower() for name in reader.fieldnames if name}
             required = {"width", "height"}
             missing = required - headers
             if missing:
                 msg = f">>> [SquatchCut] load_csv: missing required headers: {', '.join(sorted(missing))}\n"
-                App.Console.PrintError(msg)
+                if App:
+                    App.Console.PrintError(msg)
                 raise ValueError(f"Missing required headers: {', '.join(sorted(missing))}")
 
             for idx, row in enumerate(reader, start=1):
@@ -141,6 +157,9 @@ def load_csv(path: str) -> list[dict]:
                     height = float(height_raw) if height_raw not in (None, "") else None
                     if width is None or height is None:
                         raise ValueError("Width/height missing")
+                    if str(csv_units).lower() == "imperial":
+                        width = in_to_mm(width)
+                        height = in_to_mm(height)
 
                     qty_raw = row.get("qty", "") if row else ""
                     try:
@@ -149,6 +168,7 @@ def load_csv(path: str) -> list[dict]:
                         qty = 1
 
                     label = str(row.get("label", "") or "").strip()
+                    part_id = str(row.get("id", "") or "").strip()
                     material = str(row.get("material", "") or "").strip()
                     from SquatchCut.core.session_state import get_default_allow_rotate
 
@@ -167,6 +187,7 @@ def load_csv(path: str) -> list[dict]:
 
                     panels.append(
                         {
+                            "id": part_id or label or f"panel_{idx}",
                             "width": float(width),
                             "height": float(height),
                             "qty": int(qty),
@@ -181,13 +202,15 @@ def load_csv(path: str) -> list[dict]:
                     )
                     continue
     except FileNotFoundError:
-        App.Console.PrintError(f">>> [SquatchCut] load_csv: file not found: {path}\n")
+        if App:
+            App.Console.PrintError(f">>> [SquatchCut] load_csv: file not found: {path}\n")
         raise
     except Exception:
         # Error already logged above where possible
         raise
 
-    App.Console.PrintMessage(
-        f">>> [SquatchCut] load_csv: loaded {len(panels)} panel rows from {path}\n"
-    )
+    if App:
+        App.Console.PrintMessage(
+            f">>> [SquatchCut] load_csv: loaded {len(panels)} panel rows from {path}\n"
+        )
     return panels

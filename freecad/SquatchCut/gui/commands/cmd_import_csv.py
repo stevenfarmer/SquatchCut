@@ -27,12 +27,28 @@ ICONS_DIR = os.path.join(
 )
 
 
-def run_csv_import(doc, csv_path: str):
+MM_PER_INCH = 25.4
+
+
+def _convert_length(value, csv_units: str):
+    """Convert a numeric length to mm based on CSV units."""
+    try:
+        num = float(value)
+    except Exception:
+        return value
+    if str(csv_units).lower() == "imperial":
+        return num * MM_PER_INCH
+    return num
+
+
+def run_csv_import(doc, csv_path: str, csv_units: str = "metric"):
+def run_csv_import(doc, csv_path: str, csv_units: str = "metric"):
     """
     Core CSV import logic for SquatchCut.
 
     - doc: FreeCAD document into which shapes should be added.
     - csv_path: absolute path to the CSV to import.
+    - csv_units: "metric" or "imperial" (imperial converted to mm).
     """
     App.Console.PrintMessage(f">>> [SquatchCut] CSV selected: {csv_path}\n")
 
@@ -89,6 +105,8 @@ def run_csv_import(doc, csv_path: str):
                 raise ValueError("Missing width or height")
             if width <= 0 or height <= 0:
                 raise ValueError("Width and height must be > 0")
+            width = _convert_length(width, csv_units)
+            height = _convert_length(height, csv_units)
 
             qty_raw = data.get("qty", "")
             try:
@@ -180,10 +198,25 @@ class ImportCSVCommand:
             )
 
             if file_path:
+                from SquatchCut.core.preferences import SquatchCutPreferences
+
+                prefs = SquatchCutPreferences()
+                default_units = prefs.get_csv_units(prefs.get_measurement_system())
+                units, ok = QtWidgets.QInputDialog.getItem(
+                    None,
+                    "CSV units",
+                    "Select units for this CSV:",
+                    ["metric", "imperial"],
+                    current=0 if default_units == "metric" else 1,
+                    editable=False,
+                )
+                if not ok:
+                    return
                 doc = App.ActiveDocument
                 if doc is None:
                     doc = App.newDocument("SquatchCut")
-                run_csv_import(doc, file_path)
+                run_csv_import(doc, file_path, csv_units=units)
+                prefs.set_csv_units(units)
             else:
                 # User cancelled
                 App.Console.PrintMessage(

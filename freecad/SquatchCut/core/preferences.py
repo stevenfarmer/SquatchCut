@@ -107,6 +107,28 @@ class SquatchCutPreferences:
     def is_imperial(self) -> bool:
         return self.get_measurement_system() == "imperial"
 
+    def get_csv_units(self, fallback: str = "metric") -> str:
+        val = fallback
+        if self._grp:
+            try:
+                val = self._grp.GetString("CsvUnits", fallback)
+            except Exception:
+                val = fallback
+        val = str(self._local.get("CsvUnits", val))
+        if val not in ("metric", "imperial"):
+            val = fallback
+        return val
+
+    def set_csv_units(self, units: str) -> None:
+        if units not in ("metric", "imperial"):
+            units = "metric"
+        if self._grp:
+            try:
+                self._grp.SetString("CsvUnits", units)
+            except Exception:
+                pass
+        self._local["CsvUnits"] = units
+
 
 # Backward-compatible alias if other modules imported Preferences
 Preferences = SquatchCutPreferences

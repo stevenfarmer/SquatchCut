@@ -5,6 +5,7 @@ import FreeCADGui
 from PySide2 import QtWidgets
 
 from SquatchCut.core import session, session_state
+from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.ui.messages import show_info, show_error
 from SquatchCut.gui.commands.cmd_import_csv import run_csv_import
 from SquatchCut.gui.commands import cmd_run_nesting
@@ -193,7 +194,10 @@ class SquatchCutControlPanel:
 
         # Run CSV import
         try:
-            run_csv_import(self.doc, csv_path)
+            prefs = SquatchCutPreferences()
+            csv_units = prefs.get_csv_units(prefs.get_measurement_system())
+            run_csv_import(self.doc, csv_path, csv_units=csv_units)
+            prefs.set_csv_units(csv_units)
         except Exception as e:
             FreeCAD.Console.PrintError(f"[SquatchCut] CSV import failed: {e}\n")
             show_error(f"CSV import failed:\n{e}", title="SquatchCut")
