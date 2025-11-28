@@ -15,7 +15,7 @@ import webbrowser
 
 from SquatchCut.gui.qt_compat import QtWidgets, QtCore
 
-from SquatchCut.core import session, session_state
+from SquatchCut.core import session, session_state, logger
 from SquatchCut.core.nesting import compute_utilization, estimate_cut_counts
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.core import exporter
@@ -68,6 +68,28 @@ class SquatchCutTaskPanel:
         layout.setContentsMargins(6, 6, 6, 6)
         layout.setSpacing(8)
 
+        # View mode row (Source vs Sheets)
+        view_mode_layout = QtWidgets.QHBoxLayout()
+        view_mode_label = QtWidgets.QLabel("View:")
+        view_mode_layout.addWidget(view_mode_label)
+
+        self.btnViewSource = QtWidgets.QToolButton()
+        self.btnViewSource.setText("Source panels")
+        self.btnViewSource.setToolTip("Show original source panels from CSV")
+        self.btnViewSource.setCheckable(True)
+        self.btnViewSource.setAutoRaise(True)
+
+        self.btnViewSheets = QtWidgets.QToolButton()
+        self.btnViewSheets.setText("Nested sheets")
+        self.btnViewSheets.setToolTip("Show nested sheets and panel placements")
+        self.btnViewSheets.setCheckable(True)
+        self.btnViewSheets.setAutoRaise(True)
+
+        view_mode_layout.addWidget(self.btnViewSource)
+        view_mode_layout.addWidget(self.btnViewSheets)
+        view_mode_layout.addStretch(1)
+        layout.addLayout(view_mode_layout)
+
         layout.addWidget(self._build_general_group())
         layout.addWidget(self._build_nesting_group())
         layout.addWidget(self._build_cut_optimization_group())
@@ -108,6 +130,10 @@ class SquatchCutTaskPanel:
         self.show_source_button.clicked.connect(self.on_show_source_panels)
         self.report_bug_button.clicked.connect(self.on_report_bug_clicked)
         self._set_run_buttons_enabled(False)
+        self.btnViewSource.clicked.connect(self._on_view_source_clicked)
+        self.btnViewSheets.clicked.connect(self._on_view_sheets_clicked)
+        self.btnViewSource.setChecked(True)
+        self.btnViewSheets.setChecked(False)
 
     def _build_general_group(self) -> QtWidgets.QGroupBox:
         group = QtWidgets.QGroupBox("General")
@@ -960,6 +986,74 @@ class SquatchCutTaskPanel:
             self.overlaps_label.setText("None")
             self.overlaps_label.setStyleSheet("")
         self._update_status_label()
+
+    def _on_view_source_clicked(self):
+        """
+        Switch to 'Source panels' view: show sources, hide sheets, fit view.
+        """
+        self.btnViewSource.setChecked(True)
+        self.btnViewSheets.setChecked(False)
+
+        doc = App.ActiveDocument
+        if doc is None:
+            return
+
+        sheets_group = doc.getObject("SquatchCut_Sheets")
+        if sheets_group:
+            for obj in sheets_group.Group:
+                try:
+                    if hasattr(obj, "ViewObject"):
+                        obj.ViewObject.Visibility = False
+                except Exception:
+                    continue
+
+        for obj in session.get_source_panel_objects():
+            try:
+                if hasattr(obj, "ViewObject"):
+                    obj.ViewObject.Visibility = True
+            except Exception:
+                continue
+
+        try:
+            view = Gui.ActiveDocument.ActiveView
+            view.viewTop()
+            view.fitAll()
+        except Exception as e:
+            logger.warning(f"Failed to update view in Source mode: {e!r}")
+
+    def _on_view_sheets_clicked(self):
+        """
+        Switch to 'Nested sheets' view: show sheets, hide sources, fit view.
+        """
+        self.btnViewSource.setChecked(False)
+        self.btnViewSheets.setChecked(True)
+
+        doc = App.ActiveDocument
+        if doc is None:
+            return
+
+        for obj in session.get_source_panel_objects():
+            try:
+                if hasattr(obj, "ViewObject"):
+                    obj.ViewObject.Visibility = False
+            except Exception:
+                continue
+
+        sheets_group = doc.getObject("SquatchCut_Sheets")
+        if sheets_group:
+            for obj in sheets_group.Group:
+                try:
+                    if hasattr(obj, "ViewObject"):
+                        obj.ViewObject.Visibility = True
+                except Exception:
+                    continue
+
+        try:
+            view = Gui.ActiveDocument.ActiveView
+            view.viewTop()
+            view.fitAll()
+        except Exception as e:
+            logger.warning(f"Failed to update view in Sheets mode: {e!r}")
 
     def on_show_source_panels(self):
         doc = App.ActiveDocument
