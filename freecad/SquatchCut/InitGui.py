@@ -42,6 +42,7 @@ class SquatchCutWorkbench(Gui.Workbench):
             cmd_run_nesting,
             cmd_export_report,
             cmd_preferences,
+            cmd_run_gui_tests,
         )
 
         try:
@@ -61,6 +62,7 @@ class SquatchCutWorkbench(Gui.Workbench):
         Gui.addCommand("SquatchCut_ExportNestingCSV", cmd_run_nesting.ExportNestingCSVCommand())
         Gui.addCommand("SquatchCut_ExportReport", cmd_export_report.COMMAND)
         Gui.addCommand("SquatchCut_Preferences", cmd_preferences.COMMAND)
+        Gui.addCommand("SquatchCut_RunGUITests", cmd_run_gui_tests.COMMAND)
 
         primary_commands = ["SquatchCut_ShowTaskPanel"]
         advanced_commands = [
@@ -73,6 +75,7 @@ class SquatchCutWorkbench(Gui.Workbench):
             "SquatchCut_ExportNestingCSV",
             "SquatchCut_ExportReport",
             "SquatchCut_Preferences",
+            "SquatchCut_RunGUITests",
         ]
 
         # Primary toolbar focuses on the unified UI; keep advanced tools available separately.
