@@ -7,6 +7,7 @@ from typing import List
 
 import FreeCAD as App
 import FreeCADGui as Gui
+import webbrowser
 
 try:
     from PySide import QtWidgets, QtCore
@@ -81,6 +82,15 @@ class SquatchCutTaskPanel:
         buttons_row.addWidget(self.run_button)
         layout.addLayout(buttons_row)
 
+        # Report bug link/button (low visual weight)
+        report_row = QtWidgets.QHBoxLayout()
+        report_row.addStretch(1)
+        self.report_bug_button = QtWidgets.QPushButton("Report a Bug")
+        self.report_bug_button.setFlat(True)
+        self.report_bug_button.setToolTip("Open the SquatchCut GitHub issue tracker to report a problem.")
+        report_row.addWidget(self.report_bug_button)
+        layout.addLayout(report_row)
+
         # Status label
         self.status_label = QtWidgets.QLabel("")
         self.status_label.setStyleSheet("color: gray;")
@@ -89,6 +99,7 @@ class SquatchCutTaskPanel:
         # Wire actions
         self.preview_button.clicked.connect(lambda: self._run_nesting(apply_to_doc=False))
         self.run_button.clicked.connect(lambda: self._run_nesting(apply_to_doc=True))
+        self.report_bug_button.clicked.connect(self.on_report_bug_clicked)
         self._set_run_buttons_enabled(False)
 
     def _build_general_group(self) -> QtWidgets.QGroupBox:
@@ -749,6 +760,17 @@ class SquatchCutTaskPanel:
         self.kerf_label.setText(f"Kerf width ({unit}):")
         self.margin_label.setText(f"Edge margin ({unit}):")
         self.kerf_width_label.setText(f"Kerf Width ({unit}):")
+
+    def on_report_bug_clicked(self) -> None:
+        """Open the SquatchCut GitHub issues page in the default browser."""
+        url = "https://github.com/stevenfarmer/SquatchCut/issues/new"
+        try:
+            webbrowser.open(url)
+        except Exception as exc:
+            try:
+                App.Console.PrintError(f"[SquatchCut] Failed to open bug report URL: {exc}\n")
+            except Exception:
+                pass
 
     def _reset_defaults(self) -> None:
         """Reset configuration fields to safe defaults (does not clear CSV)."""

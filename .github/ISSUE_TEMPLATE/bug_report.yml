@@ -1,0 +1,87 @@
+name: "Bug report"
+description: "Report a problem with SquatchCut."
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug! Please fill out the details below.
+
+  - type: input
+    id: summary
+    attributes:
+      label: "Short summary"
+      description: "Briefly describe what went wrong."
+      placeholder: "SquatchCut crashes when previewing nesting with imperial CSV"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Steps to reproduce"
+      description: "List the steps someone else can follow to see the problem."
+      placeholder: |
+        1. Open FreeCAD 1.0
+        2. Open SquatchCut
+        3. Import CSV: <filename>
+        4. Set sheet size to ...
+        5. Click 'Preview SquatchCut'
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Expected behavior"
+      description: "What did you expect to happen?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: "Actual behavior"
+      description: "What actually happened? Include any error messages."
+    validations:
+      required: true
+
+  - type: input
+    id: freecad-version
+    attributes:
+      label: "FreeCAD version"
+      placeholder: "e.g., 1.0.0"
+
+  - type: input
+    id: squatchcut-version
+    attributes:
+      label: "SquatchCut version"
+      placeholder: "e.g., 0.3.0"
+
+  - type: dropdown
+    id: units
+    attributes:
+      label: "Units used in SquatchCut"
+      options:
+        - "Metric (mm)"
+        - "Imperial (in)"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: csv-units
+    attributes:
+      label: "CSV units"
+      options:
+        - "Metric (mm)"
+        - "Imperial (in)"
+        - "Not sure"
+    validations:
+      required: false
+
+  - type: textarea
+    id: attachments
+    attributes:
+      label: "Attachments"
+      description: "If possible, attach or link to your CSV file and screenshots of the issue."

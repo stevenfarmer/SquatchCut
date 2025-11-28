@@ -26,6 +26,7 @@ nav:
       - Architecture Overview: architecture.md
       - MVP Scope: mvp.md
       - Codex Workflows: codex_workflows.md
+  - Reporting Bugs: reporting_bugs.md
   - Testing: dev/testing.md
 docs_dir: "docs"
 markdown_extensions:
