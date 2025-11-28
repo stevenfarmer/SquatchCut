@@ -421,6 +421,7 @@ class SquatchCutTaskPanel:
         self.units_combo.blockSignals(True)
         self.units_combo.setCurrentIndex(units_idx)
         self.units_combo.blockSignals(False)
+        self._update_unit_labels()
         self._populate_table(session_state.get_panels())
         self._reset_summary(mode)
         self._refresh_summary()
@@ -836,6 +837,16 @@ class SquatchCutTaskPanel:
         self.kerf_label.setText(f"Kerf width ({unit}):")
         self.margin_label.setText(f"Edge margin ({unit}):")
         self.kerf_width_label.setText(f"Kerf Width ({unit}):")
+        # Update spinbox suffixes
+        for spin in (
+            getattr(self, "sheet_width_spin", None),
+            getattr(self, "sheet_height_spin", None),
+            getattr(self, "kerf_spin", None),
+            getattr(self, "margin_spin", None),
+            getattr(self, "kerf_width_spin", None),
+        ):
+            if spin is not None:
+                spin.setSuffix(f" {unit}")
 
     def on_report_bug_clicked(self) -> None:
         """Open the SquatchCut GitHub issues page in the default browser."""
@@ -1118,3 +1129,12 @@ class SquatchCutTaskPanel:
             Gui.Control.closeDialog()
         except Exception:
             pass
+
+
+# Factory for tests
+def create_main_panel_for_tests():
+    """
+    Factory used by GUI tests to instantiate the main SquatchCut task panel
+    without going through FreeCAD's dialog machinery.
+    """
+    return SquatchCutTaskPanel()
