@@ -6,7 +6,9 @@ Icons: resolves icons under resources/icons/.
 Note: Avoid adding business logic; keep this file focused on registration/bootstrap only.
 """
 
-print(">>> [SquatchCut] InitGui module imported")
+from SquatchCut.core import logger
+
+logger.debug("InitGui module imported")
 
 import FreeCAD as App
 import FreeCADGui as Gui
@@ -29,8 +31,8 @@ class SquatchCutWorkbench(Gui.Workbench):
         Called once when the workbench is first loaded.
         Registers all commands, toolbars, and menus.
         """
-        print(">>> [SquatchCut] Initialize() running")
-        App.Console.PrintMessage(">>> [SquatchCut] Initialize() called\n")
+        logger.info("Initialize() running")
+        logger.info("Initialize() called")
         # Import command modules so they register their FreeCAD commands
         from SquatchCut.gui.commands import (
             cmd_main_ui,
@@ -44,13 +46,9 @@ class SquatchCutWorkbench(Gui.Workbench):
         )
 
         try:
-            App.Console.PrintMessage(
-                f">>> [SquatchCut] cmd_import_csv loaded from: {cmd_import_csv.__file__}\n"
-            )
+            logger.debug(f"cmd_import_csv loaded from: {cmd_import_csv.__file__}")
         except Exception as exc:
-            App.Console.PrintError(
-                f">>> [SquatchCut] Failed to inspect cmd_import_csv module: {exc}\n"
-            )
+            logger.error(f"Failed to inspect cmd_import_csv module: {exc}")
 
         # Register core commands
         cmd_main_ui.register()

@@ -6,6 +6,7 @@ from PySide2 import QtWidgets
 
 from SquatchCut.core import session, session_state
 from SquatchCut.core.preferences import SquatchCutPreferences
+from SquatchCut.core import logger
 from SquatchCut.ui.messages import show_info, show_error
 from SquatchCut.gui.commands.cmd_import_csv import run_csv_import
 from SquatchCut.gui.commands import cmd_run_nesting
@@ -103,6 +104,22 @@ class SquatchCutControlPanel:
 
         main_layout.addWidget(rot_group)
 
+        # ---------------- Logging group ----------------
+        log_group = QtWidgets.QGroupBox("Logging")
+        log_layout = QtWidgets.QFormLayout(log_group)
+        self.report_log_combo = QtWidgets.QComboBox()
+        self.report_log_combo.addItems(["No logging", "Normal logging", "Verbose logging"])
+        self.console_log_combo = QtWidgets.QComboBox()
+        self.console_log_combo.addItems(["No logging", "Normal logging", "Verbose logging"])
+        prefs = SquatchCutPreferences()
+        rv_level = prefs.get_report_view_log_level()
+        pc_level = prefs.get_python_console_log_level()
+        self.report_log_combo.setCurrentIndex(self._level_to_index(rv_level))
+        self.console_log_combo.setCurrentIndex(self._level_to_index(pc_level))
+        log_layout.addRow("Report View logging:", self.report_log_combo)
+        log_layout.addRow("Python console logging:", self.console_log_combo)
+        main_layout.addWidget(log_group)
+
         # ---------------- CSV Import & Nest group ----------------
         csv_group = QtWidgets.QGroupBox("CSV Import & Nesting")
         csv_layout = QtWidgets.QGridLayout(csv_group)
@@ -150,13 +167,15 @@ class SquatchCutControlPanel:
         session_state.set_kerf_mm(kerf_mm)
         session_state.set_gap_mm(gap_mm)
         session_state.set_default_allow_rotate(default_allow)
+        prefs = SquatchCutPreferences()
+        prefs.set_report_view_log_level(self._index_to_level(self.report_log_combo.currentIndex()))
+        prefs.set_python_console_log_level(self._index_to_level(self.console_log_combo.currentIndex()))
 
         session.sync_doc_from_state(self.doc)
         self.doc.recompute()
 
-        FreeCAD.Console.PrintMessage(
-            f"[SquatchCut] Updated settings: sheet {sheet_w} x {sheet_h} mm, "
-            f"kerf={kerf_mm} mm, gap={gap_mm} mm, default_allow_rotate={default_allow}\n"
+        logger.info(
+            f"Updated settings: sheet {sheet_w} x {sheet_h} mm, kerf={kerf_mm} mm, gap={gap_mm} mm, default_allow_rotate={default_allow}"
         )
 
     def _on_browse_clicked(self):
@@ -199,7 +218,7 @@ class SquatchCutControlPanel:
             run_csv_import(self.doc, csv_path, csv_units=csv_units)
             prefs.set_csv_units(csv_units)
         except Exception as e:
-            FreeCAD.Console.PrintError(f"[SquatchCut] CSV import failed: {e}\n")
+            logger.error(f"CSV import failed: {e}")
             show_error(f"CSV import failed:\n{e}", title="SquatchCut")
             return
 
@@ -208,19 +227,19 @@ class SquatchCutControlPanel:
             cmd = cmd_run_nesting.RunNestingCommand()
             cmd.Activated()
         except Exception as e:
-            FreeCAD.Console.PrintError(f"[SquatchCut] Nesting failed after CSV import: {e}\n")
+            logger.error(f"Nesting failed after CSV import: {e}")
             show_error(f"Nesting failed after CSV import:\n{e}", title="SquatchCut")
             return
 
         show_info("CSV imported and nesting completed.", title="SquatchCut")
-        FreeCAD.Console.PrintMessage("[SquatchCut] Import + Nest completed from control panel.\n")
+        logger.info("Import + Nest completed from control panel.")
 
     # ---------- FreeCAD TaskPanel API ----------
 
     def accept(self):
         """Called when user clicks OK on the TaskPanel wrapper."""
         if self.doc is None:
-            FreeCAD.Console.PrintError("[SquatchCut] No active document in ControlPanel.accept().\n")
+            logger.error("No active document in ControlPanel.accept().")
             FreeCADGui.Control.closeDialog()
             return
 
@@ -230,3 +249,9 @@ class SquatchCutControlPanel:
     def reject(self):
         """Called when user clicks Cancel/Close in the TaskPanel wrapper."""
         FreeCADGui.Control.closeDialog()
+
+    def _level_to_index(self, level: str) -> int:
+        return {"none": 0, "normal": 1, "verbose": 2}.get(level, 1)
+
+    def _index_to_level(self, idx: int) -> str:
+        return {0: "none", 1: "normal", 2: "verbose"}.get(idx, "normal")

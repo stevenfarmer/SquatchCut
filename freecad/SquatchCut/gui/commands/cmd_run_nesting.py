@@ -18,7 +18,7 @@ try:
 except Exception:
     Part = None
 
-from SquatchCut.core import session
+from SquatchCut.core import session, logger
 from SquatchCut.core.nesting import (
     Part,
     nest_on_multiple_sheets,
@@ -72,7 +72,7 @@ class RunNestingCommand:
         try:
             doc = App.ActiveDocument
             if doc is None:
-                App.Console.PrintMessage(">>> [SquatchCut] RunNesting: no active document\n")
+                logger.error("RunNesting: no active document")
                 return
 
             # Sync session_state from document properties
@@ -86,7 +86,7 @@ class RunNestingCommand:
             except Exception:
                 sheet_w = sheet_h = None
             if not sheet_w or not sheet_h:
-                App.Console.PrintError(">>> [SquatchCut] Cannot read sheet size from session_state.\n")
+                logger.error("Cannot read sheet size from session_state.")
                 return
 
             kerf_mm = get_kerf_mm()
@@ -107,7 +107,7 @@ class RunNestingCommand:
                     "Select one or more panel objects (rectangles/faces) and try again."
                 )
                 show_warning(msg)
-                FreeCAD.Console.PrintMessage("[SquatchCut] No panels selected for nesting.\n")
+                logger.warning("No panels selected for nesting.")
                 return
 
             source_group = doc.getObject("SquatchCut_SourcePanels")
@@ -148,9 +148,7 @@ class RunNestingCommand:
                 parts.append(Part(id=obj.Name, width=w, height=h, can_rotate=can_rotate))
 
             if not parts:
-                App.Console.PrintMessage(
-                    ">>> [SquatchCut] RunNesting: no valid panel dimensions found\n"
-                )
+                logger.warning("RunNesting: no valid panel dimensions found")
                 return
 
             try:
@@ -183,14 +181,14 @@ class RunNestingCommand:
                     f"Nesting failed due to panel size constraints:\n\n{e}",
                     title="SquatchCut Nesting Failed",
                 )
-                FreeCAD.Console.PrintError(f"[SquatchCut] Nesting failed: {e}\n")
+                logger.error(f"Nesting failed: {e}")
                 return
             except Exception as e:
                 show_error(
                     f"An unexpected error occurred during nesting:\n\n{e}",
                     title="SquatchCut Nesting Error",
                 )
-                FreeCAD.Console.PrintError(f"[SquatchCut] Unexpected nesting error: {e}\n")
+                logger.error(f"Unexpected nesting error: {e}")
                 return
             set_last_layout(placed_parts)
             if not placed_parts:
@@ -198,7 +196,7 @@ class RunNestingCommand:
                     "Nesting completed but no panels were placed.\n"
                     "Check that your panel sizes and sheet size are valid."
                 )
-                FreeCAD.Console.PrintWarning("[SquatchCut] Nesting produced no placements.\n")
+                logger.warning("Nesting produced no placements.")
                 return
 
             # Create sheet groups and place clones from placed_parts
@@ -244,7 +242,7 @@ class RunNestingCommand:
                 # Find original source object by id
                 src_obj = doc.getObject(pp.id)
                 if src_obj is None:
-                    FreeCAD.Console.PrintError(f"[SquatchCut] Object {pp.id} not found.\n")
+                logger.error(f"Object {pp.id} not found.")
                     continue
 
                 # Clone into this sheet group
@@ -271,10 +269,8 @@ class RunNestingCommand:
                 placement.Base.y = pp.y
                 clone.Placement = placement
 
-                FreeCAD.Console.PrintMessage(
-                    f"[SquatchCut] Placed {pp.id} on sheet {sheet_index + 1} "
-                    f"at ({sheet_origin_x + pp.x:.1f}, {pp.y:.1f}) "
-                    f"size {pp.width:.1f} x {pp.height:.1f} mm\n"
+                logger.debug(
+                    f"Placed {pp.id} on sheet {sheet_index + 1} at ({sheet_origin_x + pp.x:.1f}, {pp.y:.1f}) size {pp.width:.1f} x {pp.height:.1f} mm"
                 )
 
             if doc is not None:
@@ -285,37 +281,31 @@ class RunNestingCommand:
                 overlaps = detect_overlaps(placed_parts)
                 if overlaps:
                     for a, b in overlaps:
-                        FreeCAD.Console.PrintError(
-                            f"[SquatchCut] Overlap detected between {getattr(a, 'id', '?')} and {getattr(b, 'id', '?')} on sheet {getattr(a, 'sheet_index', '?')}.\n"
+                        logger.error(
+                            f"Overlap detected between {getattr(a, 'id', '?')} and {getattr(b, 'id', '?')} on sheet {getattr(a, 'sheet_index', '?')}."
                         )
                 set_nesting_stats(util.get("sheets_used", None), cut_complexity, len(overlaps))
                 summary_msg = (
-                    f"[SquatchCut] Nesting complete: {len(placed_parts)} parts, "
+                    f"Nesting complete: {len(placed_parts)} parts, "
                     f"sheets used={util.get('sheets_used', 0)}, "
                     f"utilization={util.get('utilization_percent', 0.0):.1f}%, "
                     f"estimated cuts={cuts.get('total', 0)} "
                     f"({cuts.get('vertical', 0)} vertical, {cuts.get('horizontal', 0)} horizontal).\n"
                 )
-                FreeCAD.Console.PrintMessage(summary_msg)
-                FreeCAD.Console.PrintMessage(
-                    f"[SquatchCut] Nesting complete: {len(placed_parts)} parts across {len(sheet_groups)} sheet(s).\n"
-                )
-                FreeCAD.Console.PrintMessage(
-                    f"[SquatchCut] Nested {len(panel_objs)} source panels into {len(sheet_groups)} sheet group(s).\n"
-                )
+                logger.info(summary_msg.strip())
+                logger.info(f"Nesting complete: {len(placed_parts)} parts across {len(sheet_groups)} sheet(s).")
+                logger.info(f"Nested {len(panel_objs)} source panels into {len(sheet_groups)} sheet group(s).")
 
         except Exception as exc:
-            App.Console.PrintError(
-                f">>> [SquatchCut] Error in RunNestingCommand.Activated(): {exc}\n"
-            )
-            App.Console.PrintError(traceback.format_exc())
+            logger.error(f"Error in RunNestingCommand.Activated(): {exc}")
+            logger.debug(traceback.format_exc())
             QtWidgets.QMessageBox.critical(
                 None,
                 "SquatchCut – Nesting Error",
                 f"An error occurred while running nesting:\n{exc}",
             )
         finally:
-            FreeCAD.Console.PrintMessage("[SquatchCut] RunNestingCommand.Activated() completed\n")
+            logger.debug("RunNestingCommand.Activated() completed")
 
     def IsActive(self):
         # For now, always active.
@@ -393,24 +383,20 @@ class ToggleSourcePanelsCommand:
     def Activated(self):
         doc = FreeCAD.ActiveDocument
         if doc is None:
-            FreeCAD.Console.PrintError("[SquatchCut] No active document.\n")
+            logger.error("No active document.")
             return
 
-        group = doc.getObject("SourcePanels")
+        group = doc.getObject("SquatchCut_SourcePanels")
         if group is None:
-            FreeCAD.Console.PrintMessage("[SquatchCut] No SourcePanels group exists.\n")
+            logger.info("No SourcePanels group exists.")
             return
 
         try:
             group.ViewObject.Visibility = not group.ViewObject.Visibility
             state = "shown" if group.ViewObject.Visibility else "hidden"
-            FreeCAD.Console.PrintMessage(
-                f"[SquatchCut] SourcePanels group {state}.\n"
-            )
+            logger.info(f"SourcePanels group {state}.")
         except Exception as e:
-            FreeCAD.Console.PrintError(
-                f"[SquatchCut] Failed toggling SourcePanels: {e}\n"
-            )
+            logger.error(f"Failed toggling SourcePanels: {e}")
 
     def IsActive(self):
         return FreeCAD.ActiveDocument is not None
@@ -427,7 +413,7 @@ class ExportNestingCSVCommand:
     def Activated(self):
         doc = FreeCAD.ActiveDocument
         if doc is None:
-            FreeCAD.Console.PrintError("[SquatchCut] No active document for export.\n")
+            logger.error("No active document for export.")
             return
 
         layout = get_last_layout()
@@ -437,7 +423,7 @@ class ExportNestingCSVCommand:
                 "Run the nesting command first, then try again.",
                 title="SquatchCut Export",
             )
-            FreeCAD.Console.PrintMessage("[SquatchCut] No layout available for export.\n")
+            logger.info("No layout available for export.")
             return
 
         # Determine default path suggestion
@@ -457,7 +443,7 @@ class ExportNestingCSVCommand:
         )
         if not filename:
             show_info("Export canceled.", title="SquatchCut Export")
-            FreeCAD.Console.PrintMessage("[SquatchCut] Export canceled by user.\n")
+            logger.info("Export canceled by user.")
             return
 
         try:
@@ -472,17 +458,13 @@ class ExportNestingCSVCommand:
                     )
                     f.write(line)
 
-            FreeCAD.Console.PrintMessage(
-                f"[SquatchCut] Exported nesting CSV with {len(layout)} rows to: {filename}\n"
-            )
+            logger.info(f"Exported nesting CSV with {len(layout)} rows to: {filename}")
         except Exception as e:
             show_error(
                 f"Failed to export nesting CSV:\n\n{e}",
                 title="SquatchCut Export Error",
             )
-            FreeCAD.Console.PrintError(
-                f"[SquatchCut] Failed to export nesting CSV: {e}\n"
-            )
+            logger.error(f"Failed to export nesting CSV: {e}")
 
     def IsActive(self):
         return FreeCAD.ActiveDocument is not None

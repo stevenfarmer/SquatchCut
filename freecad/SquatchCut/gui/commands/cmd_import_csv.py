@@ -11,6 +11,7 @@ import os
 
 import FreeCAD as App
 import FreeCADGui as Gui
+from SquatchCut.core import logger
 
 # Qt imports (FreeCAD standard pattern)
 try:
@@ -51,7 +52,7 @@ def run_csv_import(doc, csv_path: str, csv_units: str = "metric"):
     - csv_path: absolute path to the CSV to import.
     - csv_units: "metric" or "imperial" (imperial converted to mm).
     """
-    App.Console.PrintMessage(f">>> [SquatchCut] CSV selected: {csv_path}\n")
+    logger.info(f"CSV selected: {csv_path}")
 
     if doc is None:
         doc = App.newDocument("SquatchCut")
@@ -65,11 +66,11 @@ def run_csv_import(doc, csv_path: str, csv_units: str = "metric"):
             headers = reader.fieldnames or []
     except FileNotFoundError:
         show_error(f"CSV file not found:\n{csv_path}")
-        App.Console.PrintError(f"[SquatchCut] CSV file not found: {csv_path}\n")
+        logger.error(f"CSV file not found: {csv_path}")
         return
     except Exception as e:
         show_error(f"Failed to read CSV file:\n{csv_path}\n\n{e}")
-        App.Console.PrintError(f"[SquatchCut] Failed to read CSV: {e}\n")
+        logger.error(f"Failed to read CSV: {e}")
         return
 
     header_cols = {h.strip().lower() for h in headers if h}
@@ -83,9 +84,7 @@ def run_csv_import(doc, csv_path: str, csv_units: str = "metric"):
             + "\n\nPlease fix the CSV and try again."
         )
         show_error(msg)
-        App.Console.PrintError(
-            f"[SquatchCut] Missing required CSV columns: {missing}\n"
-        )
+        logger.error(f"Missing required CSV columns: {missing}")
         return
 
     valid_rows = []
@@ -136,9 +135,7 @@ def run_csv_import(doc, csv_path: str, csv_units: str = "metric"):
             )
         except Exception as e:
             warn_count += 1
-            App.Console.PrintError(
-                f"[SquatchCut] Skipping invalid CSV row {idx}: {e}\n"
-            )
+            logger.warning(f"Skipping invalid CSV row {idx}: {e}")
 
     if not valid_rows:
         show_error(
@@ -156,14 +153,12 @@ def run_csv_import(doc, csv_path: str, csv_units: str = "metric"):
     # Store panels in pure session_state and push settings into doc if needed
     session_state.set_panels(valid_rows)
     session.sync_doc_from_state(doc)
-    App.Console.PrintMessage(
-        f">>> [SquatchCut] Loaded {len(valid_rows)} panels\n"
-    )
+    logger.info(f"Loaded {len(valid_rows)} panels")
     # Create geometry for panels and center view
     try:
         sync_source_panels_to_document()
     except Exception as exc:
-        App.Console.PrintError(f"[SquatchCut] Failed to sync panels to document: {exc}\n")
+        logger.error(f"Failed to sync panels to document: {exc}")
 
 
 class ImportCSVCommand:
@@ -190,7 +185,7 @@ class ImportCSVCommand:
         Called when the user clicks the toolbar/menu item or when
         Gui.runCommand('SquatchCut_ImportCSV') is executed.
         """
-        App.Console.PrintMessage(">>> [SquatchCut] ImportCSVCommand.Activated() entered\n")
+        logger.debug("ImportCSVCommand.Activated() entered")
 
         try:
             doc = App.ActiveDocument
@@ -233,21 +228,17 @@ class ImportCSVCommand:
                 try:
                     sync_source_panels_to_document()
                 except Exception as exc:
-                    App.Console.PrintError(f"[SquatchCut] Failed creating shapes from CSV: {exc}\n")
+                    logger.error(f"Failed creating shapes from CSV: {exc}")
                 created = [o for o in getattr(doc, "Objects", []) if getattr(o, "SquatchCutPanel", False)]
                 if not created:
-                    App.Console.PrintError("[SquatchCut] CSV import produced no panel shapes.\n")
+                    logger.error("CSV import produced no panel shapes.")
             else:
                 # User cancelled
-                App.Console.PrintMessage(
-                    ">>> [SquatchCut] Import CSV dialog cancelled by user\n"
-                )
+                logger.info("Import CSV dialog cancelled by user")
 
-            App.Console.PrintMessage(">>> [SquatchCut] ImportCSVCommand.Activated() completed\n")
+            logger.debug("ImportCSVCommand.Activated() completed")
         except Exception as e:
-            App.Console.PrintError(
-                f">>> [SquatchCut] Error in ImportCSVCommand.Activated(): {e}\n"
-            )
+            logger.error(f"Error in ImportCSVCommand.Activated(): {e}")
 
     def IsActive(self):
         """

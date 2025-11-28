@@ -101,4 +101,6 @@ def sync_source_panels_to_document():
         except Exception:
             pass
 
-    App.Console.PrintMessage(f"[SquatchCut] Created {len(created)} source panel shapes in document.\n")
+    from SquatchCut.core import logger
+
+    logger.info(f"Created {len(created)} source panel shapes in document.")

@@ -161,6 +161,50 @@ class SquatchCutPreferences:
                 pass
         self._local["ExportIncludeDimensions"] = bool(value)
 
+    def get_report_view_log_level(self, fallback: str = "normal") -> str:
+        val = fallback
+        if self._grp:
+            try:
+                val = self._grp.GetString("ReportViewLogLevel", fallback)
+            except Exception:
+                val = fallback
+        val = str(self._local.get("ReportViewLogLevel", val))
+        if val not in ("none", "normal", "verbose"):
+            val = fallback
+        return val
+
+    def set_report_view_log_level(self, level: str) -> None:
+        if level not in ("none", "normal", "verbose"):
+            level = "normal"
+        if self._grp:
+            try:
+                self._grp.SetString("ReportViewLogLevel", level)
+            except Exception:
+                pass
+        self._local["ReportViewLogLevel"] = level
+
+    def get_python_console_log_level(self, fallback: str = "none") -> str:
+        val = fallback
+        if self._grp:
+            try:
+                val = self._grp.GetString("PythonConsoleLogLevel", fallback)
+            except Exception:
+                val = fallback
+        val = str(self._local.get("PythonConsoleLogLevel", val))
+        if val not in ("none", "normal", "verbose"):
+            val = fallback
+        return val
+
+    def set_python_console_log_level(self, level: str) -> None:
+        if level not in ("none", "normal", "verbose"):
+            level = "none"
+        if self._grp:
+            try:
+                self._grp.SetString("PythonConsoleLogLevel", level)
+            except Exception:
+                pass
+        self._local["PythonConsoleLogLevel"] = level
+
 
 # Backward-compatible alias if other modules imported Preferences
 Preferences = SquatchCutPreferences
