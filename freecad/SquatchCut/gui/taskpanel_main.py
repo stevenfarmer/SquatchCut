@@ -17,6 +17,7 @@ except ImportError:  # FreeCAD 0.21+ ships PySide2
 from SquatchCut.core import session, session_state
 from SquatchCut.core.nesting import compute_utilization, estimate_cut_counts
 from SquatchCut.core.preferences import SquatchCutPreferences
+from SquatchCut.core import exporter
 from SquatchCut.gui.commands.cmd_import_csv import run_csv_import
 from SquatchCut.gui.commands import cmd_add_shapes, cmd_run_nesting
 from SquatchCut.ui.messages import show_error
@@ -70,6 +71,7 @@ class SquatchCutTaskPanel:
         layout.addWidget(self._build_nesting_group())
         layout.addWidget(self._build_cut_optimization_group())
         layout.addWidget(self._build_stats_group())
+        layout.addWidget(self._build_export_group())
 
         # Bottom action buttons
         buttons_row = QtWidgets.QHBoxLayout()
@@ -296,6 +298,21 @@ class SquatchCutTaskPanel:
         form.addRow("Sheets used:", self.stats_sheets_label)
         form.addRow("Cut path complexity:", self.stats_complexity_label)
         form.addRow("Overlaps:", self.overlaps_label)
+        return group
+
+    def _build_export_group(self) -> QtWidgets.QGroupBox:
+        group = QtWidgets.QGroupBox("Export")
+        form = QtWidgets.QFormLayout(group)
+        self.export_format_combo = QtWidgets.QComboBox()
+        self.export_format_combo.addItem("DXF", "dxf")
+        self.export_format_combo.addItem("SVG", "svg")
+        self.export_format_combo.addItem("Cut list CSV", "csv")
+        self.export_button = QtWidgets.QPushButton("Export SquatchCut")
+        self.export_button.setToolTip("Export the current SquatchCut layout in the selected format.")
+        self.export_button.clicked.connect(self.on_export_clicked)
+
+        form.addRow("Export format:", self.export_format_combo)
+        form.addRow(self.export_button)
         return group
 
     # ---------------- State helpers ----------------
@@ -771,6 +788,64 @@ class SquatchCutTaskPanel:
                 App.Console.PrintError(f"[SquatchCut] Failed to open bug report URL: {exc}\n")
             except Exception:
                 pass
+
+    def on_export_clicked(self) -> None:
+        """Export the current nesting layout based on selected format."""
+        if self.overlaps_count > 0:
+            self.status_label.setText("Cannot export: current nesting contains overlapping parts.")
+            self.status_label.setStyleSheet("color: red;")
+            return
+
+        placements = session_state.get_last_layout() or []
+        if not placements:
+            self.status_label.setText("Cannot export: no nesting layout available.")
+            self.status_label.setStyleSheet("color: orange;")
+            return
+
+        sheet_w, sheet_h = session_state.get_sheet_size()
+        if not sheet_w or not sheet_h:
+            self.status_label.setText("Cannot export: sheet size missing.")
+            self.status_label.setStyleSheet("color: orange;")
+            return
+
+        fmt = self.export_format_combo.currentData()
+        if fmt == "dxf":
+            filter_str = "DXF files (*.dxf)"
+            default_ext = ".dxf"
+        elif fmt == "svg":
+            filter_str = "SVG files (*.svg)"
+            default_ext = ".svg"
+        else:
+            filter_str = "CSV files (*.csv)"
+            default_ext = ".csv"
+
+        file_path, _ = QtWidgets.QFileDialog.getSaveFileName(
+            None,
+            "Export SquatchCut Layout",
+            "",
+            f"{filter_str};;All files (*.*)",
+        )
+        if not file_path:
+            return
+        if not file_path.lower().endswith(default_ext):
+            file_path += default_ext
+
+        try:
+            if fmt == "dxf":
+                exporter.export_layout_to_dxf(placements, (sheet_w, sheet_h), self._ensure_document(), file_path)
+            elif fmt == "svg":
+                exporter.export_layout_to_svg(placements, (sheet_w, sheet_h), self._ensure_document(), file_path)
+            else:
+                exporter.export_cutlist_to_csv(placements, file_path)
+            self.status_label.setText(f"Exported SquatchCut layout to: {file_path}")
+            self.status_label.setStyleSheet("color: green;")
+        except Exception as exc:
+            try:
+                App.Console.PrintError(f"[SquatchCut] Export failed: {exc}\n")
+            except Exception:
+                pass
+            self.status_label.setText("Export failed. See Report View for details.")
+            self.status_label.setStyleSheet("color: red;")
 
     def _reset_defaults(self) -> None:
         """Reset configuration fields to safe defaults (does not clear CSV)."""
