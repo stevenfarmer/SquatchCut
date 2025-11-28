@@ -174,8 +174,8 @@ class SquatchCutTaskPanel:
         csv_units_row = QtWidgets.QHBoxLayout()
         csv_units_row.addWidget(QtWidgets.QLabel("CSV units:"))
         self.csv_units_combo = QtWidgets.QComboBox()
-        self.csv_units_combo.addItem("Metric (mm)", "metric")
-        self.csv_units_combo.addItem("Imperial (in)", "imperial")
+        self.csv_units_combo.addItem("Metric (mm)", "mm")
+        self.csv_units_combo.addItem("Imperial (in)", "in")
         csv_units_row.addWidget(self.csv_units_combo)
         csv_units_row.addStretch(1)
         vbox.addLayout(csv_units_row)
@@ -436,6 +436,10 @@ class SquatchCutTaskPanel:
             self.units_combo.setCurrentIndex(unit_idx)
             self.units_combo.blockSignals(False)
         csv_units = self._prefs.get_csv_units(self.measurement_system)
+        if csv_units == "imperial":
+            csv_units = "in"
+        elif csv_units == "metric":
+            csv_units = "mm"
         csv_units_idx = self.csv_units_combo.findData(csv_units)
         if csv_units_idx >= 0:
             self.csv_units_combo.blockSignals(True)
@@ -568,7 +572,7 @@ class SquatchCutTaskPanel:
 
         try:
             self._apply_settings_to_session()
-            csv_units = self.csv_units_combo.currentData() or self.measurement_system or "metric"
+            csv_units = self.get_csv_units()
             run_csv_import(doc, file_path, csv_units=csv_units)
             self._prefs.set_csv_units(csv_units)
             self._last_csv_path = file_path
@@ -626,6 +630,13 @@ class SquatchCutTaskPanel:
                     obj.ViewObject.Visibility = show_nested
             except Exception:
                 continue
+
+    def get_csv_units(self):
+        """Return csv units selection ('mm' or 'in')."""
+        data = self.csv_units_combo.currentData()
+        if data in ("mm", "in"):
+            return data
+        return "mm"
 
     # ---------------- Helpers ----------------
 

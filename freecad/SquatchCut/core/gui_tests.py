@@ -87,6 +87,23 @@ def _get_test_csv_path():
     return None
 
 
+def _get_imperial_test_csv_path(name: str = "valid_panels_imperial_1_sheet.csv"):
+    """
+    Return the path to an imperial CSV for tests.
+    """
+    try:
+        import SquatchCut
+
+        mod_path = Path(SquatchCut.__file__).resolve().parent
+        csv_path = mod_path.parent / "testing" / "csv" / name
+        if csv_path.is_file():
+            return str(csv_path)
+    except Exception:
+        pass
+    logger.warning(f"GUI tests: could not resolve {name} path.")
+    return None
+
+
 def test_import_small_metric_csv():
     """
     E2E-ish: ensure panels are synced into a fresh document and geometry exists.
@@ -279,6 +296,44 @@ def test_sheet_size_suffix_tracks_units():
     return result
 
 
+def test_import_imperial_csv_uses_units():
+    """
+    GUI test: import imperial CSV with units='in' and ensure panels are created.
+    """
+    result = TestResult("Import imperial CSV respects units")
+
+    try:
+        doc = _new_temp_doc("SquatchCut_GUI_Imperial")
+    except Exception as exc:
+        result.set_fail(exc)
+        return result
+
+    try:
+        session.clear_all_geometry()
+        session.set_panels([])
+
+        csv_path = _get_imperial_test_csv_path()
+        if not csv_path:
+            raise RuntimeError("Imperial test CSV path could not be resolved.")
+
+        cmd = cmd_import_csv.ImportCsvCommand()
+        cmd.import_from_path(csv_path, units="in")
+
+        sync_source_panels_to_document()
+
+        source_objs = session.get_source_panel_objects()
+        if not source_objs:
+            raise RuntimeError("No source panel objects after imperial CSV import.")
+
+        result.set_pass()
+    except Exception as exc:
+        result.set_fail(exc)
+    finally:
+        _close_doc(doc)
+
+    return result
+
+
 def run_all_tests():
     """
     Entry point for the "Run GUI Tests" button in SquatchCut Settings.
@@ -293,6 +348,7 @@ def run_all_tests():
         test_units_settings_imperial,
         test_units_toggle_updates_pref,
         test_sheet_size_suffix_tracks_units,
+        test_import_imperial_csv_uses_units,
     ]
 
     results = []

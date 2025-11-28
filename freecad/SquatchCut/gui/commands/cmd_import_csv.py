@@ -40,7 +40,8 @@ def _convert_length(value, csv_units: str):
         num = float(value)
     except Exception:
         return value
-    if str(csv_units).lower() == "imperial":
+    units_val = str(csv_units).lower()
+    if units_val in ("imperial", "in"):
         return num * MM_PER_INCH
     return num
 
@@ -58,6 +59,14 @@ def run_csv_import(doc, csv_path: str, csv_units: str = "metric"):
     if doc is None:
         doc = App.newDocument("SquatchCut")
     session.sync_state_from_doc(doc)
+
+    # Normalize units
+    units_val = str(csv_units or "mm").lower()
+    if units_val == "metric":
+        units_val = "mm"
+    if units_val == "imperial":
+        units_val = "in"
+    csv_units = units_val
 
     # Load CSV data with validation
     try:
@@ -260,7 +269,11 @@ class ImportCSVCommand:
                 prefs = SquatchCutPreferences()
                 csv_units = prefs.get_csv_units(prefs.get_measurement_system())
             except Exception:
-                csv_units = "metric"
+                csv_units = "mm"
+        if csv_units == "metric":
+            csv_units = "mm"
+        if csv_units == "imperial":
+            csv_units = "in"
         run_csv_import(doc, csv_path, csv_units=csv_units)
         try:
             session.set_last_csv_path(csv_path)
