@@ -1,14 +1,32 @@
 """@codex
-Simple deterministic 2D shelf nesting for rectangular panels.
+Core nesting strategies for SquatchCut.
+
+Algorithms:
+- `nest_on_multiple_sheets`: material/yield-focused shelf nesting.
+- `nest_cut_optimized`: row/column heuristic to approximate fewer saw cuts.
+Utilities:
+- `estimate_cut_counts` and `compute_utilization` to summarize layouts.
 Pure logic module: no FreeCAD or GUI dependencies.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
-__all__ = ["run_shelf_nesting", "nest_on_multiple_sheets", "Part", "PlacedPart"]
+
+__all__ = [
+    "run_shelf_nesting",
+    "nest_on_multiple_sheets",
+    "nest_cut_optimized",
+    "nest_parts",
+    "NestingConfig",
+    "get_effective_spacing",
+    "estimate_cut_counts",
+    "compute_utilization",
+    "Part",
+    "PlacedPart",
+]
 
 
 @dataclass
@@ -30,10 +48,40 @@ class PlacedPart:
     rotation_deg: int = 0  # 0 or 90
 
 
-def nest_on_multiple_sheets(
+@dataclass
+class NestingConfig:
+    """
+    Configuration for nesting strategy selection.
+
+    optimize_for_cut_path:
+        When True, use guillotine-style nesting to prioritize cut-aligned layouts.
+    kerf_width_mm:
+        Spacing between parts when optimize_for_cut_path is enabled.
+    allowed_rotations_deg:
+        Allowed rotation angles for parts; defaults to 0 and 90 degrees.
+    """
+
+    optimize_for_cut_path: bool = False
+    kerf_width_mm: float = 3.0
+    allowed_rotations_deg: Tuple[int, ...] = (0, 90)
+    spacing_mm: float = 0.0
+    measurement_system: str = "metric"
+
+
+def get_effective_spacing(config) -> float:
+    """
+    Return effective spacing (base spacing + kerf width) to keep parts separated.
+    """
+    base_spacing = float(getattr(config, "spacing_mm", 0.0) or 0.0)
+    kerf = float(getattr(config, "kerf_width_mm", 0.0) or 0.0)
+    return max(0.0, base_spacing + kerf)
+
+
+def _nest_rectangular_default(
     parts: List[Part],
     sheet_width: float,
     sheet_height: float,
+    config: NestingConfig | None = None,
 ) -> List[PlacedPart]:
     """
     Shelf-based rectangle packing across multiple sheets with optional 90° rotation.
@@ -50,6 +98,9 @@ def nest_on_multiple_sheets(
 
     Raises ValueError if any part cannot fit on a sheet in any allowed orientation.
     """
+
+    cfg = config or NestingConfig()
+    spacing = get_effective_spacing(cfg)
 
     # Early validation: each part must fit on an empty sheet in some allowed orientation.
     for p in parts:
@@ -86,8 +137,12 @@ def nest_on_multiple_sheets(
 
         # Try to place the part on existing sheets
         for sheet_index, rows in enumerate(sheets):
-            # Compute current total height for this sheet from its rows
-            total_height = sum(r["height"] for r in rows)
+            # Compute current total height for this sheet from its rows + spacing between rows
+            total_height = 0.0
+            for idx, r in enumerate(rows):
+                total_height += r["height"]
+                if idx < len(rows) - 1:
+                    total_height += spacing
 
             # 1) Try to place in existing rows on this sheet
             for row in rows:
@@ -95,7 +150,7 @@ def nest_on_multiple_sheets(
                     # Must fit within row height and sheet width
                     if h > row["height"]:
                         continue
-                    if row["used_width"] + w > sheet_width:
+                    if row["used_width"] + w + spacing > sheet_width + 1e-6:
                         continue
 
                     # Place in this row
@@ -114,7 +169,7 @@ def nest_on_multiple_sheets(
                         )
                     )
 
-                    row["used_width"] += w
+                    row["used_width"] += w + spacing
                     placed_on_sheet = True
                     break  # out of orientations
 
@@ -129,15 +184,15 @@ def nest_on_multiple_sheets(
                 if w > sheet_width:
                     continue
 
-                new_total_height = total_height + h
+                new_total_height = total_height + (spacing if rows else 0.0) + h
                 if new_total_height > sheet_height:
                     continue
 
                 # Start a new row with fixed height = h
                 new_row = {
-                    "y": total_height,
+                    "y": total_height + (spacing if rows else 0.0),
                     "height": h,
-                    "used_width": w,
+                    "used_width": w + spacing,
                 }
                 rows.append(new_row)
 
@@ -146,7 +201,7 @@ def nest_on_multiple_sheets(
                         id=part.id,
                         sheet_index=sheet_index,
                         x=0.0,
-                        y=total_height,
+                        y=total_height + (spacing if rows else 0.0),
                         width=w,
                         height=h,
                         rotation_deg=rot,
@@ -197,6 +252,214 @@ def nest_on_multiple_sheets(
             )
 
     return placed
+
+
+def nest_on_multiple_sheets(
+    parts: List[Part],
+    sheet_width: float,
+    sheet_height: float,
+    config: NestingConfig | None = None,
+) -> List[PlacedPart]:
+    """
+    Backward-compatible entry that runs the default shelf-based nesting.
+    """
+    return _nest_rectangular_default(parts, sheet_width, sheet_height, config=config)
+
+
+def nest_cut_optimized(
+    parts: List[Part],
+    sheet_width: float,
+    sheet_height: float,
+    kerf: float = 0.0,
+    margin: float = 0.0,
+) -> List[PlacedPart]:
+    """
+    Row/column oriented heuristic intended to reduce distinct cut lines.
+
+    - Builds rows top-to-bottom.
+    - Places parts left-to-right within a row, keeping aligned edges.
+    - Starts new rows (or sheets) when horizontal space is exhausted.
+    - Respects simple kerf spacing and edge margin.
+    - Heuristic only: trades some yield for more aligned rip/crosscut lines.
+    """
+    if sheet_width <= 0 or sheet_height <= 0:
+        return []
+
+    spacing = max(0.0, kerf)
+    usable_width = max(0.0, sheet_width - 2 * margin)
+    usable_height = max(0.0, sheet_height - 2 * margin)
+
+    # Validate parts fit in some orientation within usable area
+    for p in parts:
+        fits_unrotated = p.width <= usable_width and p.height <= usable_height
+        fits_rotated = (
+            p.can_rotate and p.height <= usable_width and p.width <= usable_height
+        )
+        if not (fits_unrotated or fits_rotated):
+            raise ValueError(
+                f"Part {p.id} ({p.width} x {p.height}) does not fit "
+                f"in usable sheet area {usable_width} x {usable_height}."
+            )
+
+    remaining: List[Part] = sorted(
+        parts,
+        key=lambda p: (p.height, p.width),
+        reverse=True,
+    )
+
+    placements: List[PlacedPart] = []
+    sheet_index = 0
+    current_y = margin
+
+    def orientation_options(part: Part):
+        yield part.width, part.height, 0
+        if part.can_rotate and part.width != part.height:
+            yield part.height, part.width, 90
+
+    while remaining:
+        current_x = margin
+        row_height = 0.0
+        placed_this_row = False
+
+        while remaining:
+            # Pick the first part in sorted order that fits the current row.
+            candidate_idx = None
+            candidate_orient = None
+
+            for idx, part in enumerate(remaining):
+                for w, h, rot in orientation_options(part):
+                    if w > usable_width or h > usable_height:
+                        continue
+                    if current_x + w + spacing > sheet_width - margin + 1e-6:
+                        continue
+                    if current_y + max(row_height, h) + spacing > sheet_height - margin + 1e-6:
+                        continue
+                    candidate_idx = idx
+                    candidate_orient = (w, h, rot)
+                    break
+                if candidate_idx is not None:
+                    break
+
+            if candidate_idx is None:
+                break
+
+            part = remaining.pop(candidate_idx)
+            w, h, rot = candidate_orient  # type: ignore
+
+            placements.append(
+                PlacedPart(
+                    id=part.id,
+                    sheet_index=sheet_index,
+                    x=current_x,
+                    y=current_y,
+                    width=w,
+                    height=h,
+                    rotation_deg=rot,
+                )
+            )
+
+            placed_this_row = True
+            current_x += w + kerf
+            row_height = max(row_height, h)
+            current_x += spacing
+
+        if not placed_this_row:
+            # No part fit in this row; start a new sheet.
+            sheet_index += 1
+            current_y = margin
+            continue
+
+        # Move to next row
+        current_y += row_height + spacing
+        if current_y > sheet_height - margin + 1e-6 and remaining:
+            # Start a new sheet
+            sheet_index += 1
+            current_y = margin
+
+    return placements
+
+
+def nest_parts(
+    parts: List[Part],
+    sheet_width: float,
+    sheet_height: float,
+    config: NestingConfig | None = None,
+) -> List[PlacedPart]:
+    """
+    Strategy selector for nesting.
+    - When optimize_for_cut_path is True, use guillotine-style nesting.
+    - Otherwise, fall back to the default shelf-based nesting.
+    """
+    cfg = config or NestingConfig()
+    if cfg.optimize_for_cut_path:
+        from SquatchCut.core import cut_optimization
+
+        return cut_optimization.guillotine_nest_parts(
+            parts,
+            {"width": sheet_width, "height": sheet_height},
+            cfg,
+        )
+    return _nest_rectangular_default(parts, sheet_width, sheet_height, cfg)
+
+
+def estimate_cut_counts(
+    placements: List[PlacedPart],
+    sheet_width: float | None = None,
+    sheet_height: float | None = None,
+) -> dict:
+    """
+    Approximate saw cut counts by collecting unique vertical and horizontal cut lines.
+
+    - Vertical cuts are inferred from x boundaries of placed parts (and sheet edges if provided).
+    - Horizontal cuts use y boundaries of placed parts (and sheet edges if provided).
+    """
+    if not placements:
+        return {"vertical": 0, "horizontal": 0, "total": 0}
+
+    vertical = set()
+    horizontal = set()
+
+    if sheet_width is not None:
+        vertical.add(0.0)
+        vertical.add(float(sheet_width))
+    if sheet_height is not None:
+        horizontal.add(0.0)
+        horizontal.add(float(sheet_height))
+
+    for pp in placements:
+        vertical.add(round(pp.x, 4))
+        vertical.add(round(pp.x + pp.width, 4))
+        horizontal.add(round(pp.y, 4))
+        horizontal.add(round(pp.y + pp.height, 4))
+
+    v_count = len(vertical)
+    h_count = len(horizontal)
+    return {"vertical": v_count, "horizontal": h_count, "total": v_count + h_count}
+
+
+def compute_utilization(
+    placements: List[PlacedPart],
+    sheet_width: float,
+    sheet_height: float,
+) -> dict:
+    """
+    Compute basic material utilization metrics for a set of placements.
+    Returns: {"utilization_percent": float, "sheets_used": int, "placed_area": float, "sheet_area": float}
+    """
+    if not placements or sheet_width <= 0 or sheet_height <= 0:
+        return {"utilization_percent": 0.0, "sheets_used": 0, "placed_area": 0.0, "sheet_area": 0.0}
+
+    sheets_used = max(pp.sheet_index for pp in placements) + 1
+    placed_area = sum(pp.width * pp.height for pp in placements)
+    sheet_area = sheet_width * sheet_height * sheets_used
+    util = (placed_area / sheet_area) * 100.0 if sheet_area > 0 else 0.0
+
+    return {
+        "utilization_percent": util,
+        "sheets_used": sheets_used,
+        "placed_area": placed_area,
+        "sheet_area": sheet_area,
+    }
 
 
 def run_shelf_nesting(

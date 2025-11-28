@@ -17,7 +17,18 @@ from SquatchCut.core.session_state import (
     add_panels,
     get_panels,
     clear_panels,
+    set_optimization_mode,
+    get_optimization_mode,
+    set_optimize_for_cut_path,
+    get_optimize_for_cut_path,
+    set_kerf_width_mm,
+    get_kerf_width_mm,
+    set_allowed_rotations_deg,
+    get_allowed_rotations_deg,
+    set_nesting_stats,
+    get_nesting_stats,
 )
+from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.core.nesting import PlacedPart
 
 
@@ -85,3 +96,43 @@ def test_panels_set_add_clear_are_copied():
 
     clear_panels()
     assert get_panels() == []
+
+
+def test_optimization_mode_roundtrip():
+    set_optimization_mode("material")
+    assert get_optimization_mode() == "material"
+    set_optimization_mode("cuts")
+    assert get_optimization_mode() == "cuts"
+    # Invalid values fall back to material
+    set_optimization_mode("bogus")
+    assert get_optimization_mode() == "material"
+
+
+def test_advanced_cut_settings_roundtrip():
+    set_optimize_for_cut_path(True)
+    assert get_optimize_for_cut_path() is True
+    set_optimize_for_cut_path(False)
+    assert get_optimize_for_cut_path() is False
+
+    set_kerf_width_mm(4.2)
+    assert get_kerf_width_mm() == 4.2
+
+    set_allowed_rotations_deg((0, 90))
+    assert get_allowed_rotations_deg() == (0, 90)
+    set_allowed_rotations_deg([90])
+    assert get_allowed_rotations_deg() == (90,)
+
+
+def test_nesting_stats_roundtrip():
+    set_nesting_stats(3, 12.5)
+    stats = get_nesting_stats()
+    assert stats["sheets_used"] == 3
+    assert stats["cut_complexity"] == 12.5
+
+
+def test_measurement_system_preferences_roundtrip():
+    prefs = SquatchCutPreferences()
+    prefs.set_measurement_system("imperial")
+    assert prefs.get_measurement_system() == "imperial"
+    prefs.set_measurement_system("metric")
+    assert prefs.get_measurement_system() == "metric"

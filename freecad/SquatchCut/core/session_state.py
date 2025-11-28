@@ -21,12 +21,19 @@ _sheet_height = None
 _kerf_mm = 0.0
 _gap_mm = 0.0
 _default_allow_rotate = False
+_optimize_for_cut_path = False
+_kerf_width_mm = 3.0
+_allowed_rotations_deg = (0, 90)
 
 # Last nesting layout: list of PlacedPart objects
 _last_layout = None
+_nesting_stats = {"sheets_used": None, "cut_complexity": None, "overlaps_count": None}
 
 # Panels loaded from CSV (pure data; no FreeCAD objects)
 _panels = []
+
+# Optimization mode: "material" (default) or "cuts"
+_optimization_mode = "material"
 
 
 # --------------------------
@@ -34,12 +41,14 @@ _panels = []
 # --------------------------
 
 def set_sheet_size(width_mm: float, height_mm: float) -> None:
+    """Store sheet size in millimeters in session memory."""
     global _sheet_width, _sheet_height
     _sheet_width = float(width_mm)
     _sheet_height = float(height_mm)
 
 
 def get_sheet_size():
+    """Return current sheet size (width_mm, height_mm) or (None, None)."""
     return _sheet_width, _sheet_height
 
 
@@ -48,30 +57,75 @@ def get_sheet_size():
 # --------------------------
 
 def set_kerf_mm(value: float) -> None:
+    """Store kerf width (mm) used between adjacent parts."""
     global _kerf_mm
     _kerf_mm = float(value)
 
 
 def get_kerf_mm() -> float:
+    """Return kerf width (mm)."""
     return float(_kerf_mm)
 
 
 def set_gap_mm(value: float) -> None:
+    """Store edge gap/margin (mm) around parts/sheets."""
     global _gap_mm
     _gap_mm = float(value)
 
 
 def get_gap_mm() -> float:
+    """Return edge gap/margin (mm)."""
     return float(_gap_mm)
 
 
 def set_default_allow_rotate(value: bool) -> None:
+    """Set default allow-rotate flag for panels without explicit rotation setting."""
     global _default_allow_rotate
     _default_allow_rotate = bool(value)
 
 
 def get_default_allow_rotate() -> bool:
+    """Return default allow-rotate flag."""
     return bool(_default_allow_rotate)
+
+
+def set_optimize_for_cut_path(value: bool) -> None:
+    """Enable/disable guillotine-style cut optimization."""
+    global _optimize_for_cut_path
+    _optimize_for_cut_path = bool(value)
+
+
+def get_optimize_for_cut_path() -> bool:
+    """Return cut optimization flag."""
+    return bool(_optimize_for_cut_path)
+
+
+def set_kerf_width_mm(value: float) -> None:
+    """Set kerf width (mm) for cut-path optimization."""
+    global _kerf_width_mm
+    _kerf_width_mm = float(value)
+
+
+def get_kerf_width_mm() -> float:
+    """Return kerf width (mm) for cut-path optimization."""
+    return float(_kerf_width_mm)
+
+
+def set_allowed_rotations_deg(values) -> None:
+    """Set allowed rotation angles as a tuple of ints."""
+    global _allowed_rotations_deg
+    try:
+        vals = tuple(int(v) for v in (values or ()))
+        if not vals:
+            vals = (0,)
+    except Exception:
+        vals = (0,)
+    _allowed_rotations_deg = vals
+
+
+def get_allowed_rotations_deg():
+    """Return allowed rotation angles tuple."""
+    return tuple(_allowed_rotations_deg or (0,))
 
 
 # --------------------------
@@ -79,15 +133,36 @@ def get_default_allow_rotate() -> bool:
 # --------------------------
 
 def set_last_layout(layout_list) -> None:
+    """Store a copy of the last nesting layout (list of PlacedPart)."""
     global _last_layout
     # Make a deep copy to avoid external mutation
     _last_layout = deepcopy(layout_list)
 
 
 def get_last_layout():
+    """Retrieve a copy of the last nesting layout, or None."""
     if _last_layout is None:
         return None
     return deepcopy(_last_layout)
+
+
+def set_nesting_stats(
+    sheets_used: int | None = None,
+    cut_complexity: float | None = None,
+    overlaps_count: int | None = None,
+) -> None:
+    """Store summary stats from the last nesting run."""
+    global _nesting_stats
+    _nesting_stats = {
+        "sheets_used": sheets_used,
+        "cut_complexity": cut_complexity,
+        "overlaps_count": overlaps_count,
+    }
+
+
+def get_nesting_stats() -> dict:
+    """Return summary stats from the last nesting run."""
+    return dict(_nesting_stats or {"sheets_used": None, "cut_complexity": None, "overlaps_count": None})
 
 
 # --------------------------
@@ -117,3 +192,20 @@ def clear_panels() -> None:
     """Clear all panels."""
     global _panels
     _panels = []
+
+
+# --------------------------
+# Optimization mode
+# --------------------------
+
+def set_optimization_mode(mode: str) -> None:
+    """Set nesting optimization mode (material or cuts)."""
+    global _optimization_mode
+    if mode not in ("material", "cuts"):
+        mode = "material"
+    _optimization_mode = mode
+
+
+def get_optimization_mode() -> str:
+    """Get the current nesting optimization mode."""
+    return _optimization_mode or "material"

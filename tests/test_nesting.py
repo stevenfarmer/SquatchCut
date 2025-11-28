@@ -8,8 +8,14 @@ from SquatchCut.core.nesting import (
     Part,
     PlacedPart,
     nest_on_multiple_sheets,
+    nest_cut_optimized,
+    nest_parts,
+    NestingConfig,
+    estimate_cut_counts,
+    compute_utilization,
     run_shelf_nesting,
 )
+from SquatchCut.core.overlap_check import detect_overlaps
 
 
 def _rects_overlap(a: PlacedPart, b: PlacedPart) -> bool:
@@ -53,6 +59,16 @@ def test_nesting_no_overlap_simple():
             assert not _rects_overlap(placed[i], placed[j]), (
                 f"Overlap detected between {placed[i].id} and {placed[j].id}"
             )
+
+
+def test_default_nesting_no_overlap_via_detector():
+    parts = [
+        Part(id="p1", width=100, height=80),
+        Part(id="p2", width=90, height=70),
+        Part(id="p3", width=60, height=60),
+    ]
+    placed = nest_on_multiple_sheets(parts, 400, 300)
+    assert not detect_overlaps(placed)
 
 
 def test_nesting_respects_can_rotate():
@@ -149,3 +165,58 @@ def test_run_shelf_nesting_wraps_rows_and_stops_on_height_limit():
     # Only the first should place; wrap on second triggers height stop for the rest
     assert len(placements) == 1
     assert placements[0]["y"] == 10  # first row at top margin
+
+
+def test_cut_optimized_layout_builds_rows():
+    """Cut-optimized mode should align parts into rows with shared y coordinates."""
+    parts = [
+        Part(id="p1", width=200, height=120),
+        Part(id="p2", width=180, height=110),
+        Part(id="p3", width=150, height=90),
+    ]
+    sheet_w = 500
+    sheet_h = 400
+
+    placements = nest_cut_optimized(parts, sheet_w, sheet_h, kerf=5.0, margin=0.0)
+    assert len(placements) == len(parts)
+
+    # Expect at least two parts sharing the first row y-coordinate
+    first_y = placements[0].y
+    same_row = [p for p in placements if abs(p.y - first_y) < 1e-6]
+    assert len(same_row) >= 2
+
+    # No overlaps should occur
+    for i in range(len(placements)):
+        for j in range(i + 1, len(placements)):
+            assert not _rects_overlap(placements[i], placements[j])
+
+
+def test_guillotine_nesting_no_overlap_detector():
+    parts = [
+        Part(id="a", width=120, height=80),
+        Part(id="b", width=90, height=90),
+        Part(id="c", width=60, height=50),
+    ]
+    cfg = NestingConfig(optimize_for_cut_path=True, kerf_width_mm=2.0)
+    placed = nest_parts(parts, 400, 300, cfg)
+    assert not detect_overlaps(placed)
+
+
+def test_estimate_cut_counts_uses_unique_boundaries():
+    placements = [
+        PlacedPart(id="a", sheet_index=0, x=0, y=0, width=100, height=50),
+        PlacedPart(id="b", sheet_index=0, x=100, y=0, width=50, height=50),
+    ]
+    counts = estimate_cut_counts(placements, sheet_width=150, sheet_height=50)
+    assert counts["vertical"] >= 3  # x=0,100,150
+    assert counts["horizontal"] >= 2  # y=0,50
+
+
+def test_compute_utilization_reports_sheets_used_and_percent():
+    placements = [
+        PlacedPart(id="a", sheet_index=0, x=0, y=0, width=50, height=50),
+        PlacedPart(id="b", sheet_index=1, x=0, y=0, width=50, height=50),
+    ]
+    util = compute_utilization(placements, sheet_width=100, sheet_height=100)
+    assert util["sheets_used"] == 2
+    assert util["utilization_percent"] > 0

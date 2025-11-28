@@ -1,5 +1,6 @@
 """@codex
 FreeCAD command to run the SquatchCut nesting engine and create geometry.
+Primary user entry is via SquatchCut_MainUI; this command remains for advanced/legacy flows.
 """
 
 import os
@@ -18,13 +19,28 @@ except Exception:
     Part = None
 
 from SquatchCut.core import session
-from SquatchCut.core.nesting import Part, nest_on_multiple_sheets  # type: ignore
+from SquatchCut.core.nesting import (
+    Part,
+    nest_on_multiple_sheets,
+    nest_cut_optimized,
+    estimate_cut_counts,
+    compute_utilization,
+    nest_parts,
+    NestingConfig,
+)  # type: ignore
+from SquatchCut.core.cut_optimization import estimate_cut_path_complexity
+from SquatchCut.core.overlap_check import detect_overlaps
 from SquatchCut.core.session_state import (
     get_gap_mm,
     get_kerf_mm,
+    get_kerf_width_mm,
     get_last_layout,
     get_sheet_size,
+    get_optimization_mode,
+    get_optimize_for_cut_path,
+    get_allowed_rotations_deg,
     set_last_layout,
+    set_nesting_stats,
 )
 from SquatchCut.ui.messages import show_error, show_info, show_warning
 
@@ -73,6 +89,10 @@ class RunNestingCommand:
 
             kerf_mm = get_kerf_mm()
             gap_mm = get_gap_mm()
+            opt_mode = get_optimization_mode()
+            cut_mode = get_optimize_for_cut_path()
+            kerf_width = get_kerf_width_mm()
+            allowed_rotations = get_allowed_rotations_deg()
 
             panel_objs = self._get_panel_objects(doc)
 
@@ -146,11 +166,30 @@ class RunNestingCommand:
                 return
 
             try:
-                placed_parts = nest_on_multiple_sheets(
-                    parts,
-                    sheet_w,
-                    sheet_h,
-                )
+                if cut_mode:
+                    cfg = NestingConfig(
+                        optimize_for_cut_path=True,
+                        kerf_width_mm=kerf_width or kerf_mm,
+                        allowed_rotations_deg=allowed_rotations,
+                        spacing_mm=gap_mm,
+                    )
+                    placed_parts = nest_parts(parts, sheet_w, sheet_h, cfg)
+                elif opt_mode == "cuts":
+                    placed_parts = nest_cut_optimized(
+                        parts,
+                        sheet_w,
+                        sheet_h,
+                        kerf=float(kerf_mm),
+                        margin=float(gap_mm),
+                    )
+                else:
+                    cfg = NestingConfig(kerf_width_mm=kerf_mm, spacing_mm=gap_mm)
+                    placed_parts = nest_on_multiple_sheets(
+                        parts,
+                        sheet_w,
+                        sheet_h,
+                        cfg,
+                    )
             except ValueError as e:
                 show_error(
                     f"Nesting failed due to panel size constraints:\n\n{e}",
@@ -240,6 +279,24 @@ class RunNestingCommand:
 
             if doc is not None:
                 doc.recompute()
+                util = compute_utilization(placed_parts, sheet_w, sheet_h)
+                cuts = estimate_cut_counts(placed_parts, sheet_w, sheet_h)
+                cut_complexity = estimate_cut_path_complexity(placed_parts, kerf_width_mm=kerf_width or kerf_mm)
+                overlaps = detect_overlaps(placed_parts)
+                if overlaps:
+                    for a, b in overlaps:
+                        FreeCAD.Console.PrintError(
+                            f"[SquatchCut] Overlap detected between {getattr(a, 'id', '?')} and {getattr(b, 'id', '?')} on sheet {getattr(a, 'sheet_index', '?')}.\n"
+                        )
+                set_nesting_stats(util.get("sheets_used", None), cut_complexity, len(overlaps))
+                summary_msg = (
+                    f"[SquatchCut] Nesting complete: {len(placed_parts)} parts, "
+                    f"sheets used={util.get('sheets_used', 0)}, "
+                    f"utilization={util.get('utilization_percent', 0.0):.1f}%, "
+                    f"estimated cuts={cuts.get('total', 0)} "
+                    f"({cuts.get('vertical', 0)} vertical, {cuts.get('horizontal', 0)} horizontal).\n"
+                )
+                FreeCAD.Console.PrintMessage(summary_msg)
                 FreeCAD.Console.PrintMessage(
                     f"[SquatchCut] Nesting complete: {len(placed_parts)} parts across {len(sheet_groups)} sheet(s).\n"
                 )

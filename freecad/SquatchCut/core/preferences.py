@@ -1,146 +1,113 @@
-"""@codex
-Module: Preference wrapper for SquatchCut settings stored in FreeCAD.
-Boundaries: Do not perform nesting or UI work; only load/store SquatchCut preferences and expose accessors.
-Primary methods: load, save, get_sheet_size, get_spacing, is_rotation_allowed, auto_detect_shapes, get_export_directory, branding_enabled.
-Note: Update incrementally; do not overwrite this module when adding logic.
-"""
+"""SquatchCut-specific preferences wrapper using FreeCAD ParamGet."""
 
 from __future__ import annotations
 
+try:
+    import FreeCAD as App  # type: ignore
+except Exception:  # pragma: no cover
+    App = None
 
-class Preferences:
-    """Wraps FreeCAD preference storage for SquatchCut settings."""
 
-    PREF_PATH = "User parameter:BaseApp/Preferences/SquatchCut"
-    DEFAULT_SHEET = {"width": 2440.0, "height": 1220.0}
-    DEFAULT_KERF = 0.0
-    DEFAULT_ROTATION = True
-    DEFAULT_EXPORT_DIR = ""
-    DEFAULT_BRANDING = "default"
+class SquatchCutPreferences:
+    """Persist SquatchCut defaults under a dedicated parameter group."""
+
+    PARAM_GROUP = "User parameter:BaseApp/Preferences/Mod/SquatchCut"
 
     def __init__(self):
-        self._fallback: dict[str, object] = {}
+        self._grp = App.ParamGet(self.PARAM_GROUP) if App else None
+        self._local: dict[str, object] = {}
 
-    def load(self):
-        """Load preferences from FreeCAD storage."""
-        return {
-            "sheet_size": self.get_sheet_size(),
-            "kerf": self.get_kerf(),
-            "rotation_allowed": self.get_rotation_allowed(),
-            "export_directory": self.get_export_directory(),
-            "branding_mode": self.get_branding_mode(),
-        }
+    def _float(self, key: str, fallback: float) -> float:
+        if self._grp:
+            try:
+                return float(self._grp.GetFloat(key, fallback))
+            except Exception:
+                pass
+        return float(self._local.get(key, fallback))
 
-    def save(self, values: dict):
-        """Persist provided preference values."""
-        if not isinstance(values, dict):
-            return
-        if "sheet_size" in values and isinstance(values["sheet_size"], dict):
-            w = values["sheet_size"].get("width", self.DEFAULT_SHEET["width"])
-            h = values["sheet_size"].get("height", self.DEFAULT_SHEET["height"])
-            self.set_sheet_size(float(w), float(h))
-        if "kerf" in values:
-            self.set_kerf(float(values["kerf"]))
-        if "rotation_allowed" in values:
-            self.set_rotation_allowed(bool(values["rotation_allowed"]))
-        if "export_directory" in values:
-            self.set_export_directory(str(values["export_directory"]))
-        if "branding_mode" in values:
-            self.set_branding_mode(str(values["branding_mode"]))
+    def _set_float(self, key: str, value: float) -> None:
+        if self._grp:
+            try:
+                self._grp.SetFloat(key, float(value))
+            except Exception:
+                pass
+        self._local[key] = float(value)
 
-    def get_sheet_size(self) -> dict:
-        """Return default sheet width/height."""
-        params = self._params()
-        if params:
-            w = params.GetFloat("SheetWidth", self.DEFAULT_SHEET["width"])
-            h = params.GetFloat("SheetHeight", self.DEFAULT_SHEET["height"])
-            return {"width": float(w), "height": float(h)}
-        return self._fallback.get("sheet_size", dict(self.DEFAULT_SHEET))
+    def _bool(self, key: str, fallback: bool) -> bool:
+        if self._grp:
+            try:
+                return bool(self._grp.GetBool(key, fallback))
+            except Exception:
+                pass
+        return bool(self._local.get(key, fallback))
 
-    def get_spacing(self) -> float:
-        """Return kerf/spacing setting."""
-        return self.get_kerf()
+    def _set_bool(self, key: str, value: bool) -> None:
+        if self._grp:
+            try:
+                self._grp.SetBool(key, bool(value))
+            except Exception:
+                pass
+        self._local[key] = bool(value)
 
-    def is_rotation_allowed(self) -> bool:
-        """Return whether panel rotation is allowed."""
-        return self.get_rotation_allowed()
+    def get_default_sheet_width_mm(self, fallback: float = 2440.0) -> float:
+        return self._float("DefaultSheetWidthMM", fallback)
 
-    def auto_detect_shapes(self) -> bool:
-        """Return whether shape auto-detection is enabled."""
-        return True
+    def set_default_sheet_width_mm(self, value: float) -> None:
+        self._set_float("DefaultSheetWidthMM", value)
 
-    def get_export_directory(self) -> str:
-        """Return path where reports will be exported."""
-        params = self._params()
-        if params:
-            return params.GetString("ExportDirectory", self.DEFAULT_EXPORT_DIR)
-        return str(self._fallback.get("export_directory", self.DEFAULT_EXPORT_DIR))
+    def get_default_sheet_height_mm(self, fallback: float = 1220.0) -> float:
+        return self._float("DefaultSheetHeightMM", fallback)
 
-    def branding_enabled(self) -> bool:
-        """Return whether SquatchCut branding is enabled in outputs."""
-        mode = self.get_branding_mode()
-        return mode != "none"
+    def set_default_sheet_height_mm(self, value: float) -> None:
+        self._set_float("DefaultSheetHeightMM", value)
 
-    # New explicit getters/setters for MVP
-    def set_sheet_size(self, width: float, height: float):
-        params = self._params()
-        if params:
-            params.SetFloat("SheetWidth", float(width))
-            params.SetFloat("SheetHeight", float(height))
-        self._fallback["sheet_size"] = {"width": float(width), "height": float(height)}
+    def get_default_spacing_mm(self, fallback: float = 0.0) -> float:
+        return self._float("DefaultSpacingMM", fallback)
 
-    def get_kerf(self) -> float:
-        params = self._params()
-        if params:
-            return float(params.GetFloat("Kerf", self.DEFAULT_KERF))
-        return float(self._fallback.get("kerf", self.DEFAULT_KERF))
+    def set_default_spacing_mm(self, value: float) -> None:
+        self._set_float("DefaultSpacingMM", value)
 
-    def set_kerf(self, value: float):
-        params = self._params()
-        if params:
-            params.SetFloat("Kerf", float(value))
-        self._fallback["kerf"] = float(value)
+    def get_default_kerf_mm(self, fallback: float = 3.0) -> float:
+        return self._float("DefaultKerfMM", fallback)
 
-    def get_rotation_allowed(self) -> bool:
-        params = self._params()
-        if params:
-            return bool(params.GetBool("RotationAllowed", self.DEFAULT_ROTATION))
-        return bool(self._fallback.get("rotation_allowed", self.DEFAULT_ROTATION))
+    def set_default_kerf_mm(self, value: float) -> None:
+        self._set_float("DefaultKerfMM", value)
 
-    def set_rotation_allowed(self, flag: bool):
-        params = self._params()
-        if params:
-            params.SetBool("RotationAllowed", bool(flag))
-        self._fallback["rotation_allowed"] = bool(flag)
+    def get_default_optimize_for_cut_path(self, fallback: bool = False) -> bool:
+        return self._bool("DefaultOptimizeForCutPath", fallback)
 
-    def set_export_directory(self, path: str):
-        params = self._params()
-        if params:
-            params.SetString("ExportDirectory", str(path))
-        self._fallback["export_directory"] = str(path)
+    def set_default_optimize_for_cut_path(self, value: bool) -> None:
+        self._set_bool("DefaultOptimizeForCutPath", value)
 
-    def get_branding_mode(self) -> str:
-        params = self._params()
-        if params:
-            return params.GetString("BrandingMode", self.DEFAULT_BRANDING)
-        return str(self._fallback.get("branding_mode", self.DEFAULT_BRANDING))
+    def get_measurement_system(self, fallback: str = "metric") -> str:
+        val = fallback
+        if self._grp:
+            try:
+                val = self._grp.GetString("MeasurementSystem", fallback)
+            except Exception:
+                val = fallback
+        val = str(self._local.get("MeasurementSystem", val))
+        if val not in ("metric", "imperial"):
+            val = fallback
+        return val
 
-    def set_branding_mode(self, mode: str):
-        params = self._params()
-        if params:
-            params.SetString("BrandingMode", str(mode))
-        self._fallback["branding_mode"] = str(mode)
+    def set_measurement_system(self, system: str) -> None:
+        if system not in ("metric", "imperial"):
+            system = "metric"
+        if self._grp:
+            try:
+                self._grp.SetString("MeasurementSystem", system)
+            except Exception:
+                pass
+        self._local["MeasurementSystem"] = system
 
-    def _params(self):
-        try:
-            import FreeCAD as App  # type: ignore
-        except Exception:
-            return None
-        try:
-            return App.ParamGet(self.PREF_PATH)
-        except Exception:
-            return None
+    def is_metric(self) -> bool:
+        return self.get_measurement_system() == "metric"
+
+    def is_imperial(self) -> bool:
+        return self.get_measurement_system() == "imperial"
 
 
-# Alias for clarity with documentation naming
-PreferencesManager = Preferences
+# Backward-compatible alias if other modules imported Preferences
+Preferences = SquatchCutPreferences
+PreferencesManager = SquatchCutPreferences

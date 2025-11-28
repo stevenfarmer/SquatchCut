@@ -16,6 +16,8 @@ except ImportError:
 
 import os
 
+from SquatchCut.gui.dialog_preferences import SquatchCutPreferencesDialog
+
 ICONS_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(__file__))),  # .../freecad/SquatchCut
     "resources",
@@ -36,11 +38,8 @@ class SC_PreferencesCommand:
         }
 
     def Activated(self):  # noqa: N802  (FreeCAD API)
-        QtWidgets.QMessageBox.information(
-            None,
-            "SquatchCut Preferences",
-            "Use the Sheet Size dialog for sheet defaults; additional preferences may be managed via FreeCAD preferences.",
-        )
+        dlg = SquatchCutPreferencesDialog()
+        dlg.exec_()
 
     def IsActive(self):  # noqa: N802  (FreeCAD API)
         return True

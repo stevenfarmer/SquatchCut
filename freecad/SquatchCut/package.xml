@@ -5,7 +5,7 @@
     SquatchCut is a nesting workbench for FreeCAD focused on sheet goods
     (plywood, MDF, etc.). It extracts rectangles from the active document
     or CSV, optimizes layouts across multiple sheets, and generates
-    2D cut plans plus exportable reports.
+    2D cut plans plus exportable reports. Status: Beta / work in progress.
   </description>
 
   <!-- Replace with your actual name / handle -->
