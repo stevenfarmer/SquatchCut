@@ -595,6 +595,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#export-cutlist-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Export Cutlist (CSV)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#toggle-source-panels" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -950,6 +961,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#export-cutlist-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Export Cutlist (CSV)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#toggle-source-panels" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1002,7 +1024,7 @@
 <ul>
 <li>Loads panel data from a CSV file.</li>
 <li>Use when panel dimensions are defined externally.</li>
-<li>Caveats: Ensure required columns (id, width, height; optional grain_direction; optional allow_rotate). Missing <code>allow_rotate</code> defaults to no rotation. Invalid rows are skipped with warnings.</li>
+<li>Caveats: Ensure required columns (id, width, height; optional grain_direction; optional allow_rotate). Missing <code>allow_rotate</code> defaults to no rotation. Invalid rows are skipped with warnings. CSV units can be set per import (metric/imperial); internally everything is stored in mm.</li>
 </ul>
 <h2 id="run-nesting">Run Nesting<a class="headerlink" href="#run-nesting" title="Permanent link">&para;</a></h2>
 <ul>
@@ -1014,7 +1036,7 @@
 <ul>
 <li>Configures sheet dimensions and spacing.</li>
 <li>Use before nesting to define material size.</li>
-<li>Caveats: Defaults to 2440 x 1220 if not set. Kerf (between parts) and gap/halo (around parts/edges) default to 0 and can be set on the document.</li>
+<li>Caveats: Defaults to 2440 x 1220 if not set. Kerf (between parts) and gap/halo (around parts/edges) default to 0 and can be set on the document. Sheet size spin boxes display the current units preference (mm or in).</li>
 </ul>
 <h2 id="export-report">Export Report<a class="headerlink" href="#export-report" title="Permanent link">&para;</a></h2>
 <ul>
@@ -1028,6 +1050,12 @@
 <li>Use after nesting completes.</li>
 <li>Caveats: Writes sheet index, part id, true width/height, x/y, and angle (0/90). Kerf/gap are layout-only and not exported.</li>
 </ul>
+<h2 id="export-cutlist-csv">Export Cutlist (CSV)<a class="headerlink" href="#export-cutlist-csv" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Generates a shop-friendly cutlist from the current nested sheets and lets you save it as CSV.</li>
+<li>Use after nesting completes to hand a rip/crosscut plan to the shop floor.</li>
+<li>Caveats: Cut lines are de-duplicated within a 4 mm tolerance and only emitted when they cross at least one panel.</li>
+</ul>
 <h2 id="toggle-source-panels">Toggle Source Panels<a class="headerlink" href="#toggle-source-panels" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Shows/hides the original SourcePanels group.</li>
@@ -1037,7 +1065,7 @@
 <h2 id="preferences">Preferences<a class="headerlink" href="#preferences" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Accesses SquatchCut preference options.</li>
-<li>Use to adjust default behaviors.</li>
+<li>Use to adjust default behaviors, including units preference (metric/imperial).</li>
 <li>Caveats: Minimal UI in MVP; sheet size dialog handles key settings.</li>
 </ul>
 

@@ -884,7 +884,8 @@
 <li>FreeCAD workbench with panel extraction and nesting</li>
 <li>CSV import (optional per-part rotation) and TypeScript validation tools</li>
 <li>Multi-sheet rectangular nesting with kerf/gap controls and per-part 0°/90° rotation</li>
-<li>Geometry generation and PDF/CSV reporting plus manual “Export Nesting CSV” dialog</li>
+<li>Units preference (metric/imperial) and CSV units selector; sheet size fields reflect the chosen units</li>
+<li>Geometry generation, PDF/CSV reporting, and cutlist CSV export from nested layouts</li>
 <li>Embedded Codex workflows for guided development</li>
 </ul>
 <h2 id="workflow-notes">Workflow Notes<a class="headerlink" href="#workflow-notes" title="Permanent link">&para;</a></h2>
@@ -892,6 +893,7 @@
 <li>CSV import shows source panel rectangles in the XY plane and fits the view automatically.</li>
 <li>Preview/Apply nesting hides source panels and builds fresh sheets + nested clones each run (older sheets are cleared first).</li>
 <li>Use the “Show Source Panels” button in the task panel to hide sheets and reveal sources again at any time.</li>
+<li>Cutlist export derives rip/crosscut lines from the nested layout and now merges near-duplicate edges while ignoring cuts that don’t cross any panel, keeping the cutlist shop-friendly.</li>
 </ul>
 <h2 id="explore">Explore<a class="headerlink" href="#explore" title="Permanent link">&para;</a></h2>
 <ul>
