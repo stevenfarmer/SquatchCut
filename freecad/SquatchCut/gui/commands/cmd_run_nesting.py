@@ -85,6 +85,12 @@ class RunNestingCommand:
             if doc is None:
                 logger.error("RunNesting: no active document")
                 return
+            for src in session.get_source_panel_objects():
+                try:
+                    if hasattr(src, "ViewObject"):
+                        src.ViewObject.Visibility = False
+                except Exception:
+                    continue
 
             # Sync session_state from document properties
             try:
@@ -137,6 +143,10 @@ class RunNestingCommand:
                 pass
 
             session_state.set_source_panel_objects(source_group.Group)
+            try:
+                session.set_source_panel_objects(source_group.Group)
+            except Exception:
+                pass
             # Also hide individual source objects
             for obj in source_group.Group:
                 try:
@@ -220,11 +230,14 @@ class RunNestingCommand:
                 # Clear old nested geometry
                 try:
                     for child in list(container.Group):
-                        container.removeObject(child)
+                        doc.removeObject(child.Name)
                 except Exception:
                     pass
+            session.clear_sheets()
             session_state.set_nested_sheet_group(container)
 
+            sheet_objs = []
+            nested_objs = []
             for pp in placed_parts:
                 sheet_index = pp.sheet_index
 
@@ -235,14 +248,21 @@ class RunNestingCommand:
                     group = doc.addObject("App::DocumentObjectGroup", group_name)
                     container.addObject(group)
 
-                    # Optional boundary rectangle for the sheet
+                    # Boundary rectangle as a Part face
                     try:
-                        import Draft
-                        rect = Draft.makeRectangle(length=sheet_w, height=sheet_h)
-                        rect.Label = f"{group_name}_Boundary"
-                        rect.Placement.Base.x = sheet_origin_x
-                        rect.Placement.Base.y = 0.0
-                        group.addObject(rect)
+                        import Part as FCPart
+
+                        sheet_face = FCPart.makePlane(
+                            sheet_w,
+                            sheet_h,
+                            FreeCAD.Vector(sheet_origin_x, 0.0, 0.0),
+                            FreeCAD.Vector(1, 0, 0),
+                            FreeCAD.Vector(0, 1, 0),
+                        )
+                        sheet_obj = doc.addObject("Part::Feature", f"{group_name}_Boundary")
+                        sheet_obj.Shape = sheet_face
+                        group.addObject(sheet_obj)
+                        sheet_objs.append(sheet_obj)
                     except Exception:
                         pass
 
@@ -256,29 +276,27 @@ class RunNestingCommand:
                     logger.error(f"Object {pp.id} not found.")
                     continue
 
-                # Clone into this sheet group
+                # Clone into this sheet group without mutating source geometry
                 try:
-                    import Draft
-                    clone = Draft.clone(src_obj)
+                    clone = doc.addObject("Part::Feature", f"SC_Nested_{pp.id}")
+                    clone.Shape = src_obj.Shape.copy()
                 except Exception:
-                    clone = doc.copyObject(src_obj)
+                    continue
 
                 sheet_group.addObject(clone)
 
                 # Reset placement and set new coordinates
                 placement = clone.Placement
-                placement.Base.x = 0.0
-                placement.Base.y = 0.0
+                placement.Base.x = sheet_origin_x + pp.x
+                placement.Base.y = pp.y
                 placement.Base.z = 0.0
                 try:
                     rotation = FreeCAD.Rotation(FreeCAD.Vector(0, 0, 1), pp.rotation_deg)
                 except Exception:
                     rotation = FreeCAD.Rotation()
                 placement.Rotation = rotation
-
-                placement.Base.x = sheet_origin_x + pp.x
-                placement.Base.y = pp.y
                 clone.Placement = placement
+                nested_objs.append(clone)
 
                 logger.debug(
                     f"Placed {pp.id} on sheet {sheet_index + 1} at ({sheet_origin_x + pp.x:.1f}, {pp.y:.1f}) size {pp.width:.1f} x {pp.height:.1f} mm"
@@ -286,6 +304,8 @@ class RunNestingCommand:
 
             if doc is not None:
                 doc.recompute()
+                session.set_sheet_objects(sheet_objs)
+                session.set_nested_panel_objects(nested_objs)
                 util = compute_utilization(placed_parts, sheet_w, sheet_h)
                 cuts = estimate_cut_counts(placed_parts, sheet_w, sheet_h)
                 cut_complexity = estimate_cut_path_complexity(placed_parts, kerf_width_mm=kerf_width or kerf_mm)
@@ -306,6 +326,13 @@ class RunNestingCommand:
                 logger.info(summary_msg.strip())
                 logger.info(f"Nesting complete: {len(placed_parts)} parts across {len(sheet_groups)} sheet(s).")
                 logger.info(f"Nested {len(panel_objs)} source panels into {len(sheet_groups)} sheet group(s).")
+                try:
+                    if Gui and Gui.ActiveDocument:
+                        view = Gui.ActiveDocument.ActiveView
+                        view.viewTop()
+                        view.fitAll()
+                except Exception:
+                    pass
 
         except Exception as exc:
             logger.error(f"Error in RunNestingCommand.Activated(): {exc}")
@@ -391,20 +418,20 @@ class ToggleSourcePanelsCommand:
             "ToolTip": "Show or hide the original source panel objects",
         }
 
-        def Activated(self):
-            if App is None or Gui is None:
-                try:
-                    logger.warning("ToggleSourcePanelsCommand.Activated() called outside FreeCAD GUI environment.")
-                except Exception:
-                    pass
-                return
+    def Activated(self):
+        if App is None or Gui is None:
+            try:
+                logger.warning("ToggleSourcePanelsCommand.Activated() called outside FreeCAD GUI environment.")
+            except Exception:
+                pass
+            return
 
-            doc = App.ActiveDocument
-            if doc is None:
-                logger.error("No active document.")
-                return
+        doc = App.ActiveDocument
+        if doc is None:
+            logger.error("No active document.")
+            return
 
-            group = doc.getObject("SquatchCut_SourcePanels")
+        group = doc.getObject("SquatchCut_SourcePanels")
         if group is None:
             logger.info("No SourcePanels group exists.")
             return
@@ -414,89 +441,41 @@ class ToggleSourcePanelsCommand:
             state = "shown" if group.ViewObject.Visibility else "hidden"
             logger.info(f"SourcePanels group {state}.")
         except Exception as e:
-                logger.error(f"Failed toggling SourcePanels: {e}")
+            logger.error(f"Failed toggling SourcePanels: {e}")
 
-        def IsActive(self):
-            return App is not None and Gui is not None and App.ActiveDocument is not None
+    def IsActive(self):
+        return App is not None and Gui is not None and App.ActiveDocument is not None
 
 
-    class ExportNestingCSVCommand:
-        def GetResources(self):
-            return {
-            "Pixmap": ":/icons/Std_Export.svg",
-            "MenuText": "Export Nesting CSV",
-            "ToolTip": "Export the last SquatchCut nesting layout as a CSV file",
-            }
+class ExportNestingCSVCommand:
+    """
+    Placeholder command for exporting nesting data to CSV.
+    This is a stub and currently does nothing. It exists only
+    so the command can be registered without breaking imports.
+    """
 
-        def Activated(self):
-            if App is None or Gui is None:
-                try:
-                    logger.warning("ExportNestingCSVCommand.Activated() called outside FreeCAD GUI environment.")
-                except Exception:
-                    pass
-                return
+    def GetResources(self):
+        return {
+            "MenuText": "Export nesting CSV (not implemented)",
+            "ToolTip": "Export nesting data to CSV (coming soon)",
+            "Pixmap": "",
+        }
 
-            doc = App.ActiveDocument
-            if doc is None:
-                logger.error("No active document for export.")
-                return
+    def IsActive(self):
+        # Keep this command disabled for now until implemented.
+        return False
 
-            layout = get_last_layout()
-            if not layout:
-                show_info(
-                    "There is no nesting layout to export.\n"
-                    "Run the nesting command first, then try again.",
-                    title="SquatchCut Export",
-                )
-                logger.info("No layout available for export.")
-                return
-
-            # Determine default path suggestion
-            if doc.FileName:
-                base, _ = os.path.splitext(doc.FileName)
-                default_path = base + "_squatchcut_nesting.csv"
-            else:
-                default_path = os.path.join(os.path.expanduser("~"), "squatchcut_nesting.csv")
-
-            # Ask user where to save
-            mw = Gui.getMainWindow() if Gui is not None else None
-            filename, _ = QtWidgets.QFileDialog.getSaveFileName(
-                mw,
-                "Export SquatchCut Nesting CSV",
-                default_path,
-                "CSV Files (*.csv)"
-            )
-            if not filename:
-                show_info("Export canceled.", title="SquatchCut Export")
-                logger.info("Export canceled by user.")
-                return
-
-            try:
-                with open(filename, "w", encoding="utf-8") as f:
-                    # Include rotation column
-                    f.write("sheet_index,part_id,width_mm,height_mm,x_mm,y_mm,angle_deg\n")
-                    for pp in layout:
-                        line = (
-                            f"{pp.sheet_index},{pp.id},"
-                            f"{pp.width:.3f},{pp.height:.3f},"
-                            f"{pp.x:.3f},{pp.y:.3f},{pp.rotation_deg}\n"
-                        )
-                        f.write(line)
-
-                logger.info(f"Exported nesting CSV with {len(layout)} rows to: {filename}")
-            except Exception as e:
-                show_error(
-                    f"Failed to export nesting CSV:\n\n{e}",
-                    title="SquatchCut Export Error",
-                )
-                logger.error(f"Failed to export nesting CSV: {e}")
-
-        def IsActive(self):
-            return App is not None and Gui is not None and App.ActiveDocument is not None
+    def Activated(self):
+        # No-op for now; TODO: implement real CSV export.
+        try:
+            logger.info("ExportNestingCSVCommand.Activated() called, but feature is not implemented yet.")
+        except Exception:
+            pass
 
 
 if Gui is not None:
     Gui.addCommand("SquatchCut_ToggleSourcePanels", ToggleSourcePanelsCommand())
+    # TODO: Implement real nesting CSV export and enable this command.
     Gui.addCommand("SquatchCut_ExportNestingCSV", ExportNestingCSVCommand())
 
 # Exported command instance used by InitGui.py

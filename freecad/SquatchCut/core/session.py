@@ -13,6 +13,12 @@ except Exception:  # pragma: no cover
 
 from SquatchCut.core import session_state
 
+# Additional SquatchCut session-related state
+_source_panel_objects = []
+_sheet_objects = []
+_nested_panel_objects = []
+_last_csv_path = None
+
 
 def update_sheet_size_from_doc(doc):
     """Read sheet size from document properties into session_state."""
@@ -183,3 +189,73 @@ def sync_doc_from_state(doc):
     doc.SquatchCutKerfMM = float(session_state.get_kerf_mm())
     doc.SquatchCutGapMM = float(session_state.get_gap_mm())
     doc.SquatchCutDefaultAllowRotate = bool(session_state.get_default_allow_rotate())
+
+
+# Convenience wrappers to mirror session_state panel storage -------------------
+
+def get_panels():
+    return session_state.get_panels()
+
+
+def set_panels(panels):
+    session_state.set_panels(panels)
+
+
+# Source panel objects ---------------------------------------------------------
+
+def get_source_panel_objects():
+    return _source_panel_objects
+
+
+def set_source_panel_objects(objs):
+    global _source_panel_objects
+    _source_panel_objects = list(objs) if objs is not None else []
+
+
+def clear_source_panel_objects():
+    global _source_panel_objects
+    _source_panel_objects = []
+
+
+# Sheet and nested objects -----------------------------------------------------
+
+def get_sheet_objects():
+    return _sheet_objects
+
+
+def set_sheet_objects(objs):
+    global _sheet_objects
+    _sheet_objects = list(objs) if objs is not None else []
+
+
+def get_nested_panel_objects():
+    return _nested_panel_objects
+
+
+def set_nested_panel_objects(objs):
+    global _nested_panel_objects
+    _nested_panel_objects = list(objs) if objs is not None else []
+
+
+def clear_sheets():
+    global _sheet_objects, _nested_panel_objects
+    _sheet_objects = []
+    _nested_panel_objects = []
+
+
+# CSV path tracking ------------------------------------------------------------
+
+def get_last_csv_path():
+    return _last_csv_path
+
+
+def set_last_csv_path(path):
+    global _last_csv_path
+    _last_csv_path = path
+
+
+# General clear ---------------------------------------------------------------
+
+def clear_all_geometry():
+    clear_source_panel_objects()
+    clear_sheets()

@@ -79,10 +79,13 @@ class SquatchCutTaskPanel:
         buttons_row.addStretch(1)
         self.preview_button = QtWidgets.QPushButton("Preview SquatchCut")
         self.run_button = QtWidgets.QPushButton("Apply SquatchCut")
+        self.show_source_button = QtWidgets.QPushButton("Show Source Panels")
         self.preview_button.setToolTip("Generate a preview of the SquatchCut layout without modifying the document.")
         self.run_button.setToolTip("Create geometry in the FreeCAD document from the current SquatchCut layout.")
+        self.show_source_button.setToolTip("Hide nested sheets and show source panels.")
         buttons_row.addWidget(self.preview_button)
         buttons_row.addWidget(self.run_button)
+        buttons_row.addWidget(self.show_source_button)
         layout.addLayout(buttons_row)
 
         # Report bug link/button (low visual weight)
@@ -102,6 +105,7 @@ class SquatchCutTaskPanel:
         # Wire actions
         self.preview_button.clicked.connect(lambda: self._run_nesting(apply_to_doc=False))
         self.run_button.clicked.connect(lambda: self._run_nesting(apply_to_doc=True))
+        self.show_source_button.clicked.connect(self.on_show_source_panels)
         self.report_bug_button.clicked.connect(self.on_report_bug_clicked)
         self._set_run_buttons_enabled(False)
 
@@ -956,6 +960,35 @@ class SquatchCutTaskPanel:
             self.overlaps_label.setText("None")
             self.overlaps_label.setStyleSheet("")
         self._update_status_label()
+
+    def on_show_source_panels(self):
+        doc = App.ActiveDocument
+        if doc is None:
+            return
+
+        sheets_group = doc.getObject("SquatchCut_Sheets")
+        if sheets_group:
+            for o in sheets_group.Group:
+                try:
+                    if hasattr(o, "ViewObject"):
+                        o.ViewObject.Visibility = False
+                except Exception:
+                    continue
+
+        for o in session.get_source_panel_objects():
+            try:
+                if hasattr(o, "ViewObject"):
+                    o.ViewObject.Visibility = True
+            except Exception:
+                continue
+
+        try:
+            if Gui and Gui.ActiveDocument:
+                view = Gui.ActiveDocument.ActiveView
+                view.viewTop()
+                view.fitAll()
+        except Exception:
+            pass
 
     # ---------------- Task panel API ----------------
 
