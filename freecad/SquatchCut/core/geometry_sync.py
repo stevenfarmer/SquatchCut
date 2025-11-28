@@ -11,7 +11,68 @@ except Exception:  # pragma: no cover
     Gui = None
     Part = None
 
-from SquatchCut.core import logger, session
+from SquatchCut.core import logger, session, session_state
+from SquatchCut.gui.view_utils import zoom_to_objects
+
+SHEET_OBJECT_NAME = "SquatchCut_Sheet"
+SOURCE_GROUP_NAME = "SquatchCut_SourcePanels"
+
+
+def ensure_sheet_object(doc):
+    """Create or update the single sheet outline object to match session sheet size."""
+    if App is None or Part is None:
+        logger.warning("ensure_sheet_object() skipped: FreeCAD/Part not available.")
+        return None
+
+    if doc is None:
+        doc = App.newDocument("SquatchCut")
+    try:
+        if Gui:
+            Gui.ActiveDocument = Gui.getDocument(doc.Name)
+    except Exception:
+        try:
+            Gui.ActiveDocument = Gui.ActiveDocument or None
+        except Exception:
+            pass
+
+    width, height = session_state.get_sheet_size()
+    try:
+        width = float(width)
+        height = float(height)
+    except Exception:
+        logger.warning("ensure_sheet_object() skipped: invalid sheet size.")
+        return None
+    if width <= 0 or height <= 0:
+        logger.warning("ensure_sheet_object() skipped: non-positive sheet size.")
+        return None
+
+    sheet_obj = doc.getObject(SHEET_OBJECT_NAME)
+    if sheet_obj is None:
+        sheet_obj = doc.addObject("Part::Feature", SHEET_OBJECT_NAME)
+
+    try:
+        sheet_obj.Shape = Part.makePlane(
+            width,
+            height,
+            App.Vector(0.0, 0.0, 0.0),
+            App.Vector(1, 0, 0),
+            App.Vector(0, 1, 0),
+        )
+    except Exception as exc:
+        logger.warning(f"Failed to update sheet outline shape: {exc!r}")
+    try:
+        if hasattr(sheet_obj, "ViewObject"):
+            sheet_obj.ViewObject.DisplayMode = "Flat Lines"
+    except Exception:
+        pass
+
+    session.set_sheet_objects([sheet_obj])
+    try:
+        doc.recompute()
+    except Exception:
+        pass
+
+    return sheet_obj
 
 
 def sync_source_panels_to_document():
@@ -37,9 +98,11 @@ def sync_source_panels_to_document():
         logger.warning("sync_source_panels_to_document() called with no panels.")
         return
 
-    group = doc.getObject("SquatchCut_SourcePanels")
+    sheet_obj = ensure_sheet_object(doc)
+
+    group = doc.getObject(SOURCE_GROUP_NAME)
     if group is None:
-        group = doc.addObject("App::DocumentObjectGroup", "SquatchCut_SourcePanels")
+        group = doc.addObject("App::DocumentObjectGroup", SOURCE_GROUP_NAME)
     try:
         if hasattr(group, "ViewObject"):
             group.ViewObject.Visibility = True
@@ -52,6 +115,13 @@ def sync_source_panels_to_document():
             doc.removeObject(obj.Name)
         except Exception:
             continue
+    # Clean up any stray source objects not inside the group
+    for obj in list(getattr(doc, "Objects", [])):
+        if obj.Name.startswith("SC_Source_") and obj not in group.Group:
+            try:
+                doc.removeObject(obj.Name)
+            except Exception:
+                continue
 
     created = []
     x_cursor = 0.0
@@ -115,6 +185,10 @@ def sync_source_panels_to_document():
         x_cursor += w + spacing
 
     session.set_source_panel_objects(created)
+    try:
+        session_state.set_source_panel_objects(created)
+    except Exception:
+        pass
 
     if doc is not None:
         doc.recompute()
@@ -129,18 +203,14 @@ def sync_source_panels_to_document():
         except Exception as exc:  # pragma: no cover
             logger.warning(f"Failed to inspect source panel vertices: {exc!r}")
 
-    # 5) Force top-down, fit-all view in the active document
     try:
-        if Gui.ActiveDocument is not None:
-            view = Gui.ActiveDocument.ActiveView
-            view.viewTop()
-            view.setCameraType("Orthographic")
-            view.fitAll()
-            logger.debug("Updated view: Top + FitAll for source panels.")
-        else:
-            logger.warning("Gui.ActiveDocument is None; cannot update view.")
-    except Exception as exc:
-        logger.warning(f"Failed to update view after CSV import: {exc!r}")
+        targets = [o for o in [sheet_obj] + created if o is not None]
+    except Exception:
+        targets = created
+        if sheet_obj is not None:
+            targets = [sheet_obj] + created
+    if targets:
+        zoom_to_objects(targets)
 
     logger.info(f"Created {len(created)} source panel shapes in document.")
     logger.info(f"Source panel layout: {len(created)} panels, x_span={x_cursor:.1f} mm")
