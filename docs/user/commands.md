@@ -8,7 +8,7 @@
 ## Import CSV
 - Loads panel data from a CSV file.
 - Use when panel dimensions are defined externally.
-- Caveats: Ensure required columns (id, width, height; optional grain_direction; optional allow_rotate). Missing `allow_rotate` defaults to no rotation. Invalid rows are skipped with warnings.
+- Caveats: Ensure required columns (id, width, height; optional grain_direction; optional allow_rotate). Missing `allow_rotate` defaults to no rotation. Invalid rows are skipped with warnings. CSV units can be set per import (metric/imperial); internally everything is stored in mm.
 
 ## Run Nesting
 - Executes multi-sheet rectangular nesting for current panels.
@@ -18,7 +18,7 @@
 ## Sheet Size
 - Configures sheet dimensions and spacing.
 - Use before nesting to define material size.
-- Caveats: Defaults to 2440 x 1220 if not set. Kerf (between parts) and gap/halo (around parts/edges) default to 0 and can be set on the document.
+- Caveats: Defaults to 2440 x 1220 if not set. Kerf (between parts) and gap/halo (around parts/edges) default to 0 and can be set on the document. Sheet size spin boxes display the current units preference (mm or in).
 
 ## Export Report
 - Generates PDF/CSV reports from the last nesting run.
@@ -30,6 +30,11 @@
 - Use after nesting completes.
 - Caveats: Writes sheet index, part id, true width/height, x/y, and angle (0/90). Kerf/gap are layout-only and not exported.
 
+## Export Cutlist (CSV)
+- Generates a shop-friendly cutlist from the current nested sheets and lets you save it as CSV.
+- Use after nesting completes to hand a rip/crosscut plan to the shop floor.
+- Caveats: Cut lines are de-duplicated within a 4 mm tolerance and only emitted when they cross at least one panel.
+
 ## Toggle Source Panels
 - Shows/hides the original SourcePanels group.
 - Use to reveal or hide the originals that were offset left when nesting.
@@ -37,5 +42,5 @@
 
 ## Preferences
 - Accesses SquatchCut preference options.
-- Use to adjust default behaviors.
+- Use to adjust default behaviors, including units preference (metric/imperial).
 - Caveats: Minimal UI in MVP; sheet size dialog handles key settings.

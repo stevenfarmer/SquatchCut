@@ -7,12 +7,13 @@ SquatchCut is a FreeCAD workbench for optimizing rectangular sheet goods. It pro
 
 ## Features
 - Consolidated Task panel for sheet setup, CSV import, optimization mode, and nesting actions.
+- Units preference with metric (mm) or imperial (in) display for sheet settings and CSV import.
 - Two optimization modes:
   - Material (minimize waste / maximize yield).
   - Cuts (row/column heuristic to approximate fewer saw cuts).
 - Result summary after nesting: sheets used, estimated utilization, estimated cut count, unplaced parts.
 - Supports kerf, margins, and rotation options (default or per-part CSV flag).
-- FreeCAD geometry output with per-sheet groups; export commands remain available.
+- FreeCAD geometry output with per-sheet groups; export commands remain available, including cutlist CSV export from nested layouts.
 
 ## Documentation
 - https://stevenfarmer.github.io/SquatchCut/
@@ -37,7 +38,7 @@ SquatchCut is a FreeCAD workbench for optimizing rectangular sheet goods. It pro
 ## CSV Format
 - Required columns: `id`, `width`, `height`
 - Optional: `qty`, `label`, `material`, `allow_rotate`
-- Units: millimeters
+- Units: millimeters by default; imperial (in) CSVs are supported via the CSV Units chooser in the task panel.
 - Invalid rows are skipped; errors are reported to the console/dialogs.
 
 ## Status & Limitations
