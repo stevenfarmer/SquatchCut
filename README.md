@@ -14,6 +14,9 @@ SquatchCut is a FreeCAD workbench for optimizing rectangular sheet goods. It pro
 - Supports kerf, margins, and rotation options (default or per-part CSV flag).
 - FreeCAD geometry output with per-sheet groups; export commands remain available.
 
+## Documentation
+- https://stevenfarmer.github.io/SquatchCut/
+
 ## Installation
 - Clone this repo into your FreeCAD `Mod` directory:
   - Linux/macOS: `~/.local/share/FreeCAD/Mod/`

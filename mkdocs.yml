@@ -1,7 +1,7 @@
 site_name: "SquatchCut"
 site_description: "A cryptid-powered nesting workbench for FreeCAD."
-# site_url:
-repo_url: "https://github.com/<YOUR_GITHUB_USERNAME>/SquatchCut"
+site_url: "https://stevenfarmer.github.io/SquatchCut/"
+repo_url: "https://github.com/stevenfarmer/SquatchCut"
 repo_name: "SquatchCut"
 theme:
   name: "material"
