@@ -306,7 +306,8 @@ class SquatchCutTaskPanel:
         self.export_format_combo = QtWidgets.QComboBox()
         self.export_format_combo.addItem("DXF", "dxf")
         self.export_format_combo.addItem("SVG", "svg")
-        self.export_format_combo.addItem("Cut list CSV", "csv")
+        self.export_format_combo.addItem("Cut list CSV", "cutlist_csv")
+        self.export_format_combo.addItem("Cut list script (text)", "cutlist_script")
         self.export_button = QtWidgets.QPushButton("Export SquatchCut")
         self.export_button.setToolTip("Export the current SquatchCut layout in the selected format.")
         self.export_button.clicked.connect(self.on_export_clicked)
@@ -836,9 +837,12 @@ class SquatchCutTaskPanel:
         elif fmt == "svg":
             filter_str = "SVG files (*.svg)"
             default_ext = ".svg"
-        else:
+        elif fmt == "cutlist_csv":
             filter_str = "CSV files (*.csv)"
             default_ext = ".csv"
+        else:
+            filter_str = "Text files (*.txt)"
+            default_ext = ".txt"
 
         file_path, _ = QtWidgets.QFileDialog.getSaveFileName(
             None,
@@ -870,8 +874,12 @@ class SquatchCutTaskPanel:
                     include_labels=session_state.get_export_include_labels(),
                     include_dimensions=session_state.get_export_include_dimensions(),
                 )
+            elif fmt == "cutlist_csv":
+                cutlist_map = exporter.generate_cutlist(placements, (sheet_w, sheet_h))
+                exporter.export_cutlist_map_to_csv(cutlist_map, file_path)
             else:
-                exporter.export_cutlist_to_csv(placements, file_path)
+                cutlist_map = exporter.generate_cutlist(placements, (sheet_w, sheet_h))
+                exporter.export_cutlist_to_text(cutlist_map, file_path)
             self.status_label.setText(f"Exported SquatchCut layout to: {file_path}")
             self.status_label.setStyleSheet("color: green;")
         except Exception as exc:

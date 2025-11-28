@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import csv
-from typing import Iterable, Sequence
+from typing import Dict, Iterable, Sequence
+
+from SquatchCut.core.cutlist import generate_cutlist
 
 
 def export_cutlist_to_csv(placements: Sequence, file_path: str) -> None:
@@ -102,6 +104,55 @@ def _build_rectangles(
     return objs
 
 
+def export_cutlist_map_to_csv(cutlist_by_sheet: Dict[int, list], file_path: str) -> None:
+    """Write a cutlist mapping (sheet -> cuts) to CSV."""
+    with open(file_path, "w", newline="", encoding="utf-8") as fh:
+        writer = csv.writer(fh)
+        writer.writerow(
+            [
+                "sheet_index",
+                "cut_order",
+                "cut_type",
+                "cut_direction",
+                "from_edge",
+                "distance_from_edge_mm",
+                "cut_length_mm",
+                "parts_affected",
+                "notes",
+            ]
+        )
+        for sheet_index in sorted(cutlist_by_sheet.keys()):
+            for cut in cutlist_by_sheet[sheet_index]:
+                writer.writerow(
+                    [
+                        cut.get("sheet_index", sheet_index),
+                        cut.get("cut_order", ""),
+                        cut.get("cut_type", ""),
+                        cut.get("cut_direction", ""),
+                        cut.get("from_edge", ""),
+                        cut.get("distance_from_edge_mm", ""),
+                        cut.get("cut_length_mm", ""),
+                        ";".join(cut.get("parts_affected", []) or []),
+                        cut.get("notes", ""),
+                    ]
+                )
+
+
+def export_cutlist_to_text(cutlist_by_sheet: Dict[int, list], file_path: str) -> None:
+    """Write a human-readable cutlist script to text."""
+    with open(file_path, "w", encoding="utf-8") as fh:
+        for sheet_index in sorted(cutlist_by_sheet.keys()):
+            fh.write(f"Sheet {sheet_index + 1}\n")
+            fh.write("-" * 22 + "\n")
+            for cut in cutlist_by_sheet[sheet_index]:
+                fh.write(f"{cut.get('cut_order', '')}. {cut.get('cut_type', '')} cut:\n")
+                fh.write(
+                    f"   Direction: {cut.get('cut_direction', '')} from {cut.get('from_edge', '')} "
+                    f"at {float(cut.get('distance_from_edge_mm', 0.0)):.1f} mm\n"
+                )
+                fh.write(f"   Length: {float(cut.get('cut_length_mm', 0.0)):.1f} mm\n")
+                parts = ";".join(cut.get("parts_affected", []) or []) or "None"
+                fh.write(f"   Parts released: {parts}\n\n")
 def export_layout_to_dxf(
     placements: Sequence,
     sheet_size_mm: tuple[float, float],
