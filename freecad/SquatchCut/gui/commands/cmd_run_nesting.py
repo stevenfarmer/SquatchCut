@@ -39,6 +39,8 @@ from SquatchCut.core.session_state import (
     get_optimization_mode,
     get_optimize_for_cut_path,
     get_allowed_rotations_deg,
+    get_export_include_labels,
+    get_export_include_dimensions,
     set_last_layout,
     set_nesting_stats,
 )
@@ -93,6 +95,8 @@ class RunNestingCommand:
             cut_mode = get_optimize_for_cut_path()
             kerf_width = get_kerf_width_mm()
             allowed_rotations = get_allowed_rotations_deg()
+            export_labels = get_export_include_labels()
+            export_dims = get_export_include_dimensions()
 
             panel_objs = self._get_panel_objects(doc)
 

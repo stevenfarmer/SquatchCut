@@ -27,10 +27,18 @@ def export_cutlist_to_csv(placements: Sequence, file_path: str) -> None:
             )
 
 
-def _build_rectangles(doc, placements: Iterable, sheet_w: float, sheet_h: float):
+def _build_rectangles(
+    doc,
+    placements: Iterable,
+    sheet_w: float,
+    sheet_h: float,
+    include_labels: bool = True,
+    include_dimensions: bool = False,
+):
     """Create temporary rectangles in the doc for export; returns list of objects."""
     try:
         import Part  # type: ignore
+        import Draft  # type: ignore
     except Exception:
         return []
 
@@ -62,10 +70,46 @@ def _build_rectangles(doc, placements: Iterable, sheet_w: float, sheet_h: float)
             pass
         obj.Placement = placement
         objs.append(obj)
+
+        # Optional label
+        if include_labels:
+            label = getattr(p, "id", None) or getattr(p, "label", None) or ""
+            try:
+                tx = x + w / 2.0 + sheet_index * (sheet_w + sheet_spacing)
+                ty = y + h / 2.0
+                txt = Draft.makeText([str(label)], point=(tx, ty, 0))
+                objs.append(txt)
+            except Exception:
+                pass
+
+        # Optional simple dimensions (text only near edges)
+        if include_dimensions:
+            margin = 5.0
+            try:
+                tx = x + w / 2.0 + sheet_index * (sheet_w + sheet_spacing)
+                ty = y - margin
+                tw = Draft.makeText([f"W: {w:.1f} mm"], point=(tx, ty, 0))
+                objs.append(tw)
+            except Exception:
+                pass
+            try:
+                tx = x + w + margin + sheet_index * (sheet_w + sheet_spacing)
+                ty = y + h / 2.0
+                th = Draft.makeText([f"H: {h:.1f} mm"], point=(tx, ty, 0))
+                objs.append(th)
+            except Exception:
+                pass
     return objs
 
 
-def export_layout_to_dxf(placements: Sequence, sheet_size_mm: tuple[float, float], doc, file_path: str) -> None:
+def export_layout_to_dxf(
+    placements: Sequence,
+    sheet_size_mm: tuple[float, float],
+    doc,
+    file_path: str,
+    include_labels: bool = True,
+    include_dimensions: bool = False,
+) -> None:
     """Export placements to DXF using temporary geometry."""
     try:
         import importDXF  # type: ignore
@@ -73,7 +117,14 @@ def export_layout_to_dxf(placements: Sequence, sheet_size_mm: tuple[float, float
         raise RuntimeError(f"DXF export not available: {exc}") from exc
 
     sheet_w, sheet_h = sheet_size_mm
-    objs = _build_rectangles(doc, placements, sheet_w, sheet_h)
+    objs = _build_rectangles(
+        doc,
+        placements,
+        sheet_w,
+        sheet_h,
+        include_labels=include_labels,
+        include_dimensions=include_dimensions,
+    )
     try:
         importDXF.export(objs, file_path)
     finally:
@@ -84,7 +135,14 @@ def export_layout_to_dxf(placements: Sequence, sheet_size_mm: tuple[float, float
                 pass
 
 
-def export_layout_to_svg(placements: Sequence, sheet_size_mm: tuple[float, float], doc, file_path: str) -> None:
+def export_layout_to_svg(
+    placements: Sequence,
+    sheet_size_mm: tuple[float, float],
+    doc,
+    file_path: str,
+    include_labels: bool = True,
+    include_dimensions: bool = False,
+) -> None:
     """Export placements to SVG using temporary geometry."""
     try:
         import importSVG  # type: ignore
@@ -92,7 +150,14 @@ def export_layout_to_svg(placements: Sequence, sheet_size_mm: tuple[float, float
         raise RuntimeError(f"SVG export not available: {exc}") from exc
 
     sheet_w, sheet_h = sheet_size_mm
-    objs = _build_rectangles(doc, placements, sheet_w, sheet_h)
+    objs = _build_rectangles(
+        doc,
+        placements,
+        sheet_w,
+        sheet_h,
+        include_labels=include_labels,
+        include_dimensions=include_dimensions,
+    )
     try:
         importSVG.export(objs, file_path)
     finally:

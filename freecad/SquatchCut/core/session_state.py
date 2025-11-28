@@ -34,6 +34,8 @@ _panels = []
 
 # Optimization mode: "material" (default) or "cuts"
 _optimization_mode = "material"
+_export_include_labels = True
+_export_include_dimensions = False
 
 
 # --------------------------
@@ -209,3 +211,29 @@ def set_optimization_mode(mode: str) -> None:
 def get_optimization_mode() -> str:
     """Get the current nesting optimization mode."""
     return _optimization_mode or "material"
+
+
+# --------------------------
+# Export flags
+# --------------------------
+
+def set_export_include_labels(value: bool) -> None:
+    """Set whether exports include part labels."""
+    global _export_include_labels
+    _export_include_labels = bool(value)
+
+
+def get_export_include_labels() -> bool:
+    """Return whether exports include part labels."""
+    return bool(_export_include_labels)
+
+
+def set_export_include_dimensions(value: bool) -> None:
+    """Set whether exports include simple dimensions."""
+    global _export_include_dimensions
+    _export_include_dimensions = bool(value)
+
+
+def get_export_include_dimensions() -> bool:
+    """Return whether exports include simple dimensions."""
+    return bool(_export_include_dimensions)

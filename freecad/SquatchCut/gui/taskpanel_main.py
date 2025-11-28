@@ -310,8 +310,16 @@ class SquatchCutTaskPanel:
         self.export_button = QtWidgets.QPushButton("Export SquatchCut")
         self.export_button.setToolTip("Export the current SquatchCut layout in the selected format.")
         self.export_button.clicked.connect(self.on_export_clicked)
+        self.include_labels_check = QtWidgets.QCheckBox("Include part labels")
+        self.include_labels_check.setToolTip("Include part names as text labels in DXF/SVG exports.")
+        self.include_dimensions_check = QtWidgets.QCheckBox("Include dimensions")
+        self.include_dimensions_check.setToolTip("Include basic width/height dimensions in DXF/SVG exports.")
+        self.include_labels_check.stateChanged.connect(self._on_export_options_changed)
+        self.include_dimensions_check.stateChanged.connect(self._on_export_options_changed)
 
         form.addRow("Export format:", self.export_format_combo)
+        form.addRow(self.include_labels_check)
+        form.addRow(self.include_dimensions_check)
         form.addRow(self.export_button)
         return group
 
@@ -333,6 +341,8 @@ class SquatchCutTaskPanel:
         kerf_width = session_state.get_kerf_width_mm()
         rotations = set(session_state.get_allowed_rotations_deg())
         self.measurement_system = self._prefs.get_measurement_system()
+        include_labels = self._prefs.get_export_include_labels()
+        include_dims = self._prefs.get_export_include_dimensions()
 
         if sheet_w is None:
             sheet_w = self._prefs.get_default_sheet_width_mm()
@@ -388,6 +398,8 @@ class SquatchCutTaskPanel:
             self.csv_units_combo.blockSignals(True)
             self.csv_units_combo.setCurrentIndex(csv_units_idx)
             self.csv_units_combo.blockSignals(False)
+        self.include_labels_check.setChecked(bool(include_labels))
+        self.include_dimensions_check.setChecked(bool(include_dims))
         self._update_unit_labels()
         self._validate_inputs()
         self.update_run_button_state()
@@ -404,6 +416,8 @@ class SquatchCutTaskPanel:
         cut_mode = bool(self.cut_mode_check.isChecked())
         kerf_width_display = float(self.kerf_width_spin.value())
         kerf_width = self._to_mm(kerf_width_display)
+        export_include_labels = bool(self.include_labels_check.isChecked())
+        export_include_dimensions = bool(self.include_dimensions_check.isChecked())
         rotations = []
         if self.rot0_check.isChecked():
             rotations.append(0)
@@ -420,6 +434,8 @@ class SquatchCutTaskPanel:
         session_state.set_optimize_for_cut_path(cut_mode)
         session_state.set_kerf_width_mm(kerf_width)
         session_state.set_allowed_rotations_deg(tuple(rotations))
+        session_state.set_export_include_labels(export_include_labels)
+        session_state.set_export_include_dimensions(export_include_dimensions)
 
         if self.doc is not None:
             try:
@@ -757,6 +773,11 @@ class SquatchCutTaskPanel:
 
         self.update_run_button_state()
 
+    def _on_export_options_changed(self) -> None:
+        """Persist export options into preferences."""
+        self._prefs.set_export_include_labels(bool(self.include_labels_check.isChecked()))
+        self._prefs.set_export_include_dimensions(bool(self.include_dimensions_check.isChecked()))
+
     def _to_mm(self, value: float) -> float:
         """Convert a displayed value to mm based on current measurement system."""
         if self.measurement_system == "imperial":
@@ -832,9 +853,23 @@ class SquatchCutTaskPanel:
 
         try:
             if fmt == "dxf":
-                exporter.export_layout_to_dxf(placements, (sheet_w, sheet_h), self._ensure_document(), file_path)
+                exporter.export_layout_to_dxf(
+                    placements,
+                    (sheet_w, sheet_h),
+                    self._ensure_document(),
+                    file_path,
+                    include_labels=session_state.get_export_include_labels(),
+                    include_dimensions=session_state.get_export_include_dimensions(),
+                )
             elif fmt == "svg":
-                exporter.export_layout_to_svg(placements, (sheet_w, sheet_h), self._ensure_document(), file_path)
+                exporter.export_layout_to_svg(
+                    placements,
+                    (sheet_w, sheet_h),
+                    self._ensure_document(),
+                    file_path,
+                    include_labels=session_state.get_export_include_labels(),
+                    include_dimensions=session_state.get_export_include_dimensions(),
+                )
             else:
                 exporter.export_cutlist_to_csv(placements, file_path)
             self.status_label.setText(f"Exported SquatchCut layout to: {file_path}")

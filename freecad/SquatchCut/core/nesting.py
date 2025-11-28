@@ -66,6 +66,8 @@ class NestingConfig:
     allowed_rotations_deg: Tuple[int, ...] = (0, 90)
     spacing_mm: float = 0.0
     measurement_system: str = "metric"
+    export_include_labels: bool = True
+    export_include_dimensions: bool = False
 
 
 def get_effective_spacing(config) -> float:

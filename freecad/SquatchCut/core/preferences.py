@@ -129,6 +129,38 @@ class SquatchCutPreferences:
                 pass
         self._local["CsvUnits"] = units
 
+    def get_export_include_labels(self, fallback: bool = True) -> bool:
+        if self._grp:
+            try:
+                return bool(self._grp.GetBool("ExportIncludeLabels", fallback))
+            except Exception:
+                pass
+        return bool(self._local.get("ExportIncludeLabels", fallback))
+
+    def set_export_include_labels(self, value: bool) -> None:
+        if self._grp:
+            try:
+                self._grp.SetBool("ExportIncludeLabels", bool(value))
+            except Exception:
+                pass
+        self._local["ExportIncludeLabels"] = bool(value)
+
+    def get_export_include_dimensions(self, fallback: bool = False) -> bool:
+        if self._grp:
+            try:
+                return bool(self._grp.GetBool("ExportIncludeDimensions", fallback))
+            except Exception:
+                pass
+        return bool(self._local.get("ExportIncludeDimensions", fallback))
+
+    def set_export_include_dimensions(self, value: bool) -> None:
+        if self._grp:
+            try:
+                self._grp.SetBool("ExportIncludeDimensions", bool(value))
+            except Exception:
+                pass
+        self._local["ExportIncludeDimensions"] = bool(value)
+
 
 # Backward-compatible alias if other modules imported Preferences
 Preferences = SquatchCutPreferences
