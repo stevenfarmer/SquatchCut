@@ -1,0 +1,51 @@
+name: "Feature request"
+description: "Suggest an idea or improvement for SquatchCut."
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature or improvement for SquatchCut!
+
+  - type: input
+    id: summary
+    attributes:
+      label: "Short summary"
+      description: "Briefly describe the feature you’d like."
+      placeholder: "Support printing labeled cut sheets"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: "What problem does this solve?"
+      description: "Describe the workflow or pain point this feature would help with."
+      placeholder: "I need to hand-write labels and cut sequences for each sheet, which is slow and error-prone."
+    validations:
+      required: true
+
+  - type: textarea
+    id: desired-solution
+    attributes:
+      label: "Describe your ideal solution"
+      description: "How would you like SquatchCut to behave?"
+      placeholder: "A 'Print Sheets' option that generates a PDF with each sheet, labeled parts, and a cut order."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: "Alternatives you’ve considered"
+      description: "Other tools or workarounds you’re using now."
+      placeholder: "Right now I export DXF to another program and manually annotate sheets."
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: "Additional context"
+      description: "Any screenshots, mockups, or extra details that might help."

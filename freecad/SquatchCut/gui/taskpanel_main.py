@@ -87,7 +87,7 @@ class SquatchCutTaskPanel:
         report_row.addStretch(1)
         self.report_bug_button = QtWidgets.QPushButton("Report a Bug")
         self.report_bug_button.setFlat(True)
-        self.report_bug_button.setToolTip("Open the SquatchCut GitHub issue tracker to report a problem.")
+        self.report_bug_button.setToolTip("Open the SquatchCut GitHub issue tracker to report a bug or request a feature.")
         report_row.addWidget(self.report_bug_button)
         layout.addLayout(report_row)
 
@@ -763,7 +763,7 @@ class SquatchCutTaskPanel:
 
     def on_report_bug_clicked(self) -> None:
         """Open the SquatchCut GitHub issues page in the default browser."""
-        url = "https://github.com/stevenfarmer/SquatchCut/issues/new"
+        url = "https://github.com/stevenfarmer/SquatchCut/issues/new/choose"
         try:
             webbrowser.open(url)
         except Exception as exc:
