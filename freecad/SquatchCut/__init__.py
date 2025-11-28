@@ -7,7 +7,8 @@ Note: Avoid functional logic; maintain metadata and simple initialization helper
 
 from __future__ import annotations
 
-__version__ = "0.1.0"
+from SquatchCut.version import __version__
+
 __author__ = "SquatchCut Team"
 
 

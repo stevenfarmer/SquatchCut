@@ -8,8 +8,7 @@
     2D cut plans plus exportable reports. Status: Beta / work in progress.
   </description>
 
-  <!-- Replace with your actual name / handle -->
-  <maintainer email="squatchcut@nowhere.invalid">via GitHub Issues</maintainer>
+  <maintainer email="stevenfarmer@users.noreply.github.com">Steven Farmer</maintainer>
 
   <!-- Replace with your real repo URL -->
   <url type="repository">https://github.com/stevenfarmer/SquatchCut</url>
@@ -19,7 +18,7 @@
   <version>0.1.0</version>
   <license>MIT</license>
 
-  <tagline>Cryptid-powered sheet nesting for wood nerds.</tagline>
+  <tagline>Sheet nesting and cut planning for plywood, MDF, and other panels.</tagline>
   <icon>resources/icons/squatchcut.svg</icon>
 
   <freecad>

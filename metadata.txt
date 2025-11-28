@@ -1,0 +1,10 @@
+[FCMetadata]
+Name = SquatchCut
+Description = SquatchCut is a FreeCAD add-on for nesting parts on sheet materials (plywood, MDF, etc.) and generating cut layouts.
+Author = Steven Farmer
+Version = 0.1.0
+License = MIT
+Url = https://github.com/stevenfarmer/SquatchCut
+Icon = freecad/SquatchCut/resources/icons/squatchcut.svg
+FreeCAD = 0.21+
+Tags = nesting, woodworking, sheet optimization, CAM

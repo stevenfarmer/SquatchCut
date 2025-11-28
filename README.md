@@ -19,7 +19,8 @@ SquatchCut is a FreeCAD workbench for optimizing rectangular sheet goods. It pro
 - https://stevenfarmer.github.io/SquatchCut/
 
 ## Installation
-- Clone this repo into your FreeCAD `Mod` directory:
+- **Recommended:** Install via FreeCAD Add-on Manager (search for “SquatchCut”). You can also use “Install from ZIP” with a release archive.
+- Manual install: clone this repo into your FreeCAD `Mod` directory:
   - Linux/macOS: `~/.local/share/FreeCAD/Mod/`
   - Windows: `%APPDATA%\\FreeCAD\\Mod\\`
 - Restart FreeCAD and choose **SquatchCut** from the Workbench selector. The main toolbar shows a single SquatchCut button to open the Task panel.

@@ -6,4 +6,6 @@ Keep this file lightweight; no GUI code here.
 
 import FreeCAD as App
 
-App.Console.PrintMessage(">>> [SquatchCut] Init.py imported\n")
+from SquatchCut.version import __version__
+
+App.Console.PrintMessage(f">>> [SquatchCut] Init.py imported (v{__version__})\n")
