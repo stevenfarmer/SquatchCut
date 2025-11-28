@@ -1,6 +1,6 @@
 """@codex
 FreeCAD command to run the SquatchCut nesting engine and create geometry.
-Primary user entry is via SquatchCut_MainUI; this command remains for advanced/legacy flows.
+Primary user entry is via SquatchCut_ShowTaskPanel; this command remains for advanced/legacy flows.
 """
 
 import os
@@ -100,7 +100,7 @@ class RunNestingCommand:
 
             panel_objs = self._get_panel_objects(doc)
 
-            # Manage SourcePanels group: move originals aside and hide them
+            # Manage SourcePanels group: keep originals, hide them
             if not panel_objs:
                 msg = (
                     "No panels were selected for nesting.\n\n"
@@ -110,33 +110,9 @@ class RunNestingCommand:
                 FreeCAD.Console.PrintMessage("[SquatchCut] No panels selected for nesting.\n")
                 return
 
-            source_group = doc.getObject("SourcePanels")
+            source_group = doc.getObject("SquatchCut_SourcePanels")
             if source_group is None:
-                source_group = doc.addObject("App::DocumentObjectGroup", "SourcePanels")
-
-            SHEET_MARGIN = sheet_w * 0.25
-            offset_x = -(sheet_w + SHEET_MARGIN)
-
-            # Offset the source panels group to the left of all sheets
-            try:
-                placement = source_group.Placement
-                base = placement.Base
-                base.x = offset_x
-                base.y = 0.0
-                base.z = 0.0
-                placement.Base = base
-                source_group.Placement = placement
-            except Exception:
-                # If the group cannot be moved as a whole, shift members instead
-                for obj in panel_objs:
-                    try:
-                        placement = obj.Placement
-                        base = placement.Base
-                        base.x += offset_x
-                        placement.Base = base
-                        obj.Placement = placement
-                    except Exception:
-                        continue
+                source_group = doc.addObject("App::DocumentObjectGroup", "SquatchCut_SourcePanels")
 
             # Move original selected panel objects into the SourcePanels group
             for obj in panel_objs:
@@ -148,6 +124,14 @@ class RunNestingCommand:
                 source_group.ViewObject.Visibility = False
             except Exception:
                 pass
+
+            session_state.set_source_panel_objects(source_group.Group)
+            # Also hide individual source objects
+            for obj in source_group.Group:
+                try:
+                    obj.ViewObject.Visibility = False
+                except Exception:
+                    pass
 
             parts: list[Part] = []
             for obj in panel_objs:
@@ -220,6 +204,17 @@ class RunNestingCommand:
             # Create sheet groups and place clones from placed_parts
             sheet_groups = {}  # sheet_index -> (group, sheet_origin_x)
             SHEET_MARGIN = sheet_w * 0.25  # space between sheets
+            container = doc.getObject("SquatchCut_Sheets")
+            if container is None:
+                container = doc.addObject("App::DocumentObjectGroup", "SquatchCut_Sheets")
+            else:
+                # Clear old nested geometry
+                try:
+                    for child in list(container.Group):
+                        container.removeObject(child)
+                except Exception:
+                    pass
+            session_state.set_nested_sheet_group(container)
 
             for pp in placed_parts:
                 sheet_index = pp.sheet_index
@@ -229,6 +224,7 @@ class RunNestingCommand:
                     sheet_origin_x = sheet_index * (sheet_w + SHEET_MARGIN)
                     group_name = f"Sheet_{sheet_index + 1}"
                     group = doc.addObject("App::DocumentObjectGroup", group_name)
+                    container.addObject(group)
 
                     # Optional boundary rectangle for the sheet
                     try:
@@ -304,6 +300,9 @@ class RunNestingCommand:
                 FreeCAD.Console.PrintMessage(
                     f"[SquatchCut] Nesting complete: {len(placed_parts)} parts across {len(sheet_groups)} sheet(s).\n"
                 )
+                FreeCAD.Console.PrintMessage(
+                    f"[SquatchCut] Nested {len(panel_objs)} source panels into {len(sheet_groups)} sheet group(s).\n"
+                )
 
         except Exception as exc:
             App.Console.PrintError(
@@ -334,22 +333,6 @@ class RunNestingCommand:
 
     def _get_panel_objects(self, doc):
         """Return a list of FreeCAD objects to be treated as rectangular panels."""
-        try:
-            sel = Gui.Selection.getSelection()
-            if sel:
-                all_flagged = [
-                    obj for obj in getattr(doc, "Objects", []) if getattr(obj, "SquatchCutPanel", False)
-                ]
-                if all_flagged and len(sel) < len(all_flagged):
-                    show_warning(
-                        f"{len(sel)} panel(s) selected, but {len(all_flagged)} are available.\n"
-                        "Only selected panels will be nested.",
-                        title="SquatchCut Nesting Selection",
-                    )
-                return sel
-        except Exception:
-            pass
-
         panels = []
         for obj in getattr(doc, "Objects", []):
             try:

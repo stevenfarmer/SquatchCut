@@ -1,6 +1,6 @@
 """@codex
 Workbench registration: defines SquatchCutWorkbench and registers commands with FreeCAD GUI.
-- Primary entry point: SquatchCut_MainUI (consolidated Task panel).
+- Primary entry point: SquatchCut_ShowTaskPanel (consolidated Task panel).
 - Legacy commands remain available via the Advanced toolbar/menu.
 Icons: resolves icons under resources/icons/.
 Note: Avoid adding business logic; keep this file focused on registration/bootstrap only.
@@ -65,7 +65,7 @@ class SquatchCutWorkbench(Gui.Workbench):
         Gui.addCommand("SquatchCut_ExportReport", cmd_export_report.COMMAND)
         Gui.addCommand("SquatchCut_Preferences", cmd_preferences.COMMAND)
 
-        primary_commands = ["SquatchCut_MainUI"]
+        primary_commands = ["SquatchCut_ShowTaskPanel"]
         advanced_commands = [
             "SquatchCut_Settings",
             "SquatchCut_ImportCSV",
@@ -88,6 +88,21 @@ class SquatchCutWorkbench(Gui.Workbench):
 
     def GetClassName(self):
         return "Gui::PythonWorkbench"
+
+    def Activated(self):
+        """Auto-open the SquatchCut Task panel when the workbench is selected."""
+        try:
+            import SquatchCut.gui.taskpanel_main as tpm
+
+            active = Gui.Control.activeDialog()
+            if active and isinstance(active, tpm.SquatchCutTaskPanel):
+                return
+        except Exception:
+            pass
+        try:
+            Gui.runCommand("SquatchCut_ShowTaskPanel")
+        except Exception:
+            pass
 
     def _ensure_squatchcut_menu(self):
         """Ensure a top-level SquatchCut menu with Preferences entry exists."""

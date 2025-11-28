@@ -10,6 +10,7 @@ import csv
 import os
 
 import FreeCAD as App
+import FreeCADGui as Gui
 
 # Qt imports (FreeCAD standard pattern)
 try:
@@ -19,6 +20,7 @@ except ImportError:
 
 from SquatchCut.core import session, session_state
 from SquatchCut.ui.messages import show_error, show_warning
+from SquatchCut.core.geometry_sync import sync_source_panels_to_document
 
 ICONS_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(__file__))),  # .../freecad/SquatchCut
@@ -41,7 +43,6 @@ def _convert_length(value, csv_units: str):
     return num
 
 
-def run_csv_import(doc, csv_path: str, csv_units: str = "metric"):
 def run_csv_import(doc, csv_path: str, csv_units: str = "metric"):
     """
     Core CSV import logic for SquatchCut.
@@ -158,6 +159,11 @@ def run_csv_import(doc, csv_path: str, csv_units: str = "metric"):
     App.Console.PrintMessage(
         f">>> [SquatchCut] Loaded {len(valid_rows)} panels\n"
     )
+    # Create geometry for panels and center view
+    try:
+        sync_source_panels_to_document()
+    except Exception as exc:
+        App.Console.PrintError(f"[SquatchCut] Failed to sync panels to document: {exc}\n")
 
 
 class ImportCSVCommand:
@@ -187,6 +193,14 @@ class ImportCSVCommand:
         App.Console.PrintMessage(">>> [SquatchCut] ImportCSVCommand.Activated() entered\n")
 
         try:
+            doc = App.ActiveDocument
+            if doc is None:
+                doc = App.newDocument("SquatchCut")
+                try:
+                    Gui.ActiveDocument = doc
+                except Exception:
+                    pass
+
             # 1) Show file open dialog for CSV
             caption = "Select CSV file"
             file_filter = "CSV files (*.csv);;All files (*.*)"
@@ -212,11 +226,17 @@ class ImportCSVCommand:
                 )
                 if not ok:
                     return
-                doc = App.ActiveDocument
-                if doc is None:
-                    doc = App.newDocument("SquatchCut")
                 run_csv_import(doc, file_path, csv_units=units)
                 prefs.set_csv_units(units)
+
+                # Sync panels into document geometry
+                try:
+                    sync_source_panels_to_document()
+                except Exception as exc:
+                    App.Console.PrintError(f"[SquatchCut] Failed creating shapes from CSV: {exc}\n")
+                created = [o for o in getattr(doc, "Objects", []) if getattr(o, "SquatchCutPanel", False)]
+                if not created:
+                    App.Console.PrintError("[SquatchCut] CSV import produced no panel shapes.\n")
             else:
                 # User cancelled
                 App.Console.PrintMessage(

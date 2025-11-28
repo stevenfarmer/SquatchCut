@@ -36,6 +36,8 @@ _panels = []
 _optimization_mode = "material"
 _export_include_labels = True
 _export_include_dimensions = False
+_source_panel_objects = []
+_nested_sheet_group = None
 
 
 # --------------------------
@@ -237,3 +239,29 @@ def set_export_include_dimensions(value: bool) -> None:
 def get_export_include_dimensions() -> bool:
     """Return whether exports include simple dimensions."""
     return bool(_export_include_dimensions)
+
+
+# --------------------------
+# Document object tracking
+# --------------------------
+
+def set_source_panel_objects(objs) -> None:
+    """Track source panel FreeCAD objects used for nesting."""
+    global _source_panel_objects
+    _source_panel_objects = list(objs or [])
+
+
+def get_source_panel_objects():
+    """Return tracked source panel FreeCAD objects."""
+    return list(_source_panel_objects or [])
+
+
+def set_nested_sheet_group(group) -> None:
+    """Track the nested sheet group object."""
+    global _nested_sheet_group
+    _nested_sheet_group = group
+
+
+def get_nested_sheet_group():
+    """Return the nested sheet group object."""
+    return _nested_sheet_group

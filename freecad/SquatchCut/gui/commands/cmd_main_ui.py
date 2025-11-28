@@ -38,4 +38,4 @@ class SquatchCutMainUICommand:
 
 
 def register():
-    Gui.addCommand("SquatchCut_MainUI", SquatchCutMainUICommand())
+    Gui.addCommand("SquatchCut_ShowTaskPanel", SquatchCutMainUICommand())

@@ -18,7 +18,7 @@ Thanks for helping improve SquatchCut! This is an active beta project—please o
 - Keep modules focused: core logic stays headless; GUI code lives under `gui/`.
 - Prefer small, well-documented helpers over large inline blocks.
 - Add or update docstrings for public functions/classes; note beta/heuristic behavior where relevant.
-- Maintain existing commands for compatibility; new UI goes through `SquatchCut_MainUI`.
+- Maintain existing commands for compatibility; new UI goes through `SquatchCut_ShowTaskPanel`.
 
 ## Adding a New Optimization Strategy (High Level)
 1. Implement a pure-Python strategy in `freecad/SquatchCut/core/nesting.py`.
