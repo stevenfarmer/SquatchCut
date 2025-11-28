@@ -58,6 +58,10 @@ class SquatchCutTaskPanel:
                 session.sync_state_from_doc(self.doc)
             except Exception:
                 pass
+        try:
+            logger.info(">>> [SquatchCut] Task panel opened.")
+        except Exception:
+            pass
 
         self.form = QtWidgets.QWidget()
         self._build_ui()
@@ -76,13 +80,13 @@ class SquatchCutTaskPanel:
         view_mode_layout.addWidget(view_mode_label)
 
         self.btnViewSource = QtWidgets.QToolButton()
-        self.btnViewSource.setText("Source panels")
+        self.btnViewSource.setText("Source")
         self.btnViewSource.setToolTip("Show original source panels from CSV")
         self.btnViewSource.setCheckable(True)
         self.btnViewSource.setAutoRaise(True)
 
         self.btnViewSheets = QtWidgets.QToolButton()
-        self.btnViewSheets.setText("Nested sheets")
+        self.btnViewSheets.setText("Nested")
         self.btnViewSheets.setToolTip("Show nested sheets and panel placements")
         self.btnViewSheets.setCheckable(True)
         self.btnViewSheets.setAutoRaise(True)
@@ -101,13 +105,13 @@ class SquatchCutTaskPanel:
         # Bottom action buttons
         buttons_row = QtWidgets.QHBoxLayout()
         buttons_row.addStretch(1)
-        self.preview_button = QtWidgets.QPushButton("Preview SquatchCut")
-        self.run_button = QtWidgets.QPushButton("Apply SquatchCut")
-        self.show_source_button = QtWidgets.QPushButton("Show Source Panels")
-        self.btnExportCutlist = QtWidgets.QPushButton("Export Cutlist (CSV)")
-        self.preview_button.setToolTip("Generate a preview of the SquatchCut layout without modifying the document.")
-        self.run_button.setToolTip("Create geometry in the FreeCAD document from the current SquatchCut layout.")
-        self.show_source_button.setToolTip("Hide nested sheets and show source panels.")
+        self.preview_button = QtWidgets.QPushButton("Preview")
+        self.run_button = QtWidgets.QPushButton("Run Nesting")
+        self.show_source_button = QtWidgets.QPushButton("Show Source")
+        self.btnExportCutlist = QtWidgets.QPushButton("Cutlist CSV")
+        self.preview_button.setToolTip("Preview the nesting layout without leaving the task panel.")
+        self.run_button.setToolTip("Generate nested geometry in the active document.")
+        self.show_source_button.setToolTip("Hide nested sheets and show the imported source panels.")
         self.btnExportCutlist.setToolTip("Export a CSV cutlist from the current nested sheets.")
         buttons_row.addWidget(self.preview_button)
         buttons_row.addWidget(self.run_button)
@@ -142,7 +146,7 @@ class SquatchCutTaskPanel:
         self.btnViewSheets.setChecked(False)
 
     def _build_general_group(self) -> QtWidgets.QGroupBox:
-        group = QtWidgets.QGroupBox("General")
+        group = QtWidgets.QGroupBox("Cut List")
         vbox = QtWidgets.QVBoxLayout(group)
 
         form = QtWidgets.QFormLayout()
@@ -167,7 +171,7 @@ class SquatchCutTaskPanel:
 
         # Parts / CSV section
         top_row = QtWidgets.QHBoxLayout()
-        self.load_csv_button = QtWidgets.QPushButton("Load parts CSV…")
+        self.load_csv_button = QtWidgets.QPushButton("Import CSV")
         self.csv_path_label = QtWidgets.QLabel("No file loaded")
         self.csv_path_label.setStyleSheet("color: gray;")
         self.csv_path_label.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
@@ -216,7 +220,7 @@ class SquatchCutTaskPanel:
         return group
 
     def _build_nesting_group(self) -> QtWidgets.QGroupBox:
-        group = QtWidgets.QGroupBox("Nesting")
+        group = QtWidgets.QGroupBox("Sheet & Settings")
         form = QtWidgets.QGridLayout(group)
         form.setColumnStretch(1, 1)
 
@@ -577,6 +581,7 @@ class SquatchCutTaskPanel:
         try:
             self._apply_settings_to_session()
             csv_units = self.get_csv_units()
+            logger.info(f">>> [SquatchCut] Importing CSV from task panel: {file_path}")
             run_csv_import(doc, file_path, csv_units=csv_units)
             self._prefs.set_csv_units(csv_units)
             self._last_csv_path = file_path
@@ -596,6 +601,7 @@ class SquatchCutTaskPanel:
         self._ensure_shapes_exist(doc)
 
         try:
+            logger.info(">>> [SquatchCut] Running nesting from task panel.")
             cmd = cmd_run_nesting.RunNestingCommand()
             cmd.Activated()
             # TODO: if a non-destructive preview path exists, route apply_to_doc=False accordingly.

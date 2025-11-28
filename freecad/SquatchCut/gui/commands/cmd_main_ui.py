@@ -11,6 +11,7 @@ except Exception:
     App = None
     Gui = None
 
+from SquatchCut.core import logger
 from SquatchCut.gui.taskpanel_main import SquatchCutTaskPanel
 
 ICONS_DIR = os.path.join(
@@ -37,8 +38,6 @@ class SquatchCutMainUICommand:
     def Activated(self):
         if App is None or Gui is None:
             try:
-                from SquatchCut.core import logger
-
                 logger.warning("SquatchCutMainUICommand.Activated() called outside FreeCAD GUI environment.")
             except Exception:
                 pass
@@ -47,6 +46,10 @@ class SquatchCutMainUICommand:
         doc = App.ActiveDocument
         if doc is None:
             doc = App.newDocument("SquatchCut")
+        try:
+            logger.info(">>> [SquatchCut] Opening main task panel.")
+        except Exception:
+            pass
         panel = SquatchCutTaskPanel(doc)
         Gui.Control.showDialog(panel)
 

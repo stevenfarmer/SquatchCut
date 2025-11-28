@@ -64,13 +64,12 @@ class SquatchCutWorkbench(Gui.Workbench):
         Gui.addCommand("SquatchCut_Preferences", cmd_preferences.COMMAND)
         Gui.addCommand("SquatchCut_RunGUITests", cmd_run_gui_tests.COMMAND)
 
-        primary_commands = ["SquatchCut_ShowTaskPanel"]
+        primary_commands = ["SquatchCut_ShowTaskPanel", "SquatchCut_RunNesting"]
         advanced_commands = [
             "SquatchCut_Settings",
             "SquatchCut_ImportCSV",
             "SquatchCut_AddShapes",
             "SquatchCut_SetSheetSize",
-            "SquatchCut_RunNesting",
             "SquatchCut_ToggleSourcePanels",
             "SquatchCut_ExportNestingCSV",
             "SquatchCut_ExportReport",
@@ -80,7 +79,6 @@ class SquatchCutWorkbench(Gui.Workbench):
 
         # Primary toolbar focuses on the unified UI; keep advanced tools available separately.
         self.appendToolbar("SquatchCut", primary_commands)
-        self.appendToolbar("SquatchCut Advanced", advanced_commands)
 
         # Menu keeps both primary and advanced entries.
         self.appendMenu("SquatchCut", primary_commands + advanced_commands)
