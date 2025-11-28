@@ -9,15 +9,16 @@ Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 import csv
 import os
 
-import FreeCAD as App
-import FreeCADGui as Gui
+try:
+    import FreeCAD as App
+    import FreeCADGui as Gui
+except Exception:
+    App = None
+    Gui = None
 from SquatchCut.core import logger
 
 # Qt imports (FreeCAD standard pattern)
-try:
-    from PySide import QtWidgets, QtCore, QtGui
-except ImportError:
-    from PySide2 import QtWidgets
+from SquatchCut.gui.qt_compat import QtWidgets, QtCore, QtGui
 
 from SquatchCut.core import session, session_state
 from SquatchCut.ui.messages import show_error, show_warning
@@ -185,6 +186,13 @@ class ImportCSVCommand:
         Called when the user clicks the toolbar/menu item or when
         Gui.runCommand('SquatchCut_ImportCSV') is executed.
         """
+        if App is None or Gui is None:
+            try:
+                logger.warning("ImportCSVCommand.Activated() called outside FreeCAD GUI environment.")
+            except Exception:
+                pass
+            return
+
         logger.debug("ImportCSVCommand.Activated() entered")
 
         try:
@@ -223,15 +231,6 @@ class ImportCSVCommand:
                     return
                 run_csv_import(doc, file_path, csv_units=units)
                 prefs.set_csv_units(units)
-
-                # Sync panels into document geometry
-                try:
-                    sync_source_panels_to_document()
-                except Exception as exc:
-                    logger.error(f"Failed creating shapes from CSV: {exc}")
-                created = [o for o in getattr(doc, "Objects", []) if getattr(o, "SquatchCutPanel", False)]
-                if not created:
-                    logger.error("CSV import produced no panel shapes.")
             else:
                 # User cancelled
                 logger.info("Import CSV dialog cancelled by user")
@@ -245,7 +244,7 @@ class ImportCSVCommand:
         Let the command be always available for now.
         Later we can restrict to when a document is open, etc.
         """
-        return True
+        return App is not None and Gui is not None
 
 
 # Export command instance used by InitGui.py:

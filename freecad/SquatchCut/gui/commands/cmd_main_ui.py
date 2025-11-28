@@ -4,8 +4,12 @@ from __future__ import annotations
 
 import os
 
-import FreeCAD as App
-import FreeCADGui as Gui
+try:
+    import FreeCAD as App
+    import FreeCADGui as Gui
+except Exception:
+    App = None
+    Gui = None
 
 from SquatchCut.gui.taskpanel_main import SquatchCutTaskPanel
 
@@ -27,9 +31,19 @@ class SquatchCutMainUICommand:
         }
 
     def IsActive(self):
-        return True
+        # Only active inside a running FreeCAD GUI session
+        return App is not None and Gui is not None
 
     def Activated(self):
+        if App is None or Gui is None:
+            try:
+                from SquatchCut.core import logger
+
+                logger.warning("SquatchCutMainUICommand.Activated() called outside FreeCAD GUI environment.")
+            except Exception:
+                pass
+            return
+
         doc = App.ActiveDocument
         if doc is None:
             doc = App.newDocument("SquatchCut")
@@ -38,4 +52,5 @@ class SquatchCutMainUICommand:
 
 
 def register():
-    Gui.addCommand("SquatchCut_ShowTaskPanel", SquatchCutMainUICommand())
+    if Gui is not None:
+        Gui.addCommand("SquatchCut_ShowTaskPanel", SquatchCutMainUICommand())

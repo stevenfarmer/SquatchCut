@@ -8,14 +8,15 @@ Interactions: Should use SC_SheetSizeDialog and update core preferences defaults
 Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 """
 
-# Qt bindings (FreeCAD ships PySide / PySide2, not PySide6)
-try:
-    from PySide import QtWidgets, QtCore, QtGui
-except ImportError:
-    from PySide2 import QtWidgets
-
 import os
-import FreeCAD as App  # type: ignore
+try:
+    import FreeCAD as App  # type: ignore
+    import FreeCADGui as Gui  # type: ignore
+except Exception:
+    App = None
+    Gui = None
+
+from SquatchCut.gui.qt_compat import QtWidgets, QtCore, QtGui
 
 try:
     from SquatchCut.core import session, session_state  # type: ignore
@@ -45,6 +46,15 @@ class SC_SetSheetSizeCommand:
         }
 
     def Activated(self):  # noqa: N802  (FreeCAD API)
+        if App is None or Gui is None:
+            try:
+                from SquatchCut.core import logger
+
+                logger.warning("SC_SetSheetSizeCommand.Activated() called outside FreeCAD GUI environment.")
+            except Exception:
+                pass
+            return
+
         App.Console.PrintMessage(
             ">>> [SquatchCut] SetSheetSizeCommand.Activated() entered\n"
         )
@@ -84,7 +94,7 @@ class SC_SetSheetSizeCommand:
             )
 
     def IsActive(self):  # noqa: N802  (FreeCAD API)
-        return True
+        return App is not None and Gui is not None
 
 
 COMMAND = SC_SetSheetSizeCommand()

@@ -1,8 +1,13 @@
 import os
 
-import FreeCAD
-import FreeCADGui
-from PySide2 import QtWidgets
+try:
+    import FreeCAD
+    import FreeCADGui
+except Exception:
+    FreeCAD = None
+    FreeCADGui = None
+
+from SquatchCut.gui.qt_compat import QtWidgets
 
 from SquatchCut.core import session, session_state
 from SquatchCut.core.preferences import SquatchCutPreferences

@@ -1,5 +1,9 @@
-import FreeCAD
-import FreeCADGui
+try:
+    import FreeCAD as App
+    import FreeCADGui as Gui
+except Exception:
+    App = None
+    Gui = None
 
 from SquatchCut.ui.control_panel import SquatchCutControlPanel
 
@@ -21,17 +25,27 @@ class SquatchCutSettingsCommand:
         }
 
     def IsActive(self):
-        return FreeCAD.ActiveDocument is not None
+        return App is not None and Gui is not None
 
     def Activated(self):
-        doc = FreeCAD.ActiveDocument
+        if App is None or Gui is None:
+            try:
+                from SquatchCut.core import logger
+
+                logger.warning("SquatchCutSettingsCommand.Activated() called outside FreeCAD GUI environment.")
+            except Exception:
+                pass
+            return
+
+        doc = App.ActiveDocument
         if doc is None:
-            FreeCAD.Console.PrintError("[SquatchCut] No active document for settings.\n")
+            App.Console.PrintError("[SquatchCut] No active document for settings.\n")
             return
 
         panel = SquatchCutControlPanel(doc)
-        FreeCADGui.Control.showDialog(panel)
+        Gui.Control.showDialog(panel)
 
 
 # Register the command
-FreeCADGui.addCommand("SquatchCut_Settings", SquatchCutSettingsCommand())
+if Gui is not None:
+    Gui.addCommand("SquatchCut_Settings", SquatchCutSettingsCommand())

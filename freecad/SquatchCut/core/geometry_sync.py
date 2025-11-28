@@ -11,25 +11,27 @@ except Exception:  # pragma: no cover
     Gui = None
     Part = None
 
-from SquatchCut.core import session_state
+from SquatchCut.core import logger, session_state
 
 
 def sync_source_panels_to_document():
-    """Create/refresh source panel geometry in the active document."""
+    """Create/refresh source panel geometry in the active document and update the view."""
     if App is None or Part is None:
+        logger.warning("sync_source_panels_to_document() skipped: FreeCAD/Part not available.")
         return
 
     doc = App.ActiveDocument
     if doc is None:
         doc = App.newDocument("SquatchCut")
-        try:
-            if Gui:
-                Gui.ActiveDocument = doc
-        except Exception:
-            pass
+    try:
+        if Gui:
+            Gui.ActiveDocument = doc
+    except Exception:
+        pass
 
     panels = session_state.get_panels()
     if not panels:
+        logger.warning("sync_source_panels_to_document() called with no panels.")
         return
 
     group = doc.getObject("SquatchCut_SourcePanels")
@@ -101,6 +103,5 @@ def sync_source_panels_to_document():
         except Exception:
             pass
 
-    from SquatchCut.core import logger
-
     logger.info(f"Created {len(created)} source panel shapes in document.")
+    logger.info(f"Source panel layout: {len(created)} panels, x_span={x_cursor:.1f} mm")

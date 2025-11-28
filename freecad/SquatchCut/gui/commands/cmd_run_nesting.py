@@ -6,11 +6,15 @@ Primary user entry is via SquatchCut_ShowTaskPanel; this command remains for adv
 import os
 import traceback
 
-import FreeCAD  # type: ignore
-import FreeCADGui  # type: ignore
-import FreeCAD as App  # type: ignore
-import FreeCADGui as Gui  # type: ignore
-from PySide2 import QtWidgets  # type: ignore
+try:
+    import FreeCAD as App  # type: ignore
+    import FreeCADGui as Gui  # type: ignore
+    FreeCAD = App
+except Exception:
+    App = None
+    Gui = None
+    FreeCAD = None
+from SquatchCut.gui.qt_compat import QtWidgets
 
 # Geometry
 try:
@@ -18,7 +22,7 @@ try:
 except Exception:
     Part = None
 
-from SquatchCut.core import session, logger
+from SquatchCut.core import logger, session, session_state
 from SquatchCut.core.nesting import (
     Part,
     nest_on_multiple_sheets,
@@ -69,6 +73,13 @@ class RunNestingCommand:
         }
 
     def Activated(self):
+        if App is None or Gui is None:
+            try:
+                logger.warning("RunNestingCommand.Activated() called outside FreeCAD GUI environment.")
+            except Exception:
+                pass
+            return
+
         try:
             doc = App.ActiveDocument
             if doc is None:
@@ -242,7 +253,7 @@ class RunNestingCommand:
                 # Find original source object by id
                 src_obj = doc.getObject(pp.id)
                 if src_obj is None:
-                logger.error(f"Object {pp.id} not found.")
+                    logger.error(f"Object {pp.id} not found.")
                     continue
 
                 # Clone into this sheet group
@@ -308,8 +319,8 @@ class RunNestingCommand:
             logger.debug("RunNestingCommand.Activated() completed")
 
     def IsActive(self):
-        # For now, always active.
-        return True
+        # Only active inside a running FreeCAD GUI session.
+        return App is not None and Gui is not None
 
     # Helper methods wired into existing helpers/state -----------------
 
@@ -380,13 +391,20 @@ class ToggleSourcePanelsCommand:
             "ToolTip": "Show or hide the original source panel objects",
         }
 
-    def Activated(self):
-        doc = FreeCAD.ActiveDocument
-        if doc is None:
-            logger.error("No active document.")
-            return
+        def Activated(self):
+            if App is None or Gui is None:
+                try:
+                    logger.warning("ToggleSourcePanelsCommand.Activated() called outside FreeCAD GUI environment.")
+                except Exception:
+                    pass
+                return
 
-        group = doc.getObject("SquatchCut_SourcePanels")
+            doc = App.ActiveDocument
+            if doc is None:
+                logger.error("No active document.")
+                return
+
+            group = doc.getObject("SquatchCut_SourcePanels")
         if group is None:
             logger.info("No SourcePanels group exists.")
             return
@@ -396,82 +414,90 @@ class ToggleSourcePanelsCommand:
             state = "shown" if group.ViewObject.Visibility else "hidden"
             logger.info(f"SourcePanels group {state}.")
         except Exception as e:
-            logger.error(f"Failed toggling SourcePanels: {e}")
+                logger.error(f"Failed toggling SourcePanels: {e}")
 
-    def IsActive(self):
-        return FreeCAD.ActiveDocument is not None
+        def IsActive(self):
+            return App is not None and Gui is not None and App.ActiveDocument is not None
 
 
-class ExportNestingCSVCommand:
-    def GetResources(self):
-        return {
+    class ExportNestingCSVCommand:
+        def GetResources(self):
+            return {
             "Pixmap": ":/icons/Std_Export.svg",
             "MenuText": "Export Nesting CSV",
             "ToolTip": "Export the last SquatchCut nesting layout as a CSV file",
-        }
+            }
 
-    def Activated(self):
-        doc = FreeCAD.ActiveDocument
-        if doc is None:
-            logger.error("No active document for export.")
-            return
+        def Activated(self):
+            if App is None or Gui is None:
+                try:
+                    logger.warning("ExportNestingCSVCommand.Activated() called outside FreeCAD GUI environment.")
+                except Exception:
+                    pass
+                return
 
-        layout = get_last_layout()
-        if not layout:
-            show_info(
-                "There is no nesting layout to export.\n"
-                "Run the nesting command first, then try again.",
-                title="SquatchCut Export",
+            doc = App.ActiveDocument
+            if doc is None:
+                logger.error("No active document for export.")
+                return
+
+            layout = get_last_layout()
+            if not layout:
+                show_info(
+                    "There is no nesting layout to export.\n"
+                    "Run the nesting command first, then try again.",
+                    title="SquatchCut Export",
+                )
+                logger.info("No layout available for export.")
+                return
+
+            # Determine default path suggestion
+            if doc.FileName:
+                base, _ = os.path.splitext(doc.FileName)
+                default_path = base + "_squatchcut_nesting.csv"
+            else:
+                default_path = os.path.join(os.path.expanduser("~"), "squatchcut_nesting.csv")
+
+            # Ask user where to save
+            mw = Gui.getMainWindow() if Gui is not None else None
+            filename, _ = QtWidgets.QFileDialog.getSaveFileName(
+                mw,
+                "Export SquatchCut Nesting CSV",
+                default_path,
+                "CSV Files (*.csv)"
             )
-            logger.info("No layout available for export.")
-            return
+            if not filename:
+                show_info("Export canceled.", title="SquatchCut Export")
+                logger.info("Export canceled by user.")
+                return
 
-        # Determine default path suggestion
-        if doc.FileName:
-            base, _ = os.path.splitext(doc.FileName)
-            default_path = base + "_squatchcut_nesting.csv"
-        else:
-            default_path = os.path.join(os.path.expanduser("~"), "squatchcut_nesting.csv")
+            try:
+                with open(filename, "w", encoding="utf-8") as f:
+                    # Include rotation column
+                    f.write("sheet_index,part_id,width_mm,height_mm,x_mm,y_mm,angle_deg\n")
+                    for pp in layout:
+                        line = (
+                            f"{pp.sheet_index},{pp.id},"
+                            f"{pp.width:.3f},{pp.height:.3f},"
+                            f"{pp.x:.3f},{pp.y:.3f},{pp.rotation_deg}\n"
+                        )
+                        f.write(line)
 
-        # Ask user where to save
-        mw = FreeCADGui.getMainWindow()
-        filename, _ = QtWidgets.QFileDialog.getSaveFileName(
-            mw,
-            "Export SquatchCut Nesting CSV",
-            default_path,
-            "CSV Files (*.csv)"
-        )
-        if not filename:
-            show_info("Export canceled.", title="SquatchCut Export")
-            logger.info("Export canceled by user.")
-            return
+                logger.info(f"Exported nesting CSV with {len(layout)} rows to: {filename}")
+            except Exception as e:
+                show_error(
+                    f"Failed to export nesting CSV:\n\n{e}",
+                    title="SquatchCut Export Error",
+                )
+                logger.error(f"Failed to export nesting CSV: {e}")
 
-        try:
-            with open(filename, "w", encoding="utf-8") as f:
-                # Include rotation column
-                f.write("sheet_index,part_id,width_mm,height_mm,x_mm,y_mm,angle_deg\n")
-                for pp in layout:
-                    line = (
-                        f"{pp.sheet_index},{pp.id},"
-                        f"{pp.width:.3f},{pp.height:.3f},"
-                        f"{pp.x:.3f},{pp.y:.3f},{pp.rotation_deg}\n"
-                    )
-                    f.write(line)
-
-            logger.info(f"Exported nesting CSV with {len(layout)} rows to: {filename}")
-        except Exception as e:
-            show_error(
-                f"Failed to export nesting CSV:\n\n{e}",
-                title="SquatchCut Export Error",
-            )
-            logger.error(f"Failed to export nesting CSV: {e}")
-
-    def IsActive(self):
-        return FreeCAD.ActiveDocument is not None
+        def IsActive(self):
+            return App is not None and Gui is not None and App.ActiveDocument is not None
 
 
-FreeCADGui.addCommand("SquatchCut_ToggleSourcePanels", ToggleSourcePanelsCommand())
-FreeCADGui.addCommand("SquatchCut_ExportNestingCSV", ExportNestingCSVCommand())
+if Gui is not None:
+    Gui.addCommand("SquatchCut_ToggleSourcePanels", ToggleSourcePanelsCommand())
+    Gui.addCommand("SquatchCut_ExportNestingCSV", ExportNestingCSVCommand())
 
 # Exported command instance used by InitGui.py
 COMMAND = RunNestingCommand()

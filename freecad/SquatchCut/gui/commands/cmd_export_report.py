@@ -8,15 +8,16 @@ Interactions: Should use SC_ExportReportDialog and call core report_generator ou
 Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 """
 
-# Qt bindings (FreeCAD ships PySide / PySide2, not PySide6)
-try:
-    from PySide import QtWidgets, QtCore, QtGui
-except ImportError:
-    from PySide2 import QtWidgets
+from SquatchCut.gui.qt_compat import QtWidgets, QtCore, QtGui
 
 import os
 
-import FreeCAD as App  # type: ignore
+try:
+    import FreeCAD as App  # type: ignore
+    import FreeCADGui as Gui  # type: ignore
+except Exception:
+    App = None
+    Gui = None
 
 from ...core.report_generator import ReportGenerator
 from ...core import session_state
@@ -42,6 +43,15 @@ class SC_ExportReportCommand:
         }
 
     def Activated(self):  # noqa: N802  (FreeCAD API)
+        if App is None or Gui is None:
+            try:
+                from SquatchCut.core import logger
+
+                logger.warning("SC_ExportReportCommand.Activated() called outside FreeCAD GUI environment.")
+            except Exception:
+                pass
+            return
+
         report_data = session_state.get_last_report_data()
         if not report_data:
             QtWidgets.QMessageBox.information(
@@ -79,7 +89,7 @@ class SC_ExportReportCommand:
         )
 
     def IsActive(self):  # noqa: N802  (FreeCAD API)
-        return App.ActiveDocument is not None
+        return App is not None and Gui is not None and App.ActiveDocument is not None
 
 
 COMMAND = SC_ExportReportCommand()

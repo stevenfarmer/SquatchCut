@@ -8,13 +8,13 @@ Note: Avoid adding business logic; keep this file focused on registration/bootst
 
 import FreeCAD as App
 import FreeCADGui as Gui
-from SquatchCut.core import logger
-try:
-    from PySide import QtWidgets
-except ImportError:
-    from PySide2 import QtWidgets
 
-logger.debug("InitGui module imported")
+try:
+    from PySide import QtCore, QtGui, QtWidgets
+except ImportError:
+    from PySide2 import QtCore, QtGui, QtWidgets
+
+App.Console.PrintLog("[SquatchCut][DEBUG] InitGui module imported\n")
 
 
 class SquatchCutWorkbench(Gui.Workbench):
@@ -30,8 +30,8 @@ class SquatchCutWorkbench(Gui.Workbench):
         Called once when the workbench is first loaded.
         Registers all commands, toolbars, and menus.
         """
-        logger.info("Initialize() running")
-        logger.info("Initialize() called")
+        App.Console.PrintMessage("[SquatchCut] Initialize() running\n")
+        App.Console.PrintMessage("[SquatchCut] Initialize() called\n")
         # Import command modules so they register their FreeCAD commands
         from SquatchCut.gui.commands import (
             cmd_main_ui,
@@ -45,9 +45,9 @@ class SquatchCutWorkbench(Gui.Workbench):
         )
 
         try:
-            logger.debug(f"cmd_import_csv loaded from: {cmd_import_csv.__file__}")
+            App.Console.PrintLog(f"[SquatchCut][DEBUG] cmd_import_csv loaded from: {cmd_import_csv.__file__}\n")
         except Exception as exc:
-            logger.error(f"Failed to inspect cmd_import_csv module: {exc}")
+            App.Console.PrintError(f"[SquatchCut][ERROR] Failed to inspect cmd_import_csv module: {exc}\n")
 
         # Register core commands
         cmd_main_ui.register()

@@ -5,14 +5,15 @@ from __future__ import annotations
 import os
 from typing import List
 
-import FreeCAD as App
-import FreeCADGui as Gui
+try:
+    import FreeCAD as App
+    import FreeCADGui as Gui
+except Exception:
+    App = None
+    Gui = None
 import webbrowser
 
-try:
-    from PySide import QtWidgets, QtCore
-except ImportError:  # FreeCAD 0.21+ ships PySide2
-    from PySide2 import QtWidgets, QtCore
+from SquatchCut.gui.qt_compat import QtWidgets, QtCore
 
 from SquatchCut.core import session, session_state
 from SquatchCut.core.nesting import compute_utilization, estimate_cut_counts

@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-try:
-    from PySide import QtWidgets
-except ImportError:
-    from PySide2 import QtWidgets
+from SquatchCut.gui.qt_compat import QtWidgets
 
 from SquatchCut.core.preferences import SquatchCutPreferences
 

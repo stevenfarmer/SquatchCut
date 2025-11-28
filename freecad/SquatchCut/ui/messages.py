@@ -1,5 +1,9 @@
-import FreeCADGui
-from PySide2 import QtWidgets
+try:
+    import FreeCADGui
+except Exception:
+    FreeCADGui = None
+
+from SquatchCut.gui.qt_compat import QtWidgets
 
 
 def _parent_window():

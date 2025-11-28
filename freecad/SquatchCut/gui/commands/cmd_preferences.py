@@ -8,14 +8,16 @@ Interactions: Should display preferences UI and read/write via core preferences.
 Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 """
 
-# Qt bindings (FreeCAD ships PySide / PySide2, not PySide6)
-try:
-    from PySide import QtWidgets, QtCore, QtGui
-except ImportError:
-    from PySide2 import QtWidgets
-
 import os
 
+try:
+    import FreeCAD as App
+    import FreeCADGui as Gui
+except Exception:
+    App = None
+    Gui = None
+
+from SquatchCut.gui.qt_compat import QtWidgets
 from SquatchCut.gui.dialog_preferences import SquatchCutPreferencesDialog
 
 ICONS_DIR = os.path.join(
@@ -38,11 +40,20 @@ class SC_PreferencesCommand:
         }
 
     def Activated(self):  # noqa: N802  (FreeCAD API)
+        if App is None or Gui is None:
+            try:
+                from SquatchCut.core import logger
+
+                logger.warning("SC_PreferencesCommand.Activated() called outside FreeCAD GUI environment.")
+            except Exception:
+                pass
+            return
+
         dlg = SquatchCutPreferencesDialog()
         dlg.exec_()
 
     def IsActive(self):  # noqa: N802  (FreeCAD API)
-        return True
+        return App is not None and Gui is not None
 
 
 COMMAND = SC_PreferencesCommand()

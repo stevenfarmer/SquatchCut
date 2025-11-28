@@ -8,17 +8,22 @@ Interactions: Should open SC_SelectShapesDialog and forward selections to core s
 Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 """
 
-# Qt bindings (FreeCAD ships PySide / PySide2, not PySide6)
-try:
-    from PySide import QtWidgets, QtCore, QtGui
-except ImportError:
-    from PySide2 import QtWidgets
+from SquatchCut.gui.qt_compat import QtWidgets, QtCore, QtGui
 
 import os
 
-import FreeCAD as App
-import FreeCADGui as Gui
-import Part
+try:
+    import FreeCAD as App
+    import FreeCADGui as Gui
+    FreeCAD = App
+except Exception:
+    App = None
+    Gui = None
+    FreeCAD = None
+try:
+    import Part
+except Exception:
+    Part = None
 
 from SquatchCut.core import session_state
 
@@ -41,6 +46,15 @@ class AddShapesCommand:
         }
 
     def Activated(self):
+        if App is None or Gui is None or Part is None:
+            try:
+                from SquatchCut.core import logger
+
+                logger.warning("AddShapesCommand.Activated() called outside FreeCAD GUI environment.")
+            except Exception:
+                pass
+            return
+
         panels = session_state.get_panels()
         if not panels:
             App.Console.PrintError("[SquatchCut] No panels loaded. Import CSV first.\n")
@@ -139,7 +153,7 @@ class AddShapesCommand:
                 pass
 
     def IsActive(self):
-        return True
+        return App is not None and Gui is not None and Part is not None
 
 
 COMMAND = AddShapesCommand()
