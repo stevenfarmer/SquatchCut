@@ -246,6 +246,34 @@ class ImportCSVCommand:
         """
         return App is not None and Gui is not None
 
+    # Programmatic import helper to bypass dialogs (used by GUI tests)
+    def import_from_path(self, csv_path: str, csv_units: str | None = None):
+        if App is None:
+            raise RuntimeError("FreeCAD App module not available for import_from_path.")
+        doc = App.ActiveDocument
+        if doc is None:
+            doc = App.newDocument("SquatchCut")
+        if csv_units is None:
+            try:
+                from SquatchCut.core.preferences import SquatchCutPreferences
+
+                prefs = SquatchCutPreferences()
+                csv_units = prefs.get_csv_units(prefs.get_measurement_system())
+            except Exception:
+                csv_units = "metric"
+        run_csv_import(doc, csv_path, csv_units=csv_units)
+        try:
+            session.set_last_csv_path(csv_path)
+        except Exception:
+            pass
+
+
+# Stable alias expected by tests and callers
+ImportCsvCommand = ImportCSVCommand
 
 # Export command instance used by InitGui.py:
-COMMAND = ImportCSVCommand()
+COMMAND = ImportCsvCommand()
+
+# Register FreeCAD command
+if Gui is not None:
+    Gui.addCommand("SquatchCut_ImportCSV", COMMAND)

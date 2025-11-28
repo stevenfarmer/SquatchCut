@@ -72,6 +72,13 @@ class RunNestingCommand:
             "ToolTip": "Nest panels onto one or more sheets",
         }
 
+    def _get_panel_objects(self):
+        """
+        Return the list of source panel objects used as the geometric basis for nesting.
+        Relies on session helpers populated by sync_source_panels_to_document().
+        """
+        return session.get_source_panel_objects()
+
     def Activated(self):
         if App is None or Gui is None:
             try:
@@ -83,9 +90,23 @@ class RunNestingCommand:
         try:
             doc = App.ActiveDocument
             if doc is None:
-                logger.error("RunNesting: no active document")
+                doc = App.newDocument("SquatchCut")
+            try:
+                Gui.ActiveDocument = Gui.getDocument(doc.Name)
+            except Exception:
+                pass
+
+            panels = session.get_panels()
+            if not panels:
+                logger.info("RunNestingCommand: no panels in session; nothing to nest.")
                 return
-            for src in session.get_source_panel_objects():
+
+            panel_objs = self._get_panel_objects()
+            if not panel_objs:
+                logger.info("RunNestingCommand: no source panel objects; nothing to nest.")
+                return
+
+            for src in panel_objs:
                 try:
                     if hasattr(src, "ViewObject"):
                         src.ViewObject.Visibility = False
@@ -114,8 +135,6 @@ class RunNestingCommand:
             allowed_rotations = get_allowed_rotations_deg()
             export_labels = get_export_include_labels()
             export_dims = get_export_include_dimensions()
-
-            panel_objs = self._get_panel_objects(doc)
 
             # Manage SourcePanels group: keep originals, hide them
             if not panel_objs:
@@ -155,10 +174,22 @@ class RunNestingCommand:
                     pass
 
             parts: list[Part] = []
-            for obj in panel_objs:
+            panels_data = session.get_panels() or []
+            for idx, obj in enumerate(panel_objs):
                 try:
-                    w, h = self._get_obj_dimensions_mm(obj)
+                    w = h = None
+                    if panels_data:
+                        try:
+                            panel_data = panels_data[idx % len(panels_data)]
+                            w = float(panel_data.get("width", 0) or 0)
+                            h = float(panel_data.get("height", 0) or 0)
+                        except Exception:
+                            w = h = None
+                    if not w or not h or w <= 0 or h <= 0:
+                        w, h = self._get_obj_dimensions_mm(obj)
                 except Exception:
+                    continue
+                if w <= 0 or h <= 0:
                     continue
                 can_rotate = False
                 if hasattr(obj, "SquatchCutCanRotate"):
@@ -349,6 +380,33 @@ class RunNestingCommand:
         # Only active inside a running FreeCAD GUI session.
         return App is not None and Gui is not None
 
+
+class ApplyNestingCommand:
+    """
+    Applies the current nesting to the document by reusing RunNestingCommand,
+    then closes the SquatchCut task panel.
+    """
+
+    def GetResources(self):
+        return {
+            "MenuText": "Apply SquatchCut",
+            "ToolTip": "Run SquatchCut nesting and apply it to the active document",
+        }
+
+    def IsActive(self):
+        return App is not None and Gui is not None
+
+    def Activated(self):
+        try:
+            run_cmd = RunNestingCommand()
+            run_cmd.Activated()
+            try:
+                Gui.Control.closeDialog()
+            except Exception as e:
+                logger.warning(f"ApplyNestingCommand: failed to close dialog: {e!r}")
+        except Exception as e:
+            logger.error(f"Error in ApplyNestingCommand.Activated(): {e!r}")
+
     # Helper methods wired into existing helpers/state -----------------
 
     def _get_sheet_size_mm(self, session) -> tuple[float, float]:
@@ -359,16 +417,12 @@ class RunNestingCommand:
             raise ValueError("sheet size not defined")
         return float(sheet_w), float(sheet_h)
 
-    def _get_panel_objects(self, doc):
-        """Return a list of FreeCAD objects to be treated as rectangular panels."""
-        panels = []
-        for obj in getattr(doc, "Objects", []):
-            try:
-                if hasattr(obj, "SquatchCutPanel") and bool(obj.SquatchCutPanel):
-                    panels.append(obj)
-            except Exception:
-                continue
-        return panels
+    def _get_panel_objects(self):
+        """
+        Return the source panel objects stored in session helpers.
+        Populated by sync_source_panels_to_document() after CSV import.
+        """
+        return session.get_source_panel_objects()
 
     def _get_obj_dimensions_mm(self, obj) -> tuple[float, float]:
         """Given a panel object, return (width_mm, height_mm) using its bounding box."""
@@ -477,6 +531,8 @@ if Gui is not None:
     Gui.addCommand("SquatchCut_ToggleSourcePanels", ToggleSourcePanelsCommand())
     # TODO: Implement real nesting CSV export and enable this command.
     Gui.addCommand("SquatchCut_ExportNestingCSV", ExportNestingCSVCommand())
+    Gui.addCommand("SquatchCut_RunNesting", RunNestingCommand())
+    Gui.addCommand("SquatchCut_ApplyNesting", ApplyNestingCommand())
 
 # Exported command instance used by InitGui.py
 COMMAND = RunNestingCommand()
