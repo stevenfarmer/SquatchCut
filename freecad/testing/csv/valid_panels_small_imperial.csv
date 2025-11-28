@@ -1,8 +1,4 @@
-id,width,height,grain_direction,allow_rotate
-P1,23.6220,15.7480,none,1
-P2,31.4961,19.6850,none,0
-P3,11.8110,11.8110,vertical,1
-P4,47.2441,23.6220,horizontal,0
-P5,19.6850,27.5591,vertical,1
-P6,15.7480,7.8740,none,0
-P7,35.4331,15.7480,horizontal,1
+id,width,height,qty,allow_rotate
+P1,24,12,2,1
+P2,18,10,2,1
+P3,12,8,2,0

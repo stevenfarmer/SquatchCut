@@ -256,25 +256,26 @@ class ImportCSVCommand:
         return App is not None and Gui is not None
 
     # Programmatic import helper to bypass dialogs (used by GUI tests)
-    def import_from_path(self, csv_path: str, csv_units: str | None = None):
+    def import_from_path(self, csv_path: str, units: str | None = None, csv_units: str | None = None):
         if App is None:
             raise RuntimeError("FreeCAD App module not available for import_from_path.")
         doc = App.ActiveDocument
         if doc is None:
             doc = App.newDocument("SquatchCut")
-        if csv_units is None:
+        chosen_units = csv_units if csv_units is not None else units
+        if chosen_units is None:
             try:
                 from SquatchCut.core.preferences import SquatchCutPreferences
 
                 prefs = SquatchCutPreferences()
-                csv_units = prefs.get_csv_units(prefs.get_measurement_system())
+                chosen_units = prefs.get_csv_units(prefs.get_measurement_system())
             except Exception:
-                csv_units = "mm"
-        if csv_units == "metric":
-            csv_units = "mm"
-        if csv_units == "imperial":
-            csv_units = "in"
-        run_csv_import(doc, csv_path, csv_units=csv_units)
+                chosen_units = "mm"
+        if chosen_units == "metric":
+            chosen_units = "mm"
+        if chosen_units == "imperial":
+            chosen_units = "in"
+        run_csv_import(doc, csv_path, csv_units=chosen_units)
         try:
             session.set_last_csv_path(csv_path)
         except Exception:

@@ -12,6 +12,7 @@ except Exception:  # pragma: no cover
     Gui = None
 
 from SquatchCut.core import logger, session
+from SquatchCut.core import cutlist
 from SquatchCut.core.geometry_sync import sync_source_panels_to_document
 from SquatchCut.gui.commands import cmd_run_nesting, cmd_import_csv
 from SquatchCut.gui.qt_compat import QtWidgets
@@ -95,9 +96,13 @@ def _get_imperial_test_csv_path(name: str = "valid_panels_imperial_1_sheet.csv")
         import SquatchCut
 
         mod_path = Path(SquatchCut.__file__).resolve().parent
-        csv_path = mod_path.parent / "testing" / "csv" / name
+        csv_path = mod_path / "freecad" / "testing" / "csv" / name
         if csv_path.is_file():
             return str(csv_path)
+        # Fallback to legacy location if needed
+        fallback = mod_path.parent / "testing" / "csv" / name
+        if fallback.is_file():
+            return str(fallback)
     except Exception:
         pass
     logger.warning(f"GUI tests: could not resolve {name} path.")
@@ -334,6 +339,53 @@ def test_import_imperial_csv_uses_units():
     return result
 
 
+def test_cutlist_generated_after_nesting():
+    """
+    GUI test: after nesting, cutlist generator should return cuts.
+    """
+    result = TestResult("Cutlist: generated after nesting")
+
+    try:
+        doc = _new_temp_doc("SquatchCut_GUI_Cutlist")
+    except Exception as exc:
+        result.set_fail(exc)
+        return result
+
+    try:
+        session.clear_all_geometry()
+        session.set_panels([])
+
+        csv_path = _get_test_csv_path()
+        if not csv_path:
+            raise RuntimeError("Metric test CSV path could not be resolved.")
+
+        from SquatchCut.gui.commands import cmd_import_csv, cmd_run_nesting
+
+        cmd_i = cmd_import_csv.ImportCsvCommand()
+        cmd_i.import_from_path(csv_path, units="mm")
+
+        from SquatchCut.core.geometry_sync import sync_source_panels_to_document
+        sync_source_panels_to_document()
+
+        run_cmd = cmd_run_nesting.RunNestingCommand()
+        run_cmd.Activated()
+
+        cuts = cutlist.generate_cutops_from_session()
+        if not cuts:
+            raise RuntimeError("Cutlist generator returned no cuts.")
+        orientations = {c.orientation for c in cuts}
+        if "vertical" not in orientations or "horizontal" not in orientations:
+            raise AssertionError(f"Expected both vertical and horizontal cuts; got {orientations!r}")
+
+        result.set_pass()
+    except Exception as exc:
+        result.set_fail(exc)
+    finally:
+        _close_doc(doc)
+
+    return result
+
+
 def run_all_tests():
     """
     Entry point for the "Run GUI Tests" button in SquatchCut Settings.
@@ -349,6 +401,7 @@ def run_all_tests():
         test_units_toggle_updates_pref,
         test_sheet_size_suffix_tracks_units,
         test_import_imperial_csv_uses_units,
+        test_cutlist_generated_after_nesting,
     ]
 
     results = []

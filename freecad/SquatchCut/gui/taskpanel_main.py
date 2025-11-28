@@ -21,7 +21,7 @@ from SquatchCut.core.nesting import compute_utilization, estimate_cut_counts
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.core import exporter
 from SquatchCut.gui.commands.cmd_import_csv import run_csv_import
-from SquatchCut.gui.commands import cmd_add_shapes, cmd_run_nesting
+from SquatchCut.gui.commands import cmd_add_shapes, cmd_run_nesting, cmd_export_cutlist
 from SquatchCut.ui.messages import show_error
 
 
@@ -104,12 +104,15 @@ class SquatchCutTaskPanel:
         self.preview_button = QtWidgets.QPushButton("Preview SquatchCut")
         self.run_button = QtWidgets.QPushButton("Apply SquatchCut")
         self.show_source_button = QtWidgets.QPushButton("Show Source Panels")
+        self.btnExportCutlist = QtWidgets.QPushButton("Export Cutlist (CSV)")
         self.preview_button.setToolTip("Generate a preview of the SquatchCut layout without modifying the document.")
         self.run_button.setToolTip("Create geometry in the FreeCAD document from the current SquatchCut layout.")
         self.show_source_button.setToolTip("Hide nested sheets and show source panels.")
+        self.btnExportCutlist.setToolTip("Export a CSV cutlist from the current nested sheets.")
         buttons_row.addWidget(self.preview_button)
         buttons_row.addWidget(self.run_button)
         buttons_row.addWidget(self.show_source_button)
+        buttons_row.addWidget(self.btnExportCutlist)
         layout.addLayout(buttons_row)
 
         # Report bug link/button (low visual weight)
@@ -130,6 +133,7 @@ class SquatchCutTaskPanel:
         self.preview_button.clicked.connect(self.on_preview_clicked)
         self.run_button.clicked.connect(self.on_apply_clicked)
         self.show_source_button.clicked.connect(self.on_show_source_panels)
+        self.btnExportCutlist.clicked.connect(self.on_export_cutlist_clicked)
         self.report_bug_button.clicked.connect(self.on_report_bug_clicked)
         self._set_run_buttons_enabled(False)
         self.btnViewSource.clicked.connect(self._on_view_source_clicked)
@@ -1123,6 +1127,13 @@ class SquatchCutTaskPanel:
             Gui.runCommand("SquatchCut_ApplyNesting")
         except Exception as e:
             logger.error(f"Failed to apply nesting: {e!r}")
+
+    def on_export_cutlist_clicked(self):
+        """Trigger export cutlist command."""
+        try:
+            Gui.runCommand("SquatchCut_ExportCutlist")
+        except Exception as e:
+            logger.error(f"Failed to export cutlist: {e!r}")
 
     # ---------------- Task panel API ----------------
 
