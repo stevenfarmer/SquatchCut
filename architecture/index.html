@@ -1,0 +1,1044 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A cryptid-powered nesting workbench for FreeCAD.">
+      
+      
+      
+        <link rel="canonical" href="https://stevenfarmer.github.io/SquatchCut/architecture/">
+      
+      
+        <link rel="prev" href="../user/csv_and_ts_tools/">
+      
+      
+        <link rel="next" href="../mvp/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Architecture Overview - SquatchCut</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#architecture" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="SquatchCut" class="md-header__button md-logo" aria-label="SquatchCut" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SquatchCut
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Architecture Overview
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="orange"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/stevenfarmer/SquatchCut" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    SquatchCut
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="SquatchCut" class="md-nav__button md-logo" aria-label="SquatchCut" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    SquatchCut
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/stevenfarmer/SquatchCut" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    SquatchCut
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Basic Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user/commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Commands & Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user/csv_and_ts_tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CSV & TS Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developer Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mvp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MVP Scope
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../codex_workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Codex Workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reporting_bugs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reporting Bugs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
+<p>This document defines the technical architecture of the SquatchCut FreeCAD Nesting Workbench MVP. It outlines the project structure, module responsibilities, data flow, and Codex conventions to ensure consistent implementation.</p>
+<hr />
+<h1 id="1-project-structure">1. Project Structure<a class="headerlink" href="#1-project-structure" title="Permanent link">&para;</a></h1>
+<p>The repository is organized as follows:</p>
+<p>root/
+│
+├── freecad/
+│ └── SquatchCut/
+│ ├── InitGui.py
+│ ├── init.py
+│ ├── gui/
+│ │ ├── commands/
+│ │ │ ├── cmd_add_shapes.py
+│ │ │ ├── cmd_import_csv.py
+│ │ │ ├── cmd_run_nesting.py
+│ │ │ ├── cmd_set_sheet_size.py
+│ │ │ ├── cmd_export_report.py
+│ │ │ └── cmd_preferences.py
+│ │ └── dialogs/
+│ │ ├── dlg_select_shapes.py
+│ │ ├── dlg_csv_import.py
+│ │ ├── dlg_sheet_size.py
+│ │ ├── dlg_run_nesting.py
+│ │ └── dlg_export_report.py
+│ │
+│ ├── core/
+│ │ ├── shape_extractor.py
+│ │ ├── csv_loader.py
+│ │ ├── nesting_engine.py
+│ │ ├── multi_sheet_optimizer.py
+│ │ ├── geometry_output.py
+│ │ ├── report_generator.py
+│ │ └── preferences.py
+│ └── resources/
+│ ├── icons/
+│ └── ui/
+│
+└── docs/
+├── mvp.md
+├── architecture.md
+└── roadmap.md</p>
+<hr />
+<h1 id="2-module-responsibilities">2. Module Responsibilities<a class="headerlink" href="#2-module-responsibilities" title="Permanent link">&para;</a></h1>
+<h2 id="21-core-modules">2.1 <code>/core</code> modules<a class="headerlink" href="#21-core-modules" title="Permanent link">&para;</a></h2>
+<h3 id="shape_extractorpy"><strong>shape_extractor.py</strong><a class="headerlink" href="#shape_extractorpy" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Scans FreeCAD document for valid shapes</li>
+<li>Extracts bounding boxes (width, height)</li>
+<li>Converts shapes to panel objects</li>
+<li>Enforces rotation rules</li>
+<li>Filters by user selection</li>
+</ul>
+<h3 id="csv_loaderpy"><strong>csv_loader.py</strong><a class="headerlink" href="#csv_loaderpy" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Loads CSV into panel objects</li>
+<li>Validates fields</li>
+<li>Normalizes types and units</li>
+<li>Produces list of panels</li>
+</ul>
+<h3 id="nesting_enginepy"><strong>nesting_engine.py</strong><a class="headerlink" href="#nesting_enginepy" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Implements rectangular nesting (Skyline or Guillotine)</li>
+<li>Places panels at (x, y) with rotation</li>
+<li>Detects collisions + boundaries</li>
+<li>Produces placements for one sheet</li>
+</ul>
+<h3 id="multi_sheet_optimizerpy"><strong>multi_sheet_optimizer.py</strong><a class="headerlink" href="#multi_sheet_optimizerpy" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Uses nesting_engine repeatedly</li>
+<li>Allocates panels across sheets</li>
+<li>Stops when all panels placed</li>
+<li>Returns a list of sheets + placements</li>
+</ul>
+<h3 id="geometry_outputpy"><strong>geometry_output.py</strong><a class="headerlink" href="#geometry_outputpy" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Creates FreeCAD geometry for each sheet</li>
+<li>Adds groups and rectangles</li>
+<li>Applies x, y placement, rotation, and labeling</li>
+</ul>
+<h3 id="report_generatorpy"><strong>report_generator.py</strong><a class="headerlink" href="#report_generatorpy" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Builds a PDF summary:</li>
+<li>Sheet count</li>
+<li>Panel placements</li>
+<li>Efficiency / waste %</li>
+<li>Timestamp</li>
+<li>Builds CSV summary</li>
+</ul>
+<h3 id="preferencespy"><strong>preferences.py</strong><a class="headerlink" href="#preferencespy" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Wraps FreeCAD preference system</li>
+<li>Stores:</li>
+<li>Default sheet size</li>
+<li>Kerf/spacing</li>
+<li>Rotation allowed</li>
+<li>Auto-detect shapes</li>
+<li>Export directory</li>
+<li>Branding toggle</li>
+</ul>
+<hr />
+<h1 id="3-gui-layer">3. GUI Layer<a class="headerlink" href="#3-gui-layer" title="Permanent link">&para;</a></h1>
+<h2 id="31-workbench-setup">3.1 Workbench Setup<a class="headerlink" href="#31-workbench-setup" title="Permanent link">&para;</a></h2>
+<h3 id="initguipy"><code>InitGui.py</code><a class="headerlink" href="#initguipy" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Registers SquatchCut workbench</li>
+<li>Adds toolbar buttons</li>
+<li>Loads icons</li>
+</ul>
+<h3 id="__init__py"><code>__init__.py</code><a class="headerlink" href="#__init__py" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Metadata</li>
+<li>Bootstrapping</li>
+</ul>
+<h2 id="32-commands">3.2 Commands<a class="headerlink" href="#32-commands" title="Permanent link">&para;</a></h2>
+<p>Each command lives inside <code>/gui/commands</code>:</p>
+<ul>
+<li><code>cmd_add_shapes.py</code></li>
+<li><code>cmd_import_csv.py</code></li>
+<li><code>cmd_run_nesting.py</code></li>
+<li><code>cmd_set_sheet_size.py</code></li>
+<li><code>cmd_export_report.py</code></li>
+<li><code>cmd_preferences.py</code></li>
+</ul>
+<p>Commands:</p>
+<ul>
+<li>Call dialogs</li>
+<li>Trigger core functions</li>
+<li>Update UI</li>
+</ul>
+<h2 id="33-dialogs">3.3 Dialogs<a class="headerlink" href="#33-dialogs" title="Permanent link">&para;</a></h2>
+<p>Each dialog in <code>/gui/dialogs</code> handles user input:</p>
+<ul>
+<li>Select shapes</li>
+<li>Import CSV</li>
+<li>Sheet size configuration</li>
+<li>Nesting run settings</li>
+<li>Export settings</li>
+</ul>
+<p>Dialogs emit structured data for core modules.</p>
+<hr />
+<h1 id="4-data-model">4. Data Model<a class="headerlink" href="#4-data-model" title="Permanent link">&para;</a></h1>
+<h3 id="panel-object">Panel Object<a class="headerlink" href="#panel-object" title="Permanent link">&para;</a></h3>
+<p>{
+"id": str,
+"width": float,
+"height": float,
+"rotation_allowed": bool,
+}</p>
+<h3 id="placement-object">Placement Object<a class="headerlink" href="#placement-object" title="Permanent link">&para;</a></h3>
+<p>{
+"panel_id": str,
+"x": float,
+"y": float,
+"rotation": int, # 0 or 90
+"sheet_id": int
+}</p>
+<h3 id="sheet-object">Sheet Object<a class="headerlink" href="#sheet-object" title="Permanent link">&para;</a></h3>
+<p>{
+"sheet_id": int,
+"width": float,
+"height": float,
+"placements": list[Placement]
+}</p>
+<hr />
+<h1 id="5-data-flow">5. Data Flow<a class="headerlink" href="#5-data-flow" title="Permanent link">&para;</a></h1>
+<p>FreeCAD Shapes ──────► shape_extractor
+CSV File ──────► csv_loader</p>
+<p>Extracted Panels
+▼
+multi_sheet_optimizer
+▼
+nesting_engine (per sheet)
+▼
+Sheet Placement Sets
+▼
+geometry_output ──► FreeCAD Document
+report_generator ──► PDF / CSV</p>
+<hr />
+<h1 id="6-codex-conventions">6. Codex Conventions<a class="headerlink" href="#6-codex-conventions" title="Permanent link">&para;</a></h1>
+<p>Codex must follow these rules when generating code:</p>
+<h3 id="61-use-codex-blocks">6.1 Use <code>@codex</code> blocks<a class="headerlink" href="#61-use-codex-blocks" title="Permanent link">&para;</a></h3>
+<p>Example:</p>
+<div class="codehilite"><pre><span></span><code><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">@codex</span>
+<span class="sd">Implement the NestingEngine class.</span>
+<span class="sd">Requirements:</span>
+<span class="sd">- Do not use recursion.</span>
+<span class="sd">- Accept list of panels + sheet size.</span>
+<span class="sd">- Return list of placements.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="mf">6.2</span> <span class="n">Avoid</span> <span class="k">global</span> <span class="n">state</span>
+<span class="n">Modules</span> <span class="n">must</span> <span class="n">be</span> <span class="n">pure</span> <span class="n">where</span> <span class="n">possible</span><span class="o">.</span>
+
+<span class="mf">6.3</span> <span class="n">Small</span> <span class="n">functions</span>
+<span class="n">Break</span> <span class="nb">complex</span> <span class="n">logic</span> <span class="n">into</span> <span class="n">testable</span> <span class="n">units</span><span class="o">.</span>
+
+<span class="mf">6.4</span> <span class="n">FreeCAD</span> <span class="n">imports</span> <span class="n">must</span> <span class="n">be</span> <span class="n">lazy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">FreeCAD</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">App</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">FreeCADGui</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">Gui</span>
+
+<span class="mf">6.5</span> <span class="n">Use</span> <span class="n">unified</span> <span class="n">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.preferences</span><span class="w"> </span><span class="kn">import</span> <span class="n">log</span>
+
+<span class="mf">7.</span> <span class="n">Future</span> <span class="n">Expansion</span> <span class="p">(</span><span class="n">Post</span><span class="o">-</span><span class="n">MVP</span> <span class="n">Hooks</span><span class="p">)</span>
+<span class="n">Architecture</span> <span class="n">reserves</span> <span class="n">space</span> <span class="k">for</span><span class="p">:</span>
+<span class="n">Bookmatching</span>
+<span class="n">Grain</span> <span class="n">direction</span> <span class="n">optimization</span>
+<span class="n">Curved</span><span class="o">/</span><span class="n">polygon</span> <span class="n">nesting</span>
+<span class="n">Advanced</span> <span class="n">nesting</span> <span class="n">heuristics</span>
+<span class="n">Path</span> <span class="n">Workbench</span> <span class="n">integration</span>
+<span class="n">Material</span> <span class="n">libraries</span>
+<span class="n">Drag</span><span class="o">-</span><span class="ow">and</span><span class="o">-</span><span class="n">drop</span> <span class="n">sheet</span> <span class="n">editing</span>
+<span class="n">These</span> <span class="n">will</span> <span class="n">attach</span> <span class="n">cleanly</span> <span class="n">onto</span> <span class="n">existing</span> <span class="n">modules</span> <span class="n">without</span> <span class="n">rewriting</span> <span class="n">MVP</span> <span class="n">code</span><span class="o">.</span>
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.instant", "content.code.copy"], "search": "../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+    
+  </body>
+</html>
