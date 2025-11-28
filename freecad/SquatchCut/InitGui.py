@@ -6,16 +6,15 @@ Icons: resolves icons under resources/icons/.
 Note: Avoid adding business logic; keep this file focused on registration/bootstrap only.
 """
 
-from SquatchCut.core import logger
-
-logger.debug("InitGui module imported")
-
 import FreeCAD as App
 import FreeCADGui as Gui
+from SquatchCut.core import logger
 try:
     from PySide import QtWidgets
 except ImportError:
     from PySide2 import QtWidgets
+
+logger.debug("InitGui module imported")
 
 
 class SquatchCutWorkbench(Gui.Workbench):
