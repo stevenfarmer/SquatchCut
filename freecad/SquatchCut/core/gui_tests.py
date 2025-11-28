@@ -181,8 +181,8 @@ def test_nesting_preview_basic():
         run_cmd = cmd_run_nesting.RunNestingCommand()
         run_cmd.Activated()
 
-        sheets_group = doc.getObject("SquatchCut_Sheets")
-        if sheets_group is None or not getattr(sheets_group, "Group", []):
+        nested_group = doc.getObject("SquatchCut_NestedParts")
+        if nested_group is None or not getattr(nested_group, "Group", []):
             raise RuntimeError("No sheets or nested panels found after nesting preview.")
 
         if not session.get_source_panel_objects():

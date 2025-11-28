@@ -1031,8 +1031,10 @@ class SquatchCutTaskPanel:
             return
 
         sheets_group = doc.getObject("SquatchCut_Sheets")
-        if sheets_group:
-            for obj in sheets_group.Group:
+        nested_group = doc.getObject("SquatchCut_NestedParts")
+        groups = [g for g in (sheets_group, nested_group) if g]
+        for group in groups:
+            for obj in getattr(group, "Group", []):
                 try:
                     if hasattr(obj, "ViewObject"):
                         obj.ViewObject.Visibility = False
@@ -1072,8 +1074,10 @@ class SquatchCutTaskPanel:
                 continue
 
         sheets_group = doc.getObject("SquatchCut_Sheets")
-        if sheets_group:
-            for obj in sheets_group.Group:
+        nested_group = doc.getObject("SquatchCut_NestedParts")
+        groups = [g for g in (sheets_group, nested_group) if g]
+        for group in groups:
+            for obj in getattr(group, "Group", []):
                 try:
                     if hasattr(obj, "ViewObject"):
                         obj.ViewObject.Visibility = True
@@ -1093,8 +1097,10 @@ class SquatchCutTaskPanel:
             return
 
         sheets_group = doc.getObject("SquatchCut_Sheets")
-        if sheets_group:
-            for o in sheets_group.Group:
+        nested_group = doc.getObject("SquatchCut_NestedParts")
+        groups = [g for g in (sheets_group, nested_group) if g]
+        for group in groups:
+            for o in getattr(group, "Group", []):
                 try:
                     if hasattr(o, "ViewObject"):
                         o.ViewObject.Visibility = False

@@ -34,6 +34,7 @@ from SquatchCut.core.nesting import (
 )  # type: ignore
 from SquatchCut.core.cut_optimization import estimate_cut_path_complexity
 from SquatchCut.core.overlap_check import detect_overlaps
+from SquatchCut.core.geometry_sync import ensure_sheet_object
 from SquatchCut.core.session_state import (
     get_gap_mm,
     get_kerf_mm,
@@ -48,6 +49,8 @@ from SquatchCut.core.session_state import (
     set_last_layout,
     set_nesting_stats,
 )
+from SquatchCut.gui.nesting_view import rebuild_nested_geometry
+from SquatchCut.gui.view_utils import zoom_to_objects
 from SquatchCut.ui.messages import show_error, show_info, show_warning
 
 
@@ -251,92 +254,18 @@ class RunNestingCommand:
                 logger.warning("Nesting produced no placements.")
                 return
 
-            # Create sheet groups and place clones from placed_parts
-            sheet_groups = {}  # sheet_index -> (group, sheet_origin_x)
-            SHEET_MARGIN = sheet_w * 0.25  # space between sheets
-            container = doc.getObject("SquatchCut_Sheets")
-            if container is None:
-                container = doc.addObject("App::DocumentObjectGroup", "SquatchCut_Sheets")
-            else:
-                # Clear old nested geometry
-                try:
-                    for child in list(container.Group):
-                        doc.removeObject(child.Name)
-                except Exception:
-                    pass
-            session.clear_sheets()
-            session_state.set_nested_sheet_group(container)
-
-            sheet_objs = []
-            nested_objs = []
-            for pp in placed_parts:
-                sheet_index = pp.sheet_index
-
-                # Create / fetch group for this sheet
-                if sheet_index not in sheet_groups:
-                    sheet_origin_x = sheet_index * (sheet_w + SHEET_MARGIN)
-                    group_name = f"Sheet_{sheet_index + 1}"
-                    group = doc.addObject("App::DocumentObjectGroup", group_name)
-                    container.addObject(group)
-
-                    # Boundary rectangle as a Part face
-                    try:
-                        import Part as FCPart
-
-                        sheet_face = FCPart.makePlane(
-                            sheet_w,
-                            sheet_h,
-                            FreeCAD.Vector(sheet_origin_x, 0.0, 0.0),
-                            FreeCAD.Vector(1, 0, 0),
-                            FreeCAD.Vector(0, 1, 0),
-                        )
-                        sheet_obj = doc.addObject("Part::Feature", f"{group_name}_Boundary")
-                        sheet_obj.Shape = sheet_face
-                        group.addObject(sheet_obj)
-                        sheet_objs.append(sheet_obj)
-                    except Exception:
-                        pass
-
-                    sheet_groups[sheet_index] = (group, sheet_origin_x)
-
-                sheet_group, sheet_origin_x = sheet_groups[sheet_index]
-
-                # Find original source object by id
-                src_obj = doc.getObject(pp.id)
-                if src_obj is None:
-                    logger.error(f"Object {pp.id} not found.")
-                    continue
-
-                # Clone into this sheet group without mutating source geometry
-                try:
-                    clone = doc.addObject("Part::Feature", f"SC_Nested_{pp.id}")
-                    clone.Shape = src_obj.Shape.copy()
-                except Exception:
-                    continue
-
-                sheet_group.addObject(clone)
-
-                # Reset placement and set new coordinates
-                placement = clone.Placement
-                placement.Base.x = sheet_origin_x + pp.x
-                placement.Base.y = pp.y
-                placement.Base.z = 0.0
-                try:
-                    rotation = FreeCAD.Rotation(FreeCAD.Vector(0, 0, 1), pp.rotation_deg)
-                except Exception:
-                    rotation = FreeCAD.Rotation()
-                placement.Rotation = rotation
-                clone.Placement = placement
-                nested_objs.append(clone)
-
-                logger.debug(
-                    f"Placed {pp.id} on sheet {sheet_index + 1} at ({sheet_origin_x + pp.x:.1f}, {pp.y:.1f}) size {pp.width:.1f} x {pp.height:.1f} mm"
-                )
+            logger.info(">>> [SquatchCut] Rebuilding nested layout view...")
+            sheet_obj = ensure_sheet_object(doc)
+            group, nested_objs = rebuild_nested_geometry(doc, placed_parts, sheet_w, sheet_h, panel_objs)
 
             if doc is not None:
-                doc.recompute()
-                session.set_sheet_objects(sheet_objs)
+                try:
+                    doc.recompute()
+                except Exception:
+                    pass
+                session.set_sheet_objects([sheet_obj] if sheet_obj else [])
                 session.set_nested_panel_objects(nested_objs)
+                session_state.set_nested_sheet_group(group)
                 util = compute_utilization(placed_parts, sheet_w, sheet_h)
                 cuts = estimate_cut_counts(placed_parts, sheet_w, sheet_h)
                 cut_complexity = estimate_cut_path_complexity(placed_parts, kerf_width_mm=kerf_width or kerf_mm)
@@ -347,6 +276,7 @@ class RunNestingCommand:
                             f"Overlap detected between {getattr(a, 'id', '?')} and {getattr(b, 'id', '?')} on sheet {getattr(a, 'sheet_index', '?')}."
                         )
                 set_nesting_stats(util.get("sheets_used", None), cut_complexity, len(overlaps))
+                sheet_count = (max(pp.sheet_index for pp in placed_parts) + 1) if placed_parts else 0
                 summary_msg = (
                     f"Nesting complete: {len(placed_parts)} parts, "
                     f"sheets used={util.get('sheets_used', 0)}, "
@@ -355,13 +285,15 @@ class RunNestingCommand:
                     f"({cuts.get('vertical', 0)} vertical, {cuts.get('horizontal', 0)} horizontal).\n"
                 )
                 logger.info(summary_msg.strip())
-                logger.info(f"Nesting complete: {len(placed_parts)} parts across {len(sheet_groups)} sheet(s).")
-                logger.info(f"Nested {len(panel_objs)} source panels into {len(sheet_groups)} sheet group(s).")
+                logger.info(f"Nesting complete: {len(placed_parts)} parts across {sheet_count} sheet(s).")
+                logger.info(f"Nested {len(panel_objs)} source panels into {sheet_count} sheet group(s).")
                 try:
-                    if Gui and Gui.ActiveDocument:
-                        view = Gui.ActiveDocument.ActiveView
-                        view.viewTop()
-                        view.fitAll()
+                    targets = []
+                    if sheet_obj:
+                        targets.append(sheet_obj)
+                    targets.extend(nested_objs or [])
+                    if targets:
+                        zoom_to_objects(targets)
                 except Exception:
                     pass
 
