@@ -34,13 +34,6 @@ except NameError:  # pragma: no cover - FreeCAD sometimes runs without __file__
 
     MODULE_DIR = os.path.dirname(os.path.abspath(_sq_mod.__file__))
 
-_ICON_PATH = os.path.join(
-    MODULE_DIR,
-    "resources",
-    "icons",
-    "squatchcut_workbench.svg",
-)
-
 
 class SquatchCutWorkbench(Gui.Workbench):
     """
@@ -49,7 +42,12 @@ class SquatchCutWorkbench(Gui.Workbench):
 
     MenuText = "SquatchCut"
     ToolTip = "SquatchCut: CSV-driven sheet nesting and panel optimization (Beta – work in progress)"
-    Icon = _ICON_PATH
+    Icon = os.path.join(
+        MODULE_DIR,
+        "resources",
+        "icons",
+        "squatchcut_workbench.svg",
+    )
 
     def Initialize(self):
         """
