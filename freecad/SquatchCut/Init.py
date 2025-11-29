@@ -6,8 +6,8 @@ Keep this file lightweight; no GUI code here.
 
 import FreeCAD as App
 try:
-    from SquatchCut.version import __version__ as _SC_VERSION
+    from .version import __version__ as _SC_VERSION
 except Exception:
-    _SC_VERSION = "0.0.0"
+    _SC_VERSION = "dev"
 
 App.Console.PrintMessage(f">>> [SquatchCut] Init.py imported (v{_SC_VERSION})\n")

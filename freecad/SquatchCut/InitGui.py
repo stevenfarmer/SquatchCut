@@ -9,9 +9,9 @@ Note: Avoid adding business logic; keep this file focused on registration/bootst
 import FreeCAD as App
 import FreeCADGui as Gui
 try:
-    from SquatchCut.version import __version__ as _SC_VERSION
+    from .version import __version__ as _SC_VERSION
 except Exception:
-    _SC_VERSION = "0.0.0"
+    _SC_VERSION = "dev"
 
 try:
     from PySide import QtCore, QtGui, QtWidgets

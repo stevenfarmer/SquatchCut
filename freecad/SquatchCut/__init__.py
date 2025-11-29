@@ -7,7 +7,7 @@ Note: Avoid functional logic; maintain metadata and simple initialization helper
 
 from __future__ import annotations
 
-from SquatchCut.version import __version__
+from .version import __version__
 
 __author__ = "SquatchCut Team"
 
