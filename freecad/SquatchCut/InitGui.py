@@ -8,6 +8,8 @@ Note: Avoid adding business logic; keep this file focused on registration/bootst
 
 import os
 
+import os
+
 import FreeCAD as App
 import FreeCADGui as Gui
 
@@ -15,6 +17,7 @@ try:
     from .version import __version__ as _SC_VERSION
 except Exception:
     from SquatchCut.version import __version__ as _SC_VERSION  # type: ignore
+import SquatchCut as _sq_mod  # noqa: F401
 
 try:
     from PySide import QtCore, QtGui, QtWidgets
@@ -24,8 +27,15 @@ except ImportError:
 App.Console.PrintLog("[SquatchCut][DEBUG] InitGui module imported\n")
 
 
+try:
+    MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
+except NameError:  # pragma: no cover - FreeCAD sometimes runs without __file__
+    import SquatchCut as _sq_mod  # noqa: F401
+
+    MODULE_DIR = os.path.dirname(os.path.abspath(_sq_mod.__file__))
+
 _ICON_PATH = os.path.join(
-    os.path.dirname(__file__),
+    MODULE_DIR,
     "resources",
     "icons",
     "squatchcut_workbench.svg",
