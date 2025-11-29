@@ -218,6 +218,12 @@ class SquatchCutPreferences:
                 pass
         self._local["PythonConsoleLogLevel"] = level
 
+    def get_developer_mode(self, fallback: bool = False) -> bool:
+        return self._bool("DeveloperModeEnabled", fallback)
+
+    def set_developer_mode(self, value: bool) -> None:
+        self._set_bool("DeveloperModeEnabled", value)
+
 
 # Backward-compatible alias if other modules imported Preferences
 Preferences = SquatchCutPreferences

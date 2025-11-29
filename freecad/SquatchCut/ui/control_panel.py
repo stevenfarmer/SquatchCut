@@ -21,7 +21,7 @@ from SquatchCut.core.units import (
 )
 from SquatchCut.ui.messages import show_info, show_error
 from SquatchCut.gui.commands.cmd_import_csv import run_csv_import
-from SquatchCut.gui.commands import cmd_run_nesting
+from SquatchCut.gui.commands import cmd_run_gui_tests, cmd_run_nesting
 
 
 class SquatchCutControlPanel:
@@ -138,9 +138,27 @@ class SquatchCutControlPanel:
         pc_level = prefs.get_python_console_log_level()
         self.report_log_combo.setCurrentIndex(self._level_to_index(rv_level))
         self.console_log_combo.setCurrentIndex(self._level_to_index(pc_level))
+        dev_mode_enabled = prefs.get_developer_mode()
+        self.dev_mode_checkbox.setChecked(dev_mode_enabled)
+        self._update_developer_group_visibility()
         log_layout.addRow("Report View logging:", self.report_log_combo)
         log_layout.addRow("Python console logging:", self.console_log_combo)
         main_layout.addWidget(log_group)
+
+        dev_toggle_layout = QtWidgets.QHBoxLayout()
+        self.dev_mode_checkbox = QtWidgets.QCheckBox("Enable developer mode")
+        self.dev_mode_checkbox.setToolTip("Show additional developer tools and diagnostics for SquatchCut.")
+        dev_toggle_layout.addWidget(self.dev_mode_checkbox)
+        dev_toggle_layout.addStretch(1)
+        main_layout.addLayout(dev_toggle_layout)
+
+        self.developer_group = QtWidgets.QGroupBox("Developer tools")
+        dev_layout = QtWidgets.QHBoxLayout(self.developer_group)
+        self.dev_logging_button = QtWidgets.QPushButton("Use developer logging")
+        self.run_gui_tests_button = QtWidgets.QPushButton("Run GUI Tests")
+        dev_layout.addWidget(self.dev_logging_button)
+        dev_layout.addWidget(self.run_gui_tests_button)
+        main_layout.addWidget(self.developer_group)
 
         # ---------------- CSV Import & Nest group ----------------
         csv_group = QtWidgets.QGroupBox("CSV Import & Nesting")
@@ -171,6 +189,9 @@ class SquatchCutControlPanel:
         self.csv_browse_button.clicked.connect(self._on_browse_clicked)
         self.import_and_nest_button.clicked.connect(self._on_import_and_nest_clicked)
         self.units_combo.currentIndexChanged.connect(self._on_units_changed)
+        self.dev_mode_checkbox.toggled.connect(self._on_dev_mode_toggled)
+        self.dev_logging_button.clicked.connect(self._set_developer_logging)
+        self.run_gui_tests_button.clicked.connect(self._run_gui_tests_command)
 
     # ---------- Internal helpers ----------
 
@@ -204,6 +225,7 @@ class SquatchCutControlPanel:
         session_state.set_default_allow_rotate(default_allow)
         prefs.set_report_view_log_level(self._index_to_level(self.report_log_combo.currentIndex()))
         prefs.set_python_console_log_level(self._index_to_level(self.console_log_combo.currentIndex()))
+        prefs.set_developer_mode(bool(self.dev_mode_checkbox.isChecked()))
 
         try:
             settings.hydrate_from_params()
@@ -345,3 +367,27 @@ class SquatchCutControlPanel:
 
     def _index_to_level(self, idx: int) -> str:
         return {0: "none", 1: "normal", 2: "verbose"}.get(idx, "normal")
+
+    def _on_dev_mode_toggled(self, enabled: bool) -> None:
+        prefs = SquatchCutPreferences()
+        prefs.set_developer_mode(enabled)
+        self._update_developer_group_visibility()
+
+    def _update_developer_group_visibility(self) -> None:
+        self.developer_group.setVisible(bool(self.dev_mode_checkbox.isChecked()))
+
+    def _set_developer_logging(self) -> None:
+        prefs = SquatchCutPreferences()
+        self.report_log_combo.setCurrentIndex(self._level_to_index("verbose"))
+        self.console_log_combo.setCurrentIndex(self._level_to_index("verbose"))
+        prefs.set_report_view_log_level("verbose")
+        prefs.set_python_console_log_level("verbose")
+
+    def _run_gui_tests_command(self) -> None:
+        if FreeCADGui is None:
+            show_error("No FreeCAD GUI available for GUI tests.", title="SquatchCut")
+            return
+        try:
+            FreeCADGui.runCommand("SquatchCut_RunGUITests")
+        except Exception as exc:
+            logger.error(f"RunGuiTests button failed: {exc!r}")

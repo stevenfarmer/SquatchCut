@@ -16,7 +16,6 @@ from SquatchCut import settings
 from SquatchCut.core import cutlist
 from SquatchCut.core.geometry_sync import sync_source_panels_to_document
 from SquatchCut.gui.commands import cmd_run_nesting, cmd_import_csv
-from SquatchCut.gui.qt_compat import QtWidgets
 from SquatchCut.core import units as sc_units
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.gui import taskpanel_settings, taskpanel_main
@@ -434,14 +433,5 @@ def run_all_tests():
     passed = sum(1 for r in results if r.passed)
     total = len(results)
     logger.info(f"[GUI TEST] Completed {total} tests, {passed} passed, {total - passed} failed.")
-
-    try:
-        msg = QtWidgets.QMessageBox()
-        msg.setWindowTitle("SquatchCut GUI Tests")
-        msg.setIcon(QtWidgets.QMessageBox.Information)
-        msg.setText(f"GUI tests completed.\n\nPassed: {passed}\nFailed: {total - passed}")
-        msg.exec_()
-    except Exception:
-        pass
 
     return results
