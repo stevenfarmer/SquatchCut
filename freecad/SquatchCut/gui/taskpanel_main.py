@@ -16,6 +16,7 @@ import webbrowser
 from SquatchCut.gui.qt_compat import QtWidgets, QtCore
 
 from SquatchCut import settings
+from SquatchCut.core import presets as sc_presets
 from SquatchCut.core import session, session_state, logger
 from SquatchCut.core import units as sc_units
 from SquatchCut.core.nesting import compute_utilization, estimate_cut_counts
@@ -37,7 +38,7 @@ class SquatchCutTaskPanel:
     """
 
     FALLBACK_SHEET_SIZE_MM = (1220.0, 2440.0)
-    FALLBACK_MATCH_TOLERANCE_MM = 0.5
+    FALLBACK_MATCH_TOLERANCE_MM = 2.0
 
     def __init__(self, doc=None):
         # Hydrate persisted settings before any UI reads them.
@@ -55,11 +56,8 @@ class SquatchCutTaskPanel:
         self._prefs = SquatchCutPreferences()
         self.measurement_system = session_state.get_measurement_system()
         session_state.set_measurement_system(self.measurement_system)
-        self._presets = [
-            {"label": "Custom…", "size": None, "nickname": None},
-            {"label": None, "size": (1220.0, 2440.0), "nickname": "4x8 ft"},
-            {"label": None, "size": (1525.0, 3050.0), "nickname": "5x10 ft"},
-        ]
+        self._presets = self._build_preset_entries()
+        self._current_preset_id = "custom"
 
         if self.doc is not None:
             try:
@@ -536,26 +534,22 @@ class SquatchCutTaskPanel:
                 pass
 
     def _select_matching_preset(self, width: float, height: float) -> None:
-        """Try to select a preset matching the given width/height."""
-        for idx, preset in enumerate(self._presets):
-            size = preset.get("size")
-            if not size:
-                continue
-            preset_w, preset_h = size
-            if abs(width - preset_w) < 0.01 and abs(height - preset_h) < 0.01:
-                self.preset_combo.blockSignals(True)
-                self.preset_combo.setCurrentIndex(idx)
-                self.preset_combo.blockSignals(False)
-                return
-        self.preset_combo.blockSignals(True)
-        self.preset_combo.setCurrentIndex(0)
-        self.preset_combo.blockSignals(False)
+        """Select a preset if the provided width/height match known presets."""
+        preset = sc_presets.find_matching_preset(
+            width, height, tol_mm=self.FALLBACK_MATCH_TOLERANCE_MM
+        )
+        if preset is None:
+            self._set_preset_index(0)
+            return
+        idx = self._preset_index_by_id(preset["id"])
+        self._set_preset_index(idx)
 
     # ---------------- Event handlers ----------------
 
     def _on_preset_changed(self, index: int) -> None:
         preset = self._presets[index]
         size = preset.get("size")
+        self._current_preset_id = preset.get("id", "custom")
         if size is None:
             return
         width, height = size
@@ -570,9 +564,7 @@ class SquatchCutTaskPanel:
     def _on_sheet_value_changed(self) -> None:
         """Set preset to Custom when the user edits dimensions."""
         if self.preset_combo.currentIndex() != 0:
-            self.preset_combo.blockSignals(True)
-            self.preset_combo.setCurrentIndex(0)
-            self.preset_combo.blockSignals(False)
+            self._set_preset_index(0)
         self.update_run_button_state()
 
     def _set_run_buttons_enabled(self, enabled: bool) -> None:
@@ -766,19 +758,41 @@ class SquatchCutTaskPanel:
 
     def _refresh_preset_labels(self) -> None:
         """Refresh preset combo text for the current measurement system."""
-        current_index = self.preset_combo.currentIndex() if hasattr(self, "preset_combo") else 0
-        current_size = session_state.get_sheet_size()
+        current_id = self._current_preset_id if hasattr(self, "_current_preset_id") else "custom"
         self.preset_combo.blockSignals(True)
         self.preset_combo.clear()
         for preset in self._presets:
             self.preset_combo.addItem(self._format_preset_label(preset))
         self.preset_combo.blockSignals(False)
+        self._set_preset_index(self._preset_index_by_id(current_id))
 
-        width_mm, height_mm = current_size
-        if width_mm is not None and height_mm is not None:
-            self._select_matching_preset(width_mm, height_mm)
-        elif 0 <= current_index < len(self._presets):
-            self.preset_combo.setCurrentIndex(current_index)
+    def _build_preset_entries(self) -> list[dict]:
+        entries = [{"id": "custom", "label": "Custom…", "size": None, "nickname": None}]
+        for preset in sc_presets.PRESET_SHEETS:
+            entries.append(
+                {
+                    "id": preset["id"],
+                    "label": None,
+                    "size": (preset["width_mm"], preset["height_mm"]),
+                    "nickname": preset.get("nickname"),
+                }
+            )
+        return entries
+
+    def _set_preset_index(self, index: int) -> None:
+        index = max(0, min(index, len(self._presets) - 1))
+        self.preset_combo.blockSignals(True)
+        self.preset_combo.setCurrentIndex(index)
+        self.preset_combo.blockSignals(False)
+        self._current_preset_id = self._presets[index].get("id", "custom")
+
+    def _preset_index_by_id(self, preset_id: str | None) -> int:
+        if not preset_id:
+            return 0
+        for idx, preset in enumerate(self._presets):
+            if preset.get("id") == preset_id:
+                return idx
+        return 0
 
     def _populate_table(self, panels: List[dict]) -> None:
         self.parts_table.setRowCount(0)
