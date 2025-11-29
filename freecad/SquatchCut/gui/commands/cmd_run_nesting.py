@@ -150,9 +150,9 @@ class RunNestingCommand:
                 logger.warning("No panels selected for nesting.")
                 return
 
-            source_group = doc.getObject("SquatchCut_SourcePanels")
+            source_group = doc.getObject("SquatchCut_SourceParts")
             if source_group is None:
-                source_group = doc.addObject("App::DocumentObjectGroup", "SquatchCut_SourcePanels")
+                source_group = doc.addObject("App::DocumentObjectGroup", "SquatchCut_SourceParts")
 
             # Move original selected panel objects into the SourcePanels group
             for obj in panel_objs:
@@ -261,7 +261,7 @@ class RunNestingCommand:
                 return
 
             logger.info(">>> [SquatchCut] Rebuilding nested layout view...")
-            sheet_obj = ensure_sheet_object(doc)
+            sheet_obj = ensure_sheet_object(sheet_w, sheet_h, doc)
             group, nested_objs = rebuild_nested_geometry(doc, placed_parts, sheet_w, sheet_h, panel_objs)
 
             if doc is not None:
@@ -426,17 +426,17 @@ class ToggleSourcePanelsCommand:
             logger.error("No active document.")
             return
 
-        group = doc.getObject("SquatchCut_SourcePanels")
+        group = doc.getObject("SquatchCut_SourceParts")
         if group is None:
-            logger.info("No SourcePanels group exists.")
+            logger.info("No SourceParts group exists.")
             return
 
         try:
             group.ViewObject.Visibility = not group.ViewObject.Visibility
             state = "shown" if group.ViewObject.Visibility else "hidden"
-            logger.info(f"SourcePanels group {state}.")
+            logger.info(f"SourceParts group {state}.")
         except Exception as e:
-            logger.error(f"Failed toggling SourcePanels: {e}")
+            logger.error(f"Failed toggling SourceParts: {e}")
 
     def IsActive(self):
         return App is not None and Gui is not None and App.ActiveDocument is not None
