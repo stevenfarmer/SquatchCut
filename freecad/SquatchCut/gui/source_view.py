@@ -79,6 +79,21 @@ def rebuild_source_preview(parts):
                 obj.ViewObject.Visibility = True
         except Exception:
             pass
+        try:
+            allow_rotate = bool(panel.get("allow_rotate", False))
+        except Exception:
+            allow_rotate = False
+        try:
+            if not hasattr(obj, "SquatchCutCanRotate"):
+                obj.addProperty(
+                    "App::PropertyBool",
+                    "SquatchCutCanRotate",
+                    "SquatchCut",
+                    "True if this panel may be rotated 90° during nesting",
+                )
+            obj.SquatchCutCanRotate = allow_rotate
+        except Exception:
+            pass
         group.addObject(obj)
         created.append(obj)
         x_cursor += w + spacing

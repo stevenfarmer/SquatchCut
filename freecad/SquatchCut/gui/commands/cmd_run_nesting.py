@@ -29,13 +29,16 @@ except Exception:
 
 from SquatchCut.core import logger, session, session_state, view_controller
 from SquatchCut.core.nesting import (
-    Part,
-    nest_on_multiple_sheets,
-    nest_cut_optimized,
-    estimate_cut_counts,
-    compute_utilization,
-    nest_parts,
     NestingConfig,
+    NestingValidationError,
+    Part,
+    compute_utilization,
+    estimate_cut_counts,
+    get_usable_sheet_area,
+    nest_cut_optimized,
+    nest_on_multiple_sheets,
+    nest_parts,
+    validate_parts_fit_sheet,
 )  # type: ignore
 from SquatchCut.core.cut_optimization import estimate_cut_path_complexity
 from SquatchCut.core.overlap_check import detect_overlaps
@@ -79,6 +82,9 @@ class RunNestingCommand:
             "ToolTip": "Run the SquatchCut nesting algorithm to place panels on the active sheet.",
         }
 
+    def __init__(self):
+        self.validation_error = None
+
     def _get_panel_objects(self):
         """
         Return the list of source panel objects used as the geometric basis for nesting.
@@ -87,6 +93,7 @@ class RunNestingCommand:
         return session.get_source_panel_objects()
 
     def Activated(self):
+        self.validation_error = None
         if App is None or Gui is None:
             try:
                 logger.warning("RunNestingCommand.Activated() called outside FreeCAD GUI environment.")
@@ -211,6 +218,13 @@ class RunNestingCommand:
                 logger.warning("RunNesting: no valid panel dimensions found")
                 return
 
+            usable_width, usable_height = get_usable_sheet_area(sheet_w, sheet_h, margin_mm=gap_mm)
+            try:
+                validate_parts_fit_sheet(parts, usable_width, usable_height)
+            except NestingValidationError as exc:
+                self._handle_validation_error(exc)
+                return
+
             try:
                 if cut_mode:
                     cfg = NestingConfig(
@@ -319,8 +333,28 @@ class RunNestingCommand:
                 "SquatchCut – Nesting Error",
                 f"An error occurred while running nesting:\n{exc}",
             )
-        finally:
-            logger.debug("RunNestingCommand.Activated() completed")
+
+    def _handle_validation_error(self, exc: NestingValidationError) -> None:
+        message = (
+            f"Nesting failed: the following part(s) exceed the usable "
+            f"sheet area {exc.usable_width:.1f} x {exc.usable_height:.1f} mm."
+        )
+        try:
+            show_error(message, title="SquatchCut Nesting Failed")
+        except Exception:
+            pass
+        logger.error(message)
+        max_details = 20
+        for part in exc.offending_parts[:max_details]:
+            logger.error(
+                f"Part {part.part_id}: {part.width:.1f} x {part.height:.1f} mm "
+                f"(allow_rotate={part.can_rotate})."
+            )
+        if len(exc.offending_parts) > max_details:
+            logger.error(
+                f"...and {len(exc.offending_parts) - max_details} more offending part(s)."
+            )
+        self.validation_error = exc
 
     def IsActive(self):
         # Only active inside a running FreeCAD GUI session.

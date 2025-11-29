@@ -637,6 +637,9 @@ class SquatchCutTaskPanel:
             logger.info(">>> [SquatchCut] Running nesting from task panel.")
             cmd = cmd_run_nesting.RunNestingCommand()
             cmd.Activated()
+            if getattr(cmd, "validation_error", None):
+                self.set_status("Nesting failed: some panels too large for the sheet.")
+                return
             # TODO: if a non-destructive preview path exists, route apply_to_doc=False accordingly.
         except Exception as exc:
             show_error(f"Nesting failed:\n{exc}", title="SquatchCut")

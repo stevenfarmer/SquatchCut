@@ -26,6 +26,11 @@ __all__ = [
     "compute_utilization",
     "Part",
     "PlacedPart",
+    "NestingValidationError",
+    "NestingOffendingPart",
+    "get_usable_sheet_area",
+    "part_fits_sheet",
+    "validate_parts_fit_sheet",
 ]
 
 
@@ -69,6 +74,82 @@ class NestingConfig:
     export_include_labels: bool = True
     export_include_dimensions: bool = False
     nesting_mode: str = "pack"  # "pack" (default) or "cut_friendly"
+
+
+@dataclass
+class NestingOffendingPart:
+    part_id: str
+    width: float
+    height: float
+    can_rotate: bool
+
+
+class NestingValidationError(Exception):
+    """
+    Raised when one or more parts cannot fit inside the usable sheet area.
+    """
+
+    def __init__(self, usable_width: float, usable_height: float, offending_parts: Tuple[NestingOffendingPart, ...]):
+        self.usable_width = usable_width
+        self.usable_height = usable_height
+        self.offending_parts = offending_parts
+        super().__init__(
+            f"Parts do not fit usable sheet area {usable_width} x {usable_height}: "
+            + ", ".join(p.part_id for p in offending_parts)
+        )
+
+
+def get_usable_sheet_area(sheet_width: float, sheet_height: float, margin_mm: float = 0.0) -> Tuple[float, float]:
+    """
+    Return the usable width and height after subtracting edge margins.
+    """
+    usable_width = max(0.0, sheet_width - 2 * max(margin_mm, 0.0))
+    usable_height = max(0.0, sheet_height - 2 * max(margin_mm, 0.0))
+    return usable_width, usable_height
+
+
+def part_fits_sheet(
+    part_width: float,
+    part_height: float,
+    usable_width: float,
+    usable_height: float,
+    can_rotate: bool = False,
+) -> bool:
+    """
+    Determine whether a part fits inside the usable area, optionally with rotation.
+    """
+    if part_width <= usable_width and part_height <= usable_height:
+        return True
+    if can_rotate and part_height <= usable_width and part_width <= usable_height:
+        return True
+    return False
+
+
+def validate_parts_fit_sheet(
+    parts: List[Part],
+    usable_width: float,
+    usable_height: float,
+) -> None:
+    """
+    Raise NestingValidationError if any part cannot fit the usable sheet area.
+    """
+    offending: List[NestingOffendingPart] = []
+    for part in parts or []:
+        if not part_fits_sheet(part.width, part.height, usable_width, usable_height, part.can_rotate):
+            offending.append(
+                NestingOffendingPart(
+                    part_id=part.id,
+                    width=part.width,
+                    height=part.height,
+                    can_rotate=part.can_rotate,
+                )
+            )
+    if offending:
+        raise NestingValidationError(
+            usable_width=usable_width,
+            usable_height=usable_height,
+            offending_parts=tuple(offending),
+        )
 
 
 def get_effective_spacing(config) -> float:
