@@ -68,6 +68,15 @@ def test_source_group_rebuilt_on_reimport(tmp_path):
     _close_doc(doc)
 
 
+def test_invalid_csv_import_no_source_group(tmp_path):
+    doc = _new_doc("DocInvalidCSV")
+    invalid_csv = tmp_path / "bad.csv"
+    _write_csv(invalid_csv, [{"id": "Bad", "width": 0, "height": 1}])
+    run_csv_import(doc, str(invalid_csv), csv_units="metric")
+    assert doc.getObject("SquatchCut_SourceParts") is None
+    _close_doc(doc)
+
+
 class _DummyPlacement:
     def __init__(self, part_id, width, height, x=0.0, y=0.0, sheet_index=0, rotation_deg=0.0):
         self.id = part_id

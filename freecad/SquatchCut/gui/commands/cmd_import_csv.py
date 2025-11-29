@@ -2,11 +2,10 @@
 
 """@codex
 Command: Open the CSV import dialog to load panels.
-Interactions: Should invoke SC_CSVImportDialog and hand validated rows to core csv_loader.
+Interactions: Should invoke SC_CSVImportDialog and hand validated rows to core csv_import.
 Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 """
 
-import csv
 import os
 
 try:
@@ -21,7 +20,8 @@ from SquatchCut.core import logger
 from SquatchCut.gui.qt_compat import QtWidgets, QtCore, QtGui
 
 from SquatchCut.core import session, session_state
-from SquatchCut.ui.messages import show_error, show_warning
+from SquatchCut.core.csv_import import validate_csv_file
+from SquatchCut.ui.messages import show_error
 from SquatchCut.core.geometry_sync import sync_source_panels_to_document
 
 ICONS_DIR = os.path.join(
@@ -32,18 +32,6 @@ ICONS_DIR = os.path.join(
 
 
 MM_PER_INCH = 25.4
-
-
-def _convert_length(value, csv_units: str):
-    """Convert a numeric length to mm based on CSV units."""
-    try:
-        num = float(value)
-    except Exception:
-        return value
-    units_val = str(csv_units).lower()
-    if units_val in ("imperial", "in"):
-        return num * MM_PER_INCH
-    return num
 
 
 def run_csv_import(doc, csv_path: str, csv_units: str = "metric"):
@@ -68,102 +56,34 @@ def run_csv_import(doc, csv_path: str, csv_units: str = "metric"):
         units_val = "in"
     csv_units = units_val
 
-    # Load CSV data with validation
     try:
-        with open(csv_path, "r", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            rows = list(reader)
-            headers = reader.fieldnames or []
+        valid_rows, errors = validate_csv_file(csv_path, csv_units=csv_units)
     except FileNotFoundError:
         show_error(f"CSV file not found:\n{csv_path}")
         logger.error(f"CSV file not found: {csv_path}")
         return
-    except Exception as e:
-        show_error(f"Failed to read CSV file:\n{csv_path}\n\n{e}")
-        logger.error(f"Failed to read CSV: {e}")
+    except ValueError as exc:
+        show_error(f"CSV import failed:\n{exc}")
+        logger.error(f"CSV read error: {exc}")
         return
 
-    header_cols = {h.strip().lower() for h in headers if h}
-    # Required columns based on current CSV format
-    required_cols = {"id", "width", "height"}
-    missing = sorted(required_cols - header_cols)
-    if missing:
-        msg = (
-            "The selected CSV is missing required columns:\n"
-            + ", ".join(missing)
-            + "\n\nPlease fix the CSV and try again."
-        )
-        show_error(msg)
-        logger.error(f"Missing required CSV columns: {missing}")
-        return
-
-    valid_rows = []
-    warn_count = 0
-
-    for idx, row in enumerate(rows, start=2):  # header is line 1
-        try:
-            data = {k.strip().lower(): v for k, v in row.items()}
-            part_id = (data.get("id") or "").strip()
-            if not part_id:
-                raise ValueError("Missing id")
-
-            width_val = data.get("width")
-            height_val = data.get("height")
-            width = float(width_val) if width_val not in (None, "") else None
-            height = float(height_val) if height_val not in (None, "") else None
-            if width is None or height is None:
-                raise ValueError("Missing width or height")
-            if width <= 0 or height <= 0:
-                raise ValueError("Width and height must be > 0")
-            width = _convert_length(width, csv_units)
-            height = _convert_length(height, csv_units)
-
-            qty_raw = data.get("qty", "")
-            try:
-                qty = int(qty_raw) if str(qty_raw).strip() else 1
-            except Exception:
-                qty = 1
-
-            label = (data.get("label") or part_id).strip()
-            material = (data.get("material") or "").strip()
-            raw_allow = data.get("allow_rotate", None)
-            if raw_allow is None or str(raw_allow).strip() == "":
-                allow = False
-            else:
-                allow = str(raw_allow).strip().lower() in ("1", "true", "yes", "y")
-
-            valid_rows.append(
-                {
-                    "id": part_id,
-                    "width": width,
-                    "height": height,
-                    "qty": qty,
-                    "label": label,
-                    "material": material,
-                    "allow_rotate": allow,
-                }
+    if errors:
+        show_error("CSV import failed. Check Report view for details.")
+        logger.error("CSV import failed due to validation errors.")
+        max_errors = 20
+        for error in errors[:max_errors]:
+            label = f"Row {error.row}" if error.row else "CSV"
+            logger.error(f"{label}: {error.message}")
+        if len(errors) > max_errors:
+            logger.error(
+                f"...and {len(errors) - max_errors} more validation error(s)."
             )
-        except Exception as e:
-            warn_count += 1
-            logger.warning(f"Skipping invalid CSV row {idx}: {e}")
-
-    if not valid_rows:
-        show_error(
-            "No valid panel rows were found in the CSV.\n"
-            "Please check the data and try again."
-        )
         return
-
-    if warn_count > 0:
-        show_warning(
-            f"{warn_count} row(s) in the CSV were invalid and were skipped.\n"
-            "Check the Report view for details."
-        )
 
     # Store panels in pure session_state and push settings into doc if needed
     session_state.set_panels(valid_rows)
     session.sync_doc_from_state(doc)
-    logger.info(f"Loaded {len(valid_rows)} panels")
+    logger.info(f"CSV import completed. Imported {len(valid_rows)} parts.")
     # Create geometry for panels and center view
     try:
         sync_source_panels_to_document()
