@@ -8,8 +8,6 @@ Note: Avoid adding business logic; keep this file focused on registration/bootst
 
 import os
 
-import os
-
 import FreeCAD as App
 import FreeCADGui as Gui
 
@@ -26,13 +24,7 @@ except ImportError:
 
 App.Console.PrintLog("[SquatchCut][DEBUG] InitGui module imported\n")
 
-
-try:
-    MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
-except NameError:  # pragma: no cover - FreeCAD sometimes runs without __file__
-    import SquatchCut as _sq_mod  # noqa: F401
-
-    MODULE_DIR = os.path.dirname(os.path.abspath(_sq_mod.__file__))
+MODULE_DIR = os.path.dirname(os.path.abspath(_sq_mod.__file__))
 
 
 class SquatchCutWorkbench(Gui.Workbench):
