@@ -17,18 +17,17 @@ except Exception:
     Gui = None
 
 from SquatchCut.gui.qt_compat import QtWidgets
+from SquatchCut.gui.view_helpers import fit_view_to_sheet_and_nested, show_sheet_only
 
 try:
     from SquatchCut.core import session, session_state  # type: ignore
     from SquatchCut.core.sheet_model import ensure_sheet_object  # type: ignore
     from SquatchCut.gui.dialogs.dlg_sheet_size import SC_SheetSizeDialog  # type: ignore
-    from SquatchCut.gui.view_utils import zoom_to_objects  # type: ignore
 except Exception:
     import SquatchCut.core.session_state as session_state  # type: ignore
     import SquatchCut.core.session as session  # type: ignore
     from SquatchCut.core.sheet_model import ensure_sheet_object  # type: ignore
     from SquatchCut.gui.dialogs.dlg_sheet_size import SC_SheetSizeDialog  # type: ignore
-    from SquatchCut.gui.view_utils import zoom_to_objects  # type: ignore
     from SquatchCut.core import logger
 from SquatchCut.core import units as sc_units
 from SquatchCut.ui.messages import show_error
@@ -113,7 +112,11 @@ class SC_SetSheetSizeCommand:
                 f"(displayed as {primary_width} x {primary_height} {unit_label})."
             )
             if sheet_obj:
-                zoom_to_objects([sheet_obj])
+                try:
+                    show_sheet_only(doc)
+                    fit_view_to_sheet_and_nested(doc)
+                except Exception:
+                    pass
 
             QtWidgets.QMessageBox.information(
                 None,

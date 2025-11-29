@@ -21,6 +21,7 @@ from SquatchCut.gui.qt_compat import QtWidgets, QtCore, QtGui
 
 from SquatchCut.core import session, session_state
 from SquatchCut.core.csv_import import validate_csv_file
+from SquatchCut.gui.view_helpers import fit_view_to_source, show_source_and_sheet
 from SquatchCut.ui.messages import show_error
 from SquatchCut.core.geometry_sync import sync_source_panels_to_document
 
@@ -89,6 +90,11 @@ def run_csv_import(doc, csv_path: str, csv_units: str = "metric"):
         sync_source_panels_to_document()
     except Exception as exc:
         logger.error(f"Failed to sync panels to document: {exc}")
+    try:
+        show_source_and_sheet(doc)
+        fit_view_to_source(doc)
+    except Exception:
+        pass
 
 
 class ImportCSVCommand:

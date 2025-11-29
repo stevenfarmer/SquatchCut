@@ -13,10 +13,12 @@ except Exception:  # pragma: no cover
 
 from SquatchCut.core import logger
 from SquatchCut.gui.view_helpers import (
-    fit_view_to_sheet,
+    fit_view_to_sheet_and_nested,
+    fit_view_to_source,
     get_nested_group,
     get_sheet_object,
-    show_only_sheet_and_nested,
+    show_nested_only,
+    show_source_and_sheet,
 )
 
 ICONS_DIR = os.path.join(
@@ -54,9 +56,13 @@ class ResetViewCommand:
             logger.info("[SquatchCut] Reset view skipped: no sheet or nested layout.")
             return
 
-        logger.info("[SquatchCut] Reset view: showing sheet and nested parts.")
-        show_only_sheet_and_nested(doc)
-        fit_view_to_sheet(doc)
+        has_nested = nested_group is not None and bool(getattr(nested_group, "Group", []))
+        if has_nested:
+            show_nested_only(doc)
+            fit_view_to_sheet_and_nested(doc)
+        else:
+            show_source_and_sheet(doc)
+            fit_view_to_source(doc)
 
     def IsActive(self):
         if App is None:

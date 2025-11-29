@@ -59,6 +59,12 @@ from SquatchCut.core.session_state import (
 )
 from SquatchCut.gui.nesting_view import rebuild_nested_geometry
 from SquatchCut.ui.messages import show_error, show_info, show_warning
+from SquatchCut.gui.view_helpers import (
+    fit_view_to_sheet_and_nested,
+    fit_view_to_source,
+    show_nested_only,
+    show_source_and_sheet,
+)
 
 
 class RunNestingCommand:
@@ -222,7 +228,7 @@ class RunNestingCommand:
             try:
                 validate_parts_fit_sheet(parts, usable_width, usable_height)
             except NestingValidationError as exc:
-                self._handle_validation_error(exc)
+                self._handle_validation_error(doc, exc)
                 return
 
             try:
@@ -320,10 +326,15 @@ class RunNestingCommand:
                 logger.info(summary_msg.strip())
                 logger.info(f"Nesting complete: {len(placed_parts)} parts across {sheet_count} sheet(s).")
                 logger.info(f"Nested {len(panel_objs)} source panels into {sheet_count} sheet group(s).")
-                try:
-                    view_controller.show_nesting_view(doc, active_sheet=sheet_obj, nested_objects=nested_objs)
-                except Exception:
-                    pass
+            try:
+                view_controller.show_nesting_view(doc, active_sheet=sheet_obj, nested_objects=nested_objs)
+            except Exception:
+                pass
+            try:
+                show_nested_only(doc)
+                fit_view_to_sheet_and_nested(doc)
+            except Exception:
+                pass
 
         except Exception as exc:
             logger.error(f"Error in RunNestingCommand.Activated(): {exc}")
@@ -334,7 +345,7 @@ class RunNestingCommand:
                 f"An error occurred while running nesting:\n{exc}",
             )
 
-    def _handle_validation_error(self, exc: NestingValidationError) -> None:
+    def _handle_validation_error(self, doc, exc: NestingValidationError) -> None:
         message = (
             f"Nesting failed: the following part(s) exceed the usable "
             f"sheet area {exc.usable_width:.1f} x {exc.usable_height:.1f} mm."
@@ -355,6 +366,11 @@ class RunNestingCommand:
                 f"...and {len(exc.offending_parts) - max_details} more offending part(s)."
             )
         self.validation_error = exc
+        try:
+            show_source_and_sheet(doc)
+            fit_view_to_source(doc)
+        except Exception:
+            pass
 
     def IsActive(self):
         # Only active inside a running FreeCAD GUI session.
