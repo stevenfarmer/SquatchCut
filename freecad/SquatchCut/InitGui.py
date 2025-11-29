@@ -6,6 +6,8 @@ Icons: resolves icons under resources/icons/.
 Note: Avoid adding business logic; keep this file focused on registration/bootstrap only.
 """
 
+import os
+
 import FreeCAD as App
 import FreeCADGui as Gui
 
@@ -22,6 +24,14 @@ except ImportError:
 App.Console.PrintLog("[SquatchCut][DEBUG] InitGui module imported\n")
 
 
+_ICON_PATH = os.path.join(
+    os.path.dirname(__file__),
+    "resources",
+    "icons",
+    "squatchcut_workbench.svg",
+)
+
+
 class SquatchCutWorkbench(Gui.Workbench):
     """
     SquatchCut – sheet nesting / panel optimizer workbench.
@@ -29,6 +39,7 @@ class SquatchCutWorkbench(Gui.Workbench):
 
     MenuText = "SquatchCut"
     ToolTip = "SquatchCut: CSV-driven sheet nesting and panel optimization (Beta – work in progress)"
+    Icon = _ICON_PATH
 
     def Initialize(self):
         """
