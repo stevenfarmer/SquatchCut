@@ -6,25 +6,24 @@ Icons: resolves icons under resources/icons/.
 Note: Avoid adding business logic; keep this file focused on registration/bootstrap only.
 """
 
+import inspect
 import os
 
 import FreeCAD as App
 import FreeCADGui as Gui
 
 try:
-    from .version import __version__ as _SC_VERSION
+    from SquatchCut.version import __version__ as _SC_VERSION
 except Exception:
-    from SquatchCut.version import __version__ as _SC_VERSION  # type: ignore
-import SquatchCut as _sq_mod  # noqa: F401
+    _SC_VERSION = "dev"
 
 try:
     from PySide import QtCore, QtGui, QtWidgets
 except ImportError:
     from PySide2 import QtCore, QtGui, QtWidgets
 
-App.Console.PrintLog("[SquatchCut][DEBUG] InitGui module imported\n")
 
-MODULE_DIR = os.path.dirname(os.path.abspath(_sq_mod.__file__))
+App.Console.PrintLog("[SquatchCut][DEBUG] InitGui module imported\n")
 
 
 class SquatchCutWorkbench(Gui.Workbench):
@@ -34,12 +33,16 @@ class SquatchCutWorkbench(Gui.Workbench):
 
     MenuText = "SquatchCut"
     ToolTip = "SquatchCut: CSV-driven sheet nesting and panel optimization (Beta – work in progress)"
-    Icon = os.path.join(
-        MODULE_DIR,
-        "resources",
-        "icons",
-        "squatchcut_workbench.svg",
-    )
+
+    # Compute the icon path inside the class namespace to avoid any module-level NameErrors.
+    try:
+        _ICON_BASE = os.path.dirname(os.path.abspath(__file__))
+    except Exception:
+        try:
+            _ICON_BASE = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+        except Exception:
+            _ICON_BASE = os.getcwd()
+    Icon = os.path.join(_ICON_BASE, "resources", "icons", "squatchcut_workbench.svg")
 
     def Initialize(self):
         """
@@ -66,6 +69,7 @@ class SquatchCutWorkbench(Gui.Workbench):
             cmd_run_nesting,
             cmd_export_report,
             cmd_preferences,
+            cmd_reset_view,
             cmd_run_gui_tests,
         )
 
@@ -87,8 +91,9 @@ class SquatchCutWorkbench(Gui.Workbench):
         Gui.addCommand("SquatchCut_ExportReport", cmd_export_report.COMMAND)
         Gui.addCommand("SquatchCut_Preferences", cmd_preferences.COMMAND)
         Gui.addCommand("SquatchCut_RunGUITests", cmd_run_gui_tests.COMMAND)
+        Gui.addCommand("SquatchCut_ResetView", cmd_reset_view.ResetViewCommand())
 
-        primary_commands = ["SquatchCut_ShowTaskPanel", "SquatchCut_Settings"]
+        primary_commands = ["SquatchCut_ShowTaskPanel", "SquatchCut_Settings", "SquatchCut_ResetView"]
         self.appendToolbar("SquatchCut", primary_commands)
         self.appendMenu("SquatchCut", primary_commands)
 

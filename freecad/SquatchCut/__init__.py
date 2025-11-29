@@ -7,10 +7,14 @@ Note: Avoid functional logic; maintain metadata and simple initialization helper
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from .version import __version__
 
+ICONPATH = Path(__file__).resolve().parent / "resources" / "icons"
+
 __author__ = "SquatchCut Team"
-__all__ = ["__version__", "__author__", "initialize"]
+__all__ = ["__version__", "__author__", "initialize", "ICONPATH"]
 
 
 def initialize():

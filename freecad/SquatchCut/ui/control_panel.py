@@ -126,6 +126,9 @@ class SquatchCutControlPanel:
 
         main_layout.addWidget(rot_group)
 
+        self.dev_mode_checkbox = QtWidgets.QCheckBox("Enable developer mode")
+        self.dev_mode_checkbox.setToolTip("Show additional developer tools and diagnostics for SquatchCut.")
+
         # ---------------- Logging group ----------------
         log_group = QtWidgets.QGroupBox("Logging")
         log_layout = QtWidgets.QFormLayout(log_group)
@@ -140,14 +143,11 @@ class SquatchCutControlPanel:
         self.console_log_combo.setCurrentIndex(self._level_to_index(pc_level))
         dev_mode_enabled = prefs.get_developer_mode()
         self.dev_mode_checkbox.setChecked(dev_mode_enabled)
-        self._update_developer_group_visibility()
         log_layout.addRow("Report View logging:", self.report_log_combo)
         log_layout.addRow("Python console logging:", self.console_log_combo)
         main_layout.addWidget(log_group)
 
         dev_toggle_layout = QtWidgets.QHBoxLayout()
-        self.dev_mode_checkbox = QtWidgets.QCheckBox("Enable developer mode")
-        self.dev_mode_checkbox.setToolTip("Show additional developer tools and diagnostics for SquatchCut.")
         dev_toggle_layout.addWidget(self.dev_mode_checkbox)
         dev_toggle_layout.addStretch(1)
         main_layout.addLayout(dev_toggle_layout)
@@ -159,6 +159,8 @@ class SquatchCutControlPanel:
         dev_layout.addWidget(self.dev_logging_button)
         dev_layout.addWidget(self.run_gui_tests_button)
         main_layout.addWidget(self.developer_group)
+
+        self._update_developer_group_visibility()
 
         # ---------------- CSV Import & Nest group ----------------
         csv_group = QtWidgets.QGroupBox("CSV Import & Nesting")
