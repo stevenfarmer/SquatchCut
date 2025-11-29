@@ -11,12 +11,14 @@ except Exception:  # pragma: no cover
     App = None
     Gui = None
 
-from SquatchCut.core import logger, session
+from SquatchCut.core import logger, session, session_state
+from SquatchCut import settings
 from SquatchCut.core import cutlist
 from SquatchCut.core.geometry_sync import sync_source_panels_to_document
 from SquatchCut.gui.commands import cmd_run_nesting, cmd_import_csv
 from SquatchCut.gui.qt_compat import QtWidgets
 from SquatchCut.core import units as sc_units
+from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.gui import taskpanel_settings, taskpanel_main
 
 
@@ -274,28 +276,44 @@ def test_sheet_size_suffix_tracks_units():
     GUI test: sheet size/kerf labels reflect units.
     """
     result = TestResult("Units: sheet size labels match units")
+    prefs = SquatchCutPreferences()
+    orig_ms = prefs.get_measurement_system()
     try:
+        prefs.set_measurement_system("metric")
+        session_state.set_measurement_system("metric")
         sc_units.set_units("mm")
+        settings.hydrate_from_params()
         panel_mm = taskpanel_main.create_main_panel_for_tests()
         lbl_w_mm = getattr(panel_mm, "sheet_width_label", None)
         lbl_h_mm = getattr(panel_mm, "sheet_height_label", None)
         if lbl_w_mm is None or lbl_h_mm is None:
             raise RuntimeError("Main panel missing sheet_width_label/sheet_height_label.")
         if "mm" not in lbl_w_mm.text() or "mm" not in lbl_h_mm.text():
-            raise AssertionError(f"Expected 'mm' in labels; got '{lbl_w_mm.text()}', '{lbl_h_mm.text()}'.")
+            raise AssertionError(
+                f"Expected 'mm' in labels; got '{lbl_w_mm.text()}', '{lbl_h_mm.text()}'."
+            )
 
+        prefs.set_measurement_system("imperial")
+        session_state.set_measurement_system("imperial")
         sc_units.set_units("in")
+        settings.hydrate_from_params()
         panel_in = taskpanel_main.create_main_panel_for_tests()
         lbl_w_in = getattr(panel_in, "sheet_width_label", None)
         lbl_h_in = getattr(panel_in, "sheet_height_label", None)
         if lbl_w_in is None or lbl_h_in is None:
             raise RuntimeError("Main panel missing sheet_width_label/sheet_height_label.")
         if "in" not in lbl_w_in.text() or "in" not in lbl_h_in.text():
-            raise AssertionError(f"Expected 'in' in labels; got '{lbl_w_in.text()}', '{lbl_h_in.text()}'.")
-
+            raise AssertionError(
+                f"Expected 'in' in labels; got '{lbl_w_in.text()}', '{lbl_h_in.text()}'."
+            )
         result.set_pass()
     except Exception as exc:
         result.set_fail(exc)
+    finally:
+        prefs.set_measurement_system(orig_ms)
+        session_state.set_measurement_system(orig_ms)
+        sc_units.set_units("in" if orig_ms == "imperial" else "mm")
+        settings.hydrate_from_params()
     return result
 
 
