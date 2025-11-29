@@ -132,7 +132,7 @@ class SquatchCutTaskPanel:
         layout.addLayout(report_row)
 
         # Status label
-        self.status_label = QtWidgets.QLabel("")
+        self.status_label = QtWidgets.QLabel("Status: Ready")
         self.status_label.setStyleSheet("color: gray;")
         layout.addWidget(self.status_label)
 
@@ -618,7 +618,10 @@ class SquatchCutTaskPanel:
             self._set_csv_label(file_path)
             self._populate_table(session_state.get_panels())
             self.update_run_button_state()
+            parts_count = len(session_state.get_panels() or [])
+            self.set_status(f"Imported {parts_count} parts from CSV.")
         except Exception as exc:
+            self.set_status("CSV import failed. See report view for details.")
             show_error(f"Failed to import CSV:\n{exc}", title="SquatchCut")
 
     def _run_nesting(self, apply_to_doc: bool = True) -> None:
@@ -637,10 +640,14 @@ class SquatchCutTaskPanel:
             # TODO: if a non-destructive preview path exists, route apply_to_doc=False accordingly.
         except Exception as exc:
             show_error(f"Nesting failed:\n{exc}", title="SquatchCut")
+            self.set_status("Nesting failed. See report view for details.")
             return
 
         self._refresh_summary()
         self.update_run_button_state()
+        nested_count = len(session_state.get_last_layout() or [])
+        self.set_status(f"Nested {nested_count} parts on current sheet.")
+        logger.info(">>> [SquatchCut] Nesting completed in task panel.")
 
         if apply_to_doc:
             try:
@@ -742,6 +749,9 @@ class SquatchCutTaskPanel:
             message = str(exc)
         show_error(message, title="SquatchCut")
         logger.error(f"Failed to parse length input: {exc}")
+
+    def set_status(self, message: str) -> None:
+        self.status_label.setText(f"Status: {message}")
 
     def _format_preset_label(self, preset: dict) -> str:
         if preset.get("size") is None:
