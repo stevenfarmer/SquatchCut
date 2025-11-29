@@ -33,8 +33,8 @@ class ResetViewCommand:
 
     def GetResources(self):
         return {
-            "MenuText": "Reset SquatchCut View",
-            "ToolTip": "Show the sheet and nested layout and fit the view.",
+            "MenuText": "Reset View",
+            "ToolTip": "Show the sheet and nested layout, hide source parts, and fit the view.",
             "Pixmap": os.path.join(ICONS_DIR, "squatchcut.svg"),
         }
 

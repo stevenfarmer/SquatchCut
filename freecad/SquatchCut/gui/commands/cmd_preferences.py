@@ -35,7 +35,7 @@ class SC_PreferencesCommand:
     def GetResources(self):  # noqa: N802  (FreeCAD API)
         return {
             "MenuText": "Preferences",
-            "ToolTip": "Open SquatchCut preferences.",
+            "ToolTip": "Open the SquatchCut preferences dialog.",
             "Pixmap": os.path.join(ICONS_DIR, "preferences.svg"),
         }
 

@@ -19,8 +19,8 @@ class ExportCutlistCommand:
 
     def GetResources(self):
         return {
-            "MenuText": "Export Cutlist (CSV)...",
-            "ToolTip": "Generate a CSV cutlist from the current SquatchCut nesting",
+            "MenuText": "Export Cutlist",
+            "ToolTip": "Generate a CSV cutlist from the current SquatchCut nesting.",
             "Pixmap": "",
         }
 

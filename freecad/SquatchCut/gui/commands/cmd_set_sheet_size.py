@@ -48,8 +48,8 @@ class SC_SetSheetSizeCommand:
     def GetResources(self):  # noqa: N802  (FreeCAD API)
         return {
             "Pixmap": os.path.join(ICONS_DIR, "set_sheet_size.svg"),
-            "MenuText": "Set Sheet Size",
-            "ToolTip": "Set the sheet width and height for nesting",
+            "MenuText": "Set Sheet",
+            "ToolTip": "Set the sheet dimensions used for SquatchCut nesting.",
         }
 
     def Activated(self):  # noqa: N802  (FreeCAD API)

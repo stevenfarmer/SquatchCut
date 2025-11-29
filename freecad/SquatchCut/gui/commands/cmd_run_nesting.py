@@ -75,8 +75,8 @@ class RunNestingCommand:
     def GetResources(self):
         return {
             "Pixmap": os.path.join(ICONS_DIR, "run_nesting.svg"),
-            "MenuText": "Run Nesting",
-            "ToolTip": "Nest panels onto one or more sheets",
+            "MenuText": "Nest Parts",
+            "ToolTip": "Run the SquatchCut nesting algorithm to place panels on the active sheet.",
         }
 
     def _get_panel_objects(self):
@@ -335,8 +335,8 @@ class ApplyNestingCommand:
 
     def GetResources(self):
         return {
-            "MenuText": "Apply SquatchCut",
-            "ToolTip": "Run SquatchCut nesting and apply it to the active document",
+            "MenuText": "Apply Layout",
+            "ToolTip": "Re-run nesting and apply the latest layout to the document.",
         }
 
     def IsActive(self):
@@ -414,8 +414,8 @@ class ToggleSourcePanelsCommand:
     def GetResources(self):
         return {
             "Pixmap": os.path.join(ICONS_DIR, "toggle_visibility.svg"),
-            "MenuText": "Toggle Source Panels",
-            "ToolTip": "Show or hide the original source panel objects",
+            "MenuText": "Toggle Sources",
+            "ToolTip": "Show or hide the original source panel objects.",
         }
 
     def Activated(self):
@@ -456,8 +456,8 @@ class ExportNestingCSVCommand:
 
     def GetResources(self):
         return {
-            "MenuText": "Export nesting CSV (not implemented)",
-            "ToolTip": "Export nesting data to CSV (coming soon)",
+            "MenuText": "Export Nesting CSV",
+            "ToolTip": "Placeholder (not implemented yet).",
             "Pixmap": "",
         }
 

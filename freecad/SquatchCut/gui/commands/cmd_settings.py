@@ -28,8 +28,8 @@ class SquatchCutSettingsCommand:
         )
         return {
             "Pixmap": icon_path,
-            "MenuText": "SquatchCut Settings",
-            "ToolTip": "Edit sheet size, kerf, gap, and default rotation settings for SquatchCut",
+            "MenuText": "Settings",
+            "ToolTip": "Open SquatchCut settings for sheet size, logging, and developer tools.",
         }
 
     def IsActive(self):

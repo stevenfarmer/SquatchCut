@@ -105,8 +105,8 @@ class ImportCSVCommand:
         Return FreeCAD command metadata.
         """
         return {
-            "MenuText": "Import CSV Panels",
-            "ToolTip": "Import panel definitions from a CSV file.",
+            "MenuText": "Import Parts",
+            "ToolTip": "Import rectangular parts from a CSV into the SquatchCut Source Parts group.",
             "Pixmap": os.path.join(ICONS_DIR, "import_csv.svg"),
         }
 
