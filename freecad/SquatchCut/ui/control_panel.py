@@ -19,7 +19,7 @@ from SquatchCut.core.units import (
     parse_length,
     unit_label_for_system,
 )
-from SquatchCut.ui.messages import show_info, show_error
+from SquatchCut.ui.messages import show_error
 from SquatchCut.gui.commands.cmd_import_csv import run_csv_import
 from SquatchCut.gui.commands import cmd_run_gui_tests, cmd_run_nesting
 
@@ -168,12 +168,14 @@ class SquatchCutControlPanel:
 
         self.csv_path_edit = QtWidgets.QLineEdit()
         self.csv_browse_button = QtWidgets.QPushButton("Browse…")
-        self.import_and_nest_button = QtWidgets.QPushButton("Import CSV && Nest")
+        self.import_button = QtWidgets.QPushButton("Import Parts")
+        self.nest_button = QtWidgets.QPushButton("Nest Parts")
 
         csv_layout.addWidget(QtWidgets.QLabel("CSV file:"), 0, 0)
         csv_layout.addWidget(self.csv_path_edit, 0, 1)
         csv_layout.addWidget(self.csv_browse_button, 0, 2)
-        csv_layout.addWidget(self.import_and_nest_button, 1, 1, 1, 2)
+        csv_layout.addWidget(self.import_button, 1, 1)
+        csv_layout.addWidget(self.nest_button, 1, 2)
 
         main_layout.addWidget(csv_group)
 
@@ -189,7 +191,8 @@ class SquatchCutControlPanel:
 
         # Wire up buttons
         self.csv_browse_button.clicked.connect(self._on_browse_clicked)
-        self.import_and_nest_button.clicked.connect(self._on_import_and_nest_clicked)
+        self.import_button.clicked.connect(self._on_import_clicked)
+        self.nest_button.clicked.connect(self._on_nest_clicked)
         self.units_combo.currentIndexChanged.connect(self._on_units_changed)
         self.dev_mode_checkbox.toggled.connect(self._on_dev_mode_toggled)
         self.dev_logging_button.clicked.connect(self._set_developer_logging)
@@ -308,24 +311,28 @@ class SquatchCutControlPanel:
 
         self.csv_path_edit.setText(files[0])
 
-    def _on_import_and_nest_clicked(self):
+    def _on_import_clicked(self):
+        self._import_parts()
+
+    def _on_nest_clicked(self):
+        self._run_nesting()
+
+    def _import_parts(self) -> bool:
         if self.doc is None:
-            show_error("No active document for CSV import and nesting.", title="SquatchCut")
-            return
+            show_error("No active document for CSV import.", title="SquatchCut")
+            return False
 
         csv_path = self.csv_path_edit.text().strip()
         if not csv_path:
             show_error("Please choose a CSV file first.", title="SquatchCut")
-            return
+            return False
 
         if not os.path.isfile(csv_path):
             show_error(f"CSV file not found:\n{csv_path}", title="SquatchCut")
-            return
+            return False
 
-        # Apply settings before import & nest
         self._apply_settings_to_state_and_doc()
 
-        # Run CSV import
         try:
             prefs = SquatchCutPreferences()
             csv_units = prefs.get_csv_units(prefs.get_measurement_system())
@@ -334,19 +341,19 @@ class SquatchCutControlPanel:
         except Exception as e:
             logger.error(f"CSV import failed: {e}")
             show_error(f"CSV import failed:\n{e}", title="SquatchCut")
-            return
+            return False
 
-        # Run nesting using the existing command
+        logger.info("CSV imported from control panel.")
+        return True
+
+    def _run_nesting(self) -> None:
         try:
             cmd = cmd_run_nesting.RunNestingCommand()
             cmd.Activated()
         except Exception as e:
-            logger.error(f"Nesting failed after CSV import: {e}")
-            show_error(f"Nesting failed after CSV import:\n{e}", title="SquatchCut")
+            logger.error(f"Nesting failed from control panel: {e}")
+            show_error(f"Nesting failed:\n{e}", title="SquatchCut")
             return
-
-        show_info("CSV imported and nesting completed.", title="SquatchCut")
-        logger.info("Import + Nest completed from control panel.")
 
     # ---------- FreeCAD TaskPanel API ----------
 
