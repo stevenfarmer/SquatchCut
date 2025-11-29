@@ -57,7 +57,7 @@ class SquatchCutTaskPanel:
         self.measurement_system = session_state.get_measurement_system()
         session_state.set_measurement_system(self.measurement_system)
         self._presets = self._build_preset_entries()
-        self._current_preset_id = "custom"
+        self._current_preset_id = None
 
         if self.doc is not None:
             try:
@@ -405,7 +405,6 @@ class SquatchCutTaskPanel:
 
         self.allow_90_check.setChecked(bool(default_allow))
         self.allow_180_check.setChecked(bool(default_allow))
-        self._select_matching_preset(sheet_w, sheet_h)
         # Optimization mode
         mode = session_state.get_optimization_mode()
         mode_idx = self.mode_combo.findData(mode)
@@ -532,17 +531,6 @@ class SquatchCutTaskPanel:
                 self.doc.recompute()
             except Exception:
                 pass
-
-    def _select_matching_preset(self, width: float, height: float) -> None:
-        """Select a preset if the provided width/height match known presets."""
-        preset = sc_presets.find_matching_preset(
-            width, height, tol_mm=self.FALLBACK_MATCH_TOLERANCE_MM
-        )
-        if preset is None:
-            self._set_preset_index(0)
-            return
-        idx = self._preset_index_by_id(preset["id"])
-        self._set_preset_index(idx)
 
     # ---------------- Event handlers ----------------
 
@@ -767,14 +755,14 @@ class SquatchCutTaskPanel:
         self._set_preset_index(self._preset_index_by_id(current_id))
 
     def _build_preset_entries(self) -> list[dict]:
-        entries = [{"id": "custom", "label": "Custom…", "size": None, "nickname": None}]
+        entries = [{"id": None, "label": "None", "size": None, "nickname": None}]
         for preset in sc_presets.PRESET_SHEETS:
             entries.append(
                 {
                     "id": preset["id"],
                     "label": None,
                     "size": (preset["width_mm"], preset["height_mm"]),
-                    "nickname": preset.get("nickname"),
+                    "nickname": preset.get("label"),
                 }
             )
         return entries

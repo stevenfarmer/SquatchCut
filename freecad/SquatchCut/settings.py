@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.core import session_state
+from SquatchCut.core import presets as sc_presets
 from SquatchCut.core import units as sc_units
 
 
@@ -23,6 +24,7 @@ def hydrate_from_params() -> None:
     session_state.set_measurement_system(measurement_system)
 
     # Core defaults (stored in mm)
+    _ensure_sheet_defaults(prefs)
     session_state.set_sheet_size(
         prefs.get_default_sheet_width_mm(),
         prefs.get_default_sheet_height_mm(),
@@ -35,3 +37,13 @@ def hydrate_from_params() -> None:
     # Export defaults
     session_state.set_export_include_labels(prefs.get_export_include_labels())
     session_state.set_export_include_dimensions(prefs.get_export_include_dimensions())
+
+
+def _ensure_sheet_defaults(prefs: SquatchCutPreferences) -> None:
+    if prefs.has_default_sheet_size():
+        return
+    preset = next((p for p in sc_presets.PRESET_SHEETS if p["id"] == "4x8"), None)
+    if preset is None:
+        return
+    prefs.set_default_sheet_width_mm(preset["width_mm"])
+    prefs.set_default_sheet_height_mm(preset["height_mm"])

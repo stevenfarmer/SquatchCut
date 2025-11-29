@@ -14,6 +14,8 @@ class SquatchCutPreferences:
     PARAM_GROUP = "User parameter:BaseApp/Preferences/Mod/SquatchCut"
     _local_shared: dict[str, object] = {}
 
+    DEFAULT_SHEET_FLAG = "DefaultSheetSizeIsSet"
+
     def __init__(self):
         self._grp = App.ParamGet(self.PARAM_GROUP) if App else None
         self._local = self.__class__._local_shared
@@ -55,12 +57,22 @@ class SquatchCutPreferences:
 
     def set_default_sheet_width_mm(self, value: float) -> None:
         self._set_float("DefaultSheetWidthMM", value)
+        self._set_bool(self.DEFAULT_SHEET_FLAG, True)
 
     def get_default_sheet_height_mm(self, fallback: float = 1220.0) -> float:
         return self._float("DefaultSheetHeightMM", fallback)
 
     def set_default_sheet_height_mm(self, value: float) -> None:
         self._set_float("DefaultSheetHeightMM", value)
+        self._set_bool(self.DEFAULT_SHEET_FLAG, True)
+
+    def has_default_sheet_size(self) -> bool:
+        if self._grp:
+            try:
+                return bool(self._grp.GetBool(self.DEFAULT_SHEET_FLAG, False))
+            except Exception:
+                pass
+        return bool(self._local.get(self.DEFAULT_SHEET_FLAG, False))
 
     def get_default_spacing_mm(self, fallback: float = 0.0) -> float:
         return self._float("DefaultSpacingMM", fallback)
