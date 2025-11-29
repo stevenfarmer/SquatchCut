@@ -20,6 +20,16 @@ ICONS_DIR = os.path.join(
     "icons",
 )
 
+_main_panel_instance: SquatchCutTaskPanel | None = None
+
+def _clear_main_panel():
+    global _main_panel_instance
+    _main_panel_instance = None
+
+
+def _current_main_panel():
+    return _main_panel_instance
+
 
 class SquatchCutMainUICommand:
     """Open the consolidated SquatchCut Task panel."""
@@ -43,17 +53,28 @@ class SquatchCutMainUICommand:
                 pass
             return
 
+        global _main_panel_instance
+        if _main_panel_instance is not None:
+            try:
+                Gui.Control.showDialog(_main_panel_instance)
+                logger.info("[SquatchCut] Reusing existing main task panel.")
+            except Exception:
+                pass
+            return
+
         doc = App.ActiveDocument
         if doc is None:
             doc = App.newDocument("SquatchCut")
+        panel = SquatchCutTaskPanel(doc)
+        panel.set_close_callback(_clear_main_panel)
+        _main_panel_instance = panel
         try:
-            logger.info(">>> [SquatchCut] Opening main task panel.")
+            logger.info("[SquatchCut] Opening main task panel.")
         except Exception:
             pass
-        panel = SquatchCutTaskPanel(doc)
         Gui.Control.showDialog(panel)
         try:
-            logger.info(">>> [SquatchCut] Task panel opened.")
+            logger.info("[SquatchCut] Task panel opened.")
         except Exception:
             pass
 

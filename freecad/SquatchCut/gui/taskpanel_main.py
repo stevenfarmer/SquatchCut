@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import List
+from typing import Callable, List, Optional
 
 try:
     import FreeCAD as App
@@ -59,6 +59,7 @@ class SquatchCutTaskPanel:
         self._preset_state = sc_sheet_presets.PresetSelectionState()
         self._presets = sc_sheet_presets.get_preset_entries(self.measurement_system)
         self._current_preset_id = None
+        self._close_callback: Optional[Callable[[], None]] = None
 
         if self.doc is not None:
             try:
@@ -69,6 +70,17 @@ class SquatchCutTaskPanel:
         self.form = QtWidgets.QWidget()
         self._build_ui()
         self._load_initial_state_from_session()
+
+    def set_close_callback(self, callback: Callable[[], None]) -> None:
+        self._close_callback = callback
+
+    def _notify_close(self) -> None:
+        if self._close_callback:
+            try:
+                self._close_callback()
+            except Exception:
+                pass
+            self._close_callback = None
 
     # ---------------- UI builders ----------------
 
@@ -1212,12 +1224,14 @@ class SquatchCutTaskPanel:
             Gui.Control.closeDialog()
         except Exception:
             pass
+        self._notify_close()
 
     def reject(self):
         try:
             Gui.Control.closeDialog()
         except Exception:
             pass
+        self._notify_close()
 
 
 # Factory for tests
