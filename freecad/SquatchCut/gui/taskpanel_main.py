@@ -16,8 +16,8 @@ import webbrowser
 from SquatchCut.gui.qt_compat import QtWidgets, QtCore
 
 from SquatchCut import settings
-from SquatchCut.core import presets as sc_presets
-from SquatchCut.core import session, session_state, logger
+from SquatchCut.core import sheet_presets as sc_sheet_presets
+from SquatchCut.core import session, session_state, view_controller, logger
 from SquatchCut.core import units as sc_units
 from SquatchCut.core.nesting import compute_utilization, estimate_cut_counts
 from SquatchCut.core.preferences import SquatchCutPreferences
@@ -56,7 +56,8 @@ class SquatchCutTaskPanel:
         self._prefs = SquatchCutPreferences()
         self.measurement_system = session_state.get_measurement_system()
         session_state.set_measurement_system(self.measurement_system)
-        self._presets = self._build_preset_entries()
+        self._preset_state = sc_sheet_presets.PresetSelectionState()
+        self._presets = sc_sheet_presets.get_preset_entries(self.measurement_system)
         self._current_preset_id = None
 
         if self.doc is not None:
@@ -535,9 +536,14 @@ class SquatchCutTaskPanel:
     # ---------------- Event handlers ----------------
 
     def _on_preset_changed(self, index: int) -> None:
+        if index <= 0:
+            if self._preset_state.current_index != 0:
+                self._set_preset_index(0)
+            return
+        self._preset_state.set_index(index, self._presets)
+        self._current_preset_id = self._preset_state.current_id
         preset = self._presets[index]
         size = preset.get("size")
-        self._current_preset_id = preset.get("id", "custom")
         if size is None:
             return
         width, height = size
@@ -547,10 +553,14 @@ class SquatchCutTaskPanel:
         self._set_length_text(self.sheet_height_edit, height)
         self.sheet_width_edit.blockSignals(False)
         self.sheet_height_edit.blockSignals(False)
+        session_state.set_sheet_size(width, height)
         self.update_run_button_state()
+        logger.info(f">>> [SquatchCut] Sheet preset applied: {preset.get('id')} ({width:.1f} x {height:.1f} mm)")
 
     def _on_sheet_value_changed(self) -> None:
-        """Set preset to Custom when the user edits dimensions."""
+        """Keep the preset selection synced to the entered sheet size."""
+        sheet_w_ok, sheet_w = self._parse_length_safely(self.sheet_width_edit)
+        sheet_h_ok, sheet_h = self._parse_length_safely(self.sheet_height_edit)
         if self.preset_combo.currentIndex() != 0:
             self._set_preset_index(0)
         self.update_run_button_state()
@@ -735,7 +745,7 @@ class SquatchCutTaskPanel:
 
     def _format_preset_label(self, preset: dict) -> str:
         if preset.get("size") is None:
-            return preset.get("label") or "Custom…"
+            return preset.get("label") or ""
         width_mm, height_mm = preset["size"]
         return sc_units.format_preset_label(
             width_mm,
@@ -746,41 +756,24 @@ class SquatchCutTaskPanel:
 
     def _refresh_preset_labels(self) -> None:
         """Refresh preset combo text for the current measurement system."""
-        current_id = self._current_preset_id if hasattr(self, "_current_preset_id") else "custom"
+        self._presets = sc_sheet_presets.get_preset_entries(self.measurement_system)
         self.preset_combo.blockSignals(True)
         self.preset_combo.clear()
         for preset in self._presets:
             self.preset_combo.addItem(self._format_preset_label(preset))
         self.preset_combo.blockSignals(False)
-        self._set_preset_index(self._preset_index_by_id(current_id))
-
-    def _build_preset_entries(self) -> list[dict]:
-        entries = [{"id": None, "label": "None", "size": None, "nickname": None}]
-        for preset in sc_presets.PRESET_SHEETS:
-            entries.append(
-                {
-                    "id": preset["id"],
-                    "label": None,
-                    "size": (preset["width_mm"], preset["height_mm"]),
-                    "nickname": preset.get("label"),
-                }
-            )
-        return entries
+        desired_index = self._preset_state.current_index
+        if desired_index >= len(self._presets):
+            desired_index = 0
+        self._set_preset_index(desired_index)
 
     def _set_preset_index(self, index: int) -> None:
         index = max(0, min(index, len(self._presets) - 1))
         self.preset_combo.blockSignals(True)
         self.preset_combo.setCurrentIndex(index)
         self.preset_combo.blockSignals(False)
-        self._current_preset_id = self._presets[index].get("id", "custom")
-
-    def _preset_index_by_id(self, preset_id: str | None) -> int:
-        if not preset_id:
-            return 0
-        for idx, preset in enumerate(self._presets):
-            if preset.get("id") == preset_id:
-                return idx
-        return 0
+        self._preset_state.set_index(index, self._presets)
+        self._current_preset_id = self._preset_state.current_id
 
     def _populate_table(self, panels: List[dict]) -> None:
         self.parts_table.setRowCount(0)
@@ -1077,8 +1070,10 @@ class SquatchCutTaskPanel:
     def _reset_defaults(self) -> None:
         """Reset configuration fields to safe defaults (does not clear CSV)."""
         # Pull defaults from preferences
-        self._set_length_text(self.sheet_width_edit, self._prefs.get_default_sheet_width_mm())
-        self._set_length_text(self.sheet_height_edit, self._prefs.get_default_sheet_height_mm())
+        default_width = self._prefs.get_default_sheet_width_mm()
+        default_height = self._prefs.get_default_sheet_height_mm()
+        self._set_length_text(self.sheet_width_edit, default_width)
+        self._set_length_text(self.sheet_height_edit, default_height)
         self._set_length_text(self.kerf_edit, self._prefs.get_default_kerf_mm())
         self._set_length_text(self.margin_edit, self._prefs.get_default_spacing_mm())
         self.allow_90_check.setChecked(False)
@@ -1151,31 +1146,7 @@ class SquatchCutTaskPanel:
         if doc is None:
             return
 
-        sheets_group = doc.getObject("SquatchCut_Sheets")
-        nested_group = doc.getObject("SquatchCut_NestedParts")
-        source_group = doc.getObject("SquatchCut_SourceParts")
-        groups = [g for g in (sheets_group, nested_group, source_group) if g]
-        for group in groups:
-            for obj in getattr(group, "Group", []):
-                try:
-                    if hasattr(obj, "ViewObject"):
-                        obj.ViewObject.Visibility = False
-                except Exception:
-                    continue
-
-        for obj in session.get_source_panel_objects():
-            try:
-                if hasattr(obj, "ViewObject"):
-                    obj.ViewObject.Visibility = True
-            except Exception:
-                continue
-
-        try:
-            view = Gui.ActiveDocument.ActiveView
-            view.viewTop()
-            view.fitAll()
-        except Exception as e:
-            logger.warning(f"Failed to update view in Source mode: {e!r}")
+        view_controller.show_source_view(doc)
 
     def _on_view_sheets_clicked(self):
         """
@@ -1188,63 +1159,16 @@ class SquatchCutTaskPanel:
         if doc is None:
             return
 
-        for obj in session.get_source_panel_objects():
-            try:
-                if hasattr(obj, "ViewObject"):
-                    obj.ViewObject.Visibility = False
-            except Exception:
-                continue
-
-        sheets_group = doc.getObject("SquatchCut_Sheets")
-        nested_group = doc.getObject("SquatchCut_NestedParts")
-        source_group = doc.getObject("SquatchCut_SourceParts")
-        groups = [g for g in (sheets_group, nested_group, source_group) if g]
-        for group in groups:
-            for obj in getattr(group, "Group", []):
-                try:
-                    if hasattr(obj, "ViewObject"):
-                        obj.ViewObject.Visibility = True
-                except Exception:
-                    continue
-
-        try:
-            view = Gui.ActiveDocument.ActiveView
-            view.viewTop()
-            view.fitAll()
-        except Exception as e:
-            logger.warning(f"Failed to update view in Sheets mode: {e!r}")
+        sheet_objs = session.get_sheet_objects()
+        active_sheet = sheet_objs[0] if sheet_objs else None
+        view_controller.show_nesting_view(doc, active_sheet=active_sheet)
 
     def on_show_source_panels(self):
         doc = App.ActiveDocument
         if doc is None:
             return
 
-        sheets_group = doc.getObject("SquatchCut_Sheets")
-        nested_group = doc.getObject("SquatchCut_NestedParts")
-        source_group = doc.getObject("SquatchCut_SourceParts")
-        groups = [g for g in (sheets_group, nested_group, source_group) if g]
-        for group in groups:
-            for o in getattr(group, "Group", []):
-                try:
-                    if hasattr(o, "ViewObject"):
-                        o.ViewObject.Visibility = False
-                except Exception:
-                    continue
-
-        for o in session.get_source_panel_objects():
-            try:
-                if hasattr(o, "ViewObject"):
-                    o.ViewObject.Visibility = True
-            except Exception:
-                continue
-
-        try:
-            if Gui and Gui.ActiveDocument:
-                view = Gui.ActiveDocument.ActiveView
-                view.viewTop()
-                view.fitAll()
-        except Exception:
-            pass
+        view_controller.show_source_view(doc)
 
     def on_preview_clicked(self):
         try:

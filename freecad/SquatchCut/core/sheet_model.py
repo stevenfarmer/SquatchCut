@@ -49,6 +49,10 @@ def ensure_sheet_object(width_mm: float, height_mm: float, doc=None):
     sheet_obj = doc.getObject(SHEET_OBJECT_NAME)
     if sheet_obj is None:
         sheet_obj = doc.addObject("Part::Feature", SHEET_OBJECT_NAME)
+        logger.info("[SquatchCut] Sheet object created.")
+    else:
+        logger.info("[SquatchCut] Sheet object updated to "
+                    f"{w:.1f} x {h:.1f} mm.")
 
     try:
         sheet_obj.Shape = Part.makePlane(
@@ -73,3 +77,28 @@ def ensure_sheet_object(width_mm: float, height_mm: float, doc=None):
         pass
 
     return sheet_obj
+
+
+def get_or_create_group(doc, name):
+    if doc is None:
+        return None
+    group = doc.getObject(name)
+    if group is None:
+        group = doc.addObject("App::DocumentObjectGroup", name)
+        group.Label = name
+    return group
+
+
+def clear_group(group):
+    removed = 0
+    if group is None:
+        return 0
+    doc = getattr(group, "Document", None)
+    for child in list(getattr(group, "Group", [])):
+        try:
+            if doc:
+                doc.removeObject(child.Name)
+            removed += 1
+        except Exception:
+            continue
+    return removed

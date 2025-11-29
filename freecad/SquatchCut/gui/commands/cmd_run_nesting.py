@@ -16,13 +16,18 @@ except Exception:
     FreeCAD = None
 from SquatchCut.gui.qt_compat import QtWidgets
 
+ICONS_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+    "resources",
+    "icons",
+)
 # Geometry
 try:
     import Part  # type: ignore
 except Exception:
     Part = None
 
-from SquatchCut.core import logger, session, session_state
+from SquatchCut.core import logger, session, session_state, view_controller
 from SquatchCut.core.nesting import (
     Part,
     nest_on_multiple_sheets,
@@ -50,7 +55,6 @@ from SquatchCut.core.session_state import (
     set_nesting_stats,
 )
 from SquatchCut.gui.nesting_view import rebuild_nested_geometry
-from SquatchCut.gui.view_utils import zoom_to_objects
 from SquatchCut.ui.messages import show_error, show_info, show_warning
 
 
@@ -70,7 +74,7 @@ class RunNestingCommand:
 
     def GetResources(self):
         return {
-            "Pixmap": ":/icons/Draft_Rectangle.svg",
+            "Pixmap": os.path.join(ICONS_DIR, "run_nesting.svg"),
             "MenuText": "Run Nesting",
             "ToolTip": "Nest panels onto one or more sheets",
         }
@@ -261,8 +265,14 @@ class RunNestingCommand:
                 return
 
             logger.info(">>> [SquatchCut] Rebuilding nested layout view...")
+            logger.info(">>> [SquatchCut] RunNesting: cleaning up previous nested layout")
+            view_controller.cleanup_nested_layout(doc)
             sheet_obj = ensure_sheet_object(sheet_w, sheet_h, doc)
             group, nested_objs = rebuild_nested_geometry(doc, placed_parts, sheet_w, sheet_h, panel_objs)
+            sheet_label = getattr(sheet_obj, "Name", "unknown sheet")
+            logger.info(
+                f">>> [SquatchCut] RunNesting: created nested layout with {len(nested_objs)} parts on sheet {sheet_label}"
+            )
 
             if doc is not None:
                 try:
@@ -297,12 +307,7 @@ class RunNestingCommand:
                 logger.info(f"Nesting complete: {len(placed_parts)} parts across {sheet_count} sheet(s).")
                 logger.info(f"Nested {len(panel_objs)} source panels into {sheet_count} sheet group(s).")
                 try:
-                    targets = []
-                    if sheet_obj:
-                        targets.append(sheet_obj)
-                    targets.extend(nested_objs or [])
-                    if targets:
-                        zoom_to_objects(targets)
+                    view_controller.show_nesting_view(doc, active_sheet=sheet_obj, nested_objects=nested_objs)
                 except Exception:
                     pass
 
@@ -408,7 +413,7 @@ class ApplyNestingCommand:
 class ToggleSourcePanelsCommand:
     def GetResources(self):
         return {
-            "Pixmap": ":/icons/Std_ToggleVisibility.svg",
+            "Pixmap": os.path.join(ICONS_DIR, "toggle_visibility.svg"),
             "MenuText": "Toggle Source Panels",
             "ToolTip": "Show or hide the original source panel objects",
         }

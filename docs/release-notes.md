@@ -8,6 +8,8 @@
 - New Export Nesting CSV command with a save dialog; exports sheet index, part id, true dimensions, x/y, and angle without inflating sizes.
 - Hardened CSV import with required-column validation, per-row skipping with warnings, and user-facing error dialogs.
 - Units preference (mm/in) for sheet sizing and CSV import, plus CSV units selector in the task panel.
+- Fixed sheet size defaults so factory values align with the active units, user defaults persist across reloads, and the preset dropdown only highlights exact matches while remaining blank otherwise.
+- Centralized view switching so source vs nested views now rely on a controller that hides irrelevant geometry, fits the camera, and cleans out stale layouts before each nesting run.
 - Export Cutlist command for CSV rip/crosscut lists, with cutline de-duplication and panel-crossing filters to reduce noise.
 
 ### Notes

@@ -9,11 +9,9 @@ except Exception:  # pragma: no cover
     App = None
     Gui = None
 
-from SquatchCut.core import logger, session, session_state
+from SquatchCut.core import logger, session, session_state, view_controller
 from SquatchCut.core.sheet_model import ensure_sheet_object
 from SquatchCut.gui.source_view import rebuild_source_preview, SOURCE_GROUP_NAME
-from SquatchCut.gui.view_utils import zoom_to_objects
-
 
 def sync_source_panels_to_document():
     """Create/refresh source panel geometry in the active document and update the view."""
@@ -64,22 +62,11 @@ def sync_source_panels_to_document():
         except Exception as exc:  # pragma: no cover
             logger.warning(f"Failed to inspect source panel vertices: {exc!r}")
 
-    try:
-        targets = [o for o in [sheet_obj] + created if o is not None]
-    except Exception:
-        targets = created
-        if sheet_obj is not None:
-            targets = [sheet_obj] + created
-    if targets:
-        zoom_to_objects(targets)
-
     logger.info(f"Created {len(created)} source panel shapes in document.")
     try:
-        targets = []
-        if sheet_obj:
-            targets.append(sheet_obj)
-        targets.extend(created or [])
-        if targets:
-            zoom_to_objects(targets)
-    except Exception:
-        pass
+        view_controller.show_source_view(doc)
+    except ReferenceError as exc:
+        import traceback
+
+        logger.error("ReferenceError during show_source_view()", exc_info=True)
+        raise

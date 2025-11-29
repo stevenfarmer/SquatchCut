@@ -12,6 +12,7 @@ except Exception:  # pragma: no cover
     Part = None
 
 from SquatchCut.core import logger
+from SquatchCut.core.sheet_model import get_or_create_group, clear_group
 
 NESTED_GROUP_NAME = "SquatchCut_NestedParts"
 
@@ -23,10 +24,7 @@ def ensure_nested_group(doc):
         return None
     if doc is None:
         doc = App.newDocument("SquatchCut")
-    group = doc.getObject(NESTED_GROUP_NAME)
-    if group is None:
-        group = doc.addObject("App::DocumentObjectGroup", NESTED_GROUP_NAME)
-    return group
+    return get_or_create_group(doc, NESTED_GROUP_NAME)
 
 
 def rebuild_nested_geometry(doc, placements, sheet_w, sheet_h, source_objects=None):
@@ -42,33 +40,8 @@ def rebuild_nested_geometry(doc, placements, sheet_w, sheet_h, source_objects=No
     group = ensure_nested_group(doc)
     if group is None:
         return None, []
-
-    # Remove any legacy nested containers and children
-    legacy = doc.getObject("SquatchCut_Sheets")
-    if legacy is not None:
-        for child in list(getattr(legacy, "Group", [])):
-            try:
-                doc.removeObject(child.Name)
-            except Exception:
-                continue
-        try:
-            doc.removeObject(legacy.Name)
-        except Exception:
-            pass
-
-    # Clear existing nested children
-    for obj in list(getattr(group, "Group", [])):
-        try:
-            doc.removeObject(obj.Name)
-        except Exception:
-            continue
-    # Remove stray nested objects not in group
-    for obj in list(getattr(doc, "Objects", [])):
-        if obj.Name.startswith("SC_Nested_") and obj not in getattr(group, "Group", []):
-            try:
-                doc.removeObject(obj.Name)
-            except Exception:
-                continue
+    removed = clear_group(group)
+    logger.info(f">>> [SquatchCut] Nested group cleared and rebuilt with {removed} parts")
 
     source_objects = source_objects or []
     source_map = {getattr(o, "Name", ""): o for o in source_objects}

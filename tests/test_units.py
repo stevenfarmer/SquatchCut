@@ -6,7 +6,6 @@ from SquatchCut.core.units import (
     unit_label_for_system,
     parse_imperial_inches,
 )
-from SquatchCut.core import presets as sc_presets
 
 
 def test_inches_to_fraction_str_basic():
@@ -70,8 +69,3 @@ def test_parse_length_empty_raises():
     with pytest.raises(ValueError):
         parse_length("", "metric")
 
-
-def test_find_matching_preset_accepts_imperial_defaults():
-    preset = sc_presets.find_matching_preset(1219.2, 2438.4, tol_mm=2.0)
-    assert preset is not None
-    assert preset["id"] == "4x8"

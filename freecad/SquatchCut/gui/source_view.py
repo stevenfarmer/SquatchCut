@@ -12,14 +12,14 @@ except Exception:  # pragma: no cover
     Part = None
 
 from SquatchCut.core import logger
+from SquatchCut.core.sheet_model import ensure_sheet_object, get_or_create_group, clear_group
+
 
 SOURCE_GROUP_NAME = "SquatchCut_SourceParts"
 
 
 def _ensure_group(doc):
-    group = doc.getObject(SOURCE_GROUP_NAME)
-    if group is None:
-        group = doc.addObject("App::DocumentObjectGroup", SOURCE_GROUP_NAME)
+    group = get_or_create_group(doc, SOURCE_GROUP_NAME)
     try:
         if hasattr(group, "ViewObject"):
             group.ViewObject.Visibility = True
@@ -46,16 +46,8 @@ def rebuild_source_preview(parts):
         pass
 
     group = _ensure_group(doc)
-
-    # Clear existing preview children
-    removed = 0
-    for obj in list(getattr(group, "Group", [])):
-        try:
-            doc.removeObject(obj.Name)
-            removed += 1
-        except Exception:
-            continue
-    logger.info(f">>> [SquatchCut] Cleared {removed} old preview objects")
+    removed = clear_group(group)
+    logger.info(f">>> [SquatchCut] Source group cleared and rebuilt with {removed} parts")
 
     created = []
     x_cursor = 0.0

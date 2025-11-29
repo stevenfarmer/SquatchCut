@@ -1,3 +1,5 @@
+import os
+
 try:
     import FreeCAD as App
     import FreeCADGui as Gui
@@ -18,8 +20,14 @@ class SquatchCutSettingsCommand:
     """
 
     def GetResources(self):
+        icon_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+            "resources",
+            "icons",
+            "settings.svg",
+        )
         return {
-            "Pixmap": ":/icons/Preferences-General.svg",
+            "Pixmap": icon_path,
             "MenuText": "SquatchCut Settings",
             "ToolTip": "Edit sheet size, kerf, gap, and default rotation settings for SquatchCut",
         }
