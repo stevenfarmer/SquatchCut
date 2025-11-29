@@ -10,7 +10,7 @@
       
       
       
-        <link rel="canonical" href="https://stevenfarmer.github.io/SquatchCut/UAT_Prep_Instructions/">
+        <link rel="canonical" href="https://stevenfarmer.github.io/SquatchCut/quickstart/">
       
       
       
@@ -23,7 +23,7 @@
     
     
       
-        <title>SquatchCut UAT Prep Instructions - SquatchCut</title>
+        <title>SquatchCut Quick Start - SquatchCut</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#squatchcut-uat-prep-instructions" class="md-skip">
+        <a href="#squatchcut-quick-start" class="md-skip">
           Skip to content
         </a>
       
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              SquatchCut UAT Prep Instructions
+              SquatchCut Quick Start
             
           </span>
         </div>
@@ -743,10 +743,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-what-youll-need" class="md-nav__link">
+  <a href="#1-install" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. What You’ll Need
+        1. Install
       
     </span>
   </a>
@@ -754,10 +754,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-what-you-do-not-need" class="md-nav__link">
+  <a href="#2-configure-defaults-one-time" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. What You Do Not Need
+        2. Configure Defaults (One Time)
       
     </span>
   </a>
@@ -765,10 +765,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-install-squatchcut" class="md-nav__link">
+  <a href="#3-basic-workflow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Install SquatchCut
+        3. Basic Workflow
       
     </span>
   </a>
@@ -776,43 +776,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-files-you-will-use" class="md-nav__link">
+  <a href="#4-if-something-breaks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Files You Will Use
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5-how-to-run-the-test" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. How to Run the Test
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#6-taking-screenshots-if-something-fails" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        6. Taking Screenshots (If Something Fails)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#7-when-youre-done" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        7. When You’re Done
+        4. If Something Breaks
       
     </span>
   </a>
@@ -839,140 +806,88 @@
   
 
 
-<h1 id="squatchcut-uat-prep-instructions">SquatchCut UAT Prep Instructions<a class="headerlink" href="#squatchcut-uat-prep-instructions" title="Permanent link">&para;</a></h1>
-<p>Audience: <strong>Volunteer testers / UAT participants</strong><br />
-Goal: Help you install SquatchCut and run a simple, repeatable test script.</p>
-<p>You do <strong>not</strong> need to know how to code. You do <strong>not</strong> need GitHub.</p>
+<h1 id="squatchcut-quick-start">SquatchCut Quick Start<a class="headerlink" href="#squatchcut-quick-start" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>TL;DR for people who don’t want a novel.</p>
+</blockquote>
 <hr />
-<h2 id="1-what-youll-need">1. What You’ll Need<a class="headerlink" href="#1-what-youll-need" title="Permanent link">&para;</a></h2>
-<p>Before you start:</p>
-<ul>
-<li>A computer with:</li>
-<li>Windows, macOS, or Linux</li>
-<li><strong>FreeCAD 1.0+</strong> installed</li>
-<li>The <strong>SquatchCut add-on ZIP</strong> file</li>
-<li>Test files provided to you:</li>
-<li><code>test_parts.csv</code></li>
-<li><code>UAT_Checklist.md</code> (this file may be bundled or referenced)</li>
-<li>Any feedback template your coordinator provides</li>
-</ul>
-<hr />
-<h2 id="2-what-you-do-not-need">2. What You Do <em>Not</em> Need<a class="headerlink" href="#2-what-you-do-not-need" title="Permanent link">&para;</a></h2>
-<p>You do <strong>not</strong> need:</p>
-<ul>
-<li>A GitHub account</li>
-<li>GitHub Desktop</li>
-<li>A compiler</li>
-<li>Any knowledge of Python</li>
-</ul>
-<p>Please do <strong>not</strong>:</p>
-<ul>
-<li>Rename the test CSV file</li>
-<li>Move files into the FreeCAD installation folders</li>
-<li>Install additional tools unless explicitly instructed</li>
-</ul>
-<hr />
-<h2 id="3-install-squatchcut">3. Install SquatchCut<a class="headerlink" href="#3-install-squatchcut" title="Permanent link">&para;</a></h2>
+<h2 id="1-install">1. Install<a class="headerlink" href="#1-install" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Open <strong>FreeCAD</strong>.</li>
-<li>Go to <strong>Tools → Add-on Manager</strong>.</li>
-<li>Click <strong>Install from ZIP</strong>.</li>
-<li>Choose the SquatchCut ZIP file provided to you.</li>
-<li>Wait for installation to complete.</li>
-<li>Close and restart FreeCAD.</li>
+<li>Go to <strong>Tools → Add-on Manager → Install from ZIP</strong>.</li>
+<li>Select the SquatchCut ZIP you were given.</li>
+<li>Restart FreeCAD.</li>
 </ol>
-<p>After restart, confirm that:</p>
+<p>You should now see a <strong>SquatchCut</strong> toolbar with:</p>
 <ul>
-<li>A <strong>SquatchCut</strong> toolbar or menu appears.</li>
-<li>You see at least:</li>
-<li>A <strong>SquatchCut</strong> button (main panel)</li>
-<li>A <strong>Settings</strong> button</li>
+<li><strong>SquatchCut</strong> (main panel)</li>
+<li><strong>Settings</strong></li>
 </ul>
-<p>If not, please note that as a UAT issue.</p>
 <hr />
-<h2 id="4-files-you-will-use">4. Files You Will Use<a class="headerlink" href="#4-files-you-will-use" title="Permanent link">&para;</a></h2>
-<p>Your coordinator should give you:</p>
-<ul>
-<li>
-<p><code>test_parts.csv</code><br />
-  Sample parts list for testing.</p>
-</li>
-<li>
-<p><code>UAT_Checklist.md</code><br />
-  Step-by-step script to follow inside FreeCAD.</p>
-</li>
-<li>
-<p>A feedback template (could be a text file, form, or email instructions).</p>
-</li>
-</ul>
-<p>Keep these together in a known folder (e.g., <code>Documents/SquatchCut_UAT/</code>).</p>
-<hr />
-<h2 id="5-how-to-run-the-test">5. How to Run the Test<a class="headerlink" href="#5-how-to-run-the-test" title="Permanent link">&para;</a></h2>
+<h2 id="2-configure-defaults-one-time">2. Configure Defaults (One Time)<a class="headerlink" href="#2-configure-defaults-one-time" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Start <strong>FreeCAD</strong>.</li>
-<li>Ensure the <strong>SquatchCut</strong> toolbar is visible.</li>
-<li>Open the <strong>UAT_Checklist.md</strong> file in any text editor (Notepad, VS Code, etc.).</li>
-<li>Follow each step in the checklist <strong>in order</strong>.</li>
-<li>After each step, mark:</li>
-<li><strong>Pass</strong> – if it worked and made sense.</li>
-<li><strong>Fail</strong> – if it did not work, crashed, or was confusing.</li>
+<li>Click <strong>Settings</strong> on the SquatchCut toolbar.</li>
+<li>Choose:</li>
+<li>Measurement system (Metric or Imperial)</li>
+<li>Default sheet size (e.g. 48" × 96" or 1220 × 2440 mm)</li>
+<li>Kerf and gap</li>
+<li>Click <strong>Save / Apply</strong>.</li>
 </ol>
-<p>Use the notes column to record:</p>
-<ul>
-<li>What you expected</li>
-<li>What actually happened</li>
-<li>Any error messages or weird behavior</li>
-</ul>
-<p>You are <strong>not</strong> being graded. The software is.</p>
 <hr />
-<h2 id="6-taking-screenshots-if-something-fails">6. Taking Screenshots (If Something Fails)<a class="headerlink" href="#6-taking-screenshots-if-something-fails" title="Permanent link">&para;</a></h2>
-<p>If something breaks or looks wrong:</p>
-<ul>
-<li>On <strong>Windows</strong>:</li>
-<li>Press <strong>Win + Shift + S</strong> to open the Snip &amp; Sketch / Snipping tool.</li>
-<li>Drag a box around the area.</li>
-<li>
-<p>Save the image.</p>
-</li>
-<li>
-<p>On <strong>macOS</strong>:</p>
-</li>
-<li>Press <strong>Command + Shift + 4</strong>.</li>
-<li>Drag a box around the area.</li>
-<li>
-<p>A screenshot is saved to your desktop.</p>
-</li>
-<li>
-<p>On <strong>Linux</strong>:</p>
-</li>
-<li>Use <strong>Print Screen</strong> or your distro’s screenshot tool.</li>
-</ul>
-<p>Try to capture:</p>
-<ul>
-<li>The model tree (left panel)</li>
-<li>The SquatchCut UI</li>
-<li>The 3D view showing the layout</li>
-</ul>
-<hr />
-<h2 id="7-when-youre-done">7. When You’re Done<a class="headerlink" href="#7-when-youre-done" title="Permanent link">&para;</a></h2>
-<p>When you complete the checklist:</p>
+<h2 id="3-basic-workflow">3. Basic Workflow<a class="headerlink" href="#3-basic-workflow" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Save your filled-out checklist (if it’s a file).</li>
-<li>Collect:</li>
-<li>The completed checklist</li>
-<li>Any screenshots</li>
+<li><strong>Open the panel</strong>  </li>
 <li>
-<p>Any test CSV variations you used (if requested)</p>
+<p>Click <strong>SquatchCut</strong>.</p>
 </li>
 <li>
-<p>Send everything to your SquatchCut contact using the method they specified:</p>
+<p><strong>Import parts from CSV</strong></p>
 </li>
-<li>Email</li>
-<li>Shared folder</li>
-<li>Forms, etc.</li>
+<li>In the <strong>CSV Import</strong> section:<ul>
+<li>Set <strong>CSV Units</strong> to <strong>Metric</strong> or <strong>Imperial</strong>.</li>
+<li>Pick your CSV file.</li>
+<li>Click <strong>Import Parts</strong>.</li>
+</ul>
+</li>
+<li>
+<p>Check that a <strong>Source Parts</strong> group appears in the model tree.</p>
+</li>
+<li>
+<p><strong>Set sheet size</strong></p>
+</li>
+<li>Confirm sheet width/height fields match your panel.</li>
+<li>Optionally choose a preset:<ul>
+<li><code>None / Custom</code></li>
+<li><code>4′ x 8′</code></li>
+<li><code>2′ x 4′</code></li>
+<li><code>5′ x 10′</code></li>
+</ul>
+</li>
+<li>
+<p>Editing width/height manually should switch preset to <code>None / Custom</code>.</p>
+</li>
+<li>
+<p><strong>Run nesting</strong></p>
+</li>
+<li>Click <strong>Run Nesting</strong>.</li>
+<li>
+<p>A <strong>Nested Parts</strong> group appears, containing the layout.</p>
+</li>
+<li>
+<p><strong>Review and export</strong></p>
+</li>
+<li>Inspect the layout in the 3D view.</li>
+<li>Save your file (<strong>File → Save</strong>).</li>
+<li>Export as needed (<strong>File → Export</strong>, DXF/SVG/PDF).</li>
 </ol>
-<p>If you got stuck and couldn’t complete the script, <strong>still</strong> send what you have and note where you stopped.</p>
-<p>Thank you for helping test SquatchCut!</p>
+<hr />
+<h2 id="4-if-something-breaks">4. If Something Breaks<a class="headerlink" href="#4-if-something-breaks" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Note the steps you took and any errors in the FreeCAD report view.</li>
+<li>Take a screenshot of the model tree and the layout.</li>
+<li>Send your notes and files to your SquatchCut contact or follow the UAT feedback instructions.</li>
+</ul>
+<p>That’s it. Import → Set Sheet → Nest → Export.</p>
 
 
 

@@ -23,7 +23,7 @@
     
     
       
-        <title>SquatchCut UAT – UI Navigation & Core Features - SquatchCut</title>
+        <title>SquatchCut UAT Checklist - SquatchCut</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#squatchcut-uat-ui-navigation-core-features" class="md-skip">
+        <a href="#squatchcut-uat-checklist" class="md-skip">
           Skip to content
         </a>
       
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              SquatchCut UAT – UI Navigation &amp; Core Features
+              SquatchCut UAT Checklist
             
           </span>
         </div>
@@ -743,10 +743,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#instructions" class="md-nav__link">
+  <a href="#tester-info" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Instructions
+        Tester Info
       
     </span>
   </a>
@@ -754,10 +754,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#uat-checklist-table" class="md-nav__link">
+  <a href="#legend" class="md-nav__link">
     <span class="md-ellipsis">
       
-        UAT Checklist Table
+        Legend
       
     </span>
   </a>
@@ -765,10 +765,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#completion" class="md-nav__link">
+  <a href="#checklist" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Completion
+        Checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#overall-experience" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overall Experience
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-comments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Additional Comments
       
     </span>
   </a>
@@ -795,195 +817,191 @@
   
 
 
-<h1 id="squatchcut-uat-ui-navigation-core-features">SquatchCut UAT – UI Navigation &amp; Core Features<a class="headerlink" href="#squatchcut-uat-ui-navigation-core-features" title="Permanent link">&para;</a></h1>
-<p>This checklist verifies that SquatchCut works correctly for end-users who don’t write code.<br />
-Please follow the steps in order and mark <strong>Pass</strong> or <strong>Fail</strong> for each item.</p>
-<p>If something fails or confuses you, leave a short note.</p>
-<h2 id="instructions">Instructions<a class="headerlink" href="#instructions" title="Permanent link">&para;</a></h2>
+<h1 id="squatchcut-uat-checklist">SquatchCut UAT Checklist<a class="headerlink" href="#squatchcut-uat-checklist" title="Permanent link">&para;</a></h1>
+<p>Version: UAT v0.1<br />
+Audience: Volunteer / UAT testers</p>
+<p>Instructions:</p>
 <ul>
-<li>Open FreeCAD.</li>
-<li>Make sure SquatchCut is installed.</li>
-<li>Keep this checklist open while performing each step.</li>
-<li>Do <strong>not</strong> skip steps.</li>
-<li>Do <strong>not</strong> fix anything — just observe and record.</li>
+<li>Follow each step in order.</li>
+<li>For each step, mark <strong>Pass</strong> (✅) or <strong>Fail</strong> (❌) in the table.</li>
+<li>Add notes if anything is confusing, broken, or unexpected.</li>
+</ul>
+<p>You may print this page or fill it in digitally.</p>
+<hr />
+<h2 id="tester-info">Tester Info<a class="headerlink" href="#tester-info" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Name:</strong>  </li>
+<li><strong>Date:</strong>  </li>
+<li><strong>OS &amp; Version (e.g., Windows 11, macOS 15):</strong>  </li>
+<li><strong>FreeCAD Version:</strong>  </li>
+<li><strong>SquatchCut Build / ZIP Name:</strong>  </li>
 </ul>
 <hr />
-<h2 id="uat-checklist-table">UAT Checklist Table<a class="headerlink" href="#uat-checklist-table" title="Permanent link">&para;</a></h2>
+<h2 id="legend">Legend<a class="headerlink" href="#legend" title="Permanent link">&para;</a></h2>
+<ul>
+<li>✅ = Worked as expected</li>
+<li>❌ = Didn’t work or was confusing</li>
+<li>N/A = Not applicable or skipped</li>
+</ul>
+<hr />
+<h2 id="checklist">Checklist<a class="headerlink" href="#checklist" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
 <th>#</th>
-<th>Action</th>
-<th>Expected Result</th>
-<th>Pass/Fail</th>
-<th>Notes</th>
+<th>Step</th>
+<th>Result (✅/❌/N/A)</th>
+<th>Notes (what happened?)</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>1</td>
-<td>Open FreeCAD and load a new or existing document.</td>
-<td>FreeCAD opens normally.</td>
+<td>Start FreeCAD.</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>2</td>
-<td>Locate the SquatchCut toolbar/menu/command.</td>
-<td>SquatchCut commands are visible (Settings, Import CSV, Set Sheet Size).</td>
+<td>Confirm you see a <strong>SquatchCut</strong> toolbar/menu with <strong>SquatchCut</strong> and <strong>Settings</strong> buttons.</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>3</td>
-<td>Click <strong>SquatchCut Settings</strong>.</td>
-<td>The Tasks panel opens, displaying all settings.</td>
+<td>Click <strong>Settings</strong>. Verify the settings panel opens without errors.</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>4</td>
-<td>Review the Settings panel UI.</td>
-<td>All fields are readable and not cut off.</td>
+<td>In Settings, set your measurement system (Metric or Imperial) and a default sheet size.</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>5</td>
-<td>Change a setting (e.g., spacing or sheet default).</td>
-<td>Setting updates without error.</td>
+<td>Save/apply settings and close the Settings panel.</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>6</td>
-<td>Close and reopen the Settings panel.</td>
-<td>Values persist or reset as designed (no errors).</td>
+<td>Click the main <strong>SquatchCut</strong> button. Confirm the main panel opens without errors.</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>7</td>
-<td>Click <strong>Import CSV</strong>.</td>
-<td>File chooser opens.</td>
+<td>In the main panel, confirm you see sections for CSV import, sheet/presets, and nesting.</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>8</td>
-<td>Select the provided <code>test_parts.csv</code>.</td>
-<td>CSV imports without errors.</td>
+<td>Set <strong>CSV Units</strong> to match <code>test_parts.csv</code> (as instructed).</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>9</td>
-<td>Verify imported parts list (if shown).</td>
-<td>Data matches the CSV; formatting is correct.</td>
+<td>Use the file picker to select <code>test_parts.csv</code>.</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>10</td>
-<td>Click <strong>Set Sheet Size</strong>.</td>
-<td>Sheet size dialog or panel appears.</td>
+<td>Click <strong>Import Parts</strong>. No error dialog should appear.</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>11</td>
-<td>Enter a valid sheet size.</td>
-<td>Size accepted without error.</td>
+<td>In the FreeCAD <strong>Model</strong> tree, confirm a <strong>Source Parts</strong> group appears and contains part items.</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>12</td>
-<td>Enter an invalid sheet size (0 or negative).</td>
-<td>UI blocks the value or shows a clear warning.</td>
+<td>Change the sheet size using the sheet width/height fields (without using a preset).</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>13</td>
-<td>Click <strong>Run Nesting</strong>.</td>
-<td>Nesting runs and completes without crashing.</td>
+<td>Verify that the visible sheet in the 3D view updates to the new size.</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>14</td>
-<td>Look at the nesting result view.</td>
-<td>Parts appear on the sheet successfully.</td>
+<td>Select a sheet <strong>preset</strong> (e.g., 4′ x 8′). Confirm the sheet fields update to match the preset.</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>15</td>
-<td>Visually inspect for overlapping parts.</td>
-<td>No parts overlap; spacing looks correct.</td>
+<td>Manually change the sheet width or height again and confirm the preset selection returns to "None/Custom".</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>16</td>
-<td>Compare part count to the CSV.</td>
-<td>Number of parts placed matches CSV.</td>
+<td>Click <strong>Run Nesting</strong>.</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>17</td>
-<td>If multiple sheets were used, switch between them.</td>
-<td>Navigation between sheets works.</td>
+<td>In the <strong>Model</strong> tree, confirm a <strong>Nested Parts</strong> group appears or is rebuilt.</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>18</td>
-<td>Zoom and pan around the layout.</td>
-<td>Smooth interaction; parts stay visible.</td>
+<td>Confirm nested parts appear on top of the sheet in the 3D view (no parts obviously off-sheet).</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>19</td>
-<td>Export the layout (if available).</td>
-<td>File exports without error.</td>
+<td>Run nesting a second time without changing the CSV. Confirm the Nested Parts group updates rather than duplicating parts.</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>20</td>
-<td>Open the exported file.</td>
-<td>File opens and matches the on-screen result.</td>
+<td>Hide the Source Parts group, leaving only sheet + nested layout visible.</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>21</td>
-<td>Close FreeCAD without saving.</td>
-<td>App closes cleanly.</td>
+<td>Save the FreeCAD document without errors.</td>
 <td></td>
 <td></td>
 </tr>
 <tr>
 <td>22</td>
-<td>Reopen FreeCAD and repeat steps 2–4.</td>
-<td>SquatchCut remains available and functional.</td>
+<td>(Optional) Use <strong>File → Export</strong> to export the layout (DXF/SVG/PDF) and confirm the export works.</td>
 <td></td>
 <td></td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="completion">Completion<a class="headerlink" href="#completion" title="Permanent link">&para;</a></h2>
-<p>When finished:</p>
+<h2 id="overall-experience">Overall Experience<a class="headerlink" href="#overall-experience" title="Permanent link">&para;</a></h2>
+<p>Please briefly describe:</p>
 <ul>
-<li>Save this checklist (PDF or exported text)</li>
-<li>Send it along with your notes and screenshots to Steven</li>
+<li>What worked well?</li>
+<li>What was confusing?</li>
+<li>Any crashes or serious bugs?</li>
 </ul>
-<p>Thank you for testing SquatchCut!</p>
+<hr />
+<h2 id="additional-comments">Additional Comments<a class="headerlink" href="#additional-comments" title="Permanent link">&para;</a></h2>
+<p>(Use as much space as you need.)</p>
+<hr />
+<p>End of checklist.</p>
 
 
 
