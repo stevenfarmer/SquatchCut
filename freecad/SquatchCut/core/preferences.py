@@ -12,10 +12,11 @@ class SquatchCutPreferences:
     """Persist SquatchCut defaults under a dedicated parameter group."""
 
     PARAM_GROUP = "User parameter:BaseApp/Preferences/Mod/SquatchCut"
+    _local_shared: dict[str, object] = {}
 
     def __init__(self):
         self._grp = App.ParamGet(self.PARAM_GROUP) if App else None
-        self._local: dict[str, object] = {}
+        self._local = self.__class__._local_shared
 
     def _float(self, key: str, fallback: float) -> float:
         if self._grp:

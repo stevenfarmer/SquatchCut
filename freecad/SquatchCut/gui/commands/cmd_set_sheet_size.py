@@ -16,7 +16,7 @@ except Exception:
     App = None
     Gui = None
 
-from SquatchCut.gui.qt_compat import QtWidgets, QtCore, QtGui
+from SquatchCut.gui.qt_compat import QtWidgets
 
 try:
     from SquatchCut.core import session, session_state  # type: ignore
@@ -29,7 +29,9 @@ except Exception:
     from SquatchCut.core.sheet_model import ensure_sheet_object  # type: ignore
     from SquatchCut.gui.dialogs.dlg_sheet_size import SC_SheetSizeDialog  # type: ignore
     from SquatchCut.gui.view_utils import zoom_to_objects  # type: ignore
-from SquatchCut.core import logger
+    from SquatchCut.core import logger
+from SquatchCut.core import units as sc_units
+from SquatchCut.ui.messages import show_error
 
 ICONS_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(__file__))),  # .../freecad/SquatchCut
@@ -72,7 +74,16 @@ class SC_SetSheetSizeCommand:
                 )
                 return
 
-            width, height, units = dialog.get_values()
+            try:
+                width, height, _ = dialog.get_values()
+            except ValueError as exc:
+                show_error(
+                    "Invalid imperial value. Use formats like 48, 48.5, 48 1/2, or 48-1/2."
+                    if dialog.measurement_system == "imperial"
+                    else str(exc),
+                    title="SquatchCut",
+                )
+                return
 
             doc = App.ActiveDocument
             if doc is None:
@@ -82,17 +93,33 @@ class SC_SetSheetSizeCommand:
             width, height = session_state.get_sheet_size()
             sheet_obj = ensure_sheet_object(width, height, doc)
 
-            App.Console.PrintMessage(
-                f">>> [SquatchCut] SetSheetSize: updated to {width} x {height} {units}\n"
+            unit_label = sc_units.unit_label_for_system(dialog.measurement_system)
+            primary_width = sc_units.format_length(width, dialog.measurement_system)
+            primary_height = sc_units.format_length(height, dialog.measurement_system)
+            secondary_label = "mm" if unit_label == "in" else "in"
+            secondary_width = sc_units.format_length(
+                width, "metric" if unit_label == "in" else "imperial"
             )
-            logger.info(f"Set sheet size to {width} x {height} ({units}).")
+            secondary_height = sc_units.format_length(
+                height, "metric" if unit_label == "in" else "imperial"
+            )
+
+            App.Console.PrintMessage(
+                f">>> [SquatchCut] SetSheetSize: updated to {primary_width} x {primary_height} {unit_label} "
+                f"({secondary_width} x {secondary_height} {secondary_label})\n"
+            )
+            logger.info(
+                f"Set sheet size to {width} x {height} mm "
+                f"(displayed as {primary_width} x {primary_height} {unit_label})."
+            )
             if sheet_obj:
                 zoom_to_objects([sheet_obj])
 
             QtWidgets.QMessageBox.information(
                 None,
                 "SquatchCut",
-                f"Sheet size saved: {width} x {height} ({units}).",
+                f"Sheet size saved: {primary_width} x {primary_height} {unit_label} "
+                f"({secondary_width} x {secondary_height} {secondary_label}).",
             )
         except Exception as exc:
             App.Console.PrintError(

@@ -15,6 +15,7 @@ import webbrowser
 
 from SquatchCut.gui.qt_compat import QtWidgets, QtCore
 
+from SquatchCut import settings
 from SquatchCut.core import session, session_state, logger
 from SquatchCut.core import units as sc_units
 from SquatchCut.core.nesting import compute_utilization, estimate_cut_counts
@@ -35,9 +36,13 @@ class SquatchCutTaskPanel:
     - Results summary (sheets, utilization, estimated cuts, unplaced)
     """
 
-    MM_PER_INCH = 25.4
-
     def __init__(self, doc=None):
+        # Hydrate persisted settings before any UI reads them.
+        try:
+            settings.hydrate_from_params()
+        except Exception:
+            pass
+
         self.doc = doc or App.ActiveDocument
         self._last_csv_path: str | None = None
         self.has_csv_data = False
@@ -45,13 +50,12 @@ class SquatchCutTaskPanel:
         self.has_valid_kerf = False
         self.overlaps_count = 0
         self._prefs = SquatchCutPreferences()
-        units_pref = sc_units.get_units()
-        self.measurement_system = "imperial" if units_pref == "in" else "metric"
+        self.measurement_system = session_state.get_measurement_system()
         session_state.set_measurement_system(self.measurement_system)
-        self._presets: list[tuple[str, tuple[float, float] | None]] = [
-            ("Custom…", None),
-            ("1220 x 2440 mm (4x8 ft)", (1220.0, 2440.0)),
-            ("1525 x 3050 mm (5x10 ft)", (1525.0, 3050.0)),
+        self._presets = [
+            {"label": "Custom…", "size": None, "nickname": None},
+            {"label": None, "size": (1220.0, 2440.0), "nickname": "4x8 ft"},
+            {"label": None, "size": (1525.0, 3050.0), "nickname": "5x10 ft"},
         ]
 
         if self.doc is not None:
@@ -59,10 +63,6 @@ class SquatchCutTaskPanel:
                 session.sync_state_from_doc(self.doc)
             except Exception:
                 pass
-        try:
-            logger.info(">>> [SquatchCut] Task panel opened.")
-        except Exception:
-            pass
 
         self.form = QtWidgets.QWidget()
         self._build_ui()
@@ -157,8 +157,7 @@ class SquatchCutTaskPanel:
         form.addRow("Units:", self.units_combo)
 
         self.preset_combo = QtWidgets.QComboBox()
-        for label, _ in self._presets:
-            self.preset_combo.addItem(label)
+        self._refresh_preset_labels()
         self.mode_combo = QtWidgets.QComboBox()
         self.mode_combo.addItem("Material (minimize waste)", "material")
         self.mode_combo.addItem("Cuts (minimize number of cuts)", "cuts")
@@ -191,14 +190,12 @@ class SquatchCutTaskPanel:
 
         self.parts_table = QtWidgets.QTableWidget()
         self.parts_table.setColumnCount(5)
-        self.parts_table.setHorizontalHeaderLabels(
-            ["Name", "Width (mm)", "Height (mm)", "Qty", "Allow rotate"]
-        )
         self.parts_table.horizontalHeader().setStretchLastSection(True)
         self.parts_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.parts_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.parts_table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         vbox.addWidget(self.parts_table)
+        self._update_table_headers()
 
         # View toggles
         view_layout = QtWidgets.QHBoxLayout()
@@ -226,42 +223,34 @@ class SquatchCutTaskPanel:
         form.setColumnStretch(1, 1)
 
         self.sheet_width_label = QtWidgets.QLabel("Width (mm):")
-        self.sheet_width_spin = QtWidgets.QDoubleSpinBox()
-        self.sheet_width_spin.setRange(10.0, 10000.0)
-        self.sheet_width_spin.setDecimals(1)
-        self.sheet_width_spin.setSingleStep(10.0)
-        self.sheet_width_spin.valueChanged.connect(self.update_run_button_state)
+        self.sheet_width_edit = QtWidgets.QLineEdit()
+        self.sheet_width_edit.textChanged.connect(self.update_run_button_state)
+        self.sheet_width_edit.textChanged.connect(self._on_sheet_value_changed)
 
         self.sheet_height_label = QtWidgets.QLabel("Height (mm):")
-        self.sheet_height_spin = QtWidgets.QDoubleSpinBox()
-        self.sheet_height_spin.setRange(10.0, 10000.0)
-        self.sheet_height_spin.setDecimals(1)
-        self.sheet_height_spin.setSingleStep(10.0)
-        self.sheet_height_spin.valueChanged.connect(self.update_run_button_state)
+        self.sheet_height_edit = QtWidgets.QLineEdit()
+        self.sheet_height_edit.textChanged.connect(self.update_run_button_state)
+        self.sheet_height_edit.textChanged.connect(self._on_sheet_value_changed)
 
         self.kerf_label = QtWidgets.QLabel("Kerf width (mm):")
-        self.kerf_spin = QtWidgets.QDoubleSpinBox()
-        self.kerf_spin.setRange(0.0, 100.0)
-        self.kerf_spin.setDecimals(2)
-        self.kerf_spin.setSingleStep(0.1)
+        self.kerf_edit = QtWidgets.QLineEdit()
+        self.kerf_edit.textChanged.connect(self.update_run_button_state)
 
         self.margin_label = QtWidgets.QLabel("Edge margin (mm):")
-        self.margin_spin = QtWidgets.QDoubleSpinBox()
-        self.margin_spin.setRange(0.0, 100.0)
-        self.margin_spin.setDecimals(2)
-        self.margin_spin.setSingleStep(0.5)
+        self.margin_edit = QtWidgets.QLineEdit()
+        self.margin_edit.textChanged.connect(self.update_run_button_state)
 
         self.allow_90_check = QtWidgets.QCheckBox("Allow 90° rotation")
         self.allow_180_check = QtWidgets.QCheckBox("Allow 180° rotation")
 
         form.addWidget(self.sheet_width_label, 0, 0)
-        form.addWidget(self.sheet_width_spin, 0, 1)
+        form.addWidget(self.sheet_width_edit, 0, 1)
         form.addWidget(self.sheet_height_label, 0, 2)
-        form.addWidget(self.sheet_height_spin, 0, 3)
+        form.addWidget(self.sheet_height_edit, 0, 3)
         form.addWidget(self.kerf_label, 1, 0)
-        form.addWidget(self.kerf_spin, 1, 1)
+        form.addWidget(self.kerf_edit, 1, 1)
         form.addWidget(self.margin_label, 1, 2)
-        form.addWidget(self.margin_spin, 1, 3)
+        form.addWidget(self.margin_edit, 1, 3)
         form.addWidget(self.allow_90_check, 2, 0, 1, 2)
         form.addWidget(self.allow_180_check, 2, 2, 1, 2)
 
@@ -271,8 +260,6 @@ class SquatchCutTaskPanel:
         reset_row.addWidget(self.reset_defaults_button)
         form.addLayout(reset_row, 3, 0, 1, 4)
 
-        self.sheet_width_spin.valueChanged.connect(self._on_sheet_value_changed)
-        self.sheet_height_spin.valueChanged.connect(self._on_sheet_value_changed)
         self.reset_defaults_button.clicked.connect(self._reset_defaults)
 
         return group
@@ -288,13 +275,9 @@ class SquatchCutTaskPanel:
         self.cut_mode_check.toggled.connect(self._on_mode_changed)
 
         self.kerf_width_label = QtWidgets.QLabel("Kerf Width (mm):")
-        self.kerf_width_spin = QtWidgets.QDoubleSpinBox()
-        self.kerf_width_spin.setRange(0.1, 20.0)
-        self.kerf_width_spin.setSingleStep(0.1)
-        self.kerf_width_spin.setDecimals(2)
-        self.kerf_width_spin.setValue(3.0)
-        self.kerf_width_spin.setToolTip("Blade thickness used to maintain spacing between parts.")
-        self.kerf_width_spin.valueChanged.connect(self.update_run_button_state)
+        self.kerf_width_edit = QtWidgets.QLineEdit()
+        self.kerf_width_edit.setToolTip("Blade thickness used to maintain spacing between parts.")
+        self.kerf_width_edit.textChanged.connect(self.update_run_button_state)
 
         rot_layout = QtWidgets.QHBoxLayout()
         self.rot0_check = QtWidgets.QCheckBox("0°")
@@ -306,7 +289,7 @@ class SquatchCutTaskPanel:
         rot_layout.addStretch(1)
 
         form.addRow(self.cut_mode_check)
-        form.addRow(self.kerf_width_label, self.kerf_width_spin)
+        form.addRow(self.kerf_width_label, self.kerf_width_edit)
         form.addRow("Allowed rotations:", rot_layout)
 
         return group
@@ -384,9 +367,8 @@ class SquatchCutTaskPanel:
         cut_mode = session_state.get_optimize_for_cut_path()
         kerf_width = session_state.get_kerf_width_mm()
         rotations = set(session_state.get_allowed_rotations_deg())
-        # units stored via sc_units helpers ("mm" or "in")
-        units_pref = sc_units.get_units()
-        self.measurement_system = "imperial" if units_pref == "in" else "metric"
+        # units stored via preferences/session_state
+        self.measurement_system = session_state.get_measurement_system()
         include_labels = self._prefs.get_export_include_labels()
         include_dims = self._prefs.get_export_include_dimensions()
 
@@ -404,15 +386,15 @@ class SquatchCutTaskPanel:
         if cut_mode is None:
             cut_mode = self._prefs.get_default_optimize_for_cut_path()
 
-        for spin, value in (
-            (self.sheet_width_spin, sheet_w),
-            (self.sheet_height_spin, sheet_h),
-            (self.kerf_spin, kerf_mm),
-            (self.margin_spin, margin_mm),
+        for edit, value in (
+            (self.sheet_width_edit, sheet_w),
+            (self.sheet_height_edit, sheet_h),
+            (self.kerf_edit, kerf_mm),
+            (self.margin_edit, margin_mm),
         ):
-            spin.blockSignals(True)
-            spin.setValue(self._to_display_units(float(value)))
-            spin.blockSignals(False)
+            edit.blockSignals(True)
+            self._set_length_text(edit, float(value))
+            edit.blockSignals(False)
 
         self.allow_90_check.setChecked(bool(default_allow))
         self.allow_180_check.setChecked(bool(default_allow))
@@ -425,11 +407,12 @@ class SquatchCutTaskPanel:
         self.mode_combo.blockSignals(True)
         self.mode_combo.setCurrentIndex(mode_idx)
         self.mode_combo.blockSignals(False)
-        # Units combo reflects sc_units preference
-        unit_value = sc_units.get_units()
-        units_idx = 0 if unit_value == "mm" else 1
+        # Units combo reflects hydrated preference
+        unit_idx = self.units_combo.findData(self.measurement_system)
+        if unit_idx < 0:
+            unit_idx = 0
         self.units_combo.blockSignals(True)
-        self.units_combo.setCurrentIndex(units_idx)
+        self.units_combo.setCurrentIndex(unit_idx)
         self.units_combo.blockSignals(False)
         self._update_unit_labels()
         self._populate_table(session_state.get_panels())
@@ -438,14 +421,11 @@ class SquatchCutTaskPanel:
         # Cut optimization settings
         nesting_mode = session_state.get_nesting_mode()
         self.cut_mode_check.setChecked(nesting_mode == "cut_friendly" or bool(cut_mode))
-        self.kerf_width_spin.setValue(self._to_display_units(float(kerf_width or 3.0)))
+        self.kerf_width_edit.blockSignals(True)
+        self._set_length_text(self.kerf_width_edit, float(kerf_width or 3.0))
+        self.kerf_width_edit.blockSignals(False)
         self.rot0_check.setChecked(0 in rotations or not rotations)
         self.rot90_check.setChecked(90 in rotations)
-        unit_idx = self.units_combo.findData(self.measurement_system)
-        if unit_idx >= 0:
-            self.units_combo.blockSignals(True)
-            self.units_combo.setCurrentIndex(unit_idx)
-            self.units_combo.blockSignals(False)
         csv_units = self._prefs.get_csv_units(self.measurement_system)
         if csv_units == "imperial":
             csv_units = "in"
@@ -464,16 +444,28 @@ class SquatchCutTaskPanel:
 
     def _apply_settings_to_session(self) -> None:
         """Sync widget values to session_state and the document."""
-        sheet_w = self._to_mm(float(self.sheet_width_spin.value()))
-        sheet_h = self._to_mm(float(self.sheet_height_spin.value()))
-        kerf_mm = self._to_mm(float(self.kerf_spin.value()))
-        margin_mm = self._to_mm(float(self.margin_spin.value()))
+        try:
+            sheet_w = self._parse_length(self.sheet_width_edit.text())
+            sheet_h = self._parse_length(self.sheet_height_edit.text())
+            kerf_mm = self._parse_length(self.kerf_edit.text())
+            margin_mm = self._parse_length(self.margin_edit.text())
+            kerf_width = self._parse_length(self.kerf_width_edit.text())
+        except ValueError as exc:
+            self._handle_parse_error(exc)
+            return
+        if sheet_w <= 0 or sheet_h <= 0:
+            self._handle_parse_error(ValueError("Sheet size must be positive."), "Sheet width and height must be greater than zero.")
+            return
+        if kerf_width <= 0:
+            self._handle_parse_error(ValueError("Kerf width must be positive."), "Kerf width must be greater than zero.")
+            return
+        if kerf_mm < 0 or margin_mm < 0:
+            self._handle_parse_error(ValueError("Kerf/margin cannot be negative."), "Kerf and edge margin cannot be negative.")
+            return
         # session_state tracks a single default rotation flag; map from 90° toggle.
         default_allow = bool(self.allow_90_check.isChecked() or self.allow_180_check.isChecked())
         mode = self.mode_combo.currentData() or "material"
         cut_mode = bool(self.cut_mode_check.isChecked())
-        kerf_width_display = float(self.kerf_width_spin.value())
-        kerf_width = self._to_mm(kerf_width_display)
         export_include_labels = bool(self.include_labels_check.isChecked())
         export_include_dimensions = bool(self.include_dimensions_check.isChecked())
         rotations = []
@@ -483,6 +475,12 @@ class SquatchCutTaskPanel:
             rotations.append(90)
         if not rotations:
             rotations = [0]
+
+        # Persist measurement system preference for future sessions.
+        try:
+            self._prefs.set_measurement_system(self.measurement_system)
+        except Exception:
+            pass
 
         session_state.set_sheet_size(sheet_w, sheet_h)
         session_state.set_kerf_mm(kerf_mm)
@@ -504,7 +502,8 @@ class SquatchCutTaskPanel:
 
     def _select_matching_preset(self, width: float, height: float) -> None:
         """Try to select a preset matching the given width/height."""
-        for idx, (_, size) in enumerate(self._presets):
+        for idx, preset in enumerate(self._presets):
+            size = preset.get("size")
             if not size:
                 continue
             preset_w, preset_h = size
@@ -520,16 +519,18 @@ class SquatchCutTaskPanel:
     # ---------------- Event handlers ----------------
 
     def _on_preset_changed(self, index: int) -> None:
-        label, size = self._presets[index]
+        preset = self._presets[index]
+        size = preset.get("size")
         if size is None:
             return
         width, height = size
-        self.sheet_width_spin.blockSignals(True)
-        self.sheet_height_spin.blockSignals(True)
-        self.sheet_width_spin.setValue(width)
-        self.sheet_height_spin.setValue(height)
-        self.sheet_width_spin.blockSignals(False)
-        self.sheet_height_spin.blockSignals(False)
+        self.sheet_width_edit.blockSignals(True)
+        self.sheet_height_edit.blockSignals(True)
+        self._set_length_text(self.sheet_width_edit, width)
+        self._set_length_text(self.sheet_height_edit, height)
+        self.sheet_width_edit.blockSignals(False)
+        self.sheet_height_edit.blockSignals(False)
+        self.update_run_button_state()
 
     def _on_sheet_value_changed(self) -> None:
         """Set preset to Custom when the user edits dimensions."""
@@ -683,6 +684,67 @@ class SquatchCutTaskPanel:
         except Exception:
             pass
 
+    def _unit_label(self) -> str:
+        return sc_units.unit_label_for_system(self.measurement_system)
+
+    def _format_length(self, value_mm: float) -> str:
+        return sc_units.format_length(value_mm, self.measurement_system)
+
+    def _set_length_text(self, widget: QtWidgets.QLineEdit, value_mm: float | None) -> None:
+        if value_mm is None:
+            widget.clear()
+        else:
+            widget.setText(self._format_length(float(value_mm)))
+
+    def _parse_length(self, text: str) -> float:
+        return sc_units.parse_length(text, self.measurement_system)
+
+    def _parse_length_safely(self, widget: QtWidgets.QLineEdit) -> tuple[bool, float | None]:
+        try:
+            return True, self._parse_length(widget.text())
+        except ValueError:
+            return False, None
+
+    def _set_field_valid(self, widget: QtWidgets.QLineEdit, is_valid: bool) -> None:
+        widget.setStyleSheet("" if is_valid else "border: 1px solid red;")
+
+    def _handle_parse_error(self, exc: Exception, fallback_message: str | None = None) -> None:
+        if fallback_message:
+            message = fallback_message
+        elif self.measurement_system == "imperial":
+            message = "Invalid imperial value. Use formats like 48, 48.5, 48 1/2, or 48-1/2."
+        else:
+            message = str(exc)
+        show_error(message, title="SquatchCut")
+        logger.error(f"Failed to parse length input: {exc}")
+
+    def _format_preset_label(self, preset: dict) -> str:
+        if preset.get("size") is None:
+            return preset.get("label") or "Custom…"
+        width_mm, height_mm = preset["size"]
+        return sc_units.format_preset_label(
+            width_mm,
+            height_mm,
+            self.measurement_system,
+            nickname=preset.get("nickname"),
+        )
+
+    def _refresh_preset_labels(self) -> None:
+        """Refresh preset combo text for the current measurement system."""
+        current_index = self.preset_combo.currentIndex() if hasattr(self, "preset_combo") else 0
+        current_size = session_state.get_sheet_size()
+        self.preset_combo.blockSignals(True)
+        self.preset_combo.clear()
+        for preset in self._presets:
+            self.preset_combo.addItem(self._format_preset_label(preset))
+        self.preset_combo.blockSignals(False)
+
+        width_mm, height_mm = current_size
+        if width_mm is not None and height_mm is not None:
+            self._select_matching_preset(width_mm, height_mm)
+        elif 0 <= current_index < len(self._presets):
+            self.preset_combo.setCurrentIndex(current_index)
+
     def _populate_table(self, panels: List[dict]) -> None:
         self.parts_table.setRowCount(0)
         if not panels:
@@ -692,8 +754,7 @@ class SquatchCutTaskPanel:
             return
 
         self.parts_table.setRowCount(len(panels))
-        headers = ["Name", "Width (mm)", "Height (mm)", "Qty", "Allow rotate"]
-        self.parts_table.setHorizontalHeaderLabels(headers)
+        self._update_table_headers()
 
         for row, panel in enumerate(panels):
             name = panel.get("label") or panel.get("id") or f"Panel {row + 1}"
@@ -702,10 +763,19 @@ class SquatchCutTaskPanel:
             qty = panel.get("qty", 1)
             allow_rotate = panel.get("allow_rotate", False)
 
+            try:
+                width_text = self._format_length(float(width)) if width not in (None, "") else ""
+            except Exception:
+                width_text = str(width)
+            try:
+                height_text = self._format_length(float(height)) if height not in (None, "") else ""
+            except Exception:
+                height_text = str(height)
+
             values = [
                 str(name),
-                f"{float(width):.1f}" if width not in (None, "") else "",
-                f"{float(height):.1f}" if height not in (None, "") else "",
+                width_text,
+                height_text,
                 str(int(qty) if qty not in (None, "") else 1),
                 "Yes" if allow_rotate else "No",
             ]
@@ -719,6 +789,11 @@ class SquatchCutTaskPanel:
         self.has_csv_data = True
         self._set_run_buttons_enabled(True)
         self.update_run_button_state()
+
+    def _update_table_headers(self) -> None:
+        unit = self._unit_label()
+        headers = ["Name", f"Width ({unit})", f"Height ({unit})", "Qty", "Allow rotate"]
+        self.parts_table.setHorizontalHeaderLabels(headers)
 
     def _set_csv_label(self, path: str) -> None:
         display = os.path.basename(path) if path else "No file loaded"
@@ -791,7 +866,7 @@ class SquatchCutTaskPanel:
             self.status_label.setStyleSheet("color: orange;")
             return
         if not self.has_valid_kerf:
-            self.status_label.setText("Kerf width must be greater than zero.")
+            self.status_label.setText("Kerf/margin values must be valid and kerf width must be greater than zero.")
             self.status_label.setStyleSheet("color: orange;")
             return
         if self.overlaps_count > 0:
@@ -803,16 +878,23 @@ class SquatchCutTaskPanel:
 
     def _validate_inputs(self) -> None:
         """Inline validation for sheet size and kerf width."""
-        sheet_w = self._to_mm(float(self.sheet_width_spin.value()))
-        sheet_h = self._to_mm(float(self.sheet_height_spin.value()))
-        kerf_width = self._to_mm(float(self.kerf_width_spin.value()))
+        sheet_w_ok, sheet_w = self._parse_length_safely(self.sheet_width_edit)
+        sheet_h_ok, sheet_h = self._parse_length_safely(self.sheet_height_edit)
+        kerf_ok, kerf_mm = self._parse_length_safely(self.kerf_edit)
+        margin_ok, margin_mm = self._parse_length_safely(self.margin_edit)
+        kerf_width_ok, kerf_width = self._parse_length_safely(self.kerf_width_edit)
 
-        self.has_valid_sheet = sheet_w > 0 and sheet_h > 0
-        self.has_valid_kerf = kerf_width > 0
+        self.has_valid_sheet = bool(sheet_w_ok and sheet_h_ok and sheet_w and sheet_h and sheet_w > 0 and sheet_h > 0)
+        kerf_value_ok = kerf_ok and kerf_mm is not None and kerf_mm >= 0
+        margin_value_ok = margin_ok and margin_mm is not None and margin_mm >= 0
+        spacing_ok = kerf_value_ok and margin_value_ok
+        self.has_valid_kerf = bool(kerf_width_ok and kerf_width and kerf_width > 0 and spacing_ok)
 
-        self.sheet_width_spin.setStyleSheet("" if self.has_valid_sheet else "border: 1px solid red;")
-        self.sheet_height_spin.setStyleSheet("" if self.has_valid_sheet else "border: 1px solid red;")
-        self.kerf_width_spin.setStyleSheet("" if self.has_valid_kerf else "border: 1px solid red;")
+        self._set_field_valid(self.sheet_width_edit, self.has_valid_sheet)
+        self._set_field_valid(self.sheet_height_edit, self.has_valid_sheet)
+        self._set_field_valid(self.kerf_width_edit, self.has_valid_kerf)
+        self._set_field_valid(self.kerf_edit, kerf_ok)
+        self._set_field_valid(self.margin_edit, margin_ok)
 
     def _on_units_changed(self) -> None:
         """Handle measurement system changes."""
@@ -820,26 +902,34 @@ class SquatchCutTaskPanel:
         if system not in ("metric", "imperial"):
             system = "metric"
         self.measurement_system = system
+        self._prefs.set_measurement_system(system)
         session_state.set_measurement_system(system)
         sc_units.set_units("in" if system == "imperial" else "mm")
         self._update_unit_labels()
+        self._refresh_preset_labels()
         # Re-apply stored mm values to display in new units
         sheet_w, sheet_h = session_state.get_sheet_size()
-        kerf_mm = session_state.get_kerf_mm()
-        margin_mm = session_state.get_gap_mm()
-        kerf_width = session_state.get_kerf_width_mm()
+        kerf_mm = session_state.get_kerf_mm() or self._prefs.get_default_kerf_mm()
+        margin_mm = session_state.get_gap_mm() or self._prefs.get_default_spacing_mm()
+        kerf_width = session_state.get_kerf_width_mm() or self._prefs.get_default_kerf_mm()
 
-        if sheet_w is not None:
-            self.sheet_width_spin.setValue(self._to_display_units(float(sheet_w)))
-        if sheet_h is not None:
-            self.sheet_height_spin.setValue(self._to_display_units(float(sheet_h)))
-        if kerf_mm is not None:
-            self.kerf_spin.setValue(self._to_display_units(float(kerf_mm)))
-        if margin_mm is not None:
-            self.margin_spin.setValue(self._to_display_units(float(margin_mm)))
-        if kerf_width is not None:
-            self.kerf_width_spin.setValue(self._to_display_units(float(kerf_width)))
+        if sheet_w is None:
+            sheet_w = self._prefs.get_default_sheet_width_mm()
+        if sheet_h is None:
+            sheet_h = self._prefs.get_default_sheet_height_mm()
 
+        for edit, value in (
+            (self.sheet_width_edit, sheet_w),
+            (self.sheet_height_edit, sheet_h),
+            (self.kerf_edit, kerf_mm),
+            (self.margin_edit, margin_mm),
+            (self.kerf_width_edit, kerf_width),
+        ):
+            edit.blockSignals(True)
+            self._set_length_text(edit, float(value))
+            edit.blockSignals(False)
+
+        self._populate_table(session_state.get_panels())
         self.update_run_button_state()
 
     def _on_export_options_changed(self) -> None:
@@ -847,32 +937,15 @@ class SquatchCutTaskPanel:
         self._prefs.set_export_include_labels(bool(self.include_labels_check.isChecked()))
         self._prefs.set_export_include_dimensions(bool(self.include_dimensions_check.isChecked()))
 
-    def _to_mm(self, value: float) -> float:
-        """Convert a displayed value to mm based on current measurement system."""
-        return sc_units.display_to_mm(value)
-
-    def _to_display_units(self, value_mm: float) -> float:
-        """Convert mm to display units (mm or in)."""
-        return sc_units.mm_to_display(value_mm)
-
     def _update_unit_labels(self) -> None:
         """Update labels to reflect current measurement system."""
-        unit = sc_units.get_unit_label()
+        unit = self._unit_label()
         self.sheet_width_label.setText(f"Width ({unit}):")
         self.sheet_height_label.setText(f"Height ({unit}):")
         self.kerf_label.setText(f"Kerf width ({unit}):")
         self.margin_label.setText(f"Edge margin ({unit}):")
         self.kerf_width_label.setText(f"Kerf Width ({unit}):")
-        # Update spinbox suffixes
-        for spin in (
-            getattr(self, "sheet_width_spin", None),
-            getattr(self, "sheet_height_spin", None),
-            getattr(self, "kerf_spin", None),
-            getattr(self, "margin_spin", None),
-            getattr(self, "kerf_width_spin", None),
-        ):
-            if spin is not None:
-                spin.setSuffix(f" {unit}")
+        self._update_table_headers()
 
     def on_report_bug_clicked(self) -> None:
         """Open the SquatchCut GitHub issues page in the default browser."""
@@ -967,15 +1040,15 @@ class SquatchCutTaskPanel:
     def _reset_defaults(self) -> None:
         """Reset configuration fields to safe defaults (does not clear CSV)."""
         # Pull defaults from preferences
-        self.sheet_width_spin.setValue(self._to_display_units(self._prefs.get_default_sheet_width_mm()))
-        self.sheet_height_spin.setValue(self._to_display_units(self._prefs.get_default_sheet_height_mm()))
-        self.kerf_spin.setValue(self._to_display_units(self._prefs.get_default_kerf_mm()))
-        self.margin_spin.setValue(self._to_display_units(self._prefs.get_default_spacing_mm()))
+        self._set_length_text(self.sheet_width_edit, self._prefs.get_default_sheet_width_mm())
+        self._set_length_text(self.sheet_height_edit, self._prefs.get_default_sheet_height_mm())
+        self._set_length_text(self.kerf_edit, self._prefs.get_default_kerf_mm())
+        self._set_length_text(self.margin_edit, self._prefs.get_default_spacing_mm())
         self.allow_90_check.setChecked(False)
         self.allow_180_check.setChecked(False)
         self.mode_combo.setCurrentIndex(0)
         self.cut_mode_check.setChecked(self._prefs.get_default_optimize_for_cut_path())
-        self.kerf_width_spin.setValue(self._to_display_units(self._prefs.get_default_kerf_mm()))
+        self._set_length_text(self.kerf_width_edit, self._prefs.get_default_kerf_mm())
         self.rot0_check.setChecked(True)
         self.rot90_check.setChecked(True)
 

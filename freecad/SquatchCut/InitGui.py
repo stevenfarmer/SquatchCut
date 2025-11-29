@@ -42,6 +42,13 @@ class SquatchCutWorkbench(Gui.Workbench):
         App.Console.PrintMessage("[SquatchCut] Initialize() running\n")
         version = globals().get("_SC_VERSION", "dev")
         App.Console.PrintMessage(f"[SquatchCut] Initialize() called (v{version})\n")
+        # Hydrate session state from persisted preferences before any UI/commands read it.
+        try:
+            from SquatchCut.settings import hydrate_from_params
+
+            hydrate_from_params()
+        except Exception as exc:  # pragma: no cover - best-effort startup
+            App.Console.PrintMessage(f"[SquatchCut][WARN] Failed to hydrate settings: {exc}\n")
         # Import command modules so they register their FreeCAD commands
         from SquatchCut.gui.commands import (
             cmd_main_ui,

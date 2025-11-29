@@ -271,29 +271,27 @@ def test_units_toggle_updates_pref():
 
 def test_sheet_size_suffix_tracks_units():
     """
-    GUI test: sheet size spinbox suffix reflects units.
+    GUI test: sheet size/kerf labels reflect units.
     """
-    result = TestResult("Units: sheet size suffix matches units")
+    result = TestResult("Units: sheet size labels match units")
     try:
         sc_units.set_units("mm")
         panel_mm = taskpanel_main.create_main_panel_for_tests()
-        sb_w = getattr(panel_mm, "sheet_width_spin", None)
-        sb_h = getattr(panel_mm, "sheet_height_spin", None)
-        if sb_w is None or sb_h is None:
-            raise RuntimeError("Main panel missing sheet_width_spin/sheet_height_spin.")
-        suffix_w = sb_w.suffix().strip()
-        suffix_h = sb_h.suffix().strip()
-        if "mm" not in suffix_w or "mm" not in suffix_h:
-            raise AssertionError(f"Expected 'mm' in suffix; got '{suffix_w}', '{suffix_h}'.")
+        lbl_w_mm = getattr(panel_mm, "sheet_width_label", None)
+        lbl_h_mm = getattr(panel_mm, "sheet_height_label", None)
+        if lbl_w_mm is None or lbl_h_mm is None:
+            raise RuntimeError("Main panel missing sheet_width_label/sheet_height_label.")
+        if "mm" not in lbl_w_mm.text() or "mm" not in lbl_h_mm.text():
+            raise AssertionError(f"Expected 'mm' in labels; got '{lbl_w_mm.text()}', '{lbl_h_mm.text()}'.")
 
         sc_units.set_units("in")
         panel_in = taskpanel_main.create_main_panel_for_tests()
-        sb_w_in = getattr(panel_in, "sheet_width_spin", None)
-        sb_h_in = getattr(panel_in, "sheet_height_spin", None)
-        suffix_w_in = sb_w_in.suffix().strip()
-        suffix_h_in = sb_h_in.suffix().strip()
-        if "in" not in suffix_w_in or "in" not in suffix_h_in:
-            raise AssertionError(f"Expected 'in' in suffix; got '{suffix_w_in}', '{suffix_h_in}'.")
+        lbl_w_in = getattr(panel_in, "sheet_width_label", None)
+        lbl_h_in = getattr(panel_in, "sheet_height_label", None)
+        if lbl_w_in is None or lbl_h_in is None:
+            raise RuntimeError("Main panel missing sheet_width_label/sheet_height_label.")
+        if "in" not in lbl_w_in.text() or "in" not in lbl_h_in.text():
+            raise AssertionError(f"Expected 'in' in labels; got '{lbl_w_in.text()}', '{lbl_h_in.text()}'.")
 
         result.set_pass()
     except Exception as exc:

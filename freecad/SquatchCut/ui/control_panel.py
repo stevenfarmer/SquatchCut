@@ -8,12 +8,17 @@ except Exception:
     FreeCADGui = None
 
 from SquatchCut.gui.qt_compat import QtWidgets
+from SquatchCut import settings
 
 from SquatchCut.core import session, session_state
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.core import logger
 from SquatchCut.core import units as sc_units
-from SquatchCut.core.units import mm_to_inches, inches_to_mm
+from SquatchCut.core.units import (
+    format_length,
+    parse_length,
+    unit_label_for_system,
+)
 from SquatchCut.ui.messages import show_info, show_error
 from SquatchCut.gui.commands.cmd_import_csv import run_csv_import
 from SquatchCut.gui.commands import cmd_run_nesting
@@ -35,6 +40,12 @@ class SquatchCutControlPanel:
             doc = FreeCAD.ActiveDocument
         self.doc = doc
 
+        # Ensure session_state reflects persisted preferences before reading it.
+        try:
+            settings.hydrate_from_params()
+        except Exception:
+            pass
+
         if self.doc is not None:
             session.sync_state_from_doc(self.doc)
 
@@ -48,7 +59,7 @@ class SquatchCutControlPanel:
         gap_mm = session_state.get_gap_mm()
         default_allow = session_state.get_default_allow_rotate()
         prefs = SquatchCutPreferences()
-        self.measurement_system = prefs.get_measurement_system()
+        self.measurement_system = session_state.get_measurement_system()
 
         if sheet_w is None:
             sheet_w = prefs.get_default_sheet_width_mm()
@@ -68,20 +79,13 @@ class SquatchCutControlPanel:
         self.units_combo.setCurrentIndex(unit_idx)
 
         self.sheet_width_label = QtWidgets.QLabel()
-        self.sheet_width_spin = QtWidgets.QDoubleSpinBox()
-        self.sheet_width_spin.setRange(1.0, 100000.0)
-        self.sheet_width_spin.setDecimals(3)
-        self.sheet_width_spin.setSingleStep(10.0)
-
+        self.sheet_width_edit = QtWidgets.QLineEdit()
         self.sheet_height_label = QtWidgets.QLabel()
-        self.sheet_height_spin = QtWidgets.QDoubleSpinBox()
-        self.sheet_height_spin.setRange(1.0, 100000.0)
-        self.sheet_height_spin.setDecimals(3)
-        self.sheet_height_spin.setSingleStep(10.0)
+        self.sheet_height_edit = QtWidgets.QLineEdit()
 
         sheet_layout.addRow("Units:", self.units_combo)
-        sheet_layout.addRow(self.sheet_width_label, self.sheet_width_spin)
-        sheet_layout.addRow(self.sheet_height_label, self.sheet_height_spin)
+        sheet_layout.addRow(self.sheet_width_label, self.sheet_width_edit)
+        sheet_layout.addRow(self.sheet_height_label, self.sheet_height_edit)
 
         main_layout.addWidget(sheet_group)
 
@@ -89,31 +93,22 @@ class SquatchCutControlPanel:
         cut_group = QtWidgets.QGroupBox("Cutting Parameters")
         cut_layout = QtWidgets.QFormLayout(cut_group)
 
-        self.kerf_spin = QtWidgets.QDoubleSpinBox()
-        self.kerf_spin.setRange(0.0, 100.0)
-        self.kerf_spin.setDecimals(2)
-        self.kerf_spin.setSingleStep(0.1)
-        self.kerf_spin.setValue(kerf_mm)
+        self.kerf_label = QtWidgets.QLabel()
+        self.kerf_edit = QtWidgets.QLineEdit()
+        self.gap_label = QtWidgets.QLabel()
+        self.gap_edit = QtWidgets.QLineEdit()
 
-        self.gap_spin = QtWidgets.QDoubleSpinBox()
-        self.gap_spin.setRange(0.0, 100.0)
-        self.gap_spin.setDecimals(2)
-        self.gap_spin.setSingleStep(0.1)
-        self.gap_spin.setValue(gap_mm)
-
-        cut_layout.addRow("Kerf (mm):", self.kerf_spin)
-        cut_layout.addRow("Additional gap (mm):", self.gap_spin)
+        cut_layout.addRow(self.kerf_label, self.kerf_edit)
+        cut_layout.addRow(self.gap_label, self.gap_edit)
 
         main_layout.addWidget(cut_group)
 
         # Apply initial unit conversions to sheet size and spacing
         self._update_unit_labels()
-        display_w = self._to_display_units(float(sheet_w))
-        display_h = self._to_display_units(float(sheet_h))
-        self.sheet_width_spin.setValue(display_w)
-        self.sheet_height_spin.setValue(display_h)
-        self.kerf_spin.setValue(self._to_display_units(float(kerf_mm)))
-        self.gap_spin.setValue(self._to_display_units(float(gap_mm)))
+        self._set_length_text(self.sheet_width_edit, float(sheet_w))
+        self._set_length_text(self.sheet_height_edit, float(sheet_h))
+        self._set_length_text(self.kerf_edit, float(kerf_mm))
+        self._set_length_text(self.gap_edit, float(gap_mm))
 
         # ---------------- Rotation group ----------------
         rot_group = QtWidgets.QGroupBox("Rotation")
@@ -185,10 +180,14 @@ class SquatchCutControlPanel:
             FreeCAD.Console.PrintError("[SquatchCut] No active document in ControlPanel._apply_settings_to_state_and_doc().\n")
             return
 
-        sheet_w = self._to_mm(float(self.sheet_width_spin.value()))
-        sheet_h = self._to_mm(float(self.sheet_height_spin.value()))
-        kerf_mm = self._to_mm(float(self.kerf_spin.value()))
-        gap_mm = self._to_mm(float(self.gap_spin.value()))
+        try:
+            sheet_w = self._parse_length_text(self.sheet_width_edit.text())
+            sheet_h = self._parse_length_text(self.sheet_height_edit.text())
+            kerf_mm = self._parse_length_text(self.kerf_edit.text())
+            gap_mm = self._parse_length_text(self.gap_edit.text())
+        except ValueError as exc:
+            self._handle_parse_error(exc)
+            return
         default_allow = bool(self.default_rotate_check.isChecked())
         prefs = SquatchCutPreferences()
         prefs.set_measurement_system(self.measurement_system)
@@ -196,6 +195,8 @@ class SquatchCutControlPanel:
         session_state.set_measurement_system(self.measurement_system)
         prefs.set_default_sheet_width_mm(sheet_w)
         prefs.set_default_sheet_height_mm(sheet_h)
+        prefs.set_default_kerf_mm(kerf_mm)
+        prefs.set_default_spacing_mm(gap_mm)
 
         session_state.set_sheet_size(sheet_w, sheet_h)
         session_state.set_kerf_mm(kerf_mm)
@@ -203,6 +204,11 @@ class SquatchCutControlPanel:
         session_state.set_default_allow_rotate(default_allow)
         prefs.set_report_view_log_level(self._index_to_level(self.report_log_combo.currentIndex()))
         prefs.set_python_console_log_level(self._index_to_level(self.console_log_combo.currentIndex()))
+
+        try:
+            settings.hydrate_from_params()
+        except Exception:
+            pass
 
         session.sync_doc_from_state(self.doc)
         self.doc.recompute()
@@ -217,37 +223,50 @@ class SquatchCutControlPanel:
         if system not in ("metric", "imperial"):
             system = "metric"
         self.measurement_system = system
+        try:
+            SquatchCutPreferences().set_measurement_system(system)
+        except Exception:
+            pass
         self._update_unit_labels()
         # Re-apply conversions to current values to keep display consistent
         sheet_w_mm = session_state.get_sheet_size()[0] or SquatchCutPreferences().get_default_sheet_width_mm()
         sheet_h_mm = session_state.get_sheet_size()[1] or SquatchCutPreferences().get_default_sheet_height_mm()
-        self.sheet_width_spin.setValue(self._to_display_units(float(sheet_w_mm)))
-        self.sheet_height_spin.setValue(self._to_display_units(float(sheet_h_mm)))
-        self.kerf_spin.setValue(self._to_display_units(float(session_state.get_kerf_mm())))
-        self.gap_spin.setValue(self._to_display_units(float(session_state.get_gap_mm())))
+        session_state.set_measurement_system(self.measurement_system)
+        sc_units.set_units("in" if self.measurement_system == "imperial" else "mm")
+        self._set_length_text(self.sheet_width_edit, float(sheet_w_mm))
+        self._set_length_text(self.sheet_height_edit, float(sheet_h_mm))
+        self._set_length_text(self.kerf_edit, float(session_state.get_kerf_mm()))
+        self._set_length_text(self.gap_edit, float(session_state.get_gap_mm()))
 
     def _update_unit_labels(self):
-        unit = "in" if self.measurement_system == "imperial" else "mm"
+        unit = unit_label_for_system(self.measurement_system)
         self.sheet_width_label.setText(f"Width ({unit}):")
         self.sheet_height_label.setText(f"Height ({unit}):")
-        self.kerf_spin.setSuffix(f" {unit}")
-        self.gap_spin.setSuffix(f" {unit}")
-        # Ensure spin ranges are reasonable for inches
-        step = 1.0 if unit == "in" else 10.0
-        self.sheet_width_spin.setSingleStep(step)
-        self.sheet_height_spin.setSingleStep(step)
+        self.kerf_label.setText(f"Kerf width ({unit}):")
+        self.gap_label.setText(f"Additional gap ({unit}):")
+        self.kerf_edit.setPlaceholderText("")
+        self.gap_edit.setPlaceholderText("")
 
-    def _to_mm(self, value: float) -> float:
-        """Convert a value in current display units to mm."""
-        if self.measurement_system == "imperial":
-            return inches_to_mm(value)
-        return float(value)
+    def _parse_length_text(self, text: str) -> float:
+        """Parse the given text into millimeters based on the current measurement system."""
+        return parse_length(text, self.measurement_system)
 
-    def _to_display_units(self, value_mm: float) -> float:
-        """Convert an internal mm value to current display units."""
+    def _format_length(self, value_mm: float) -> str:
+        """Format a millimeter value for display in the current measurement system."""
+        return format_length(value_mm, self.measurement_system)
+
+    def _set_length_text(self, widget: QtWidgets.QLineEdit, value_mm: float) -> None:
+        """Populate a line edit with a formatted length string."""
+        widget.setText(self._format_length(value_mm))
+
+    def _handle_parse_error(self, exc: Exception) -> None:
+        """Show a user-friendly parse error without overwriting existing text."""
         if self.measurement_system == "imperial":
-            return mm_to_inches(value_mm)
-        return float(value_mm)
+            message = "Invalid imperial value. Use formats like 48, 48.5, 48 1/2, or 48-1/2."
+        else:
+            message = str(exc)
+        show_error(message, title="SquatchCut")
+        logger.error(f"Failed to parse length input: {exc}")
 
     def _on_browse_clicked(self):
         dlg = QtWidgets.QFileDialog()

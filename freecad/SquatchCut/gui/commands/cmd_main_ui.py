@@ -52,6 +52,10 @@ class SquatchCutMainUICommand:
             pass
         panel = SquatchCutTaskPanel(doc)
         Gui.Control.showDialog(panel)
+        try:
+            logger.info(">>> [SquatchCut] Task panel opened.")
+        except Exception:
+            pass
 
 
 def register():
