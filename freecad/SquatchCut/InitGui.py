@@ -8,10 +8,15 @@ Note: Avoid adding business logic; keep this file focused on registration/bootst
 
 import FreeCAD as App
 import FreeCADGui as Gui
+
+_SC_VERSION = "dev"
 try:
     from .version import __version__ as _SC_VERSION
 except Exception:
-    _SC_VERSION = "dev"
+    try:
+        from SquatchCut.version import __version__ as _SC_VERSION  # type: ignore
+    except Exception:
+        pass
 
 try:
     from PySide import QtCore, QtGui, QtWidgets
@@ -35,7 +40,8 @@ class SquatchCutWorkbench(Gui.Workbench):
         Registers all commands, toolbars, and menus.
         """
         App.Console.PrintMessage("[SquatchCut] Initialize() running\n")
-        App.Console.PrintMessage(f"[SquatchCut] Initialize() called (v{_SC_VERSION})\n")
+        version = globals().get("_SC_VERSION", "dev")
+        App.Console.PrintMessage(f"[SquatchCut] Initialize() called (v{version})\n")
         # Import command modules so they register their FreeCAD commands
         from SquatchCut.gui.commands import (
             cmd_main_ui,
