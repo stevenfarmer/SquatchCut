@@ -36,6 +36,9 @@ class SquatchCutTaskPanel:
     - Results summary (sheets, utilization, estimated cuts, unplaced)
     """
 
+    FALLBACK_SHEET_SIZE_MM = (1220.0, 2440.0)
+    FALLBACK_MATCH_TOLERANCE_MM = 0.5
+
     def __init__(self, doc=None):
         # Hydrate persisted settings before any UI reads them.
         try:
@@ -371,11 +374,17 @@ class SquatchCutTaskPanel:
         self.measurement_system = session_state.get_measurement_system()
         include_labels = self._prefs.get_export_include_labels()
         include_dims = self._prefs.get_export_include_dimensions()
+        pref_sheet_w = self._prefs.get_default_sheet_width_mm()
+        pref_sheet_h = self._prefs.get_default_sheet_height_mm()
 
         if sheet_w is None:
-            sheet_w = self._prefs.get_default_sheet_width_mm()
+            sheet_w = pref_sheet_w
         if sheet_h is None:
-            sheet_h = self._prefs.get_default_sheet_height_mm()
+            sheet_h = pref_sheet_h
+
+        sheet_w, sheet_h = self._apply_default_sheet_override(
+            sheet_w, sheet_h, pref_sheet_w, pref_sheet_h
+        )
 
         if margin_mm is None:
             margin_mm = self._prefs.get_default_spacing_mm()
@@ -441,6 +450,32 @@ class SquatchCutTaskPanel:
         self._update_unit_labels()
         self._validate_inputs()
         self.update_run_button_state()
+
+    def _apply_default_sheet_override(
+        self,
+        sheet_w: float,
+        sheet_h: float,
+        pref_w: float,
+        pref_h: float,
+    ) -> tuple[float, float]:
+        """Prefer preference defaults when the doc sheet is just the fallback metric preset."""
+        fallback_w, fallback_h = self.FALLBACK_SHEET_SIZE_MM
+        tol = self.FALLBACK_MATCH_TOLERANCE_MM
+        uses_fallback = (
+            sheet_w is not None
+            and sheet_h is not None
+            and abs(sheet_w - fallback_w) < tol
+            and abs(sheet_h - fallback_h) < tol
+        )
+        prefers_custom = (
+            abs(pref_w - fallback_w) > tol or abs(pref_h - fallback_h) > tol
+        )
+        if uses_fallback and prefers_custom:
+            session_state.set_sheet_size(pref_w, pref_h)
+            if self.doc is not None:
+                session.sync_doc_from_state(self.doc)
+            return pref_w, pref_h
+        return sheet_w, sheet_h
 
     def _apply_settings_to_session(self) -> None:
         """Sync widget values to session_state and the document."""
