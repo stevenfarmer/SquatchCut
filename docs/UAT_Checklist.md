@@ -1,54 +1,79 @@
-# SquatchCut UAT – UI Navigation & Core Features
+# SquatchCut UAT Checklist
 
-This checklist verifies that SquatchCut works correctly for end-users who don’t write code.  
-Please follow the steps in order and mark **Pass** or **Fail** for each item.
+Version: UAT v0.1  
+Audience: Volunteer / UAT testers
 
-If something fails or confuses you, leave a short note.
+Instructions:
 
-## Instructions
+- Follow each step in order.
+- For each step, mark **Pass** (✅) or **Fail** (❌) in the table.
+- Add notes if anything is confusing, broken, or unexpected.
 
-- Open FreeCAD.
-- Make sure SquatchCut is installed.
-- Keep this checklist open while performing each step.
-- Do **not** skip steps.
-- Do **not** fix anything — just observe and record.
+You may print this page or fill it in digitally.
 
 ---
 
-## UAT Checklist Table
+## Tester Info
 
-| #  | Action                                                                 | Expected Result                                                                 | Pass/Fail | Notes |
-|----|------------------------------------------------------------------------|---------------------------------------------------------------------------------|-----------|-------|
-| 1  | Open FreeCAD and load a new or existing document.                      | FreeCAD opens normally.                                                         |           |       |
-| 2  | Locate the SquatchCut toolbar/menu/command.                            | SquatchCut commands are visible (Settings, Import CSV, Set Sheet Size).         |           |       |
-| 3  | Click **SquatchCut Settings**.                                         | The Tasks panel opens, displaying all settings.                                 |           |       |
-| 4  | Review the Settings panel UI.                                          | All fields are readable and not cut off.                                        |           |       |
-| 5  | Change a setting (e.g., spacing or sheet default).                     | Setting updates without error.                                                  |           |       |
-| 6  | Close and reopen the Settings panel.                                   | Values persist or reset as designed (no errors).                                |           |       |
-| 7  | Click **Import CSV**.                                                  | File chooser opens.                                                             |           |       |
-| 8  | Select the provided `test_parts.csv`.                                  | CSV imports without errors.                                                     |           |       |
-| 9  | Verify imported parts list (if shown).                                 | Data matches the CSV; formatting is correct.                                    |           |       |
-| 10 | Click **Set Sheet Size**.                                              | Sheet size dialog or panel appears.                                             |           |       |
-| 11 | Enter a valid sheet size.                                              | Size accepted without error.                                                    |           |       |
-| 12 | Enter an invalid sheet size (0 or negative).                           | UI blocks the value or shows a clear warning.                                   |           |       |
-| 13 | Click **Run Nesting**.                                                 | Nesting runs and completes without crashing.                                    |           |       |
-| 14 | Look at the nesting result view.                                       | Parts appear on the sheet successfully.                                         |           |       |
-| 15 | Visually inspect for overlapping parts.                                | No parts overlap; spacing looks correct.                                        |           |       |
-| 16 | Compare part count to the CSV.                                         | Number of parts placed matches CSV.                                             |           |       |
-| 17 | If multiple sheets were used, switch between them.                     | Navigation between sheets works.                                                |           |       |
-| 18 | Zoom and pan around the layout.                                        | Smooth interaction; parts stay visible.                                         |           |       |
-| 19 | Export the layout (if available).                                      | File exports without error.                                                     |           |       |
-| 20 | Open the exported file.                                                | File opens and matches the on-screen result.                                    |           |       |
-| 21 | Close FreeCAD without saving.                                          | App closes cleanly.                                                             |           |       |
-| 22 | Reopen FreeCAD and repeat steps 2–4.                                   | SquatchCut remains available and functional.                                    |           |       |
+- **Name:**  
+- **Date:**  
+- **OS & Version (e.g., Windows 11, macOS 15):**  
+- **FreeCAD Version:**  
+- **SquatchCut Build / ZIP Name:**  
 
 ---
 
-## Completion
+## Legend
 
-When finished:
+- ✅ = Worked as expected
+- ❌ = Didn’t work or was confusing
+- N/A = Not applicable or skipped
 
-- Save this checklist (PDF or exported text)
-- Send it along with your notes and screenshots to Steven
+---
 
-Thank you for testing SquatchCut!
+## Checklist
+
+| # | Step                                                                                              | Result (✅/❌/N/A) | Notes (what happened?) |
+|---|---------------------------------------------------------------------------------------------------|--------------------|------------------------|
+| 1 | Start FreeCAD.                                                                                   |                    |                        |
+| 2 | Confirm you see a **SquatchCut** toolbar/menu with **SquatchCut** and **Settings** buttons.      |                    |                        |
+| 3 | Click **Settings**. Verify the settings panel opens without errors.                              |                    |                        |
+| 4 | In Settings, set your measurement system (Metric or Imperial) and a default sheet size.          |                    |                        |
+| 5 | Save/apply settings and close the Settings panel.                                                |                    |                        |
+| 6 | Click the main **SquatchCut** button. Confirm the main panel opens without errors.               |                    |                        |
+| 7 | In the main panel, confirm you see sections for CSV import, sheet/presets, and nesting.          |                    |                        |
+| 8 | Set **CSV Units** to match `test_parts.csv` (as instructed).                                     |                    |                        |
+| 9 | Use the file picker to select `test_parts.csv`.                                                  |                    |                        |
+|10 | Click **Import Parts**. No error dialog should appear.                                           |                    |                        |
+|11 | In the FreeCAD **Model** tree, confirm a **Source Parts** group appears and contains part items. |                    |                        |
+|12 | Change the sheet size using the sheet width/height fields (without using a preset).              |                    |                        |
+|13 | Verify that the visible sheet in the 3D view updates to the new size.                            |                    |                        |
+|14 | Select a sheet **preset** (e.g., 4′ x 8′). Confirm the sheet fields update to match the preset.  |                    |                        |
+|15 | Manually change the sheet width or height again and confirm the preset selection returns to "None/Custom". |          |                        |
+|16 | Click **Run Nesting**.                                                                           |                    |                        |
+|17 | In the **Model** tree, confirm a **Nested Parts** group appears or is rebuilt.                   |                    |                        |
+|18 | Confirm nested parts appear on top of the sheet in the 3D view (no parts obviously off-sheet).   |                    |                        |
+|19 | Run nesting a second time without changing the CSV. Confirm the Nested Parts group updates rather than duplicating parts. |     |                        |
+|20 | Hide the Source Parts group, leaving only sheet + nested layout visible.                          |                    |                        |
+|21 | Save the FreeCAD document without errors.                                                        |                    |                        |
+|22 | (Optional) Use **File → Export** to export the layout (DXF/SVG/PDF) and confirm the export works. |                   |                        |
+
+---
+
+## Overall Experience
+
+Please briefly describe:
+
+- What worked well?
+- What was confusing?
+- Any crashes or serious bugs?
+
+---
+
+## Additional Comments
+
+(Use as much space as you need.)
+
+---
+
+End of checklist.

@@ -9,14 +9,10 @@ Note: Avoid adding business logic; keep this file focused on registration/bootst
 import FreeCAD as App
 import FreeCADGui as Gui
 
-_SC_VERSION = "dev"
 try:
     from .version import __version__ as _SC_VERSION
 except Exception:
-    try:
-        from SquatchCut.version import __version__ as _SC_VERSION  # type: ignore
-    except Exception:
-        pass
+    from SquatchCut.version import __version__ as _SC_VERSION  # type: ignore
 
 try:
     from PySide import QtCore, QtGui, QtWidgets
@@ -81,25 +77,9 @@ class SquatchCutWorkbench(Gui.Workbench):
         Gui.addCommand("SquatchCut_Preferences", cmd_preferences.COMMAND)
         Gui.addCommand("SquatchCut_RunGUITests", cmd_run_gui_tests.COMMAND)
 
-        primary_commands = ["SquatchCut_ShowTaskPanel", "SquatchCut_RunNesting"]
-        advanced_commands = [
-            "SquatchCut_Settings",
-            "SquatchCut_ImportCSV",
-            "SquatchCut_AddShapes",
-            "SquatchCut_SetSheetSize",
-            "SquatchCut_ToggleSourcePanels",
-            "SquatchCut_ExportNestingCSV",
-            "SquatchCut_ExportReport",
-            "SquatchCut_Preferences",
-            "SquatchCut_RunGUITests",
-        ]
-
-        # Primary toolbar focuses on the unified UI; keep advanced tools available separately.
+        primary_commands = ["SquatchCut_ShowTaskPanel", "SquatchCut_Settings"]
         self.appendToolbar("SquatchCut", primary_commands)
-
-        # Menu keeps both primary and advanced entries.
-        self.appendMenu("SquatchCut", primary_commands + advanced_commands)
-        self._ensure_squatchcut_menu()
+        self.appendMenu("SquatchCut", primary_commands)
 
     def GetClassName(self):
         return "Gui::PythonWorkbench"
@@ -118,31 +98,5 @@ class SquatchCutWorkbench(Gui.Workbench):
             Gui.runCommand("SquatchCut_ShowTaskPanel")
         except Exception:
             pass
-
-    def _ensure_squatchcut_menu(self):
-        """Ensure a top-level SquatchCut menu with Preferences entry exists."""
-        try:
-            mw = Gui.getMainWindow()
-            if mw is None:
-                return
-            menu_bar = mw.menuBar()
-            squatch_menu = None
-            for action in menu_bar.actions():
-                if action.text() == "SquatchCut":
-                    squatch_menu = action.menu()
-                    break
-            if squatch_menu is None:
-                squatch_menu = QtWidgets.QMenu("SquatchCut", mw)
-                menu_bar.addMenu(squatch_menu)
-
-            # Avoid duplicate action
-            existing = [act.text() for act in squatch_menu.actions()]
-            if "Preferences…" not in existing:
-                pref_action = squatch_menu.addAction("Preferences…")
-                pref_action.setToolTip("Configure default SquatchCut sheet size, spacing, and cut options.")
-                pref_action.triggered.connect(lambda: Gui.runCommand("SquatchCut_Preferences"))
-        except Exception:
-            return
-
 
 Gui.addWorkbench(SquatchCutWorkbench())

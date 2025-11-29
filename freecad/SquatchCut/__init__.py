@@ -10,6 +10,7 @@ from __future__ import annotations
 from .version import __version__
 
 __author__ = "SquatchCut Team"
+__all__ = ["__version__", "__author__", "initialize"]
 
 
 def initialize():

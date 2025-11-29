@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 try:
     import FreeCAD as App  # type: ignore
 except Exception:  # pragma: no cover
@@ -120,6 +122,7 @@ def parse_imperial_inches(text: str) -> float:
 
     # Normalize dash-separated mixed numbers: "48-3/4" -> "48 3/4"
     norm = raw.replace("-", " ")
+    norm = re.sub(r"\s*/\s*", "/", norm)
     norm = " ".join(norm.split())
 
     # Try mixed number "A B/C"
@@ -201,8 +204,16 @@ def format_length(value_mm: float, measurement_system: str, max_denominator: int
     """
     system = _normalize_measurement_system(measurement_system)
     if system == "imperial":
-        return inches_to_fraction_str(mm_to_inches(value_mm), max_denominator=max_denominator)
+        return format_imperial_length(value_mm, max_denominator=max_denominator)
     return format_metric_length(value_mm, decimals=decimals)
+
+
+def format_imperial_length(value_mm: float, max_denominator: int = 16) -> str:
+    """
+    Format mm as an imperial string using mixed fractions.
+    """
+    inches = mm_to_inches(value_mm)
+    return inches_to_fraction_str(inches, max_denominator=max_denominator)
 
 
 def format_preset_label(

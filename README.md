@@ -1,58 +1,291 @@
 # SquatchCut
-### A cryptid-powered sheet optimization workbench for FreeCAD  
-**Status: Beta – Work in progress. Expect breaking changes and incomplete features.**
 
-## Overview
-SquatchCut is a FreeCAD workbench for optimizing rectangular sheet goods. It provides a single Task panel where you configure sheets, load a parts CSV, choose an optimization strategy (material vs cuts), and run nesting. The workbench is Python-based with no external solver dependencies.
+SquatchCut is a FreeCAD add-on for laying out rectangular parts on sheet goods (like plywood or MDF). It reads a CSV cut list, lets you define your sheet size, and generates a nested layout you can inspect, save, and export.
+
+The goal is to give woodworkers, cabinet shops, and makers a fast way to get from “parts list” to “cuttable layout” without needing to learn a CAM package or write code.
+
+---
 
 ## Features
-- Consolidated Task panel for sheet setup, CSV import, optimization mode, and nesting actions.
-- Units preference with metric (mm) or imperial (in) display for sheet settings and CSV import.
-- Two optimization modes:
-  - Material (minimize waste / maximize yield).
-  - Cuts (row/column heuristic to approximate fewer saw cuts).
-- Result summary after nesting: sheets used, estimated utilization, estimated cut count, unplaced parts.
-- Supports kerf, margins, and rotation options (default or per-part CSV flag).
-- FreeCAD geometry output with per-sheet groups; export commands remain available, including cutlist CSV export from nested layouts.
 
-## Documentation
-- https://stevenfarmer.github.io/SquatchCut/
+- **CSV-driven workflow**  
+  - Import a simple CSV with `width`, `height`, and `id` (plus optional `quantity` and `label`).
+  - Supports metric (mm) and imperial (inches) CSV units.
+
+- **Sheet & presets**  
+  - Configure default sheet size in a Settings panel.
+  - Use common presets (4′×8′, 2′×4′, 5′×10′) as shortcuts.
+  - Manual edits are treated as “custom” sheet sizes.
+
+- **Clean document structure**  
+  - One sheet object representing the panel.
+  - One group for **source parts** (from CSV).
+  - One group for **nested parts** (layout results).
+  - Re-importing and re-running nesting clears and rebuilds these groups instead of leaving junk geometry.
+
+- **FreeCAD-native geometry**  
+  - Uses ordinary FreeCAD objects, so you can:
+    - Save the file as usual.
+    - Export layouts to DXF/SVG/PDF using FreeCAD’s export tools.
+
+---
+
+## Requirements
+
+- **FreeCAD**: version 1.0+  
+- **OS**: Windows, macOS, or Linux  
+- **Input data**: CSV file with at least:
+  - `width`
+  - `height`
+  - `id`
+
+Optional CSV columns:
+
+- `quantity` – how many of that part (defaults to 1)
+- `label` – display label
+
+---
 
 ## Installation
-- **Recommended:** Install via FreeCAD Add-on Manager (search for “SquatchCut”). You can also use “Install from ZIP” with a release archive.
-- Manual install: clone this repo into your FreeCAD `Mod` directory:
-  - Linux/macOS: `~/.local/share/FreeCAD/Mod/`
-  - Windows: `%APPDATA%\\FreeCAD\\Mod\\`
-- Restart FreeCAD and choose **SquatchCut** from the Workbench selector. The main toolbar shows a single SquatchCut button to open the Task panel.
 
-## Usage
-1. Open FreeCAD and activate the SquatchCut workbench.
-2. Click the main **SquatchCut** toolbar button to open the Task panel.
-3. Configure sheet size, kerf, and margins (use presets or custom values).
-4. Load a parts CSV (see format below). The nesting buttons enable once parts are loaded.
-5. Choose optimization mode:
-   - Material: prioritize yield.
-   - Cuts: align parts into rows/columns to approximate fewer saw cuts.
-6. Click **Preview Nesting** or **Apply to Document**.
-7. Review the Results section: sheets used, utilization %, estimated cuts, and unplaced parts.
+1. Start **FreeCAD**.
+2. Go to **Tools → Add-on Manager**.
+3. Click **Install from ZIP**.
+4. Select the SquatchCut ZIP you were given (or downloaded).
+5. Wait for the installation to complete.
+6. Restart FreeCAD.
 
-## CSV Format
-- Required columns: `id`, `width`, `height`
-- Optional: `qty`, `label`, `material`, `allow_rotate`
-- Units: millimeters by default; imperial (in) CSVs are supported via the CSV Units chooser in the task panel.
-- Invalid rows are skipped; errors are reported to the console/dialogs.
+After restart, you should see a **SquatchCut** toolbar or menu that includes:
 
-## Status & Limitations
-- **Beta / in progress**: behavior and APIs may change; features may be incomplete.
-- The “cuts” optimization mode is heuristic and does **not** guarantee the true minimum number of cuts.
-- Error handling and edge cases are improving; please report issues you encounter.
+- **SquatchCut** – opens the main Task Panel.
+- **Settings** – opens the configuration panel.
 
-## Testing
-- Python core tests (recommended):
-  - `python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt`
-  - `PYTHONPATH=freecad .venv/bin/pytest --cov=SquatchCut.core.nesting --cov=SquatchCut.core.session_state --cov-report=term-missing --cov-fail-under=80`
-- Additional FreeCAD E2E tests exist under `freecad/testing/` for manual runs inside FreeCAD.
+If you don’t see it:
 
-## Contributing / Feedback
-- Issues and PRs are welcome. This project is in active development—open an issue before large changes.
-- See `CONTRIBUTING.md` for guidelines, testing commands, and notes on adding new optimization strategies.
+- Verify the add-on is enabled in the Add-on Manager.
+- Make sure you restarted FreeCAD after installation.
+
+---
+
+## Basic Usage
+
+### 1. Configure Settings (One-time)
+
+1. Click the **Settings** button on the SquatchCut toolbar.
+2. Choose your **measurement system**:
+   - Metric → values in mm
+   - Imperial → values in inches (often fractional)
+3. Set your **default sheet size**, e.g.:
+   - 1220 × 2440 mm
+   - or 48 × 96 in
+4. Configure:
+   - **Kerf width** (saw blade thickness)
+   - **Gap** between parts
+5. Save/apply the settings.
+
+These defaults will be used each time you open the main SquatchCut panel. You can return to Settings later to update them.
+
+---
+
+### 2. Open SquatchCut
+
+1. Click the **SquatchCut** button.
+2. The main Task Panel opens (typically on the left side of the FreeCAD window).
+
+The panel is organized into three main sections:
+
+1. **CSV Import**
+2. **Sheet & Presets**
+3. **Nesting / Results**
+
+---
+
+### 3. Import Parts from CSV
+
+1. In the **CSV Import** section:
+   - Set **CSV Units** to **Metric** or **Imperial** to match your file.
+2. Choose your CSV file (e.g. `test_parts.csv`).
+3. Click **Import Parts**.
+
+If import succeeds:
+
+- A **Source Parts** group is created or rebuilt in the FreeCAD document tree.
+- Each CSV row becomes a rectangular part inside that group.
+
+If something fails:
+
+- Check the status text in the panel (if present).
+- Check FreeCAD’s report view for error messages.
+- Common issues:
+  - Missing `width`/`height`/`id` columns.
+  - Wrong CSV units (metric vs imperial mismatch).
+
+---
+
+### 4. Set Sheet Size & Presets
+
+In the **Sheet & Presets** section:
+
+1. Verify that **Sheet Width** and **Sheet Height** show your panel size.
+2. Use the **preset** combo box to quickly set common sheet sizes:
+   - `None / Custom`
+   - `4′ x 8′`
+   - `2′ x 4′`
+   - `5′ x 10′`
+
+Preset behavior:
+
+- On panel load:
+  - Preset is set to `None / Custom` even if defaults match a preset.
+- When you select a preset:
+  - The sheet fields update to that preset.
+  - Defaults are **not** overwritten.
+- When you manually change width/height:
+  - Preset selection automatically returns to `None / Custom`.
+
+The sheet object in the 3D view should resize accordingly after changes.
+
+---
+
+### 5. Run Nesting
+
+1. In the **Nesting** section, click **Run Nesting**.
+2. SquatchCut:
+   - Reads the sheet size and all source parts.
+   - Runs the nesting algorithm.
+   - Creates or rebuilds a **Nested Parts** group representing the layout.
+
+Behavior:
+
+- Re-running nesting replaces the contents of the **Nested Parts** group.
+- Old nested layouts are cleared; you only see the latest result.
+
+You can hide/show:
+
+- **Source Parts** group to see just the final layout.
+- **Nested Parts** group to compare original vs nested.
+
+---
+
+### 6. Save & Export
+
+Because SquatchCut uses standard FreeCAD geometry, you can:
+
+- Save the document with **File → Save**.
+- Export layouts using **File → Export** to:
+  - DXF
+  - SVG
+  - PDF
+  - Other formats supported by FreeCAD.
+
+Recommended workflow:
+
+- Save a working *.FCStd* file as your master.
+- Export a DXF/SVG for CNC, or PDF for printing in the shop.
+
+---
+
+## CSV Details
+
+Expected basic columns:
+
+- `width` (mm or in)
+- `height` (mm or in)
+- `id` (text identifier)
+
+Optional:
+
+- `quantity`
+- `label`
+
+Units:
+
+- **CSV Units** selector in the UI controls whether numeric values are interpreted as mm or inches.
+- Fractional inches support depends on the current build; common formats include:
+  - `48`
+  - `48.5`
+  - `3/4`
+  - `48 3/4`
+  - `48-3/4`
+
+If your parts look the wrong size:
+
+- Double-check CSV units and the raw CSV values.
+- Confirm there are no extra header rows or stray text.
+
+---
+
+## Documentation & UAT
+
+Additional docs live in the `docs/` folder:
+
+- `docs/user_guide.md`  
+  Full user guide, with explanations and troubleshooting.
+
+- `docs/quickstart.md`  
+  One-page “Import → Sheet → Nest → Export” overview.
+
+- `docs/UAT_Prep_Instructions.md`  
+  Instructions for volunteer testers (how to install and run the script).
+
+- `docs/UAT_Checklist.md`  
+  Step-by-step test script with Pass/Fail tracking.
+
+If you are participating in user testing:
+
+- Follow the UAT prep instructions.
+- Use the checklist to guide your testing.
+- Send feedback as requested by your coordinator.
+
+---
+
+## Development & Testing
+
+For developers:
+
+- Project structure (high level):
+
+  - `core/`  
+    Nesting engine, units/conversions, session state, sheet model, presets, etc.
+
+  - `gui/`  
+    Task panels, FreeCAD commands, view utilities.
+
+  - `resources/`  
+    Icons and other assets.
+
+  - `docs/`  
+    User and UAT documentation.
+
+  - `tests/`  
+    pytest-based tests for core logic and selected behaviors.
+
+- Typical dev loop:
+
+  1. Make changes.
+  2. Run tests (where configured) with:
+     - `pytest`
+  3. Start FreeCAD with the add-on installed or in dev mode.
+  4. Run through a small CSV + sheet scenario to verify behavior.
+
+Please keep new changes consistent with the existing architecture and patterns, especially around:
+
+- Internal units (mm)
+- Measurement system handling (metric vs imperial)
+- Document structure:
+  - Single sheet object
+  - One Source group
+  - One Nested group
+
+---
+
+## Status
+
+SquatchCut is currently in **UAT / early testing**. Expect rough edges, and please report issues with:
+
+- Steps to reproduce
+- Your OS and FreeCAD version
+- A sample CSV, if relevant
+- Screenshots of the model tree and layout, if possible
+
+Contributions and feedback are welcome.

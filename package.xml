@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="https://freecad.org/package-metadata/2021">
+  <name>SquatchCut</name>
+
+  <!-- Keep this in sync with SquatchCut/version.py::__version__ -->
+  <version>0.1.0</version>
+
+  <description>
+    Sheet nesting workbench for optimizing rectangular parts on plywood and other sheet goods.
+  </description>
+
+  <maintainer>Maintainer: see repository README for current contact details.</maintainer>
+
+  <license>See LICENSE file in repository.</license>
+
+  <url type="repository">https://github.com/stevenfarmer/SquatchCut</url>
+  <url type="bugtracker">https://github.com/stevenfarmer/SquatchCut/issues</url>
+
+  <freecad min="0.21" max="*"/>
+
+  <tag>Workbench</tag>
+  <tag>Addon</tag>
+  <tag>Nesting</tag>
+  <tag>Woodworking</tag>
+</Package>

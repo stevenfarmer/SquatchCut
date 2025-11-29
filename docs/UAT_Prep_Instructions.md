@@ -1,98 +1,140 @@
-# Volunteer UAT Prep Instructions (For Regular Humans)
+# SquatchCut UAT Prep Instructions
 
-These instructions are for volunteer testers who are helping validate SquatchCut.  
-You do **not** need to know GitHub, Python, or anything even remotely technical.  
-If you can open FreeCAD and follow a checklist, you’re qualified.
+Audience: **Volunteer testers / UAT participants**  
+Goal: Help you install SquatchCut and run a simple, repeatable test script.
 
-## Before You Start
+You do **not** need to know how to code. You do **not** need GitHub.
 
-You must have:
+---
 
-- A computer (Windows, Mac, or Linux)
-- FreeCAD **1.0 or newer** installed
-- The SquatchCut add-on ZIP file provided to you
-- The sample CSV file: `test_parts.csv`
-- The UAT Checklist document (PDF or Markdown)
+## 1. What You’ll Need
 
-You **do not need**:
-- A GitHub account  
-- GitHub Desktop  
-- Any coding tools  
-- To install or configure Python  
-- To understand what “UAT” stands for (but it’s “User Acceptance Testing”)
+Before you start:
 
-## How to Install SquatchCut
+- A computer with:
+  - Windows, macOS, or Linux
+- **FreeCAD 1.0+** installed
+- The **SquatchCut add-on ZIP** file
+- Test files provided to you:
+  - `test_parts.csv`
+  - `UAT_Checklist.md` (this file may be bundled or referenced)
+  - Any feedback template your coordinator provides
+
+---
+
+## 2. What You Do *Not* Need
+
+You do **not** need:
+
+- A GitHub account
+- GitHub Desktop
+- A compiler
+- Any knowledge of Python
+
+Please do **not**:
+
+- Rename the test CSV file
+- Move files into the FreeCAD installation folders
+- Install additional tools unless explicitly instructed
+
+---
+
+## 3. Install SquatchCut
 
 1. Open **FreeCAD**.
-2. Go to the top menu: **Tools → Add-on Manager**.
-3. In the Add-on Manager, click **Install from ZIP**.
-4. Select the SquatchCut ZIP file you were given.
-5. Wait for installation to finish.
-6. Restart FreeCAD.
+2. Go to **Tools → Add-on Manager**.
+3. Click **Install from ZIP**.
+4. Choose the SquatchCut ZIP file provided to you.
+5. Wait for installation to complete.
+6. Close and restart FreeCAD.
 
-That’s it—you’re ready to test.
+After restart, confirm that:
 
-## Files You Will Receive
+- A **SquatchCut** toolbar or menu appears.
+- You see at least:
+  - A **SquatchCut** button (main panel)
+  - A **Settings** button
 
-You will be provided with:
+If not, please note that as a UAT issue.
 
-- **test_parts.csv**  
-  A small cut list for testing.
+---
 
-- **UAT_Checklist**  
-  The step-by-step process you will follow.
+## 4. Files You Will Use
 
-- **UAT_Feedback_Form.txt**  
-  A simple notes file for reporting anything weird.
-- Metric and Imperial test CSVs  
-  If you use the imperial CSV, set CSV units to “Imperial (in)” before importing.
+Your coordinator should give you:
 
-## How to Run the Test
+- `test_parts.csv`  
+  Sample parts list for testing.
 
-1. Open the **UAT Checklist**.
-2. Follow each step in order (1–22).
-3. For each step, mark:
-   - **Pass** → everything worked  
-   - **Fail** → something didn’t behave as expected  
-4. Add notes only when:
-   - Something is confusing
-   - Something behaves incorrectly
-   - FreeCAD crashes or behaves unexpectedly
+- `UAT_Checklist.md`  
+  Step-by-step script to follow inside FreeCAD.
 
-5. When finished, send back:
-   - The completed checklist  
-   - The feedback form  
-   - Any screenshots (if applicable)
+- A feedback template (could be a text file, form, or email instructions).
 
-## How to Take Screenshots
+Keep these together in a known folder (e.g., `Documents/SquatchCut_UAT/`).
 
-If something breaks or looks strange, take a screenshot.
+---
 
-- **Windows:** Press `Win + Shift + S`
-- **Mac:** Press `Command + Shift + 4`
-- **Linux:** Try `PrintScreen` (this can vary by system)
+## 5. How to Run the Test
 
-Screenshots help tremendously.
+1. Start **FreeCAD**.
+2. Ensure the **SquatchCut** toolbar is visible.
+3. Open the **UAT_Checklist.md** file in any text editor (Notepad, VS Code, etc.).
+4. Follow each step in the checklist **in order**.
+5. After each step, mark:
+   - **Pass** – if it worked and made sense.
+   - **Fail** – if it did not work, crashed, or was confusing.
 
-## What NOT to Do
+Use the notes column to record:
 
-Please avoid the following:
+- What you expected
+- What actually happened
+- Any error messages or weird behavior
 
-- ❌ Do **not** install GitHub Desktop  
-- ❌ Do **not** try to open or edit the source code  
-- ❌ Do **not** rename the CSV file  
-- ❌ Do **not** upload anything to GitHub  
-- ❌ Do **not** contact the developer tools or open GitHub issues directly  
-- ❌ Do **not** try to troubleshoot crashes (just write it down)
+You are **not** being graded. The software is.
 
-Your job is to run the test — not fix the test.
+---
 
-## When You’re Done
+## 6. Taking Screenshots (If Something Fails)
 
-Email or message Steven:
+If something breaks or looks wrong:
 
-- The completed checklist  
-- The feedback/notes file  
-- Screenshots if you took any  
+- On **Windows**:
+  - Press **Win + Shift + S** to open the Snip & Sketch / Snipping tool.
+  - Drag a box around the area.
+  - Save the image.
 
-Thank you for helping make SquatchCut better.
+- On **macOS**:
+  - Press **Command + Shift + 4**.
+  - Drag a box around the area.
+  - A screenshot is saved to your desktop.
+
+- On **Linux**:
+  - Use **Print Screen** or your distro’s screenshot tool.
+
+Try to capture:
+
+- The model tree (left panel)
+- The SquatchCut UI
+- The 3D view showing the layout
+
+---
+
+## 7. When You’re Done
+
+When you complete the checklist:
+
+1. Save your filled-out checklist (if it’s a file).
+2. Collect:
+   - The completed checklist
+   - Any screenshots
+   - Any test CSV variations you used (if requested)
+
+3. Send everything to your SquatchCut contact using the method they specified:
+   - Email
+   - Shared folder
+   - Forms, etc.
+
+If you got stuck and couldn’t complete the script, **still** send what you have and note where you stopped.
+
+Thank you for helping test SquatchCut!
