@@ -24,6 +24,7 @@ _default_allow_rotate = False
 _optimize_for_cut_path = False
 _kerf_width_mm = 3.0
 _allowed_rotations_deg = (0, 90)
+_measurement_system = "metric"
 
 # Last nesting layout: list of PlacedPart objects
 _last_layout = None
@@ -131,6 +132,22 @@ def set_allowed_rotations_deg(values) -> None:
 def get_allowed_rotations_deg():
     """Return allowed rotation angles tuple."""
     return tuple(_allowed_rotations_deg or (0,))
+
+
+# --------------------------
+# Measurement system
+# --------------------------
+
+def set_measurement_system(system: str) -> None:
+    """Store measurement system preference ('metric' or 'imperial')."""
+    global _measurement_system
+    system = system if system in ("metric", "imperial") else "metric"
+    _measurement_system = system
+
+
+def get_measurement_system() -> str:
+    """Return the current measurement system."""
+    return _measurement_system or "metric"
 
 
 # --------------------------

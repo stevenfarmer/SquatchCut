@@ -59,6 +59,16 @@ def set_units(units: str):
 MM_PER_INCH = 25.4
 
 
+def mm_to_inches(mm: float) -> float:
+    """Convert millimeters to inches."""
+    return float(mm) / MM_PER_INCH
+
+
+def inches_to_mm(inches: float) -> float:
+    """Convert inches to millimeters."""
+    return float(inches) * MM_PER_INCH
+
+
 def mm_to_display(value_mm: float) -> float:
     """Convert an internal mm value to the current display units."""
     units = get_units()

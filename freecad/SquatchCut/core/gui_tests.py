@@ -137,7 +137,7 @@ def test_import_small_metric_csv():
 
         sync_source_panels_to_document()
 
-        group = doc.getObject("SquatchCut_SourcePanels")
+        group = doc.getObject("SquatchCut_SourceParts")
         if group is None or not getattr(group, "Group", []):
             raise RuntimeError("No source panel objects found after sync.")
 

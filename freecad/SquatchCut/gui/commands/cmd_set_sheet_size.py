@@ -20,14 +20,14 @@ from SquatchCut.gui.qt_compat import QtWidgets, QtCore, QtGui
 
 try:
     from SquatchCut.core import session, session_state  # type: ignore
+    from SquatchCut.core.sheet_model import ensure_sheet_object  # type: ignore
     from SquatchCut.gui.dialogs.dlg_sheet_size import SC_SheetSizeDialog  # type: ignore
-    from SquatchCut.core.geometry_sync import ensure_sheet_object  # type: ignore
     from SquatchCut.gui.view_utils import zoom_to_objects  # type: ignore
 except Exception:
     import SquatchCut.core.session_state as session_state  # type: ignore
     import SquatchCut.core.session as session  # type: ignore
+    from SquatchCut.core.sheet_model import ensure_sheet_object  # type: ignore
     from SquatchCut.gui.dialogs.dlg_sheet_size import SC_SheetSizeDialog  # type: ignore
-    from SquatchCut.core.geometry_sync import ensure_sheet_object  # type: ignore
     from SquatchCut.gui.view_utils import zoom_to_objects  # type: ignore
 from SquatchCut.core import logger
 
@@ -80,7 +80,7 @@ class SC_SetSheetSizeCommand:
             session_state.set_sheet_size(width, height)
             session.sync_doc_from_state(doc)
             width, height = session_state.get_sheet_size()
-            sheet_obj = ensure_sheet_object(doc)
+            sheet_obj = ensure_sheet_object(width, height, doc)
 
             App.Console.PrintMessage(
                 f">>> [SquatchCut] SetSheetSize: updated to {width} x {height} {units}\n"

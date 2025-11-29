@@ -47,6 +47,7 @@ class SquatchCutTaskPanel:
         self._prefs = SquatchCutPreferences()
         units_pref = sc_units.get_units()
         self.measurement_system = "imperial" if units_pref == "in" else "metric"
+        session_state.set_measurement_system(self.measurement_system)
         self._presets: list[tuple[str, tuple[float, float] | None]] = [
             ("Custom…", None),
             ("1220 x 2440 mm (4x8 ft)", (1220.0, 2440.0)),
@@ -819,6 +820,7 @@ class SquatchCutTaskPanel:
         if system not in ("metric", "imperial"):
             system = "metric"
         self.measurement_system = system
+        session_state.set_measurement_system(system)
         sc_units.set_units("in" if system == "imperial" else "mm")
         self._update_unit_labels()
         # Re-apply stored mm values to display in new units
@@ -1041,7 +1043,8 @@ class SquatchCutTaskPanel:
 
         sheets_group = doc.getObject("SquatchCut_Sheets")
         nested_group = doc.getObject("SquatchCut_NestedParts")
-        groups = [g for g in (sheets_group, nested_group) if g]
+        source_group = doc.getObject("SquatchCut_SourceParts")
+        groups = [g for g in (sheets_group, nested_group, source_group) if g]
         for group in groups:
             for obj in getattr(group, "Group", []):
                 try:
@@ -1084,7 +1087,8 @@ class SquatchCutTaskPanel:
 
         sheets_group = doc.getObject("SquatchCut_Sheets")
         nested_group = doc.getObject("SquatchCut_NestedParts")
-        groups = [g for g in (sheets_group, nested_group) if g]
+        source_group = doc.getObject("SquatchCut_SourceParts")
+        groups = [g for g in (sheets_group, nested_group, source_group) if g]
         for group in groups:
             for obj in getattr(group, "Group", []):
                 try:
@@ -1107,7 +1111,8 @@ class SquatchCutTaskPanel:
 
         sheets_group = doc.getObject("SquatchCut_Sheets")
         nested_group = doc.getObject("SquatchCut_NestedParts")
-        groups = [g for g in (sheets_group, nested_group) if g]
+        source_group = doc.getObject("SquatchCut_SourceParts")
+        groups = [g for g in (sheets_group, nested_group, source_group) if g]
         for group in groups:
             for o in getattr(group, "Group", []):
                 try:
