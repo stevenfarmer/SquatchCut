@@ -126,6 +126,21 @@ def test_nesting_rotation_flag_preserved():
     assert rot_no.rotation_deg == 0
 
 
+def test_cut_friendly_places_all_parts():
+    parts = [
+        Part("A", 300, 100, can_rotate=False),
+        Part("B", 280, 120, can_rotate=False),
+        Part("C", 310, 150, can_rotate=True),
+        Part("D", 200, 80, can_rotate=True),
+    ]
+    cfg = NestingConfig(nesting_mode="cut_friendly", kerf_width_mm=2.0, spacing_mm=2.0)
+    placed = nest_parts(parts, sheet_width=1000, sheet_height=500, config=cfg)
+    assert len(placed) == len(parts)
+    for pp in placed:
+        assert pp.x + pp.width <= 1000 + 1e-6
+        assert pp.y + pp.height <= 500 + 1e-6
+
+
 def test_nesting_rejects_unfittable_part():
     """Parts that cannot fit a sheet in any orientation should raise ValueError."""
     too_big = Part(id="huge", width=5000, height=5000, can_rotate=False)

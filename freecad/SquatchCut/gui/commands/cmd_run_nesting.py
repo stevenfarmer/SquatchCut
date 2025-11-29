@@ -138,6 +138,7 @@ class RunNestingCommand:
             allowed_rotations = get_allowed_rotations_deg()
             export_labels = get_export_include_labels()
             export_dims = get_export_include_dimensions()
+            nesting_mode = session_state.get_nesting_mode()
 
             # Manage SourcePanels group: keep originals, hide them
             if not panel_objs:
@@ -213,6 +214,7 @@ class RunNestingCommand:
                         kerf_width_mm=kerf_width or kerf_mm,
                         allowed_rotations_deg=allowed_rotations,
                         spacing_mm=gap_mm,
+                        nesting_mode="cut_friendly",
                     )
                     placed_parts = nest_parts(parts, sheet_w, sheet_h, cfg)
                 elif opt_mode == "cuts":
@@ -224,7 +226,11 @@ class RunNestingCommand:
                         margin=float(gap_mm),
                     )
                 else:
-                    cfg = NestingConfig(kerf_width_mm=kerf_mm, spacing_mm=gap_mm)
+                    cfg = NestingConfig(
+                        kerf_width_mm=kerf_mm,
+                        spacing_mm=gap_mm,
+                        nesting_mode=nesting_mode,
+                    )
                     placed_parts = nest_on_multiple_sheets(
                         parts,
                         sheet_w,
@@ -275,6 +281,9 @@ class RunNestingCommand:
                         logger.error(
                             f"Overlap detected between {getattr(a, 'id', '?')} and {getattr(b, 'id', '?')} on sheet {getattr(a, 'sheet_index', '?')}."
                         )
+                logger.info(
+                    f">>> [SquatchCut] Nesting mode={nesting_mode}, parts={len(placed_parts)}, sheets={util.get('sheets_used', 0)}"
+                )
                 set_nesting_stats(util.get("sheets_used", None), cut_complexity, len(overlaps))
                 sheet_count = (max(pp.sheet_index for pp in placed_parts) + 1) if placed_parts else 0
                 summary_msg = (

@@ -34,6 +34,7 @@ _panels = []
 
 # Optimization mode: "material" (default) or "cuts"
 _optimization_mode = "material"
+_nesting_mode = "pack"
 _export_include_labels = True
 _export_include_dimensions = False
 _source_panel_objects = []
@@ -213,6 +214,19 @@ def set_optimization_mode(mode: str) -> None:
 def get_optimization_mode() -> str:
     """Get the current nesting optimization mode."""
     return _optimization_mode or "material"
+
+
+def set_nesting_mode(mode: str) -> None:
+    """Set layout style: pack (default) or cut_friendly."""
+    global _nesting_mode
+    if mode not in ("pack", "cut_friendly"):
+        mode = "pack"
+    _nesting_mode = mode
+
+
+def get_nesting_mode() -> str:
+    """Return layout style."""
+    return _nesting_mode or "pack"
 
 
 # --------------------------

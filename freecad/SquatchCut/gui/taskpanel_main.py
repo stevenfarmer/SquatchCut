@@ -280,10 +280,11 @@ class SquatchCutTaskPanel:
         group = QtWidgets.QGroupBox("Cut Optimization")
         form = QtWidgets.QFormLayout(group)
 
-        self.cut_mode_check = QtWidgets.QCheckBox("Cut Optimization: Woodshop Mode")
+        self.cut_mode_check = QtWidgets.QCheckBox("Cut-friendly layout")
         self.cut_mode_check.setToolTip(
-            "Optimize nesting for real-world cutting efficiency using a guillotine-style layout."
+            "Bias nesting toward woodshop-style rips/crosscuts instead of tight packing."
         )
+        self.cut_mode_check.toggled.connect(self._on_mode_changed)
 
         self.kerf_width_label = QtWidgets.QLabel("Kerf Width (mm):")
         self.kerf_width_spin = QtWidgets.QDoubleSpinBox()
@@ -434,7 +435,8 @@ class SquatchCutTaskPanel:
         self._reset_summary(mode)
         self._refresh_summary()
         # Cut optimization settings
-        self.cut_mode_check.setChecked(bool(cut_mode))
+        nesting_mode = session_state.get_nesting_mode()
+        self.cut_mode_check.setChecked(nesting_mode == "cut_friendly" or bool(cut_mode))
         self.kerf_width_spin.setValue(self._to_display_units(float(kerf_width or 3.0)))
         self.rot0_check.setChecked(0 in rotations or not rotations)
         self.rot90_check.setChecked(90 in rotations)
@@ -557,6 +559,7 @@ class SquatchCutTaskPanel:
         """Persist optimization mode change immediately."""
         mode = self.mode_combo.currentData() or "material"
         session_state.set_optimization_mode(mode)
+        session_state.set_nesting_mode("cut_friendly" if self.cut_mode_check.isChecked() else "pack")
         self.update_run_button_state()
 
     def _choose_csv_file(self) -> None:

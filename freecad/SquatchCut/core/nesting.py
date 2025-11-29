@@ -68,6 +68,7 @@ class NestingConfig:
     measurement_system: str = "metric"
     export_include_labels: bool = True
     export_include_dimensions: bool = False
+    nesting_mode: str = "pack"  # "pack" (default) or "cut_friendly"
 
 
 def get_effective_spacing(config) -> float:
@@ -381,6 +382,103 @@ def nest_cut_optimized(
     return placements
 
 
+def _nest_cut_friendly(
+    parts: List[Part],
+    sheet_width: float,
+    sheet_height: float,
+    config: NestingConfig | None = None,
+) -> List[PlacedPart]:
+    """
+    Lane-based heuristic aimed at woodshop-style rips/crosscuts.
+
+    - Sort parts by width descending (treat X as rip direction).
+    - Build vertical lanes; each lane has thickness = max width of its parts.
+    - Within a lane, stack parts along Y until height is exceeded, then start a new lane.
+    - If a lane won't fit on the current sheet, start a new sheet.
+    """
+    cfg = config or NestingConfig()
+    kerf = cfg.kerf_width_mm
+    spacing = max(cfg.spacing_mm, 0.0)
+    margin = spacing
+
+    if sheet_width <= 0 or sheet_height <= 0:
+        return []
+
+    remaining = sorted(parts, key=lambda p: (p.width, p.height), reverse=True)
+    placements: List[PlacedPart] = []
+
+    sheet_index = 0
+    lane_origin_x = margin
+
+    while remaining:
+        # Start a new lane with the widest available part
+        seed = remaining.pop(0)
+        lane_width = seed.width
+        lane_parts = [seed]
+
+        # Collect parts that can fit within this lane width (allow rotation if permitted)
+        fitted = []
+        for p in list(remaining):
+            fits = p.width <= lane_width or (p.can_rotate and p.height <= lane_width)
+            if fits:
+                fitted.append(p)
+        for p in fitted:
+            remaining.remove(p)
+            lane_parts.append(p)
+
+        # Sort lane parts by height descending for stacking
+        lane_parts.sort(key=lambda p: max(p.height, p.width if p.can_rotate else p.height), reverse=True)
+
+        current_y = margin
+        lane_used_height = 0.0
+        for p in lane_parts:
+            w, h = p.width, p.height
+            rot = 0
+            if p.can_rotate and h > lane_width and w <= lane_width:
+                w, h = h, w
+                rot = 90
+            if w > lane_width:
+                # rotate if possible to fit lane
+                if p.can_rotate and h <= lane_width:
+                    w, h = h, w
+                    rot = 90
+                else:
+                    # Doesn't fit this lane; push back for later
+                    remaining.insert(0, p)
+                    continue
+
+            if current_y + h + margin > sheet_height:
+                # Lane full; put part back and break to start a new lane
+                remaining.insert(0, p)
+                break
+
+            placements.append(
+                PlacedPart(
+                    id=p.id,
+                    sheet_index=sheet_index,
+                    x=lane_origin_x,
+                    y=current_y,
+                    width=w,
+                    height=h,
+                    rotation_deg=rot,
+                )
+            )
+            current_y += h + kerf + spacing
+            lane_used_height = max(lane_used_height, current_y)
+
+        lane_thickness = lane_width + spacing
+        lane_origin_x += lane_thickness + kerf
+
+        if lane_origin_x > sheet_width - margin:
+            # Move to next sheet
+            sheet_index += 1
+            lane_origin_x = margin
+            # Reset order by width for remaining parts on the new sheet
+            remaining.sort(key=lambda p: (p.width, p.height), reverse=True)
+
+    return placements
+
+
 def nest_parts(
     parts: List[Part],
     sheet_width: float,
@@ -401,6 +499,8 @@ def nest_parts(
             {"width": sheet_width, "height": sheet_height},
             cfg,
         )
+    if getattr(cfg, "nesting_mode", "pack") == "cut_friendly":
+        return _nest_cut_friendly(parts, sheet_width, sheet_height, cfg)
     return _nest_rectangular_default(parts, sheet_width, sheet_height, cfg)
 
 
