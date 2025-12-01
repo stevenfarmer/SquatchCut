@@ -21,7 +21,7 @@ class _UnitRadioProxy:
         self._value = value
 
     def isChecked(self) -> bool:
-        return (self._panel.units_combo.currentData() or "metric") == self._value
+        return (getattr(self._panel, "measurement_system", None) or "metric") == self._value
 
     def setChecked(self, checked: bool) -> None:
         if not checked:
@@ -29,6 +29,7 @@ class _UnitRadioProxy:
         idx = self._panel.units_combo.findData(self._value)
         if idx >= 0:
             self._panel.units_combo.setCurrentIndex(idx)
+            self._panel.measurement_system = self._value
             if hasattr(self._panel, "_on_units_changed"):
                 self._panel._on_units_changed()
 
@@ -124,6 +125,10 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         if idx < 0:
             idx = 0
         self.units_combo.setCurrentIndex(idx)
+        # Align measurement_system with the combo selection for proxy checks
+        current_data = self.units_combo.currentData()
+        if current_data:
+            self.measurement_system = current_data
         self._update_unit_labels()
         if self._prefs.has_default_sheet_size(self.measurement_system):
             width_mm = self._prefs.get_default_sheet_width_mm()

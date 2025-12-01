@@ -172,9 +172,20 @@ class RunNestingCommand:
                 source_group = doc.addObject("App::DocumentObjectGroup", "SquatchCut_SourceParts")
 
             # Move original selected panel objects into the SourcePanels group
+            valid_panel_objs = []
             for obj in panel_objs:
-                if obj not in source_group.Group:
-                    source_group.addObject(obj)
+                try:
+                    if obj is None:
+                        continue
+                    if obj not in source_group.Group:
+                        source_group.addObject(obj)
+                    valid_panel_objs.append(obj)
+                except Exception:
+                    logger.warning("Skipping invalid panel object during nesting addObject.")
+                    continue
+            if not valid_panel_objs:
+                show_warning("No valid panel objects available for nesting.")
+                return
 
             # Hide SourcePanels group by default
             try:
@@ -196,7 +207,7 @@ class RunNestingCommand:
 
             parts: list[Part] = []
             panels_data = session.get_panels() or []
-            for idx, obj in enumerate(panel_objs):
+            for idx, obj in enumerate(valid_panel_objs):
                 try:
                     w = h = None
                     if panels_data:

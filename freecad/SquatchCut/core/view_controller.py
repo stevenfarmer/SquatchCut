@@ -55,7 +55,10 @@ def _unique_objects(objs: Iterable[object]) -> List[object]:
     for obj in objs:
         if obj is None:
             continue
-        name = getattr(obj, "Name", None)
+        try:
+            name = getattr(obj, "Name", None)
+        except ReferenceError:
+            continue
         key = (name, obj)
         if key in seen:
             continue
