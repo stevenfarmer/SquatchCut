@@ -6,6 +6,7 @@ from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.core import session_state
 from SquatchCut.core import sheet_presets as sc_sheet_presets
 from SquatchCut.core import units as sc_units
+from SquatchCut.core.units import inches_to_mm, mm_to_inches
 
 
 def hydrate_from_params() -> None:
@@ -23,27 +24,19 @@ def hydrate_from_params() -> None:
     sc_units.set_units(units)
     session_state.set_measurement_system(measurement_system)
 
-    # Core defaults (stored in mm)
-    _ensure_sheet_defaults(prefs)
-    session_state.set_sheet_size(
-        prefs.get_default_sheet_width_mm(),
-        prefs.get_default_sheet_height_mm(),
-    )
+    # Core defaults (per measurement system)
+    if prefs.has_default_sheet_size(measurement_system):
+        default_width_mm = prefs.get_default_sheet_width_mm()
+        default_height_mm = prefs.get_default_sheet_height_mm()
+        session_state.set_sheet_size(default_width_mm, default_height_mm)
+    else:
+        session_state.clear_sheet_size()
     session_state.set_kerf_mm(prefs.get_default_kerf_mm())
     session_state.set_gap_mm(prefs.get_default_spacing_mm())
     session_state.set_kerf_width_mm(prefs.get_default_kerf_mm())
     session_state.set_optimize_for_cut_path(prefs.get_default_optimize_for_cut_path())
+    session_state.set_default_allow_rotate(prefs.get_default_allow_rotate())
 
     # Export defaults
     session_state.set_export_include_labels(prefs.get_export_include_labels())
     session_state.set_export_include_dimensions(prefs.get_export_include_dimensions())
-
-
-def _ensure_sheet_defaults(prefs: SquatchCutPreferences) -> None:
-    if prefs.has_default_sheet_size():
-        return
-    width_mm, height_mm = sc_sheet_presets.get_factory_default_sheet_size(
-        prefs.get_measurement_system()
-    )
-    prefs.set_default_sheet_width_mm(width_mm)
-    prefs.set_default_sheet_height_mm(height_mm)

@@ -53,6 +53,13 @@ def set_sheet_size(width_mm: float, height_mm: float) -> None:
     _sheet_height = float(height_mm)
 
 
+def clear_sheet_size() -> None:
+    """Clear sheet size so UIs can show empty defaults when none are stored."""
+    global _sheet_width, _sheet_height
+    _sheet_width = None
+    _sheet_height = None
+
+
 def get_sheet_size():
     """Return current sheet size (width_mm, height_mm) or (None, None)."""
     return _sheet_width, _sheet_height

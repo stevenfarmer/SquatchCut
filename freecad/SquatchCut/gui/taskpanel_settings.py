@@ -8,6 +8,7 @@ except Exception:
     Gui = None
 
 from SquatchCut.gui.qt_compat import QtWidgets
+from SquatchCut.core import units as sc_units
 from SquatchCut import settings
 from SquatchCut.core.preferences import SquatchCutPreferences
 
@@ -24,6 +25,7 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         self.form = self
         self._close_callback = None
         self._prefs = SquatchCutPreferences()
+        self.measurement_system = self._prefs.get_measurement_system()
         self._build_ui()
         self._load_values()
 
@@ -36,8 +38,6 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         layout.addWidget(self._build_sheet_defaults_group())
         layout.addWidget(self._build_cut_defaults_group())
         layout.addWidget(self._build_rotation_group())
-        layout.addWidget(self._build_optimization_group())
-        layout.addWidget(self._build_logging_group())
 
         layout.addStretch(1)
 
@@ -47,6 +47,7 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         self.units_combo = QtWidgets.QComboBox()
         self.units_combo.addItem("Metric (mm)", "metric")
         self.units_combo.addItem("Imperial (in)", "imperial")
+        self.units_combo.currentIndexChanged.connect(self._on_units_changed)
         row.addWidget(self.units_combo)
         row.addStretch(1)
         return group
@@ -55,15 +56,14 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         group = QtWidgets.QGroupBox("Sheet size defaults")
         form = QtWidgets.QFormLayout(group)
 
-        self.imperial_width_edit = QtWidgets.QLineEdit()
-        self.imperial_height_edit = QtWidgets.QLineEdit()
-        self.metric_width_edit = QtWidgets.QLineEdit()
-        self.metric_height_edit = QtWidgets.QLineEdit()
+        self.sheet_width_edit = QtWidgets.QLineEdit()
+        self.sheet_height_edit = QtWidgets.QLineEdit()
 
-        form.addRow("Imperial width (in):", self.imperial_width_edit)
-        form.addRow("Imperial height (in):", self.imperial_height_edit)
-        form.addRow("Metric width (mm):", self.metric_width_edit)
-        form.addRow("Metric height (mm):", self.metric_height_edit)
+        self.sheet_width_label = QtWidgets.QLabel()
+        self.sheet_height_label = QtWidgets.QLabel()
+
+        form.addRow(self.sheet_width_label, self.sheet_width_edit)
+        form.addRow(self.sheet_height_label, self.sheet_height_edit)
 
         return group
 
@@ -74,8 +74,11 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         self.kerf_edit = QtWidgets.QLineEdit()
         self.gap_edit = QtWidgets.QLineEdit()
 
-        form.addRow("Default kerf (mm):", self.kerf_edit)
-        form.addRow("Default gap (mm):", self.gap_edit)
+        self.kerf_label = QtWidgets.QLabel("Default kerf:")
+        self.gap_label = QtWidgets.QLabel("Default gap (mm):")
+
+        form.addRow(self.kerf_label, self.kerf_edit)
+        form.addRow(self.gap_label, self.gap_edit)
         return group
 
     def _build_rotation_group(self) -> QtWidgets.QGroupBox:
@@ -86,97 +89,91 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         layout.addWidget(self.allow_rotation_check)
         return group
 
-    def _build_optimization_group(self) -> QtWidgets.QGroupBox:
-        group = QtWidgets.QGroupBox("Optimization defaults")
-        layout = QtWidgets.QHBoxLayout(group)
-        self.optimization_combo = QtWidgets.QComboBox()
-        self.optimization_combo.addItem("Material (waste first)", "material")
-        self.optimization_combo.addItem("Cuts (simplify cuts)", "cuts")
-        layout.addWidget(self.optimization_combo)
-        layout.addStretch(1)
-        return group
-
-    def _build_logging_group(self) -> QtWidgets.QGroupBox:
-        group = QtWidgets.QGroupBox("Logging & developer")
-        form = QtWidgets.QFormLayout(group)
-        self.report_log_combo = QtWidgets.QComboBox()
-        self.report_log_combo.addItems(["None", "Normal", "Verbose"])
-        self.console_log_combo = QtWidgets.QComboBox()
-        self.console_log_combo.addItems(["None", "Normal", "Verbose"])
-        self.dev_mode_check = QtWidgets.QCheckBox("Enable developer mode")
-        form.addRow("Report view logging:", self.report_log_combo)
-        form.addRow("Python console logging:", self.console_log_combo)
-        form.addRow(self.dev_mode_check)
-        return group
-
     def _load_values(self) -> None:
-        self.units_combo.setCurrentIndex(0 if self._prefs.is_metric() else 1)
-        imp_w, imp_h = self._prefs.get_default_sheet_size("imperial")
-        self.imperial_width_edit.setText(str(imp_w))
-        self.imperial_height_edit.setText(str(imp_h))
-        met_w, met_h = self._prefs.get_default_sheet_size("metric")
-        self.metric_width_edit.setText(str(met_w))
-        self.metric_height_edit.setText(str(met_h))
-        self.kerf_edit.setText(str(self._prefs.get_default_kerf_mm()))
+        self.units_combo.setCurrentIndex(0 if self.measurement_system == "metric" else 1)
+        self._update_unit_labels()
+        if self._prefs.has_default_sheet_size(self.measurement_system):
+            width_mm = self._prefs.get_default_sheet_width_mm()
+            height_mm = self._prefs.get_default_sheet_height_mm()
+            self._set_length_text(self.sheet_width_edit, width_mm)
+            self._set_length_text(self.sheet_height_edit, height_mm)
+        else:
+            self.sheet_width_edit.clear()
+            self.sheet_height_edit.clear()
+        self._set_length_text(self.kerf_edit, self._prefs.get_default_kerf_mm())
         self.gap_edit.setText(str(self._prefs.get_default_spacing_mm()))
         self.allow_rotation_check.setChecked(self._prefs.get_default_allow_rotate())
-        self.optimization_combo.setCurrentIndex(
-            1 if self._prefs.get_default_optimize_for_cut_path() else 0
-        )
-        self.report_log_combo.setCurrentIndex(
-            {"none": 0, "normal": 1, "verbose": 2}.get(
-                self._prefs.get_report_view_log_level(), 1
-            )
-        )
-        self.console_log_combo.setCurrentIndex(
-            {"none": 0, "normal": 1, "verbose": 2}.get(
-                self._prefs.get_python_console_log_level(), 0
-            )
-        )
-        self.dev_mode_check.setChecked(self._prefs.get_developer_mode())
 
-    def _parse_float(self, widget: QtWidgets.QLineEdit, name: str) -> float:
+    def _set_length_text(self, widget: QtWidgets.QLineEdit, value_mm: float | None) -> None:
+        if value_mm is None:
+            widget.clear()
+            return
+        widget.setText(sc_units.format_length(value_mm, self.measurement_system))
+
+    def _parse_length(self, widget: QtWidgets.QLineEdit, name: str) -> float | None:
         text = widget.text().strip()
         if not text:
-            raise ValueError(f"{name} must not be blank.")
+            return None
         try:
-            return float(text)
+            return sc_units.parse_length(text, self.measurement_system)
         except Exception as exc:
             raise ValueError(f"Invalid value for {name}: {exc}")
 
     def _apply_changes(self) -> bool:
         try:
-            imp_width = self._parse_float(self.imperial_width_edit, "Imperial width")
-            imp_height = self._parse_float(self.imperial_height_edit, "Imperial height")
-            met_width = self._parse_float(self.metric_width_edit, "Metric width")
-            met_height = self._parse_float(self.metric_height_edit, "Metric height")
-            kerf = self._parse_float(self.kerf_edit, "Kerf")
-            gap = self._parse_float(self.gap_edit, "Gap")
+            width_mm = self._parse_length(self.sheet_width_edit, "Sheet width")
+            height_mm = self._parse_length(self.sheet_height_edit, "Sheet height")
+            kerf_mm = self._parse_length(self.kerf_edit, "Kerf")
+            gap = float(self.gap_edit.text().strip()) if self.gap_edit.text().strip() else None
         except ValueError as exc:
             QtWidgets.QMessageBox.warning(self, "SquatchCut", str(exc))
             return False
 
-        self._prefs.set_measurement_system(
-            self.units_combo.currentData() or "metric"
-        )
-        self._prefs.set_default_sheet_width_in(imp_width)
-        self._prefs.set_default_sheet_height_in(imp_height)
-        self._prefs.set_default_sheet_width_mm(met_width)
-        self._prefs.set_default_sheet_height_mm(met_height)
-        self._prefs.set_default_kerf_mm(kerf)
-        self._prefs.set_default_spacing_mm(gap)
+        if kerf_mm is None:
+            QtWidgets.QMessageBox.warning(self, "SquatchCut", "Kerf must not be blank.")
+            return False
+
+        system = self.units_combo.currentData() or "metric"
+        self._prefs.set_measurement_system(system)
+        if width_mm is not None and height_mm is not None:
+            self._prefs.set_default_sheet_width_mm(width_mm)
+            self._prefs.set_default_sheet_height_mm(height_mm)
+        else:
+            self._prefs.clear_default_sheet_size()
+        self._prefs.set_default_kerf_mm(kerf_mm)
+        if gap is not None:
+            self._prefs.set_default_spacing_mm(gap)
         self._prefs.set_default_allow_rotate(self.allow_rotation_check.isChecked())
-        self._prefs.set_default_optimize_for_cut_path(
-            self.optimization_combo.currentData() == "cuts"
-        )
-        report_idx = self.report_log_combo.currentIndex()
-        console_idx = self.console_log_combo.currentIndex()
-        levels = ["none", "normal", "verbose"]
-        self._prefs.set_report_view_log_level(levels[min(report_idx, 2)])
-        self._prefs.set_python_console_log_level(levels[min(console_idx, 2)])
-        self._prefs.set_developer_mode(self.dev_mode_check.isChecked())
 
         return True
+
+    def _on_units_changed(self) -> None:
+        old_system = self.measurement_system
+        system = self.units_combo.currentData() or "metric"
+        self.measurement_system = system
+        sc_units.set_units("in" if system == "imperial" else "mm")
+        self._update_unit_labels()
+        # Reformat existing values in the new system
+        for edit in (self.sheet_width_edit, self.sheet_height_edit, self.kerf_edit):
+            text = edit.text().strip()
+            if not text:
+                continue
+            try:
+                mm_value = sc_units.parse_length(text, old_system)
+                edit.blockSignals(True)
+                edit.setText(sc_units.format_length(mm_value, system))
+                edit.blockSignals(False)
+            except Exception:
+                edit.blockSignals(True)
+                edit.clear()
+                edit.blockSignals(False)
+
+    def _update_unit_labels(self) -> None:
+        unit_label = sc_units.unit_label_for_system(self.measurement_system)
+        self.sheet_width_label.setText(f"Default sheet width ({unit_label}):")
+        self.sheet_height_label.setText(f"Default sheet height ({unit_label}):")
+        self.kerf_label.setText(f"Default kerf ({unit_label}):")
+        self.gap_label.setText("Default gap (mm):")
 
     def accept(self) -> None:
         if self._apply_changes() and Gui is not None:

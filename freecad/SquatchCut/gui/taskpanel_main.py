@@ -354,13 +354,10 @@ class SquatchCutTaskPanel:
         rotations = set(session_state.get_allowed_rotations_deg())
         include_labels = self._prefs.get_export_include_labels()
         include_dims = self._prefs.get_export_include_dimensions()
-        pref_sheet_w = self._prefs.get_default_sheet_width_mm()
-        pref_sheet_h = self._prefs.get_default_sheet_height_mm()
 
-        if sheet_w is None:
-            sheet_w = pref_sheet_w
-        if sheet_h is None:
-            sheet_h = pref_sheet_h
+        has_defaults = self._prefs.has_default_sheet_size(measurement_system)
+        pref_sheet_w = self._prefs.get_default_sheet_width_mm() if has_defaults else None
+        pref_sheet_h = self._prefs.get_default_sheet_height_mm() if has_defaults else None
 
         sheet_w, sheet_h = self._apply_default_sheet_override(
             sheet_w, sheet_h, pref_sheet_w, pref_sheet_h
@@ -384,8 +381,8 @@ class SquatchCutTaskPanel:
 
         return {
             "measurement_system": measurement_system,
-            "sheet_width_mm": float(sheet_w),
-            "sheet_height_mm": float(sheet_h),
+            "sheet_width_mm": float(sheet_w) if sheet_w is not None else None,
+            "sheet_height_mm": float(sheet_h) if sheet_h is not None else None,
             "kerf_mm": float(kerf_mm),
             "margin_mm": float(margin_mm),
             "kerf_width_mm": float(kerf_width),
@@ -408,7 +405,7 @@ class SquatchCutTaskPanel:
             (self.margin_edit, state["margin_mm"]),
         ):
             edit.blockSignals(True)
-            self._set_length_text(edit, float(value))
+            self._set_length_text(edit, float(value) if value is not None else None)
             edit.blockSignals(False)
 
         self.allow_90_check.setChecked(bool(state["default_allow"]))
@@ -489,6 +486,10 @@ class SquatchCutTaskPanel:
         pref_h: float,
     ) -> tuple[float, float]:
         """Prefer preference defaults when the doc sheet is just the fallback metric preset."""
+        if sheet_w is None or sheet_h is None:
+            return sheet_w, sheet_h
+        if pref_w is None or pref_h is None:
+            return sheet_w, sheet_h
         fallback_w, fallback_h = self.FALLBACK_SHEET_SIZE_MM
         tol = self.FALLBACK_MATCH_TOLERANCE_MM
         uses_fallback = (
