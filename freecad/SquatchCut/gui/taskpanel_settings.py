@@ -256,4 +256,8 @@ TaskPanel_Settings = SquatchCutSettingsPanel
 
 def create_settings_panel_for_tests():
     """Factory used by GUI tests to build a settings panel instance."""
+    prefs = SquatchCutPreferences()
+    current_units = sc_units.get_units()
+    prefs.set_measurement_system("imperial" if current_units == "in" else "metric")
+    settings.hydrate_from_params()
     return SquatchCutSettingsPanel()
