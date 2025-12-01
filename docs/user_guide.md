@@ -1,7 +1,8 @@
 # SquatchCut User Guide
 
 Version: v0.1 (UAT Build)  
-Applies to: FreeCAD 1.0+ and the SquatchCut add-on
+Applies to: FreeCAD 1.0+ and the SquatchCut add-on  
+Refer to [`docs/Project_Guide_v3.2.md`](Project_Guide_v3.2.md) for the authoritative v3.2 Codex, UI, and hydration principles.
 
 ---
 

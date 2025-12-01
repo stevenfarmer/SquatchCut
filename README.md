@@ -219,6 +219,9 @@ If your parts look the wrong size:
 
 Additional docs live in the `docs/` folder:
 
+- `docs/Project_Guide_v3.2.md`  
+  Canonical project guide (v3.2 – Codex-Fortified Edition) covering Codex behavior, UI rules, and testing requirements.
+
 - `docs/user_guide.md`  
   Full user guide, with explanations and troubleshooting.
 

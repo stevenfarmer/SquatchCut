@@ -1,7 +1,8 @@
 # SquatchCut UAT Checklist
 
 Version: UAT v0.1  
-Audience: Volunteer / UAT testers
+Audience: Volunteer / UAT testers  
+Refer to [`docs/Project_Guide_v3.2.md`](Project_Guide_v3.2.md) for the authoritative v3.2 testing, UI, and Codex expectations.
 
 Instructions:
 
