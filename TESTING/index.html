@@ -842,6 +842,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#23-running-gui-smoke-tests-from-freecad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3. Running GUI smoke tests from FreeCAD
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -919,6 +930,17 @@
     <span class="md-ellipsis">
       
         3.6. Error handling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#37-ui-smoke-fast-pass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.7. UI Smoke (fast pass)
       
     </span>
   </a>
@@ -1021,7 +1043,8 @@ source .venv/bin/activate
 - Creating rectangles in a document.
 - Running <code>RunNestingCommand</code>.
 - Verifying that <code>Sheet_*</code> groups and clones exist.
-- Verifying that running nesting with no selection does not crash.</p>
+- Verifying that running nesting with no selection does not crash.
+ - Task panel flows (defaults, units toggling, rotation defaults) when FreeCAD GUI is available.</p>
 <h3 id="21-ensure-pytest-is-installed-in-freecad">2.1. Ensure pytest is installed in FreeCAD<a class="headerlink" href="#21-ensure-pytest-is-installed-in-freecad" title="Permanent link">&para;</a></h3>
 <p>You only need to do this once per FreeCAD Python environment:</p>
 <div class="codehilite"><pre><span></span><code><span class="n">FreeCADCmd</span> <span class="o">-</span><span class="n">c</span> <span class="s2">&quot;import sys, subprocess; subprocess.check_call([sys.executable, &#39;-m&#39;, &#39;pip&#39;, &#39;install&#39;, &#39;pytest&#39;])&quot;</span>
@@ -1050,9 +1073,19 @@ source .venv/bin/activate
 <li><code>test_run_nesting_no_selection_shows_no_crash</code> passes:</li>
 <li>Running nesting with no selection does not create any <code>Sheet_*</code> groups.</li>
 <li>No exception bubbles out of the command.</li>
+<li><code>test_taskpanel_workflow</code> suite (skips if FreeCADGui is unavailable):</li>
+<li>Saved defaults in Settings appear in the main TaskPanel with no preset auto-selection.</li>
+<li>Units toggling reformats sheet/kerf fields.</li>
+<li>Rotation defaults in Settings populate the TaskPanel rotation checkboxes.</li>
 </ul>
 <p>Integration tests are a quick sanity check that the workbench actually
 behaves correctly inside FreeCAD with real documents.</p>
+<h3 id="23-running-gui-smoke-tests-from-freecad">2.3. Running GUI smoke tests from FreeCAD<a class="headerlink" href="#23-running-gui-smoke-tests-from-freecad" title="Permanent link">&para;</a></h3>
+<p>Inside FreeCAD (Python console):</p>
+<div class="codehilite"><pre><span></span><code>Gui.runCommand(&quot;SquatchCut_RunGUITests&quot;)
+</code></pre></div>
+
+<p>This runs the built-in GUI smoke suite (import, nesting preview, units checks, cutlist export). Use this after significant UI changes.</p>
 <h2 id="3-manual-qa-checklist-in-freecad">3. Manual QA Checklist in FreeCAD<a class="headerlink" href="#3-manual-qa-checklist-in-freecad" title="Permanent link">&para;</a></h2>
 <p>Use this checklist when doing manual QA in FreeCAD.
 This is especially important before a release or when major changes
@@ -1136,6 +1169,15 @@ are made to nesting, CSV import, or settings.</p>
 <li>Try exporting CSV before any nesting has been run.</li>
 <li>Expect: a message that no layout is available to export.</li>
 </ol>
+<h3 id="37-ui-smoke-fast-pass">3.7. UI Smoke (fast pass)<a class="headerlink" href="#37-ui-smoke-fast-pass" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Open SquatchCut workbench; launch the main Task panel.</li>
+<li>Toggle Units (Metric ↔ Imperial) and confirm sheet/kerf fields reformat; preset remains “None.”</li>
+<li>Import <code>freecad/testing/csv/valid_panels_small.csv</code>; confirm parts table populates.</li>
+<li>Run nesting preview; confirm nested layout appears and Source/Nested view toggles work.</li>
+<li>Export cutlist CSV; open and verify rows match table entries.</li>
+<li>Open Settings, set sheet/kerf defaults, save; reopen Task panel and confirm defaults applied without preset auto-selection.</li>
+</ul>
 <h2 id="4-useful-pytest-options">4. Useful pytest options<a class="headerlink" href="#4-useful-pytest-options" title="Permanent link">&para;</a></h2>
 <p>For deeper debugging, use:</p>
 <div class="codehilite"><pre><span></span><code>pytest -vv
