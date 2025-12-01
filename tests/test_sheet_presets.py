@@ -57,6 +57,13 @@ def test_preset_selection_sets_expected_dimensions():
             assert match["id"] == preset["id"]
 
 
+def test_preset_lists_match_expected_values():
+    imperial_ids = [preset["id"] for preset in sheet_presets.get_presets_for_system("imperial")]
+    assert imperial_ids == ["4x8", "2x4", "5x10"]
+    metric_ids = [preset["id"] for preset in sheet_presets.get_presets_for_system("metric")]
+    assert metric_ids == ["1220x2440", "1220x3050", "1500x3000"]
+
+
 def test_reopen_panel_restores_sheet_and_preset_state():
     system = "imperial"
     preset_size = sheet_presets.apply_preset(system, "4x8")

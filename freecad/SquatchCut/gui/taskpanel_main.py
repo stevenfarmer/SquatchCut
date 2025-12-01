@@ -359,9 +359,21 @@ class SquatchCutTaskPanel:
         pref_sheet_w = self._prefs.get_default_sheet_width_mm() if has_defaults else None
         pref_sheet_h = self._prefs.get_default_sheet_height_mm() if has_defaults else None
 
-        sheet_w, sheet_h = self._apply_default_sheet_override(
-            sheet_w, sheet_h, pref_sheet_w, pref_sheet_h
-        )
+        if has_defaults:
+            # Prefer stored defaults when sheet values are missing or still at factory size.
+            factory_w, factory_h = sc_sheet_presets.get_factory_default_sheet_size(
+                measurement_system
+            )
+            if sheet_w is None or sheet_h is None:
+                sheet_w, sheet_h = pref_sheet_w, pref_sheet_h
+            elif (
+                pref_sheet_w is not None
+                and pref_sheet_h is not None
+                and abs(sheet_w - factory_w) <= self.FALLBACK_MATCH_TOLERANCE_MM
+                and abs(sheet_h - factory_h) <= self.FALLBACK_MATCH_TOLERANCE_MM
+            ):
+                sheet_w, sheet_h = pref_sheet_w, pref_sheet_h
+                session_state.set_sheet_size(sheet_w, sheet_h)
 
         if margin_mm is None:
             margin_mm = self._prefs.get_default_spacing_mm()

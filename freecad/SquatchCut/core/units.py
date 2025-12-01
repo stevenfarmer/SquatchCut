@@ -225,22 +225,21 @@ def format_preset_label(
     decimals: int = 3,
 ) -> str:
     """
-    Return a preset label with the primary units determined by measurement_system.
+    Return a preset label contained within a single measurement system.
 
-    - Metric primary: "1220 x 2440 mm (4x8 ft)" or "(48 x 96 in)" if no nickname.
-    - Imperial primary: "48 x 96 in (1220 x 2440 mm; 4x8 ft)" with metric secondary.
+    - Metric: "1220 x 2440 mm" (pure metric).
+    - Imperial: nickname (if provided) or "W x H in".
     """
-    metric_pair = f"{format_metric_length(width_mm, decimals)} x {format_metric_length(height_mm, decimals)} mm"
-    imperial_pair = f"{format_length(width_mm, 'imperial', max_denominator)} x {format_length(height_mm, 'imperial', max_denominator)} in"
     system = _normalize_measurement_system(measurement_system)
     if system == "imperial":
-        secondary_parts = [metric_pair]
         if nickname:
-            secondary_parts.append(nickname)
-        secondary = "; ".join(secondary_parts)
-        return f"{imperial_pair} ({secondary})"
-    secondary = nickname or imperial_pair
-    return f"{metric_pair} ({secondary})"
+            return nickname
+        width_in = format_length(width_mm, "imperial", max_denominator)
+        height_in = format_length(height_mm, "imperial", max_denominator)
+        return f"{width_in} x {height_in} in"
+    # Metric path
+    metric_pair = f"{format_metric_length(width_mm, decimals)} x {format_metric_length(height_mm, decimals)} mm"
+    return metric_pair
 
 
 def parse_length(text: str, measurement_system: str) -> float:

@@ -35,8 +35,8 @@ IMPERIAL_PRESETS = [
 
 METRIC_PRESETS = [
     {"id": "1220x2440", "width_mm": 1220.0, "height_mm": 2440.0, "nickname": None},
-    {"id": "610x1220", "width_mm": 610.0, "height_mm": 1220.0, "nickname": None},
-    {"id": "1525x3050", "width_mm": 1525.0, "height_mm": 3050.0, "nickname": None},
+    {"id": "1220x3050", "width_mm": 1220.0, "height_mm": 3050.0, "nickname": None},
+    {"id": "1500x3000", "width_mm": 1500.0, "height_mm": 3000.0, "nickname": None},
 ]
 
 PRESETS_BY_SYSTEM = {

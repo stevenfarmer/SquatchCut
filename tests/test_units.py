@@ -47,15 +47,16 @@ def test_parse_length_metric_and_imperial():
 
 
 def test_format_preset_label_respects_system():
-    metric_label = format_preset_label(1220, 2440, "metric", nickname="4x8 ft")
-    assert metric_label.startswith("1220 x 2440 mm")
-    assert "4x8 ft" in metric_label
+    metric_label = format_preset_label(1220.0, 2440.0, "metric", nickname="4x8 ft")
+    assert metric_label == "1220 x 2440 mm"
 
-    imperial_label = format_preset_label(1220, 2440, "imperial", nickname="4x8 ft")
-    assert imperial_label.startswith("48")
-    assert "in" in imperial_label.split("(", 1)[0]
-    assert "1220 x 2440 mm" in imperial_label
-    assert "4x8 ft" in imperial_label
+    imperial_label = format_preset_label(1220.0, 2440.0, "imperial", nickname="4x8 ft")
+    assert imperial_label == "4x8 ft"
+
+    imperial_fallback = format_preset_label(1220.0, 2440.0, "imperial")
+    assert imperial_fallback.endswith("in")
+    assert "mm" not in imperial_fallback
+    assert "ft" not in imperial_fallback
 
 
 def test_unit_label_for_system():
@@ -68,4 +69,3 @@ def test_parse_length_empty_raises():
 
     with pytest.raises(ValueError):
         parse_length("", "metric")
-

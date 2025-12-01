@@ -35,12 +35,14 @@ class SquatchCutPreferencesDialog(QtWidgets.QDialog):
         self.kerf_edit = QtWidgets.QLineEdit()
 
         self.cut_mode_check = QtWidgets.QCheckBox("Cut Optimization: Woodshop Mode")
+        self.rotate_check = QtWidgets.QCheckBox("Allow rotation by default")
 
         layout.addRow(self.sheet_width_label, self.sheet_width_edit)
         layout.addRow(self.sheet_height_label, self.sheet_height_edit)
         layout.addRow(self.spacing_label, self.spacing_edit)
         layout.addRow(self.kerf_label, self.kerf_edit)
         layout.addRow(self.cut_mode_check)
+        layout.addRow(self.rotate_check)
 
         buttons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         buttons.accepted.connect(self.accept)
@@ -54,6 +56,7 @@ class SquatchCutPreferencesDialog(QtWidgets.QDialog):
         self._set_length_text(self.spacing_edit, self._prefs.get_default_spacing_mm())
         self._set_length_text(self.kerf_edit, self._prefs.get_default_kerf_mm())
         self.cut_mode_check.setChecked(self._prefs.get_default_optimize_for_cut_path())
+        self.rotate_check.setChecked(self._prefs.get_default_allow_rotate())
 
     def accept(self):  # noqa: D401
         """Persist preferences on OK."""
@@ -70,6 +73,7 @@ class SquatchCutPreferencesDialog(QtWidgets.QDialog):
         self._prefs.set_default_spacing_mm(spacing)
         self._prefs.set_default_kerf_mm(kerf)
         self._prefs.set_default_optimize_for_cut_path(self.cut_mode_check.isChecked())
+        self._prefs.set_default_allow_rotate(self.rotate_check.isChecked())
         super().accept()
 
     def _update_unit_labels(self):

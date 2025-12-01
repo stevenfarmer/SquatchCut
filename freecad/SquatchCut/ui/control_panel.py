@@ -49,22 +49,12 @@ class SquatchCutControlPanel:
         if self.doc is not None:
             session.sync_state_from_doc(self.doc)
 
+        self.session_state = session_state
+        self.measurement_system = self.session_state.get_measurement_system() or "metric"
+
         # Build root widget + layout
         self.form = QtWidgets.QWidget()
         main_layout = QtWidgets.QVBoxLayout(self.form)
-
-        # Fetch current state
-        sheet_w, sheet_h = session_state.get_sheet_size()
-        kerf_mm = session_state.get_kerf_mm()
-        gap_mm = session_state.get_gap_mm()
-        default_allow = session_state.get_default_allow_rotate()
-        prefs = SquatchCutPreferences()
-        self.measurement_system = session_state.get_measurement_system()
-
-        if sheet_w is None:
-            sheet_w = prefs.get_default_sheet_width_mm()
-        if sheet_h is None:
-            sheet_h = prefs.get_default_sheet_height_mm()
 
         # ---------------- Sheet Size group ----------------
         sheet_group = QtWidgets.QGroupBox("Sheet Size")
@@ -103,23 +93,17 @@ class SquatchCutControlPanel:
 
         main_layout.addWidget(cut_group)
 
-        # Apply initial unit conversions to sheet size and spacing
-        self._update_unit_labels()
-        self._set_length_text(self.sheet_width_edit, float(sheet_w))
-        self._set_length_text(self.sheet_height_edit, float(sheet_h))
-        self._set_length_text(self.kerf_edit, float(kerf_mm))
-        self._set_length_text(self.gap_edit, float(gap_mm))
+        # The widget values will be populated from SessionState after layout is complete.
 
         # ---------------- Rotation group ----------------
         rot_group = QtWidgets.QGroupBox("Rotation")
         rot_layout = QtWidgets.QVBoxLayout(rot_group)
 
-        self.default_rotate_check = QtWidgets.QCheckBox("Allow rotation by default")
-        self.default_rotate_check.setChecked(default_allow)
-        rot_layout.addWidget(self.default_rotate_check)
+        self.allow_rotate_check = QtWidgets.QCheckBox("Allow rotation")
+        rot_layout.addWidget(self.allow_rotate_check)
 
         rot_helper = QtWidgets.QLabel(
-            "If a CSV does not specify per-part rotation, this default will be used."
+            "Enable rotation for panels that don't specify an orientation."
         )
         rot_helper.setWordWrap(True)
         rot_layout.addWidget(rot_helper)
@@ -161,6 +145,8 @@ class SquatchCutControlPanel:
         main_layout.addWidget(self.developer_group)
 
         self._update_developer_group_visibility()
+
+        self._refresh_from_session_state()
 
         # ---------------- CSV Import & Nest group ----------------
         csv_group = QtWidgets.QGroupBox("CSV Import & Nesting")
@@ -214,34 +200,24 @@ class SquatchCutControlPanel:
         except ValueError as exc:
             self._handle_parse_error(exc)
             return
-        default_allow = bool(self.default_rotate_check.isChecked())
-        prefs = SquatchCutPreferences()
-        prefs.set_measurement_system(self.measurement_system)
+        allow_rotate = bool(self.allow_rotate_check.isChecked())
         sc_units.set_units("in" if self.measurement_system == "imperial" else "mm")
-        session_state.set_measurement_system(self.measurement_system)
-        prefs.set_default_sheet_width_mm(sheet_w)
-        prefs.set_default_sheet_height_mm(sheet_h)
-        prefs.set_default_kerf_mm(kerf_mm)
-        prefs.set_default_spacing_mm(gap_mm)
+        self.session_state.set_measurement_system(self.measurement_system)
+        self.session_state.set_sheet_size(sheet_w, sheet_h)
+        self.session_state.set_kerf_mm(kerf_mm)
+        self.session_state.set_gap_mm(gap_mm)
+        self.session_state.set_default_allow_rotate(allow_rotate)
 
-        session_state.set_sheet_size(sheet_w, sheet_h)
-        session_state.set_kerf_mm(kerf_mm)
-        session_state.set_gap_mm(gap_mm)
-        session_state.set_default_allow_rotate(default_allow)
+        prefs = SquatchCutPreferences()
         prefs.set_report_view_log_level(self._index_to_level(self.report_log_combo.currentIndex()))
         prefs.set_python_console_log_level(self._index_to_level(self.console_log_combo.currentIndex()))
         prefs.set_developer_mode(bool(self.dev_mode_checkbox.isChecked()))
 
-        try:
-            settings.hydrate_from_params()
-        except Exception:
-            pass
-
         session.sync_doc_from_state(self.doc)
         self.doc.recompute()
-
+        self._refresh_from_session_state()
         logger.info(
-            f"Updated settings: sheet {sheet_w} x {sheet_h} mm, kerf={kerf_mm} mm, gap={gap_mm} mm, default_allow_rotate={default_allow}"
+            f"Updated settings: sheet {sheet_w} x {sheet_h} mm, kerf={kerf_mm} mm, gap={gap_mm} mm, allow_rotate={allow_rotate}"
         )
 
     def _on_units_changed(self):
@@ -250,20 +226,11 @@ class SquatchCutControlPanel:
         if system not in ("metric", "imperial"):
             system = "metric"
         self.measurement_system = system
-        try:
-            SquatchCutPreferences().set_measurement_system(system)
-        except Exception:
-            pass
-        self._update_unit_labels()
-        # Re-apply conversions to current values to keep display consistent
-        sheet_w_mm = session_state.get_sheet_size()[0] or SquatchCutPreferences().get_default_sheet_width_mm()
-        sheet_h_mm = session_state.get_sheet_size()[1] or SquatchCutPreferences().get_default_sheet_height_mm()
-        session_state.set_measurement_system(self.measurement_system)
-        sc_units.set_units("in" if self.measurement_system == "imperial" else "mm")
-        self._set_length_text(self.sheet_width_edit, float(sheet_w_mm))
-        self._set_length_text(self.sheet_height_edit, float(sheet_h_mm))
-        self._set_length_text(self.kerf_edit, float(session_state.get_kerf_mm()))
-        self._set_length_text(self.gap_edit, float(session_state.get_gap_mm()))
+        prefs = SquatchCutPreferences()
+        prefs.set_measurement_system(system)
+        self.session_state.set_measurement_system(system)
+        sc_units.set_units("in" if system == "imperial" else "mm")
+        self._refresh_from_session_state()
 
     def _update_unit_labels(self):
         unit = unit_label_for_system(self.measurement_system)
@@ -273,6 +240,20 @@ class SquatchCutControlPanel:
         self.gap_label.setText(f"Additional gap ({unit}):")
         self.kerf_edit.setPlaceholderText("")
         self.gap_edit.setPlaceholderText("")
+
+    def _refresh_from_session_state(self) -> None:
+        """Populate per-job controls from session_state."""
+        self.measurement_system = self.session_state.get_measurement_system() or self.measurement_system
+        self._update_unit_labels()
+        sheet_w, sheet_h = self.session_state.get_sheet_size()
+        kerf_mm = self.session_state.get_kerf_mm() or 0.0
+        gap_mm = self.session_state.get_gap_mm() or 0.0
+        allow_rotate = self.session_state.get_default_allow_rotate()
+        self._set_length_text(self.sheet_width_edit, float(sheet_w or 0.0))
+        self._set_length_text(self.sheet_height_edit, float(sheet_h or 0.0))
+        self._set_length_text(self.kerf_edit, float(kerf_mm))
+        self._set_length_text(self.gap_edit, float(gap_mm))
+        self.allow_rotate_check.setChecked(bool(allow_rotate))
 
     def _parse_length_text(self, text: str) -> float:
         """Parse the given text into millimeters based on the current measurement system."""
