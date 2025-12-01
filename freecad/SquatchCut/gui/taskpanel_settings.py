@@ -116,7 +116,14 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         return group
 
     def _load_values(self) -> None:
-        self.units_combo.setCurrentIndex(0 if self.measurement_system == "metric" else 1)
+        # Sync measurement system with global units before populating widgets.
+        ms_from_units = "imperial" if sc_units.get_units() == "in" else "metric"
+        if self.measurement_system != ms_from_units:
+            self.measurement_system = ms_from_units
+        idx = self.units_combo.findData(self.measurement_system)
+        if idx < 0:
+            idx = 0
+        self.units_combo.setCurrentIndex(idx)
         self._update_unit_labels()
         if self._prefs.has_default_sheet_size(self.measurement_system):
             width_mm = self._prefs.get_default_sheet_width_mm()
