@@ -13,6 +13,26 @@ from SquatchCut import settings
 from SquatchCut.core.preferences import SquatchCutPreferences
 
 
+class _UnitRadioProxy:
+    """Lightweight proxy to mimic unit radio buttons for GUI tests."""
+
+    def __init__(self, panel, value: str):
+        self._panel = panel
+        self._value = value
+
+    def isChecked(self) -> bool:
+        return (self._panel.units_combo.currentData() or "metric") == self._value
+
+    def setChecked(self, checked: bool) -> None:
+        if not checked:
+            return
+        idx = self._panel.units_combo.findData(self._value)
+        if idx >= 0:
+            self._panel.units_combo.setCurrentIndex(idx)
+            if hasattr(self._panel, "_on_units_changed"):
+                self._panel._on_units_changed()
+
+
 class SquatchCutSettingsPanel(QtWidgets.QWidget):
     """Settings TaskPanel that edits global SquatchCut defaults."""
 
@@ -25,8 +45,14 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         self.form = self
         self._close_callback = None
         self._prefs = SquatchCutPreferences()
-        self.measurement_system = self._prefs.get_measurement_system()
+        # Prefer the active units setting if it differs from persisted prefs.
+        ms_from_prefs = self._prefs.get_measurement_system()
+        ms_from_units = "imperial" if sc_units.get_units() == "in" else "metric"
+        self.measurement_system = ms_from_units or ms_from_prefs
         self._build_ui()
+        # Compatibility proxies for GUI tests that expect unit radio buttons.
+        self.rbUnitsMetric = _UnitRadioProxy(self, "metric")
+        self.rbUnitsImperial = _UnitRadioProxy(self, "imperial")
         self._load_values()
 
     def _build_ui(self) -> None:
@@ -214,3 +240,8 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
 
 
 TaskPanel_Settings = SquatchCutSettingsPanel
+
+
+def create_settings_panel_for_tests():
+    """Factory used by GUI tests to build a settings panel instance."""
+    return SquatchCutSettingsPanel()

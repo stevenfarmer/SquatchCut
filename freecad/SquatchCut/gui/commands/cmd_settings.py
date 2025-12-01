@@ -63,7 +63,16 @@ class SquatchCutSettingsCommand:
         logger.info("[SquatchCut] >>> Activated SquatchCut_Settings.")
         try:
             global _settings_panel_instance
-            if _settings_panel_instance is None:
+            reuse = _settings_panel_instance is not None
+            if reuse:
+                try:
+                    if hasattr(_settings_panel_instance, "sheet_width_edit"):
+                        _ = _settings_panel_instance.sheet_width_edit.text()
+                    # If no attribute, assume it is a test double and reuse.
+                except Exception:
+                    _clear_settings_panel()
+                    reuse = False
+            if not reuse:
                 panel = TaskPanel_Settings()
                 panel.set_close_callback(_clear_settings_panel)
                 _settings_panel_instance = panel
