@@ -68,6 +68,7 @@ These tests run **inside FreeCAD** and exercise real commands:
 - Running `RunNestingCommand`.
 - Verifying that `Sheet_*` groups and clones exist.
 - Verifying that running nesting with no selection does not crash.
+ - Task panel flows (defaults, units toggling, rotation defaults) when FreeCAD GUI is available.
 
 ### 2.1. Ensure pytest is installed in FreeCAD
 
@@ -109,9 +110,23 @@ Expected results:
 - `test_run_nesting_no_selection_shows_no_crash` passes:
   - Running nesting with no selection does not create any `Sheet_*` groups.
   - No exception bubbles out of the command.
+- `test_taskpanel_workflow` suite (skips if FreeCADGui is unavailable):
+  - Saved defaults in Settings appear in the main TaskPanel with no preset auto-selection.
+  - Units toggling reformats sheet/kerf fields.
+  - Rotation defaults in Settings populate the TaskPanel rotation checkboxes.
 
 Integration tests are a quick sanity check that the workbench actually
 behaves correctly inside FreeCAD with real documents.
+
+### 2.3. Running GUI smoke tests from FreeCAD
+
+Inside FreeCAD (Python console):
+
+```
+Gui.runCommand("SquatchCut_RunGUITests")
+```
+
+This runs the built-in GUI smoke suite (import, nesting preview, units checks, cutlist export). Use this after significant UI changes.
 
 
 ## 3. Manual QA Checklist in FreeCAD
@@ -193,6 +208,15 @@ are made to nesting, CSV import, or settings.
    - Expect: a warning dialog and no sheets created.
 3. Try exporting CSV before any nesting has been run.
    - Expect: a message that no layout is available to export.
+
+### 3.7. UI Smoke (fast pass)
+
+- Open SquatchCut workbench; launch the main Task panel.
+- Toggle Units (Metric ↔ Imperial) and confirm sheet/kerf fields reformat; preset remains “None.”
+- Import `freecad/testing/csv/valid_panels_small.csv`; confirm parts table populates.
+- Run nesting preview; confirm nested layout appears and Source/Nested view toggles work.
+- Export cutlist CSV; open and verify rows match table entries.
+- Open Settings, set sheet/kerf defaults, save; reopen Task panel and confirm defaults applied without preset auto-selection.
 
 
 ## 4. Useful pytest options

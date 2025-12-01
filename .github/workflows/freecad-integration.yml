@@ -1,0 +1,27 @@
+name: "FreeCAD Integration (manual)"
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_freecad_tests:
+        description: "Run FreeCADCmd integration tests (requires FreeCAD on runner)"
+        required: false
+        default: "true"
+
+jobs:
+  freecad-integration:
+    if: ${{ github.event.inputs.run_freecad_tests != 'false' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Install pytest
+        run: python -m pip install --upgrade pip pytest
+      - name: Install FreeCAD
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y freecad
+      - name: Run FreeCAD integration tests
+        run: FreeCADCmd -c "import run_freecad_tests"
