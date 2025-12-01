@@ -8,6 +8,7 @@ except Exception:
     Gui = None
 
 from SquatchCut.gui.qt_compat import QtWidgets
+from SquatchCut import settings
 from SquatchCut.core.preferences import SquatchCutPreferences
 
 
@@ -16,6 +17,10 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        try:
+            settings.hydrate_from_params()
+        except Exception:
+            pass
         self.form = self
         self._close_callback = None
         self._prefs = SquatchCutPreferences()

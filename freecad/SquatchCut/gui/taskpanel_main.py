@@ -41,35 +41,25 @@ class SquatchCutTaskPanel:
     FALLBACK_MATCH_TOLERANCE_MM = 2.0
 
     def __init__(self, doc=None):
-        # Hydrate persisted settings before any UI reads them.
-        try:
-            settings.hydrate_from_params()
-        except Exception:
-            pass
-
-        self.doc = doc or App.ActiveDocument
+        self._prefs = SquatchCutPreferences()
+        effective_doc = doc or (App.ActiveDocument if App is not None else None)
+        self._initial_state = self._compute_initial_state(effective_doc)
+        self.measurement_system = self._initial_state["measurement_system"]
+        self.doc = effective_doc
         self._last_csv_path: str | None = None
         self.has_csv_data = False
         self.has_valid_sheet = False
         self.has_valid_kerf = False
         self.overlaps_count = 0
-        self._prefs = SquatchCutPreferences()
-        self.measurement_system = session_state.get_measurement_system()
-        session_state.set_measurement_system(self.measurement_system)
         self._preset_state = sc_sheet_presets.PresetSelectionState()
         self._presets = sc_sheet_presets.get_preset_entries(self.measurement_system)
         self._current_preset_id = None
         self._close_callback: Optional[Callable[[], None]] = None
 
-        if self.doc is not None:
-            try:
-                session.sync_state_from_doc(self.doc)
-            except Exception:
-                pass
-
         self.form = QtWidgets.QWidget()
         self._build_ui()
-        self._load_initial_state_from_session()
+        self._apply_initial_state(self._initial_state)
+        self._connect_signals()
 
     def set_close_callback(self, callback: Callable[[], None]) -> None:
         self._close_callback = callback
@@ -148,15 +138,7 @@ class SquatchCutTaskPanel:
         self.status_label.setStyleSheet("color: gray;")
         layout.addWidget(self.status_label)
 
-        # Wire actions
-        self.preview_button.clicked.connect(self.on_preview_clicked)
-        self.run_button.clicked.connect(self.on_apply_clicked)
-        self.show_source_button.clicked.connect(self.on_show_source_panels)
-        self.btnExportCutlist.clicked.connect(self.on_export_cutlist_clicked)
-        self.report_bug_button.clicked.connect(self.on_report_bug_clicked)
         self._set_run_buttons_enabled(False)
-        self.btnViewSource.clicked.connect(self._on_view_source_clicked)
-        self.btnViewSheets.clicked.connect(self._on_view_sheets_clicked)
         self.btnViewSource.setChecked(True)
         self.btnViewSheets.setChecked(False)
 
@@ -222,13 +204,6 @@ class SquatchCutTaskPanel:
         view_layout.addStretch(1)
         vbox.addLayout(view_layout)
 
-        self.preset_combo.currentIndexChanged.connect(self._on_preset_changed)
-        self.mode_combo.currentIndexChanged.connect(self._on_mode_changed)
-        self.units_combo.currentIndexChanged.connect(self._on_units_changed)
-        self.load_csv_button.clicked.connect(self._choose_csv_file)
-        self.show_sheet_check.toggled.connect(self._on_view_toggled)
-        self.show_nested_check.toggled.connect(self._on_view_toggled)
-
         return group
 
     def _build_nesting_group(self) -> QtWidgets.QGroupBox:
@@ -238,21 +213,15 @@ class SquatchCutTaskPanel:
 
         self.sheet_width_label = QtWidgets.QLabel("Width (mm):")
         self.sheet_width_edit = QtWidgets.QLineEdit()
-        self.sheet_width_edit.textChanged.connect(self.update_run_button_state)
-        self.sheet_width_edit.textChanged.connect(self._on_sheet_value_changed)
 
         self.sheet_height_label = QtWidgets.QLabel("Height (mm):")
         self.sheet_height_edit = QtWidgets.QLineEdit()
-        self.sheet_height_edit.textChanged.connect(self.update_run_button_state)
-        self.sheet_height_edit.textChanged.connect(self._on_sheet_value_changed)
 
         self.kerf_label = QtWidgets.QLabel("Kerf width (mm):")
         self.kerf_edit = QtWidgets.QLineEdit()
-        self.kerf_edit.textChanged.connect(self.update_run_button_state)
 
         self.margin_label = QtWidgets.QLabel("Edge margin (mm):")
         self.margin_edit = QtWidgets.QLineEdit()
-        self.margin_edit.textChanged.connect(self.update_run_button_state)
 
         self.allow_90_check = QtWidgets.QCheckBox("Allow 90° rotation")
         self.allow_180_check = QtWidgets.QCheckBox("Allow 180° rotation")
@@ -274,8 +243,6 @@ class SquatchCutTaskPanel:
         reset_row.addWidget(self.reset_defaults_button)
         form.addLayout(reset_row, 3, 0, 1, 4)
 
-        self.reset_defaults_button.clicked.connect(self._reset_defaults)
-
         return group
 
     def _build_cut_optimization_group(self) -> QtWidgets.QGroupBox:
@@ -286,12 +253,10 @@ class SquatchCutTaskPanel:
         self.cut_mode_check.setToolTip(
             "Bias nesting toward woodshop-style rips/crosscuts instead of tight packing."
         )
-        self.cut_mode_check.toggled.connect(self._on_mode_changed)
 
         self.kerf_width_label = QtWidgets.QLabel("Kerf Width (mm):")
         self.kerf_width_edit = QtWidgets.QLineEdit()
         self.kerf_width_edit.setToolTip("Blade thickness used to maintain spacing between parts.")
-        self.kerf_width_edit.textChanged.connect(self.update_run_button_state)
 
         rot_layout = QtWidgets.QHBoxLayout()
         self.rot0_check = QtWidgets.QCheckBox("0°")
@@ -350,13 +315,10 @@ class SquatchCutTaskPanel:
         self.export_format_combo.addItem("Cut list script (text)", "cutlist_script")
         self.export_button = QtWidgets.QPushButton("Export SquatchCut")
         self.export_button.setToolTip("Export the current SquatchCut layout in the selected format.")
-        self.export_button.clicked.connect(self.on_export_clicked)
         self.include_labels_check = QtWidgets.QCheckBox("Include part labels")
         self.include_labels_check.setToolTip("Include part names as text labels in DXF/SVG exports.")
         self.include_dimensions_check = QtWidgets.QCheckBox("Include dimensions")
         self.include_dimensions_check.setToolTip("Include basic width/height dimensions in DXF/SVG exports.")
-        self.include_labels_check.stateChanged.connect(self._on_export_options_changed)
-        self.include_dimensions_check.stateChanged.connect(self._on_export_options_changed)
 
         form.addRow("Export format:", self.export_format_combo)
         form.addRow(self.include_labels_check)
@@ -366,13 +328,22 @@ class SquatchCutTaskPanel:
 
     # ---------------- State helpers ----------------
 
-    def _load_initial_state_from_session(self) -> None:
-        """Populate widgets from session_state where possible."""
-        if self.doc is not None:
+    def _compute_initial_state(self, doc) -> dict:
+        """Hydrate persisted settings before any UI widgets are built."""
+        try:
+            settings.hydrate_from_params()
+        except Exception:
+            pass
+
+        if doc is not None:
             try:
-                session.sync_state_from_doc(self.doc)
+                session.sync_state_from_doc(doc)
             except Exception:
                 pass
+
+        measurement_system = session_state.get_measurement_system()
+        session_state.set_measurement_system(measurement_system)
+        sc_units.set_units("in" if measurement_system == "imperial" else "mm")
 
         sheet_w, sheet_h = session_state.get_sheet_size()
         kerf_mm = session_state.get_kerf_mm()
@@ -381,8 +352,6 @@ class SquatchCutTaskPanel:
         cut_mode = session_state.get_optimize_for_cut_path()
         kerf_width = session_state.get_kerf_width_mm()
         rotations = set(session_state.get_allowed_rotations_deg())
-        # units stored via preferences/session_state
-        self.measurement_system = session_state.get_measurement_system()
         include_labels = self._prefs.get_export_include_labels()
         include_dims = self._prefs.get_export_include_dimensions()
         pref_sheet_w = self._prefs.get_default_sheet_width_mm()
@@ -406,27 +375,52 @@ class SquatchCutTaskPanel:
         if cut_mode is None:
             cut_mode = self._prefs.get_default_optimize_for_cut_path()
 
+        mode = session_state.get_optimization_mode()
+        csv_units = self._prefs.get_csv_units(measurement_system)
+        if csv_units == "imperial":
+            csv_units = "in"
+        elif csv_units == "metric":
+            csv_units = "mm"
+
+        return {
+            "measurement_system": measurement_system,
+            "sheet_width_mm": float(sheet_w),
+            "sheet_height_mm": float(sheet_h),
+            "kerf_mm": float(kerf_mm),
+            "margin_mm": float(margin_mm),
+            "kerf_width_mm": float(kerf_width),
+            "default_allow": bool(default_allow),
+            "cut_mode": bool(cut_mode),
+            "rotations": rotations,
+            "mode": mode,
+            "csv_units": csv_units,
+            "include_labels": bool(include_labels),
+            "include_dimensions": bool(include_dims),
+            "panels": session_state.get_panels(),
+        }
+
+    def _apply_initial_state(self, state: dict) -> None:
+        """Populate widgets from a pre-hydrated state dictionary."""
         for edit, value in (
-            (self.sheet_width_edit, sheet_w),
-            (self.sheet_height_edit, sheet_h),
-            (self.kerf_edit, kerf_mm),
-            (self.margin_edit, margin_mm),
+            (self.sheet_width_edit, state["sheet_width_mm"]),
+            (self.sheet_height_edit, state["sheet_height_mm"]),
+            (self.kerf_edit, state["kerf_mm"]),
+            (self.margin_edit, state["margin_mm"]),
         ):
             edit.blockSignals(True)
             self._set_length_text(edit, float(value))
             edit.blockSignals(False)
 
-        self.allow_90_check.setChecked(bool(default_allow))
-        self.allow_180_check.setChecked(bool(default_allow))
-        # Optimization mode
-        mode = session_state.get_optimization_mode()
-        mode_idx = self.mode_combo.findData(mode)
+        self.allow_90_check.setChecked(bool(state["default_allow"]))
+        self.allow_180_check.setChecked(bool(state["default_allow"]))
+
+        mode_idx = self.mode_combo.findData(state["mode"])
         if mode_idx < 0:
             mode_idx = 0
         self.mode_combo.blockSignals(True)
         self.mode_combo.setCurrentIndex(mode_idx)
         self.mode_combo.blockSignals(False)
-        # Units combo reflects hydrated preference
+
         unit_idx = self.units_combo.findData(self.measurement_system)
         if unit_idx < 0:
             unit_idx = 0
@@ -434,32 +428,58 @@ class SquatchCutTaskPanel:
         self.units_combo.setCurrentIndex(unit_idx)
         self.units_combo.blockSignals(False)
         self._update_unit_labels()
-        self._populate_table(session_state.get_panels())
-        self._reset_summary(mode)
+        self._populate_table(state["panels"])
+        self._reset_summary(state["mode"])
         self._refresh_summary()
-        # Cut optimization settings
+
         nesting_mode = session_state.get_nesting_mode()
-        self.cut_mode_check.setChecked(nesting_mode == "cut_friendly" or bool(cut_mode))
+        self.cut_mode_check.setChecked(
+            nesting_mode == "cut_friendly" or bool(state["cut_mode"])
+        )
         self.kerf_width_edit.blockSignals(True)
-        self._set_length_text(self.kerf_width_edit, float(kerf_width or 3.0))
+        self._set_length_text(self.kerf_width_edit, float(state["kerf_width_mm"]))
         self.kerf_width_edit.blockSignals(False)
-        self.rot0_check.setChecked(0 in rotations or not rotations)
-        self.rot90_check.setChecked(90 in rotations)
-        csv_units = self._prefs.get_csv_units(self.measurement_system)
-        if csv_units == "imperial":
-            csv_units = "in"
-        elif csv_units == "metric":
-            csv_units = "mm"
-        csv_units_idx = self.csv_units_combo.findData(csv_units)
+        self.rot0_check.setChecked(0 in state["rotations"] or not state["rotations"])
+        self.rot90_check.setChecked(90 in state["rotations"])
+
+        csv_units_idx = self.csv_units_combo.findData(state["csv_units"])
         if csv_units_idx >= 0:
             self.csv_units_combo.blockSignals(True)
             self.csv_units_combo.setCurrentIndex(csv_units_idx)
             self.csv_units_combo.blockSignals(False)
-        self.include_labels_check.setChecked(bool(include_labels))
-        self.include_dimensions_check.setChecked(bool(include_dims))
+        self.include_labels_check.setChecked(bool(state["include_labels"]))
+        self.include_dimensions_check.setChecked(bool(state["include_dimensions"]))
         self._update_unit_labels()
         self._validate_inputs()
         self.update_run_button_state()
+
+    def _connect_signals(self) -> None:
+        """Wire UI signals after all widgets are populated."""
+        self.preview_button.clicked.connect(self.on_preview_clicked)
+        self.run_button.clicked.connect(self.on_apply_clicked)
+        self.show_source_button.clicked.connect(self.on_show_source_panels)
+        self.btnExportCutlist.clicked.connect(self.on_export_cutlist_clicked)
+        self.report_bug_button.clicked.connect(self.on_report_bug_clicked)
+        self.btnViewSource.clicked.connect(self._on_view_source_clicked)
+        self.btnViewSheets.clicked.connect(self._on_view_sheets_clicked)
+        self.preset_combo.currentIndexChanged.connect(self._on_preset_changed)
+        self.mode_combo.currentIndexChanged.connect(self._on_mode_changed)
+        self.units_combo.currentIndexChanged.connect(self._on_units_changed)
+        self.load_csv_button.clicked.connect(self._choose_csv_file)
+        self.show_sheet_check.toggled.connect(self._on_view_toggled)
+        self.show_nested_check.toggled.connect(self._on_view_toggled)
+        self.sheet_width_edit.textChanged.connect(self.update_run_button_state)
+        self.sheet_width_edit.textChanged.connect(self._on_sheet_value_changed)
+        self.sheet_height_edit.textChanged.connect(self.update_run_button_state)
+        self.sheet_height_edit.textChanged.connect(self._on_sheet_value_changed)
+        self.kerf_edit.textChanged.connect(self.update_run_button_state)
+        self.margin_edit.textChanged.connect(self.update_run_button_state)
+        self.reset_defaults_button.clicked.connect(self._reset_defaults)
+        self.cut_mode_check.toggled.connect(self._on_mode_changed)
+        self.kerf_width_edit.textChanged.connect(self.update_run_button_state)
+        self.export_button.clicked.connect(self.on_export_clicked)
+        self.include_labels_check.stateChanged.connect(self._on_export_options_changed)
+        self.include_dimensions_check.stateChanged.connect(self._on_export_options_changed)
 
     def _apply_default_sheet_override(
         self,

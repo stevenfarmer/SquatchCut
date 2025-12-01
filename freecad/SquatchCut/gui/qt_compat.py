@@ -21,8 +21,18 @@ except ImportError:
             def __getattr__(self, name):
                 return self.__class__
 
+        class _DummyQtEnum:
+            Checked = 2
+            Unchecked = 0
+            TextSelectableByMouse = 1
+
+        class _DummyAbstractItemView(_DummyQtObject):
+            NoEditTriggers = 0
+            SelectRows = 1
+            SingleSelection = 2
+
         class _DummyQtModule:
-            Qt = type("QtEnum", (), {"Checked": 2, "Unchecked": 0})
+            Qt = _DummyQtEnum
             QDialog = _DummyQtObject
             QWidget = _DummyQtObject
             QMessageBox = _DummyQtObject
@@ -40,7 +50,7 @@ except ImportError:
             QCheckBox = _DummyQtObject
             QGroupBox = _DummyQtObject
             QGridLayout = _DummyQtObject
-            QAbstractItemView = _DummyQtObject
+            QAbstractItemView = _DummyAbstractItemView
 
             def __getattr__(self, name):
                 return _DummyQtObject
