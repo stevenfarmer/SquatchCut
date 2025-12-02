@@ -23,6 +23,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y freecad
+      - name: Install FreeCAD pytest dependency
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pytest
       - name: Verify FreeCAD installation
         run: |
           echo "Checking freecad on PATH..."
@@ -31,5 +35,7 @@ jobs:
           which freecadcmd || (echo "freecadcmd not found on PATH" && exit 1)
           echo "FreeCAD version:"
           freecadcmd --version || echo "Could not get FreeCAD version"
+          echo "Ensuring pytest is available inside FreeCAD..."
+          freecadcmd -c "import pytest; print('pytest import OK inside FreeCAD')"
       - name: Run FreeCAD integration tests
         run: freecadcmd -c "import run_freecad_tests"
