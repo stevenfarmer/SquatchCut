@@ -37,5 +37,13 @@ jobs:
           freecadcmd --version || echo "Could not get FreeCAD version"
           echo "Ensuring pytest is available inside FreeCAD..."
           freecadcmd -c "import pytest; print('pytest import OK inside FreeCAD')"
+      - name: Verify SquatchCut import in freecadcmd
+        env:
+          PYTHONPATH: "${{ github.workspace }}"
+        run: |
+          freecadcmd -c "import SquatchCut, sys; print('SquatchCut imported from:', SquatchCut.__file__)"
       - name: Run FreeCAD integration tests
-        run: freecadcmd -c "import run_freecad_tests"
+        env:
+          PYTHONPATH: "${{ github.workspace }}"
+        run: |
+          freecadcmd -c "import run_freecad_tests"
