@@ -1,0 +1,10 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "SquatchCut"
+version = "0.0.1"
+description = "SquatchCut FreeCAD nesting plugin"
+readme = "README.md"
+requires-python = ">=3.10"

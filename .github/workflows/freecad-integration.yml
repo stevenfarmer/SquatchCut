@@ -13,36 +13,42 @@ jobs:
     if: ${{ github.event.inputs.run_freecad_tests != 'false' }}
     runs-on: ubuntu-22.04  # Pinned because 'freecad' apt package is not available on Ubuntu 24.04 (ubuntu-latest)
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python (non-FreeCAD tooling)
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
-      - name: Install pytest
-        run: python -m pip install --upgrade pip pytest
-      - name: Install FreeCAD
+          python-version: "3.11"
+
+      - name: Install FreeCAD and test dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y freecad
-      - name: Install FreeCAD pytest dependency
+          sudo apt-get install -y freecad python3-pytest python3-pip
+
+      - name: Install SquatchCut as a package (editable)
+        working-directory: ${{ github.workspace }}
         run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-pytest
-      - name: Verify FreeCAD installation
+          python3 -m pip install -e .
+
+      - name: Verify FreeCAD + pytest + SquatchCut import
+        working-directory: ${{ github.workspace }}
+        env:
+          PYTHONPATH: "${{ github.workspace }}"
         run: |
           echo "Checking freecad on PATH..."
           which freecad || echo "freecad not found on PATH"
           echo "Checking freecadcmd on PATH..."
           which freecadcmd || (echo "freecadcmd not found on PATH" && exit 1)
-          echo "FreeCAD version:"
-          freecadcmd --version || echo "Could not get FreeCAD version"
-          echo "Ensuring pytest is available inside FreeCAD..."
+          echo "Python used by freecadcmd:"
+          freecadcmd -c "import sys; print(sys.version)"
+          echo "Checking pytest import under freecadcmd..."
           freecadcmd -c "import pytest; print('pytest import OK inside FreeCAD')"
-      - name: Verify SquatchCut import in freecadcmd
-        env:
-          PYTHONPATH: "${{ github.workspace }}"
-        run: |
-          freecadcmd -c "import SquatchCut, sys; print('SquatchCut imported from:', SquatchCut.__file__)"
+          echo "Checking SquatchCut import under freecadcmd..."
+          freecadcmd -c "import SquatchCut; print('SquatchCut imported from:', SquatchCut.__file__)"
+
       - name: Run FreeCAD integration tests
+        working-directory: ${{ github.workspace }}
         env:
           PYTHONPATH: "${{ github.workspace }}"
         run: |
