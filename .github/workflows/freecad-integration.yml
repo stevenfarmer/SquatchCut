@@ -23,5 +23,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y freecad
+      - name: Verify FreeCAD installation
+        run: |
+          echo "Checking freecad on PATH..."
+          which freecad || echo "freecad not found on PATH"
+          echo "Checking freecadcmd on PATH..."
+          which freecadcmd || (echo "freecadcmd not found on PATH" && exit 1)
+          echo "FreeCAD version:"
+          freecadcmd --version || echo "Could not get FreeCAD version"
       - name: Run FreeCAD integration tests
-        run: FreeCADCmd -c "import run_freecad_tests"
+        run: freecadcmd -c "import run_freecad_tests"
