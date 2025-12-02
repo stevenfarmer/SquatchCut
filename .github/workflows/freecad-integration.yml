@@ -23,10 +23,5 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y freecad
-      - name: Download FreeCAD AppImage
-        run: |
-          curl -L -o FreeCAD.AppImage https://github.com/FreeCAD/FreeCAD-Bundle/releases/download/0.21.2/FreeCAD_0.21.2-Linux-x86_64.AppImage
-          chmod +x FreeCAD.AppImage
-          ./FreeCAD.AppImage --appimage-extract
       - name: Run FreeCAD integration tests
-        run: ./squashfs-root/AppRun -c "import run_freecad_tests"
+        run: FreeCADCmd -c "import run_freecad_tests"
