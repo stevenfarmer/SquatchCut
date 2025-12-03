@@ -1,0 +1,31 @@
+{
+    "name": "SquatchCut Dev Container",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
+    "workspaceFolder": "/workspaces/SquatchCut",
+    "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.testing.pytestEnabled": true,
+        "python.testing.unittestEnabled": false,
+        "python.testing.nosetestsEnabled": false,
+        "python.testing.pytestArgs": [
+            "tests"
+        ]
+    },
+    "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "github.vscode-github-actions",
+        "eamodio.gitlens",
+        "redhat.vscode-yaml",
+        "yzhang.markdown-all-in-one",
+        "usernamehw.errorlens",
+        "littlefoxteam.vscode-python-test-adapter",
+        "ryanluker.vscode-coverage-gutters"
+    ],
+    "postCreateCommand": "pip install --upgrade pip && pip install -e .[dev] || (pip install -e . && pip install pytest pytest-cov ruff)",
+    "remoteUser": "vscode"
+}
