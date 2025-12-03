@@ -19,7 +19,7 @@ jobs:
       - name: Set up Python (non-FreeCAD tooling)
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.10"  # Match FreeCAD's system Python
 
       - name: Install FreeCAD and test dependencies
         # NOTE: FreeCAD uses system Python 3.10; install dependencies with python3/apt.
@@ -30,7 +30,7 @@ jobs:
       - name: Install SquatchCut as a package (editable)
         working-directory: ${{ github.workspace }}
         run: |
-          python3 -m pip install -e .
+          /usr/bin/python3 -m pip install -e .
 
       - name: Verify FreeCAD + pytest + SquatchCut import
         working-directory: ${{ github.workspace }}
