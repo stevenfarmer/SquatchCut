@@ -2,6 +2,9 @@
 Tests for pure session_state helpers (sheet size, kerf/gap, last layout copies).
 """
 
+import importlib
+
+import SquatchCut.core.session_state as session_state
 from SquatchCut.core.session_state import (
     set_sheet_size,
     get_sheet_size,
@@ -27,6 +30,8 @@ from SquatchCut.core.session_state import (
     get_allowed_rotations_deg,
     set_nesting_stats,
     get_nesting_stats,
+    set_measurement_system,
+    get_measurement_system,
 )
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.core.nesting import PlacedPart
@@ -136,3 +141,21 @@ def test_measurement_system_preferences_roundtrip():
     assert prefs.get_measurement_system() == "imperial"
     prefs.set_measurement_system("metric")
     assert prefs.get_measurement_system() == "metric"
+
+
+def test_session_state_defaults_after_reload():
+    """Reload module to ensure pure-Python defaults stay intact without FreeCAD."""
+    importlib.reload(session_state)
+    assert session_state.get_sheet_size() == (None, None)
+    assert session_state.get_gap_mm() == 0.0
+    assert session_state.get_kerf_mm() == 0.0
+    assert session_state.get_default_allow_rotate() is False
+    assert session_state.get_measurement_system() == "metric"
+
+
+def test_measurement_system_rejects_invalid_values():
+    importlib.reload(session_state)
+    set_measurement_system("bogus")
+    assert get_measurement_system() == "metric"
+    set_measurement_system("imperial")
+    assert get_measurement_system() == "imperial"
