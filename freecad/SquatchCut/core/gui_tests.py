@@ -4,13 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-try:
-    import FreeCAD as App  # type: ignore
-    import FreeCADGui as Gui  # type: ignore
-except Exception:  # pragma: no cover
-    App = None
-    Gui = None
-
+from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.core import logger, session, session_state
 from SquatchCut import settings
 from SquatchCut.core import cutlist

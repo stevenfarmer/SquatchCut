@@ -4,13 +4,7 @@ from __future__ import annotations
 
 import logging
 
-try:
-    import FreeCAD as App  # type: ignore
-    import FreeCADGui as Gui  # type: ignore
-except Exception:  # pragma: no cover
-    App = None
-    Gui = None
-
+from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.gui.view_utils import zoom_to_objects
 
 logger = logging.getLogger("SquatchCut.view_helpers")

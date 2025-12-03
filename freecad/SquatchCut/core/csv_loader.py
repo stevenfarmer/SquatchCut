@@ -9,10 +9,7 @@ from __future__ import annotations
 
 import csv
 
-try:
-    import FreeCAD as App
-except Exception:  # pragma: no cover
-    App = None
+from SquatchCut.freecad_integration import App
 
 MM_PER_INCH = 25.4
 

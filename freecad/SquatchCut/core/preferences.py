@@ -2,13 +2,9 @@
 
 from __future__ import annotations
 
-try:
-    import FreeCAD as App  # type: ignore
-except Exception:  # pragma: no cover
-    App = None
-
 import math
 
+from SquatchCut.freecad_integration import App
 from SquatchCut.core import sheet_presets
 from SquatchCut.core.units import inches_to_mm, mm_to_inches
 

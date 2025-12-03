@@ -4,13 +4,7 @@ from __future__ import annotations
 
 import os
 
-try:
-    import FreeCAD as App
-    import FreeCADGui as Gui
-except Exception:  # pragma: no cover
-    App = None
-    Gui = None
-
+from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.core import logger
 from SquatchCut.gui.view_helpers import (
     fit_view_to_sheet_and_nested,

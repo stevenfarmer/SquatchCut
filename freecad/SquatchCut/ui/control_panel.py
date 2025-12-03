@@ -1,11 +1,6 @@
 import os
 
-try:
-    import FreeCAD
-    import FreeCADGui
-except Exception:
-    FreeCAD = None
-    FreeCADGui = None
+from SquatchCut.freecad_integration import App as FreeCAD, Gui as FreeCADGui
 
 from SquatchCut.gui.qt_compat import QtWidgets
 from SquatchCut import settings

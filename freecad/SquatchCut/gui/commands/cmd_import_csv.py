@@ -8,12 +8,7 @@ Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 
 import os
 
-try:
-    import FreeCAD as App
-    import FreeCADGui as Gui
-except Exception:
-    App = None
-    Gui = None
+from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.core import logger
 
 # Qt imports (FreeCAD standard pattern)

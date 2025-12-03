@@ -4,12 +4,7 @@ from __future__ import annotations
 
 from typing import Iterable, List
 
-try:
-    import FreeCAD as App  # type: ignore
-    import FreeCADGui as Gui  # type: ignore
-except Exception:  # pragma: no cover
-    App = None
-    Gui = None
+from SquatchCut.freecad_integration import App, Gui
 
 from SquatchCut.core import logger, session, session_state
 from SquatchCut.core.sheet_model import SHEET_OBJECT_NAME

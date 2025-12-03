@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 from typing import Dict, Iterable, Sequence
 
+from SquatchCut.freecad_integration import App, Draft, Part
 from SquatchCut.core.cutlist import generate_cutlist
 
 
@@ -38,10 +39,7 @@ def _build_rectangles(
     include_dimensions: bool = False,
 ):
     """Create temporary rectangles in the doc for export; returns list of objects."""
-    try:
-        import Part  # type: ignore
-        import Draft  # type: ignore
-    except Exception:
+    if Part is None or Draft is None:
         return []
 
     objs = []
@@ -64,12 +62,11 @@ def _build_rectangles(
         placement.Base.x = x + sheet_index * (sheet_w + sheet_spacing)
         placement.Base.y = y
         placement.Base.z = 0.0
-        try:
-            import FreeCAD  # type: ignore
-
-            placement.Rotation = FreeCAD.Rotation(FreeCAD.Vector(0, 0, 1), rotation)
-        except Exception:
-            pass
+        if App:
+            try:
+                placement.Rotation = App.Rotation(App.Vector(0, 0, 1), rotation)
+            except Exception:
+                pass
         obj.Placement = placement
         objs.append(obj)
 

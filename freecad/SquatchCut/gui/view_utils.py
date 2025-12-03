@@ -2,11 +2,7 @@
 
 from __future__ import annotations
 
-try:
-    import FreeCADGui as Gui  # type: ignore
-except Exception:  # pragma: no cover
-    Gui = None
-
+from SquatchCut.freecad_integration import Gui
 from SquatchCut.core import logger
 
 

@@ -2,15 +2,7 @@
 
 from __future__ import annotations
 
-try:
-    import FreeCAD as App  # type: ignore
-    import FreeCADGui as Gui  # type: ignore
-    import Part  # type: ignore
-except Exception:  # pragma: no cover
-    App = None
-    Gui = None
-    Part = None
-
+from SquatchCut.freecad_integration import App, Gui, Part
 from SquatchCut.core import logger
 from SquatchCut.core.sheet_model import ensure_sheet_object, get_or_create_group, clear_group
 

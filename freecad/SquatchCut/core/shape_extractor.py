@@ -7,6 +7,7 @@ Note: Update incrementally; do not overwrite this module when adding logic.
 
 from __future__ import annotations
 
+from SquatchCut.freecad_integration import Gui
 
 class ShapeExtractor:
     """Scans a FreeCAD document and produces panel objects for nesting."""
@@ -58,11 +59,6 @@ class ShapeExtractor:
 
     def extract_from_selection(self, selection):
         """Process the current selection (or provided selection list) into panels."""
-        try:
-            import FreeCADGui as Gui  # type: ignore
-        except Exception:
-            Gui = None
-
         selected_objects = []
         if selection is not None:
             selected_objects = selection

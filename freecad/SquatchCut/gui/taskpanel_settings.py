@@ -2,11 +2,7 @@
 
 from __future__ import annotations
 
-try:
-    import FreeCADGui as Gui
-except Exception:
-    Gui = None
-
+from SquatchCut.freecad_integration import Gui
 from SquatchCut.gui.qt_compat import QtWidgets
 from SquatchCut.core import units as sc_units
 from SquatchCut import settings

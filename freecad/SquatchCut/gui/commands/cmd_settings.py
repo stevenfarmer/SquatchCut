@@ -3,13 +3,7 @@ from __future__ import annotations
 import os
 import traceback
 
-try:
-    import FreeCAD as App
-    import FreeCADGui as Gui
-except Exception:
-    App = None
-    Gui = None
-
+from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.core import logger
 from SquatchCut.gui.taskpanel_settings import TaskPanel_Settings
 

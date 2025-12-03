@@ -5,14 +5,9 @@ from __future__ import annotations
 import os
 from typing import Callable, List, Optional
 
-try:
-    import FreeCAD as App
-    import FreeCADGui as Gui
-except Exception:
-    App = None
-    Gui = None
 import webbrowser
 
+from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.gui.qt_compat import QtWidgets, QtCore
 
 from SquatchCut import settings

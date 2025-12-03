@@ -2,11 +2,7 @@
 
 from __future__ import annotations
 
-try:
-    import FreeCAD as App  # type: ignore
-except Exception:  # pragma: no cover
-    App = None
-
+from SquatchCut.freecad_integration import App
 from SquatchCut.core.preferences import SquatchCutPreferences
 
 

@@ -6,14 +6,7 @@ Primary user entry is via SquatchCut_ShowTaskPanel; this command remains for adv
 import os
 import traceback
 
-try:
-    import FreeCAD as App  # type: ignore
-    import FreeCADGui as Gui  # type: ignore
-    FreeCAD = App
-except Exception:
-    App = None
-    Gui = None
-    FreeCAD = None
+from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.gui.qt_compat import QtWidgets
 
 ICONS_DIR = os.path.join(
@@ -21,12 +14,6 @@ ICONS_DIR = os.path.join(
     "resources",
     "icons",
 )
-# Geometry
-try:
-    import Part  # type: ignore
-except Exception:
-    Part = None
-
 from SquatchCut.core import logger, session, session_state, view_controller
 from SquatchCut.core.nesting import (
     NestingConfig,

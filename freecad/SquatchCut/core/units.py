@@ -2,10 +2,7 @@ from __future__ import annotations
 
 import re
 
-try:
-    import FreeCAD as App  # type: ignore
-except Exception:  # pragma: no cover
-    App = None
+from SquatchCut.freecad_integration import App  # Centralized FreeCAD import
 
 # FreeCAD ParamGroup for SquatchCut prefs
 PREF_PATH = "User parameter:BaseApp/Preferences/Mod/SquatchCut"

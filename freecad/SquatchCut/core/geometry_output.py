@@ -4,12 +4,7 @@ Geometry helpers to turn SquatchCut nesting layouts into FreeCAD objects.
 
 from __future__ import annotations
 
-import FreeCAD as App  # type: ignore
-
-try:
-    import Part  # type: ignore
-except Exception:
-    Part = None
+from SquatchCut.freecad_integration import App, Part
 
 
 def create_geometry_from_layout(doc, layout, base_name="SC_Sheet"):

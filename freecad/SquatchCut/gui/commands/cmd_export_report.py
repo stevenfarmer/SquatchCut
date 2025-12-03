@@ -12,13 +12,7 @@ from SquatchCut.gui.qt_compat import QtWidgets, QtCore, QtGui
 
 import os
 
-try:
-    import FreeCAD as App  # type: ignore
-    import FreeCADGui as Gui  # type: ignore
-except Exception:
-    App = None
-    Gui = None
-
+from SquatchCut.freecad_integration import App, Gui
 from ...core.report_generator import ReportGenerator
 from ...core import session_state
 from ..dialogs.dlg_export_report import SC_ExportReportDialog

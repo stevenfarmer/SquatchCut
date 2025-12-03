@@ -6,11 +6,7 @@
 #   - Provides helpers to sync state to/from the active FreeCAD document.
 from __future__ import annotations
 
-try:
-    import FreeCADGui as Gui  # noqa: F401
-except Exception:  # pragma: no cover
-    Gui = None
-
+from SquatchCut.freecad_integration import Gui  # noqa: F401
 from SquatchCut.core import session_state
 
 # Additional SquatchCut session-related state

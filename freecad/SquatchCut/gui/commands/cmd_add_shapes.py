@@ -12,18 +12,7 @@ from SquatchCut.gui.qt_compat import QtWidgets, QtCore, QtGui
 
 import os
 
-try:
-    import FreeCAD as App
-    import FreeCADGui as Gui
-    FreeCAD = App
-except Exception:
-    App = None
-    Gui = None
-    FreeCAD = None
-try:
-    import Part
-except Exception:
-    Part = None
+from SquatchCut.freecad_integration import App, Gui, Part
 
 from SquatchCut.core import session_state
 

@@ -1,13 +1,7 @@
-try:
-    import FreeCAD as App  # type: ignore
-    import FreeCADGui as Gui  # type: ignore
-except Exception:  # pragma: no cover
-    App = None
-    Gui = None
-
 from dataclasses import dataclass
 from typing import List
 
+from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.core import session, logger, session_state
 
 
