@@ -30,7 +30,8 @@ jobs:
       - name: Install SquatchCut as a package (editable)
         working-directory: ${{ github.workspace }}
         run: |
-          /usr/bin/python3 -m pip install -e .
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install -e .
 
       - name: Verify FreeCAD + pytest + SquatchCut import
         working-directory: ${{ github.workspace }}
