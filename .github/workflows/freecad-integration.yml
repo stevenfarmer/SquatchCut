@@ -4,54 +4,20 @@ on:
   workflow_dispatch:
     inputs:
       run_freecad_tests:
-        description: "Run FreeCADCmd integration tests (downloads FreeCAD AppImage)"
+        description: "Run FreeCADCmd integration tests (disabled in CI until FreeCAD env is fixed)"
         required: false
         default: "true"
 
 jobs:
+  # TODO(SquatchCut): Reintroduce FreeCAD integration tests with a known-good FreeCAD image.
+  # The distro FreeCAD on GitHub runners has a broken embedded Python (fails to import stdlib modules),
+  # so freecadcmd is unusable here. Until we have a custom image/container with working FreeCAD + Python,
+  # CI will run only the core tests under the standard Python toolchain.
   freecad-integration:
-    if: ${{ github.event.inputs.run_freecad_tests != 'false' }}
-    runs-on: ubuntu-22.04  # Pinned because 'freecad' apt package is not available on Ubuntu 24.04 (ubuntu-latest)
+    if: ${{ false }}  # Disabled pending a working FreeCAD environment (see TODO above)
+    runs-on: ubuntu-22.04
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python (non-FreeCAD tooling)
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"  # Match FreeCAD's system Python
-
-      - name: Install FreeCAD and test dependencies
-        # NOTE: FreeCAD uses system Python 3.10; install dependencies with python3/apt.
+      - name: FreeCAD integration tests are disabled
         run: |
-          sudo apt-get update
-          sudo apt-get install -y freecad python3-pytest python3-pip
-
-      - name: Install SquatchCut as a package (editable)
-        working-directory: ${{ github.workspace }}
-        run: |
-          python -m pip install --upgrade pip setuptools wheel
-          python -m pip install -e .
-
-      - name: Verify FreeCAD + pytest + SquatchCut import
-        working-directory: ${{ github.workspace }}
-        env:
-          PYTHONPATH: "${{ github.workspace }}"
-        run: |
-          echo "Checking freecad on PATH..."
-          which freecad || echo "freecad not found on PATH"
-          echo "Checking freecadcmd on PATH..."
-          which freecadcmd || (echo "freecadcmd not found on PATH" && exit 1)
-          echo "Python used by freecadcmd:"
-          freecadcmd -c "import sys; print(sys.version)"
-          echo "Checking pytest import under freecadcmd..."
-          freecadcmd -c "import pytest; print('pytest import OK inside FreeCAD')"
-          echo "Checking SquatchCut import under freecadcmd..."
-          freecadcmd -c "import SquatchCut; print('SquatchCut imported from:', SquatchCut.__file__)"
-
-      - name: Run FreeCAD integration tests
-        working-directory: ${{ github.workspace }}
-        env:
-          PYTHONPATH: "${{ github.workspace }}"
-        run: |
-          freecadcmd -c "import run_freecad_tests; run_freecad_tests.main()"
+          echo "FreeCAD integration tests are disabled in CI."
+          echo "See workflow TODO for re-enabling with a stable FreeCAD environment."
