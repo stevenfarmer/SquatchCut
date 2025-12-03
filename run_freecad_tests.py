@@ -30,5 +30,5 @@ def main() -> int:
     return pytest.main(args)
 
 
-# When executed via freecadcmd import, run immediately and propagate exit code.
-raise SystemExit(main())
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -22,6 +22,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install FreeCAD and test dependencies
+        # NOTE: FreeCAD uses system Python 3.10; install dependencies with python3/apt.
         run: |
           sudo apt-get update
           sudo apt-get install -y freecad python3-pytest python3-pip
@@ -52,4 +53,4 @@ jobs:
         env:
           PYTHONPATH: "${{ github.workspace }}"
         run: |
-          freecadcmd -c "import run_freecad_tests"
+          freecadcmd -c "import run_freecad_tests; run_freecad_tests.main()"
