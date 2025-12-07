@@ -117,8 +117,13 @@ def test_developer_mode_controls_absent():
     assert not hasattr(panel, "dev_mode_check")
 
 
-def test_taskpanel_runs_gui_tests_via_button(monkeypatch):
+def test_main_taskpanel_no_longer_has_gui_test_button():
     panel = SquatchCutTaskPanel()
+    assert not hasattr(panel, "run_gui_tests_button")
+
+
+def test_settings_panel_runs_gui_tests_via_button(monkeypatch):
+    panel = SquatchCutSettingsPanel()
     assert hasattr(panel, "run_gui_tests_button")
     assert panel.run_gui_tests_button.text() == "Run GUI Test Suite"
 

@@ -7,6 +7,7 @@ from SquatchCut.gui.qt_compat import QtWidgets
 from SquatchCut.core import units as sc_units
 from SquatchCut import settings
 from SquatchCut.core.preferences import SquatchCutPreferences
+from SquatchCut.core import gui_tests, logger
 
 
 class _UnitRadioProxy:
@@ -42,15 +43,13 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         self.form = self
         self._close_callback = None
         self._prefs = SquatchCutPreferences()
-        # Prefer the active units setting if it differs from persisted prefs.
-        ms_from_prefs = self._prefs.get_measurement_system()
-        ms_from_units = "imperial" if sc_units.get_units() == "in" else "metric"
-        self.measurement_system = ms_from_units or ms_from_prefs
+        self._initial_state = self._compute_initial_state()
+        self.measurement_system = self._initial_state["measurement_system"]
         self._build_ui()
         # Compatibility proxies for GUI tests that expect unit radio buttons.
         self.rbUnitsMetric = _UnitRadioProxy(self, "metric")
         self.rbUnitsImperial = _UnitRadioProxy(self, "imperial")
-        self._load_values()
+        self._apply_initial_state(self._initial_state)
 
     def _build_ui(self) -> None:
         layout = QtWidgets.QVBoxLayout(self)
@@ -61,6 +60,7 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         layout.addWidget(self._build_sheet_defaults_group())
         layout.addWidget(self._build_cut_defaults_group())
         layout.addWidget(self._build_rotation_group())
+        layout.addWidget(self._build_developer_group())
 
         layout.addStretch(1)
 
@@ -112,31 +112,70 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         layout.addWidget(self.allow_rotation_check)
         return group
 
-    def _load_values(self) -> None:
-        # Sync measurement system with global units before populating widgets.
+    def _build_developer_group(self) -> QtWidgets.QGroupBox:
+        group = QtWidgets.QGroupBox("Developer tools")
+        layout = QtWidgets.QVBoxLayout(group)
+        helper = QtWidgets.QLabel("Run the SquatchCut GUI test suite inside FreeCAD.")
+        if hasattr(helper, "setWordWrap"):
+            helper.setWordWrap(True)
+        layout.addWidget(helper)
+
+        self.run_gui_tests_button = QtWidgets.QPushButton("Run GUI Test Suite")
+        self.run_gui_tests_button.setToolTip("Run SquatchCut's GUI regression suite. Results are logged to the Report view.")
+        self.run_gui_tests_button.clicked.connect(self.on_run_gui_tests_clicked)
+        layout.addWidget(self.run_gui_tests_button)
+
+        self.dev_tools_status_label = QtWidgets.QLabel()
+        self.dev_tools_status_label.setStyleSheet("color: gray;")
+        self._set_dev_tools_status("Ready")
+        layout.addWidget(self.dev_tools_status_label)
+        layout.addStretch(1)
+        return group
+
+    def _compute_initial_state(self) -> dict:
+        # Prefer the current global measurement system, falling back to persisted prefs.
         ms_from_units = "imperial" if sc_units.get_units() == "in" else "metric"
-        if self.measurement_system != ms_from_units:
-            self.measurement_system = ms_from_units
+        ms_from_prefs = self._prefs.get_measurement_system()
+        measurement_system = ms_from_units or ms_from_prefs or "metric"
+        if measurement_system not in ("metric", "imperial"):
+            measurement_system = "metric"
+
+        width_mm = height_mm = None
+        if self._prefs.has_default_sheet_size(measurement_system):
+            width_mm = self._prefs.get_default_sheet_width_mm()
+            height_mm = self._prefs.get_default_sheet_height_mm()
+
+        return {
+            "measurement_system": measurement_system,
+            "sheet_width_mm": width_mm,
+            "sheet_height_mm": height_mm,
+            "kerf_mm": self._prefs.get_default_kerf_mm(),
+            "gap_mm": self._prefs.get_default_spacing_mm(),
+            "allow_rotate": self._prefs.get_default_allow_rotate(),
+        }
+
+    def _apply_initial_state(self, state: dict) -> None:
+        if not state:
+            return
+        self.measurement_system = state.get("measurement_system", "metric")
         idx = self.units_combo.findData(self.measurement_system)
         if idx < 0:
             idx = 0
+        self.units_combo.blockSignals(True)
         self.units_combo.setCurrentIndex(idx)
-        # Align measurement_system with the combo selection for proxy checks
-        current_data = self.units_combo.currentData()
-        if current_data:
-            self.measurement_system = current_data
+        self.units_combo.blockSignals(False)
         self._update_unit_labels()
-        if self._prefs.has_default_sheet_size(self.measurement_system):
-            width_mm = self._prefs.get_default_sheet_width_mm()
-            height_mm = self._prefs.get_default_sheet_height_mm()
-            self._set_length_text(self.sheet_width_edit, width_mm)
-            self._set_length_text(self.sheet_height_edit, height_mm)
+
+        self._set_length_text(self.sheet_width_edit, state.get("sheet_width_mm"))
+        self._set_length_text(self.sheet_height_edit, state.get("sheet_height_mm"))
+        self._set_length_text(self.kerf_edit, state.get("kerf_mm"))
+
+        gap_value = state.get("gap_mm")
+        if gap_value is None:
+            self.gap_edit.clear()
         else:
-            self.sheet_width_edit.clear()
-            self.sheet_height_edit.clear()
-        self._set_length_text(self.kerf_edit, self._prefs.get_default_kerf_mm())
-        self.gap_edit.setText(str(self._prefs.get_default_spacing_mm()))
-        self.allow_rotation_check.setChecked(self._prefs.get_default_allow_rotate())
+            self.gap_edit.setText(str(gap_value))
+        self.allow_rotation_check.setChecked(bool(state.get("allow_rotate")))
 
     def _set_length_text(self, widget: QtWidgets.QLineEdit, value_mm: float | None) -> None:
         if value_mm is None:
@@ -208,6 +247,32 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         self.sheet_height_label.setText(f"Default sheet height ({unit_label}):")
         self.kerf_label.setText(f"Default kerf ({unit_label}):")
         self.gap_label.setText("Default gap (mm):")
+
+    def _set_dev_tools_status(self, message: str) -> None:
+        if hasattr(self, "dev_tools_status_label"):
+            self.dev_tools_status_label.setText(f"Status: {message}")
+
+    def on_run_gui_tests_clicked(self) -> None:
+        """Run the SquatchCut GUI test suite from the settings panel."""
+        self._set_dev_tools_status("Running GUI tests...")
+        try:
+            results = gui_tests.run_gui_test_suite_from_freecad()
+        except Exception as exc:
+            logger.error(f"GUI tests failed to start: {exc!r}")
+            self._set_dev_tools_status("GUI tests failed to run. See Report view.")
+            return
+
+        if results is None:
+            self._set_dev_tools_status("GUI tests failed to run. See Report view.")
+            return
+
+        passed = sum(1 for result in results if getattr(result, "passed", False))
+        total = len(results)
+        failed = total - passed
+        if failed:
+            self._set_dev_tools_status(f"GUI tests completed with {failed} failure(s). See Report view.")
+        else:
+            self._set_dev_tools_status("GUI tests completed successfully. See Report view.")
 
     def accept(self) -> None:
         if self._apply_changes() and Gui is not None:

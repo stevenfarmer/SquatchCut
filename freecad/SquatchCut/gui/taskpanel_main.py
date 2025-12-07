@@ -12,7 +12,7 @@ from SquatchCut.gui.qt_compat import QtWidgets, QtCore
 
 from SquatchCut import settings
 from SquatchCut.core import sheet_presets as sc_sheet_presets
-from SquatchCut.core import session, session_state, view_controller, logger, gui_tests
+from SquatchCut.core import session, session_state, view_controller, logger
 from SquatchCut.core import units as sc_units
 from SquatchCut.core.nesting import compute_utilization, estimate_cut_counts
 from SquatchCut.core.preferences import SquatchCutPreferences
@@ -101,7 +101,6 @@ class SquatchCutTaskPanel:
         layout.addWidget(self._build_cut_optimization_group())
         layout.addWidget(self._build_stats_group())
         layout.addWidget(self._build_export_group())
-        layout.addWidget(self._build_developer_group())
 
         # Bottom action buttons
         buttons_row = QtWidgets.QHBoxLayout()
@@ -322,19 +321,6 @@ class SquatchCutTaskPanel:
         form.addRow(self.export_button)
         return group
 
-    def _build_developer_group(self) -> QtWidgets.QGroupBox:
-        group = QtWidgets.QGroupBox("Developer tools")
-        layout = QtWidgets.QVBoxLayout(group)
-        helper = QtWidgets.QLabel("Run the SquatchCut GUI test suite inside FreeCAD.")
-        if hasattr(helper, "setWordWrap"):
-            helper.setWordWrap(True)
-        self.run_gui_tests_button = QtWidgets.QPushButton("Run GUI Test Suite")
-        self.run_gui_tests_button.setToolTip("Run SquatchCut's GUI regression suite. Results are logged to the Report view.")
-        layout.addWidget(helper)
-        layout.addWidget(self.run_gui_tests_button)
-        layout.addStretch(1)
-        return group
-
     # ---------------- State helpers ----------------
 
     def _compute_initial_state(self, doc) -> dict:
@@ -487,7 +473,6 @@ class SquatchCutTaskPanel:
         self.export_button.clicked.connect(self.on_export_clicked)
         self.include_labels_check.stateChanged.connect(self._on_export_options_changed)
         self.include_dimensions_check.stateChanged.connect(self._on_export_options_changed)
-        self.run_gui_tests_button.clicked.connect(self.on_run_gui_tests_clicked)
 
     def _apply_default_sheet_override(
         self,
@@ -1245,27 +1230,6 @@ class SquatchCutTaskPanel:
             Gui.runCommand("SquatchCut_ExportCutlist")
         except Exception as e:
             logger.error(f"Failed to export cutlist: {e!r}")
-
-    def on_run_gui_tests_clicked(self):
-        """Run the SquatchCut GUI test suite from the developer tools section."""
-        try:
-            results = gui_tests.run_gui_test_suite_from_freecad()
-        except Exception as exc:
-            logger.error(f"GUI tests failed to start: {exc!r}")
-            self.set_status("GUI tests failed to run. See Report view.")
-            return
-
-        if results is None:
-            self.set_status("GUI tests failed to run. See Report view.")
-            return
-
-        passed = sum(1 for result in results if getattr(result, "passed", False))
-        total = len(results)
-        failed = total - passed
-        if failed:
-            self.set_status(f"GUI tests completed with {failed} failure(s). See Report view.")
-        else:
-            self.set_status("GUI tests completed successfully. See Report view.")
 
     # ---------------- Task panel API ----------------
 
