@@ -2,9 +2,10 @@
 
 FROM mcr.microsoft.com/devcontainers/python:3.10
 
-# Install minimal OS packages; extend as needed later (e.g., FreeCAD deps).
+# Install base tooling plus FreeCAD for headless CLI usage.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
+    freecad \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workspaces/SquatchCut
