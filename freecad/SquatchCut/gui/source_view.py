@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from SquatchCut.freecad_integration import App, Gui, Part
 from SquatchCut.core import logger
-from SquatchCut.core.sheet_model import ensure_sheet_object, get_or_create_group, clear_group
+from SquatchCut.core.sheet_model import get_or_create_group, clear_group_children
 
 
 SOURCE_GROUP_NAME = "SquatchCut_SourceParts"
@@ -20,7 +20,7 @@ def _ensure_group(doc):
     return group
 
 
-def rebuild_source_preview(parts):
+def rebuild_source_preview(parts, doc=None):
     """
     Clear and rebuild source preview rectangles under SquatchCut_SourceParts.
 
@@ -30,7 +30,7 @@ def rebuild_source_preview(parts):
         logger.warning("rebuild_source_preview() skipped: FreeCAD/Part not available.")
         return None, []
 
-    doc = App.ActiveDocument or App.newDocument("SquatchCut")
+    doc = doc or App.ActiveDocument or App.newDocument("SquatchCut")
     try:
         if Gui:
             Gui.ActiveDocument = Gui.getDocument(doc.Name)
@@ -38,7 +38,7 @@ def rebuild_source_preview(parts):
         pass
 
     group = _ensure_group(doc)
-    removed = clear_group(group)
+    removed = clear_group_children(group)
     logger.info(f">>> [SquatchCut] Source group cleared and rebuilt with {removed} parts")
 
     created = []

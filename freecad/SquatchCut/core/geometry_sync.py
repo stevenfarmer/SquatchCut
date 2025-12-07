@@ -5,7 +5,6 @@ from __future__ import annotations
 from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.core import logger, session, session_state, view_controller
 from SquatchCut.core.sheet_model import ensure_sheet_object
-from SquatchCut.gui.source_view import rebuild_source_preview, SOURCE_GROUP_NAME
 
 def sync_source_panels_to_document():
     """Create/refresh source panel geometry in the active document and update the view."""
@@ -33,18 +32,7 @@ def sync_source_panels_to_document():
     sheet_w, sheet_h = session_state.get_sheet_size()
     sheet_obj = ensure_sheet_object(sheet_w, sheet_h, doc)
 
-    logger.info(">>> [SquatchCut] Rebuilding source preview...")
-    group, created = rebuild_source_preview(panels)
-    logger.info(f">>> [SquatchCut] Created {len(created)} preview objects")
-    session.set_source_panel_objects(created)
-    try:
-        session_state.set_source_panel_objects(created)
-    except Exception:
-        pass
-    try:
-        doc.recompute()
-    except Exception:
-        pass
+    logger.info(">>> [SquatchCut] Rebuilding source preview via view controller...")
 
     # Optional debug: log the first panel's vertices to verify orientation
     if session.get_source_panel_objects():
@@ -56,7 +44,6 @@ def sync_source_panels_to_document():
         except Exception as exc:  # pragma: no cover
             logger.warning(f"Failed to inspect source panel vertices: {exc!r}")
 
-    logger.info(f"Created {len(created)} source panel shapes in document.")
     try:
         view_controller.show_source_view(doc)
     except ReferenceError as exc:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from SquatchCut.freecad_integration import App, Gui, Part
 from SquatchCut.core import logger
-from SquatchCut.core.sheet_model import get_or_create_group, clear_group
+from SquatchCut.core.sheet_model import get_or_create_group, clear_group_children
 
 NESTED_GROUP_NAME = "SquatchCut_NestedParts"
 
@@ -32,7 +32,7 @@ def rebuild_nested_geometry(doc, placements, sheet_w, sheet_h, source_objects=No
     group = ensure_nested_group(doc)
     if group is None:
         return None, []
-    removed = clear_group(group)
+    removed = clear_group_children(group)
     logger.info(f">>> [SquatchCut] Nested group cleared and rebuilt with {removed} parts")
 
     source_objects = source_objects or []

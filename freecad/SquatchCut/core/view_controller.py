@@ -7,12 +7,20 @@ from typing import Iterable, List
 from SquatchCut.freecad_integration import App, Gui
 
 from SquatchCut.core import logger, session, session_state
-from SquatchCut.core.sheet_model import SHEET_OBJECT_NAME
+from SquatchCut.core.sheet_model import (
+    SHEET_OBJECT_NAME,
+    ensure_sheet_object,
+    get_or_create_group,
+    clear_group_children,
+)
+from SquatchCut.gui.nesting_view import rebuild_nested_geometry
+from SquatchCut.gui.source_view import rebuild_source_preview
 from SquatchCut.gui.view_utils import zoom_to_objects
 
 SOURCE_GROUP_NAME = "SquatchCut_SourceParts"
 NESTED_GROUP_NAME = "SquatchCut_NestedParts"
 LEGACY_SHEET_GROUP_NAME = "SquatchCut_Sheets"
+SQUATCHCUT_GROUP_NAMES = (SHEET_OBJECT_NAME, SOURCE_GROUP_NAME, NESTED_GROUP_NAME)
 
 
 def _resolve_doc(doc=None):
@@ -32,6 +40,18 @@ def _resolve_doc(doc=None):
     except Exception:
         pass
     return doc
+
+
+def _resolve_view():
+    if Gui is None:
+        return None
+    try:
+        gui_doc = Gui.ActiveDocument
+        if gui_doc is None:
+            return None
+        return gui_doc.ActiveView
+    except Exception:
+        return None
 
 
 def _collect_group_objects(group):
@@ -62,45 +82,121 @@ def _unique_objects(objs: Iterable[object]) -> List[object]:
     return unique
 
 
-def get_source_objects(doc=None) -> list[object]:
-    objs = list(session.get_source_panel_objects() or [])
-    resolved_doc = _resolve_doc(doc)
-    if resolved_doc is not None:
-        group = resolved_doc.getObject(SOURCE_GROUP_NAME)
-        objs.extend(_collect_group_objects(group))
-    return _unique_objects(objs)
+def _set_object_visibility(obj, visible: bool) -> None:
+    if obj is None:
+        return
+    view = getattr(obj, "ViewObject", None)
+    if view is None:
+        return
+    try:
+        view.Visibility = bool(visible)
+    except Exception:
+        pass
 
 
-def get_sheet_objects(doc=None) -> list[object]:
-    objs = list(session.get_sheet_objects() or [])
-    resolved_doc = _resolve_doc(doc)
-    if resolved_doc is not None:
-        sheet_shape = resolved_doc.getObject(SHEET_OBJECT_NAME)
-        if sheet_shape is not None:
-            objs.append(sheet_shape)
-    return _unique_objects(objs)
-
-
-def get_nested_objects(doc=None) -> list[object]:
-    objs = list(session.get_nested_panel_objects() or [])
-    nested_group = session_state.get_nested_sheet_group()
-    objs.extend(_collect_group_objects(nested_group))
-    resolved_doc = _resolve_doc(doc)
-    if resolved_doc is not None:
-        group = resolved_doc.getObject(NESTED_GROUP_NAME)
-        objs.extend(_collect_group_objects(group))
-    return _unique_objects(objs)
-
-
-def set_visibility(objs: Iterable[object], visible: bool) -> None:
-    for obj in objs or []:
-        view = getattr(obj, "ViewObject", None)
-        if view is None:
+def set_squatchcut_group_visibility(doc, active_group_name: str) -> None:
+    if doc is None:
+        return
+    for name in SQUATCHCUT_GROUP_NAMES:
+        obj = doc.getObject(name)
+        is_active = name == active_group_name
+        _set_object_visibility(obj, is_active)
+        if obj is None or name == SHEET_OBJECT_NAME:
             continue
+        for child in list(getattr(obj, "Group", []) or []):
+            _set_object_visibility(child, is_active)
+
+
+def auto_zoom_to_group(view, group):
+    if group is None:
+        return
+    members = [obj for obj in _collect_group_objects(group) if obj is not None]
+    targets = list(members)
+    if not targets and hasattr(group, "Shape"):
+        targets.append(group)
+    if not targets:
+        return
+    if view is not None:
         try:
-            view.Visibility = bool(visible)
+            view.viewTop()
         except Exception:
-            continue
+            pass
+        try:
+            view.setCameraType("Orthographic")
+        except Exception:
+            pass
+    fit_view_to_objects(targets)
+
+
+def _redraw_sheet_object(doc):
+    if doc is None:
+        return None
+    sheet_w, sheet_h = session_state.get_sheet_size()
+    if not sheet_w or not sheet_h:
+        return doc.getObject(SHEET_OBJECT_NAME)
+    sheet_obj = ensure_sheet_object(sheet_w, sheet_h, doc)
+    session.set_sheet_objects([sheet_obj] if sheet_obj else [])
+    return sheet_obj
+
+
+def _redraw_source_group(doc):
+    if doc is None:
+        return None, []
+    parts = session.get_panels() or session_state.get_panels() or []
+    group = get_or_create_group(doc, SOURCE_GROUP_NAME)
+    if not parts:
+        clear_group_children(group)
+        session.set_source_panel_objects([])
+        try:
+            session_state.set_source_panel_objects([])
+        except Exception:
+            pass
+        return group, []
+    group, created = rebuild_source_preview(parts, doc=doc)
+    session.set_source_panel_objects(created)
+    try:
+        session_state.set_source_panel_objects(created)
+    except Exception:
+        pass
+    return group, created
+
+
+def _redraw_nested_group(doc):
+    if doc is None:
+        return None, []
+    placements = session_state.get_last_layout() or []
+    group = get_or_create_group(doc, NESTED_GROUP_NAME)
+    if not placements:
+        clear_group_children(group)
+        session.set_nested_panel_objects([])
+        try:
+            session_state.set_nested_sheet_group(group)
+        except Exception:
+            pass
+        return group, []
+    sheet_w, sheet_h = session_state.get_sheet_size()
+    if not sheet_w or not sheet_h:
+        clear_group_children(group)
+        session.set_nested_panel_objects([])
+        try:
+            session_state.set_nested_sheet_group(group)
+        except Exception:
+            pass
+        return group, []
+    source_objs = session.get_source_panel_objects()
+    group, nested_objs = rebuild_nested_geometry(
+        doc,
+        placements,
+        sheet_w,
+        sheet_h,
+        source_objects=source_objs,
+    )
+    session.set_nested_panel_objects(nested_objs or [])
+    try:
+        session_state.set_nested_sheet_group(group)
+    except Exception:
+        pass
+    return group, nested_objs or []
 
 
 def fit_view_to_objects(objects: Iterable[object]) -> None:
@@ -162,12 +258,24 @@ def show_source_view(doc=None) -> None:
     if resolved_doc is None:
         return
 
-    sources = get_source_objects(resolved_doc)
-    set_visibility(sources, True)
-    set_visibility(get_sheet_objects(resolved_doc), False)
-    set_visibility(get_nested_objects(resolved_doc), False)
-    logger.info(">>> [SquatchCut] View: showing source geometry only")
-    fit_view_to_objects(sources)
+    group, created = _redraw_source_group(resolved_doc)
+    set_squatchcut_group_visibility(resolved_doc, SOURCE_GROUP_NAME)
+    count = len(created or getattr(group, "Group", []))
+    logger.info(f">>> [SquatchCut] View: showing source geometry only ({count} objects).")
+    view = _resolve_view()
+    auto_zoom_to_group(view, group)
+
+
+def show_sheet_view(doc=None) -> None:
+    resolved_doc = _resolve_doc(doc)
+    if resolved_doc is None:
+        return
+
+    sheet_obj = _redraw_sheet_object(resolved_doc)
+    set_squatchcut_group_visibility(resolved_doc, SHEET_OBJECT_NAME)
+    logger.info(">>> [SquatchCut] View: showing sheet only.")
+    view = _resolve_view()
+    auto_zoom_to_group(view, sheet_obj)
 
 
 def show_nesting_view(
@@ -179,29 +287,9 @@ def show_nesting_view(
     if resolved_doc is None:
         return
 
-    source_objs = get_source_objects(resolved_doc)
-    sheet_objs = get_sheet_objects(resolved_doc)
-    nested_objs = nested_objects or get_nested_objects(resolved_doc)
-
-    set_visibility(source_objs, False)
-    set_visibility(sheet_objs, False)
-
-    visible_sheet = active_sheet or (sheet_objs[0] if sheet_objs else None)
-    if visible_sheet is not None:
-        set_visibility([visible_sheet], True)
-    elif sheet_objs:
-        set_visibility(sheet_objs, True)
-
-    set_visibility(nested_objs, True)
-
-    targets = []
-    if visible_sheet is not None:
-        targets.append(visible_sheet)
-    else:
-        targets.extend(sheet_objs)
-    targets.extend(nested_objs)
-
-    sheet_label = getattr(visible_sheet, "Name", "unknown sheet")
-    logger.info(f">>> [SquatchCut] View: showing nested layout on active sheet {sheet_label}")
-    if targets:
-        fit_view_to_objects(targets)
+    group, nested_objs = _redraw_nested_group(resolved_doc)
+    set_squatchcut_group_visibility(resolved_doc, NESTED_GROUP_NAME)
+    count = len(nested_objs or getattr(group, "Group", []))
+    logger.info(f">>> [SquatchCut] View: showing nested layout only ({count} objects).")
+    view = _resolve_view()
+    auto_zoom_to_group(view, group)

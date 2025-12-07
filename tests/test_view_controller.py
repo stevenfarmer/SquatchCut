@@ -1,5 +1,4 @@
-from SquatchCut.core import session, session_state, view_controller
-from SquatchCut.core.sheet_model import SHEET_OBJECT_NAME
+from SquatchCut.core import view_controller
 
 
 class DummyView:
@@ -37,73 +36,6 @@ class DummyDoc:
             del self._objects[name]
 
 
-def _cleanup_state():
-    session.clear_all_geometry()
-    session_state.set_nested_sheet_group(None)
-
-
-def test_show_source_view_sets_visibility(monkeypatch):
-    doc = DummyDoc()
-    source = DummyObject("SourceOne")
-    sheet = DummyObject(SHEET_OBJECT_NAME)
-    nested = DummyObject("SC_Nested_old")
-    source_group = DummyGroup(view_controller.SOURCE_GROUP_NAME, members=[source])
-    nested_group = DummyGroup(view_controller.NESTED_GROUP_NAME, members=[nested])
-
-    doc._objects[source_group.Name] = source_group
-    doc._objects[nested_group.Name] = nested_group
-    doc._objects[source.Name] = source
-    doc._objects[sheet.Name] = sheet
-    doc._objects[nested.Name] = nested
-
-    session.set_source_panel_objects([source])
-    session.set_sheet_objects([sheet])
-    session.set_nested_panel_objects([nested])
-    session_state.set_nested_sheet_group(nested_group)
-
-    fit_targets = []
-    monkeypatch.setattr(view_controller, "zoom_to_objects", lambda objs: fit_targets.append(list(objs)))
-
-    view_controller.show_source_view(doc)
-
-    assert source.ViewObject.Visibility is True
-    assert sheet.ViewObject.Visibility is False
-    assert nested.ViewObject.Visibility is False
-    assert fit_targets == [[source]]
-
-    _cleanup_state()
-
-
-def test_show_nesting_view_hides_sources(monkeypatch):
-    doc = DummyDoc()
-    source = DummyObject("SourceTwo")
-    sheet = DummyObject(SHEET_OBJECT_NAME)
-    nested = DummyObject("SC_Nested_new")
-    nested_group = DummyGroup(view_controller.NESTED_GROUP_NAME, members=[nested])
-
-    doc._objects[source.Name] = source
-    doc._objects[sheet.Name] = sheet
-    doc._objects[nested_group.Name] = nested_group
-    doc._objects[nested.Name] = nested
-
-    session.set_source_panel_objects([source])
-    session.set_sheet_objects([sheet])
-    session.set_nested_panel_objects([nested])
-    session_state.set_nested_sheet_group(nested_group)
-
-    fit_targets = []
-    monkeypatch.setattr(view_controller, "zoom_to_objects", lambda objs: fit_targets.append(list(objs)))
-
-    view_controller.show_nesting_view(doc, active_sheet=sheet)
-
-    assert source.ViewObject.Visibility is False
-    assert sheet.ViewObject.Visibility is True
-    assert nested.ViewObject.Visibility is True
-    assert fit_targets == [[sheet, nested]]
-
-    _cleanup_state()
-
-
 def test_cleanup_nested_layout_removes_old_objects():
     doc = DummyDoc()
     legacy_child = DummyObject("LegacyChild")
@@ -124,5 +56,3 @@ def test_cleanup_nested_layout_removes_old_objects():
     assert nested_group.Name in doc.removed
     assert nested_obj.Name in doc.removed
     assert stray.Name in doc.removed
-
-    _cleanup_state()

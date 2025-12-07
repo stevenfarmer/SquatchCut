@@ -81,16 +81,35 @@ def get_or_create_group(doc, name):
     return group
 
 
-def clear_group(group):
+def clear_group_children(group):
+    """
+    Remove all children from the given FreeCAD group without deleting the group.
+    """
     removed = 0
     if group is None:
         return 0
     doc = getattr(group, "Document", None)
-    for child in list(getattr(group, "Group", [])):
+    children = list(getattr(group, "Group", []) or [])
+    for child in children:
+        if child is None:
+            continue
+        try:
+            name = getattr(child, "Name", None)
+        except ReferenceError:
+            name = None
+        if not name:
+            continue
         try:
             if doc:
-                doc.removeObject(child.Name)
+                doc.removeObject(name)
             removed += 1
         except Exception:
             continue
     return removed
+
+
+def clear_group(group):
+    """
+    Backwards-compatible alias for clear_group_children().
+    """
+    return clear_group_children(group)
