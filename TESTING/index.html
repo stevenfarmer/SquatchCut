@@ -953,10 +953,60 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-useful-pytest-options" class="md-nav__link">
+  <a href="#4-running-tests-inside-the-dockerdevcontainer-environment" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Useful pytest options
+        4. Running tests inside the Docker/devcontainer environment
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Running tests inside the Docker/devcontainer environment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-build-and-launch-the-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Build and launch the container
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-running-tests-in-the-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Running tests in the container
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-useful-pytest-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Useful pytest options
       
     </span>
   </a>
@@ -964,10 +1014,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-summary" class="md-nav__link">
+  <a href="#6-summary" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Summary
+        6. Summary
       
     </span>
   </a>
@@ -1111,8 +1161,10 @@ are made to nesting, CSV import, or settings.</p>
 <li><code>id,width_mm,height_mm,allow_rotate</code></li>
 <li>Some rows with <code>allow_rotate=1</code>, some with <code>allow_rotate=0</code>.</li>
 <li>Use the SquatchCut CSV import command to load this file.</li>
-<li>Verify:</li>
+<li>Verify:<ul>
 <li>Panels are created in the document.</li>
+</ul>
+</li>
 <li>Each imported panel has a <code>SquatchCutCanRotate</code> property:<ul>
 <li><code>True</code> for <code>allow_rotate=1</code>.</li>
 <li><code>False</code> for <code>allow_rotate=0</code>.</li>
@@ -1178,7 +1230,44 @@ are made to nesting, CSV import, or settings.</p>
 <li>Export cutlist CSV; open and verify rows match table entries.</li>
 <li>Open Settings, set sheet/kerf defaults, save; reopen Task panel and confirm defaults applied without preset auto-selection.</li>
 </ul>
-<h2 id="4-useful-pytest-options">4. Useful pytest options<a class="headerlink" href="#4-useful-pytest-options" title="Permanent link">&para;</a></h2>
+<h2 id="4-running-tests-inside-the-dockerdevcontainer-environment">4. Running tests inside the Docker/devcontainer environment<a class="headerlink" href="#4-running-tests-inside-the-dockerdevcontainer-environment" title="Permanent link">&para;</a></h2>
+<p>The repository includes <code>.devcontainer/</code> files so you can run tests inside a reproducible Linux + FreeCAD environment. This is useful if your host machine does not have FreeCAD installed or when you want to match CI exactly.</p>
+<h3 id="41-build-and-launch-the-container">4.1 Build and launch the container<a class="headerlink" href="#41-build-and-launch-the-container" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code>docker<span class="w"> </span>build<span class="w"> </span>-f<span class="w"> </span>.devcontainer/Dockerfile<span class="w"> </span>-t<span class="w"> </span>squatchcut-dev<span class="w"> </span>.
+docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>-v<span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">&quot;</span>:/workspaces/SquatchCut<span class="w"> </span>squatchcut-dev<span class="w"> </span>/bin/bash
+</code></pre></div>
+
+<p>Inside the container the repo lives at <code>/workspaces/SquatchCut</code>, FreeCAD lives under <code>/usr/bin/freecadcmd</code>, and Python 3.10 is the default interpreter. If the VS Code Dev Container workflow runs, dependencies are installed automatically; otherwise run:</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>/workspaces/SquatchCut
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev<span class="o">]</span>
+</code></pre></div>
+
+<h3 id="42-running-tests-in-the-container">4.2 Running tests in the container<a class="headerlink" href="#42-running-tests-in-the-container" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Core tests</strong> (no FreeCAD required):</li>
+</ul>
+<p><code>bash
+  cd /workspaces/SquatchCut
+  pytest</code></p>
+<ul>
+<li><strong>FreeCAD-aware pytest modules</strong> (anything that imports <code>FreeCAD</code>, <code>FreeCADGui</code>, or GUI stubs):</li>
+</ul>
+<p><code>bash
+  PYTHONPATH=/usr/lib/freecad-python3/lib pytest tests/test_views.py</code></p>
+<p>Prepend the same <code>PYTHONPATH</code> to run the entire suite under the FreeCAD Python environment.</p>
+<ul>
+<li><strong>FreeCAD integration suite</strong>:</li>
+</ul>
+<p><code>bash
+  FreeCADCmd -c "import run_freecad_tests"</code></p>
+<p>(<code>FreeCADCmd</code> already points to <code>/usr/bin/freecadcmd</code> inside the container.)</p>
+<h3 id="43-troubleshooting">4.3 Troubleshooting<a class="headerlink" href="#43-troubleshooting" title="Permanent link">&para;</a></h3>
+<ul>
+<li>If pytest cannot import <code>FreeCAD</code>, double-check the <code>PYTHONPATH=/usr/lib/freecad-python3/lib</code> prefix.</li>
+<li>GUI smoke tests that rely on Qt widgets are limited by the lightweight stubs bundled in <code>gui/qt_compat</code>. When a feature relies on a specific Qt API (e.g., <code>QtWidgets.QLabel.setWordWrap</code>), guard it with <code>hasattr(...)</code> so tests can still run headless.</li>
+<li>The default container user is <code>vscode</code>. Use <code>pip install --user ...</code> only if the editable install is not available.</li>
+</ul>
+<h2 id="5-useful-pytest-options">5. Useful pytest options<a class="headerlink" href="#5-useful-pytest-options" title="Permanent link">&para;</a></h2>
 <p>For deeper debugging, use:</p>
 <div class="codehilite"><pre><span></span><code>pytest -vv
 </code></pre></div>
@@ -1193,7 +1282,7 @@ scenario passed or failed.</p>
 <div class="codehilite"><pre><span></span><code><span class="nx">pytest</span><span class="w"> </span><span class="o">-</span><span class="nx">vv</span><span class="w"> </span><span class="nx">tests</span><span class="o">/</span><span class="nx">test_nesting</span><span class="p">.</span><span class="nx">py</span><span class="o">::</span><span class="nx">test_nesting_no_overlap_simple</span>
 </code></pre></div>
 
-<h2 id="5-summary">5. Summary<a class="headerlink" href="#5-summary" title="Permanent link">&para;</a></h2>
+<h2 id="6-summary">6. Summary<a class="headerlink" href="#6-summary" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Run core tests regularly during development (<code>pytest -v</code>).</li>
 <li>Run FreeCAD integration tests before major changes or releases.</li>
