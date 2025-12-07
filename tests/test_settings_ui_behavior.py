@@ -1,7 +1,7 @@
 import math
 
 from SquatchCut import settings
-from SquatchCut.core import session_state
+from SquatchCut.core import session_state, gui_tests
 from SquatchCut.core import units as sc_units
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.gui.taskpanel_main import SquatchCutTaskPanel
@@ -115,3 +115,19 @@ def test_no_defaults_shows_empty_fields_and_no_preset():
 def test_developer_mode_controls_absent():
     panel = SquatchCutSettingsPanel()
     assert not hasattr(panel, "dev_mode_check")
+
+
+def test_taskpanel_runs_gui_tests_via_button(monkeypatch):
+    panel = SquatchCutTaskPanel()
+    assert hasattr(panel, "run_gui_tests_button")
+    assert panel.run_gui_tests_button.text() == "Run GUI Test Suite"
+
+    calls = {"count": 0}
+
+    def _fake_run():
+        calls["count"] += 1
+        return []
+
+    monkeypatch.setattr(gui_tests, "run_gui_test_suite_from_freecad", _fake_run)
+    panel.on_run_gui_tests_clicked()
+    assert calls["count"] == 1

@@ -280,6 +280,53 @@ Please keep new changes consistent with the existing architecture and patterns, 
   - One Source group
   - One Nested group
 
+### Docker / devcontainer workflow
+
+The repository ships a ready-to-use devcontainer (`.devcontainer/`) that layers FreeCAD on top of the Microsoft Python 3.10 base image. You can use it from VS Code (“Dev Containers: Open Folder in Container…”) or directly via Docker:
+
+1. Build the image once:
+
+   ```bash
+   docker build -f .devcontainer/Dockerfile -t squatchcut-dev .
+   ```
+
+2. Start the container with the repo mounted:
+
+   ```bash
+   docker run --rm -it -v "$(pwd)":/workspaces/SquatchCut squatchcut-dev /bin/bash
+   ```
+
+3. Inside the container, install dev dependencies if the postCreate hook has not already run:
+
+   ```bash
+   cd /workspaces/SquatchCut
+   pip install -e .[dev]
+   ```
+
+4. Run tests:
+
+   - Pure Python/core:
+
+     ```bash
+     pytest
+     ```
+
+   - FreeCAD-aware tests (anything that imports `FreeCAD`/`FreeCADGui`):
+
+     ```bash
+     PYTHONPATH=/usr/lib/freecad-python3/lib pytest tests/test_views.py
+     ```
+
+     (Prepend the same `PYTHONPATH` when running the entire suite.)
+
+   - Full FreeCAD integration suite:
+
+     ```bash
+     FreeCADCmd -c "import run_freecad_tests"
+     ```
+
+This container mirrors the configuration used in CI and greatly simplifies running GUI smoke tests locally. See `docs/TESTING.md` for more details and troubleshooting tips.
+
 ---
 
 ## Status

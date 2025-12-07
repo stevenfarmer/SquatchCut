@@ -157,7 +157,7 @@ are made to nesting, CSV import, or settings.
    - Some rows with `allow_rotate=1`, some with `allow_rotate=0`.
 2. Use the SquatchCut CSV import command to load this file.
 3. Verify:
-   - Panels are created in the document.
+    - Panels are created in the document.
    - Each imported panel has a `SquatchCutCanRotate` property:
      - `True` for `allow_rotate=1`.
      - `False` for `allow_rotate=0`.
@@ -219,7 +219,57 @@ are made to nesting, CSV import, or settings.
 - Open Settings, set sheet/kerf defaults, save; reopen Task panel and confirm defaults applied without preset auto-selection.
 
 
-## 4. Useful pytest options
+## 4. Running tests inside the Docker/devcontainer environment
+
+The repository includes `.devcontainer/` files so you can run tests inside a reproducible Linux + FreeCAD environment. This is useful if your host machine does not have FreeCAD installed or when you want to match CI exactly.
+
+### 4.1 Build and launch the container
+
+```bash
+docker build -f .devcontainer/Dockerfile -t squatchcut-dev .
+docker run --rm -it -v "$(pwd)":/workspaces/SquatchCut squatchcut-dev /bin/bash
+```
+
+Inside the container the repo lives at `/workspaces/SquatchCut`, FreeCAD lives under `/usr/bin/freecadcmd`, and Python 3.10 is the default interpreter. If the VS Code Dev Container workflow runs, dependencies are installed automatically; otherwise run:
+
+```bash
+cd /workspaces/SquatchCut
+pip install -e .[dev]
+```
+
+### 4.2 Running tests in the container
+
+- **Core tests** (no FreeCAD required):
+
+  ```bash
+  cd /workspaces/SquatchCut
+  pytest
+  ```
+
+- **FreeCAD-aware pytest modules** (anything that imports `FreeCAD`, `FreeCADGui`, or GUI stubs):
+
+  ```bash
+  PYTHONPATH=/usr/lib/freecad-python3/lib pytest tests/test_views.py
+  ```
+
+  Prepend the same `PYTHONPATH` to run the entire suite under the FreeCAD Python environment.
+
+- **FreeCAD integration suite**:
+
+  ```bash
+  FreeCADCmd -c "import run_freecad_tests"
+  ```
+
+  (`FreeCADCmd` already points to `/usr/bin/freecadcmd` inside the container.)
+
+### 4.3 Troubleshooting
+
+- If pytest cannot import `FreeCAD`, double-check the `PYTHONPATH=/usr/lib/freecad-python3/lib` prefix.
+- GUI smoke tests that rely on Qt widgets are limited by the lightweight stubs bundled in `gui/qt_compat`. When a feature relies on a specific Qt API (e.g., `QtWidgets.QLabel.setWordWrap`), guard it with `hasattr(...)` so tests can still run headless.
+- The default container user is `vscode`. Use `pip install --user ...` only if the editable install is not available.
+
+
+## 5. Useful pytest options
 
 For deeper debugging, use:
 
@@ -243,7 +293,7 @@ pytest -vv tests/test_nesting.py::test_nesting_no_overlap_simple
 ```
 
 
-## 5. Summary
+## 6. Summary
 
 - Run core tests regularly during development (`pytest -v`).
 - Run FreeCAD integration tests before major changes or releases.

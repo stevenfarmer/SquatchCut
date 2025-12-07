@@ -24,13 +24,20 @@ class RunGuiTestsCommand:
         if App is None or Gui is None:
             return
         try:
-            results = gui_tests.run_all_tests()
+            results = gui_tests.run_gui_test_suite_from_freecad()
             self._show_summary(results)
         except Exception as exc:
             logger.error(f"RunGuiTestsCommand failed: {exc!r}")
 
     def _show_summary(self, results):
         if Gui is None:
+            return
+        if results is None:
+            msg = QtWidgets.QMessageBox()
+            msg.setWindowTitle("SquatchCut GUI Tests")
+            msg.setIcon(QtWidgets.QMessageBox.Warning)
+            msg.setText("SquatchCut GUI tests failed to run. See Report view for details.")
+            msg.exec_()
             return
         passed = sum(1 for result in results if result.passed)
         total = len(results)

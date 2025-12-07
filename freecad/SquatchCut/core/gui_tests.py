@@ -14,6 +14,20 @@ from SquatchCut.core import units as sc_units
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.gui import taskpanel_settings, taskpanel_main
 
+GUI_TEST_PREFIX = ">>> [SquatchCut] [GUI TEST]"
+
+
+def _log_info(message: str) -> None:
+    logger.info(f"{GUI_TEST_PREFIX} {message}")
+
+
+def _log_warning(message: str) -> None:
+    logger.warning(f"{GUI_TEST_PREFIX} {message}")
+
+
+def _log_error(message: str) -> None:
+    logger.error(f"{GUI_TEST_PREFIX} {message}")
+
 
 class TestResult:
     def __init__(self, name: str):
@@ -62,7 +76,7 @@ def _ensure_default_panels():
         {"id": "P2", "width": 150.0, "height": 150.0, "allow_rotate": True},
     ]
     session.set_panels(default_panels)
-    logger.info("[GUI TEST] Seeded default panels for testing.")
+    _log_info("Seeded default panels for testing.")
 
 
 def _get_test_csv_path():
@@ -79,7 +93,7 @@ def _get_test_csv_path():
     except Exception:
         pass
 
-    logger.warning("GUI tests: could not resolve valid_panels_small.csv path.")
+    _log_warning("Could not resolve valid_panels_small.csv path.")
     return None
 
 
@@ -100,7 +114,7 @@ def _get_imperial_test_csv_path(name: str = "valid_panels_imperial_1_sheet.csv")
             return str(fallback)
     except Exception:
         pass
-    logger.warning(f"GUI tests: could not resolve {name} path.")
+    _log_warning(f"Could not resolve {name} path.")
     return None
 
 
@@ -400,7 +414,7 @@ def run_all_tests():
     Entry point for the "Run GUI Tests" button in SquatchCut Settings.
     Runs a small battery of GUI-level sanity checks and logs a summary.
     """
-    logger.info("[GUI TEST] Starting SquatchCut GUI test suite...")
+    _log_info("Starting SquatchCut GUI test suite...")
 
     tests = [
         test_import_small_metric_csv,
@@ -416,16 +430,27 @@ def run_all_tests():
     results = []
 
     for test_func in tests:
-        logger.info(f"[GUI TEST] Running {test_func.__name__}...")
+        _log_info(f"Running {test_func.__name__}...")
         res = test_func()
         results.append(res)
         if res.passed:
-            logger.info(f"[GUI TEST] PASS: {res.name}")
+            _log_info(f"PASS: {res.name}")
         else:
-            logger.error(f"[GUI TEST] FAIL: {res.name} -> {res.error!r}")
+            _log_error(f"FAIL: {res.name} -> {res.error!r}")
 
     passed = sum(1 for r in results if r.passed)
     total = len(results)
-    logger.info(f"[GUI TEST] Completed {total} tests, {passed} passed, {total - passed} failed.")
+    _log_info(f"Completed {total} tests, {passed} passed, {total - passed} failed.")
 
     return results
+
+
+def run_gui_test_suite_from_freecad():
+    """
+    FreeCAD-safe entry point for running the GUI test suite via UI buttons.
+    """
+    try:
+        return run_all_tests()
+    except Exception as exc:
+        _log_error(f"Fatal error during GUI tests: {exc!r}")
+        return None
