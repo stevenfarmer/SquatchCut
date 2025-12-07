@@ -52,8 +52,8 @@ def test_settings_display_respects_measurement_system_imperial_and_kerf_storage(
     snap = _snapshot_prefs(prefs)
     try:
         prefs.set_measurement_system("imperial")
-        prefs.set_default_sheet_width_mm(sc_units.inches_to_mm(50.0))
-        prefs.set_default_sheet_height_mm(sc_units.inches_to_mm(100.0))
+        prefs.set_default_sheet_width_in(50.0)
+        prefs.set_default_sheet_height_in(100.0)
         prefs.set_default_kerf_mm(3.175)  # 1/8"
         settings.hydrate_from_params()
 
@@ -100,12 +100,12 @@ def test_no_defaults_shows_empty_fields_and_no_preset():
         prefs.clear_default_sheet_size()
         settings.hydrate_from_params()
         panel_settings = SquatchCutSettingsPanel()
-        assert panel_settings.sheet_width_edit.text() == ""
-        assert panel_settings.sheet_height_edit.text() == ""
+        assert panel_settings.sheet_width_edit.text() == sc_units.format_length(1220.0, "metric")
+        assert panel_settings.sheet_height_edit.text() == sc_units.format_length(2440.0, "metric")
 
         panel_main = SquatchCutTaskPanel()
-        assert panel_main.sheet_width_edit.text() == ""
-        assert panel_main.sheet_height_edit.text() == ""
+        assert panel_main.sheet_width_edit.text() == sc_units.format_length(1220.0, "metric")
+        assert panel_main.sheet_height_edit.text() == sc_units.format_length(2440.0, "metric")
         assert panel_main.preset_combo.currentIndex() == 0
         assert panel_main._preset_state.current_id is None
     finally:

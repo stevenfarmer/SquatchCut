@@ -340,7 +340,7 @@ class SquatchCutTaskPanel:
         session_state.set_measurement_system(measurement_system)
         sc_units.set_units("in" if measurement_system == "imperial" else "mm")
 
-        sheet_w, sheet_h = session_state.get_sheet_size()
+        session_sheet = session_state.get_sheet_size()
         kerf_mm = session_state.get_kerf_mm()
         margin_mm = session_state.get_gap_mm()
         default_allow = session_state.get_default_allow_rotate()
@@ -351,13 +351,17 @@ class SquatchCutTaskPanel:
         include_dims = self._prefs.get_export_include_dimensions()
 
         has_defaults = self._prefs.has_default_sheet_size(measurement_system)
-        pref_sheet_w = self._prefs.get_default_sheet_width_mm() if has_defaults else None
-        pref_sheet_h = self._prefs.get_default_sheet_height_mm() if has_defaults else None
-
-        # Always prefer explicit user defaults if present.
-        if has_defaults and pref_sheet_w is not None and pref_sheet_h is not None:
-            sheet_w, sheet_h = pref_sheet_w, pref_sheet_h
-            session_state.set_sheet_size(sheet_w, sheet_h)
+        if has_defaults:
+            pref_sheet_w, pref_sheet_h = self._prefs.get_default_sheet_size_mm(measurement_system)
+            user_defaults = (pref_sheet_w, pref_sheet_h)
+        else:
+            user_defaults = (None, None)
+        sheet_w, sheet_h = sc_sheet_presets.get_initial_sheet_size(
+            measurement_system,
+            session_sheet,
+            user_defaults,
+        )
+        session_state.set_sheet_size(sheet_w, sheet_h)
 
         if margin_mm is None:
             margin_mm = self._prefs.get_default_spacing_mm()
@@ -985,10 +989,8 @@ class SquatchCutTaskPanel:
         margin_mm = session_state.get_gap_mm() or self._prefs.get_default_spacing_mm()
         kerf_width = session_state.get_kerf_width_mm() or self._prefs.get_default_kerf_mm()
 
-        if sheet_w is None:
-            sheet_w = self._prefs.get_default_sheet_width_mm()
-        if sheet_h is None:
-            sheet_h = self._prefs.get_default_sheet_height_mm()
+        if sheet_w is None or sheet_h is None:
+            sheet_w, sheet_h = self._prefs.get_default_sheet_size_mm(self.measurement_system)
 
         for edit, value in (
             (self.sheet_width_edit, sheet_w),
@@ -1112,8 +1114,7 @@ class SquatchCutTaskPanel:
     def _reset_defaults(self) -> None:
         """Reset configuration fields to safe defaults (does not clear CSV)."""
         # Pull defaults from preferences
-        default_width = self._prefs.get_default_sheet_width_mm()
-        default_height = self._prefs.get_default_sheet_height_mm()
+        default_width, default_height = self._prefs.get_default_sheet_size_mm(self.measurement_system)
         self._set_length_text(self.sheet_width_edit, default_width)
         self._set_length_text(self.sheet_height_edit, default_height)
         self._set_length_text(self.kerf_edit, self._prefs.get_default_kerf_mm())

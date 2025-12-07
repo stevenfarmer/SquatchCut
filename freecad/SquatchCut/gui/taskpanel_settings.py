@@ -5,9 +5,10 @@ from __future__ import annotations
 from SquatchCut.freecad_integration import Gui
 from SquatchCut.gui.qt_compat import QtWidgets
 from SquatchCut.core import units as sc_units
+from SquatchCut.core.units import mm_to_inches
 from SquatchCut import settings
 from SquatchCut.core.preferences import SquatchCutPreferences
-from SquatchCut.core import gui_tests, logger
+from SquatchCut.core import gui_tests, logger, sheet_presets
 
 
 class _UnitRadioProxy:
@@ -43,8 +44,9 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         self.form = self
         self._close_callback = None
         self._prefs = SquatchCutPreferences()
-        self._initial_state = self._compute_initial_state()
-        self.measurement_system = self._initial_state["measurement_system"]
+        system = self._determine_measurement_system()
+        self.measurement_system = system
+        self._initial_state = self._compute_initial_state(system)
         self._build_ui()
         # Compatibility proxies for GUI tests that expect unit radio buttons.
         self.rbUnitsMetric = _UnitRadioProxy(self, "metric")
@@ -132,18 +134,22 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         layout.addStretch(1)
         return group
 
-    def _compute_initial_state(self) -> dict:
-        # Prefer the current global measurement system, falling back to persisted prefs.
+    def _determine_measurement_system(self, preferred: str | None = None) -> str:
+        if preferred in ("metric", "imperial"):
+            return preferred
         ms_from_units = "imperial" if sc_units.get_units() == "in" else "metric"
         ms_from_prefs = self._prefs.get_measurement_system()
         measurement_system = ms_from_units or ms_from_prefs or "metric"
         if measurement_system not in ("metric", "imperial"):
             measurement_system = "metric"
+        return measurement_system
 
-        width_mm = height_mm = None
-        if self._prefs.has_default_sheet_size(measurement_system):
-            width_mm = self._prefs.get_default_sheet_width_mm()
-            height_mm = self._prefs.get_default_sheet_height_mm()
+    def _compute_initial_state(self, measurement_system: str) -> dict:
+        has_defaults = self._prefs.has_default_sheet_size(measurement_system)
+        if has_defaults:
+            width_mm, height_mm = self._prefs.get_default_sheet_size_mm(measurement_system)
+        else:
+            width_mm, height_mm = sheet_presets.get_factory_default_sheet_size(measurement_system)
 
         return {
             "measurement_system": measurement_system,
@@ -207,12 +213,22 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
             return False
 
         system = self.units_combo.currentData() or "metric"
+        system = "imperial" if system == "imperial" else "metric"
         self._prefs.set_measurement_system(system)
-        if width_mm is not None and height_mm is not None:
-            self._prefs.set_default_sheet_width_mm(width_mm)
-            self._prefs.set_default_sheet_height_mm(height_mm)
+        if system == "imperial":
+            width_in = mm_to_inches(width_mm) if width_mm is not None else None
+            height_in = mm_to_inches(height_mm) if height_mm is not None else None
+            if width_in is not None and height_in is not None:
+                self._prefs.set_default_sheet_width_in(width_in)
+                self._prefs.set_default_sheet_height_in(height_in)
+            else:
+                self._prefs.clear_default_sheet_size_for_system("imperial")
         else:
-            self._prefs.clear_default_sheet_size()
+            if width_mm is not None and height_mm is not None:
+                self._prefs.set_default_sheet_width_mm(width_mm)
+                self._prefs.set_default_sheet_height_mm(height_mm)
+            else:
+                self._prefs.clear_default_sheet_size_for_system("metric")
         self._prefs.set_default_kerf_mm(kerf_mm)
         if gap is not None:
             self._prefs.set_default_spacing_mm(gap)
@@ -221,25 +237,13 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         return True
 
     def _on_units_changed(self) -> None:
-        old_system = self.measurement_system
         system = self.units_combo.currentData() or "metric"
+        system = "imperial" if system == "imperial" else "metric"
         self.measurement_system = system
         sc_units.set_units("in" if system == "imperial" else "mm")
         self._update_unit_labels()
-        # Reformat existing values in the new system
-        for edit in (self.sheet_width_edit, self.sheet_height_edit, self.kerf_edit):
-            text = edit.text().strip()
-            if not text:
-                continue
-            try:
-                mm_value = sc_units.parse_length(text, old_system)
-                edit.blockSignals(True)
-                edit.setText(sc_units.format_length(mm_value, system))
-                edit.blockSignals(False)
-            except Exception:
-                edit.blockSignals(True)
-                edit.clear()
-                edit.blockSignals(False)
+        state = self._compute_initial_state(system)
+        self._apply_initial_state(state)
 
     def _update_unit_labels(self) -> None:
         unit_label = sc_units.unit_label_for_system(self.measurement_system)

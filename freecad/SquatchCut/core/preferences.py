@@ -5,7 +5,6 @@ from __future__ import annotations
 import math
 
 from SquatchCut.freecad_integration import App
-from SquatchCut.core import sheet_presets
 from SquatchCut.core.units import inches_to_mm, mm_to_inches
 
 
@@ -24,10 +23,60 @@ class SquatchCutPreferences:
     IMPERIAL_DEFAULT_HEIGHT_IN = 96.0
     METRIC_DEFAULT_WIDTH_MM = 1220.0
     METRIC_DEFAULT_HEIGHT_MM = 2440.0
+    SEPARATE_DEFAULTS_MIGRATED_KEY = "SeparateDefaultsMigrated"
 
     def __init__(self):
         self._grp = App.ParamGet(self.PARAM_GROUP) if App else None
         self._local = self.__class__._local_shared
+        self._migrate_legacy_defaults()
+        self._ensure_default_storage()
+
+    # ---------------- Internal helpers ----------------
+
+    def _metric_defaults_exist(self) -> bool:
+        has_w, _ = self._get_float_entry(self.METRIC_WIDTH_KEY)
+        has_h, _ = self._get_float_entry(self.METRIC_HEIGHT_KEY)
+        return has_w and has_h
+
+    def _imperial_defaults_exist(self) -> bool:
+        has_w, _ = self._get_float_entry(self.IMPERIAL_WIDTH_KEY)
+        has_h, _ = self._get_float_entry(self.IMPERIAL_HEIGHT_KEY)
+        return has_w and has_h
+
+    def _set_metric_defaults(self, width_mm: float, height_mm: float, mark: bool = True) -> None:
+        self._set_float(self.METRIC_WIDTH_KEY, width_mm)
+        self._set_float(self.METRIC_HEIGHT_KEY, height_mm)
+        if mark:
+            self._mark_sheet_defaults("metric")
+
+    def _set_imperial_defaults(self, width_in: float, height_in: float, mark: bool = True) -> None:
+        self._set_float(self.IMPERIAL_WIDTH_KEY, width_in)
+        self._set_float(self.IMPERIAL_HEIGHT_KEY, height_in)
+        if mark:
+            self._mark_sheet_defaults("imperial")
+
+    def _migrate_legacy_defaults(self) -> None:
+        if self._bool(self.SEPARATE_DEFAULTS_MIGRATED_KEY, False):
+            return
+        metric_exists = self._metric_defaults_exist()
+        imperial_exists = self._imperial_defaults_exist()
+        if metric_exists and not imperial_exists:
+            width_mm = self._float(self.METRIC_WIDTH_KEY, self.METRIC_DEFAULT_WIDTH_MM)
+            height_mm = self._float(self.METRIC_HEIGHT_KEY, self.METRIC_DEFAULT_HEIGHT_MM)
+            self._set_imperial_defaults(mm_to_inches(width_mm), mm_to_inches(height_mm), mark=False)
+        elif imperial_exists and not metric_exists:
+            width_in = self._float(self.IMPERIAL_WIDTH_KEY, self.IMPERIAL_DEFAULT_WIDTH_IN)
+            height_in = self._float(self.IMPERIAL_HEIGHT_KEY, self.IMPERIAL_DEFAULT_HEIGHT_IN)
+            self._set_metric_defaults(inches_to_mm(width_in), inches_to_mm(height_in), mark=False)
+        self._set_bool(self.SEPARATE_DEFAULTS_MIGRATED_KEY, True)
+
+    def _ensure_default_storage(self) -> None:
+        metric_exists = self._metric_defaults_exist()
+        imperial_exists = self._imperial_defaults_exist()
+        if not metric_exists:
+            self._set_metric_defaults(self.METRIC_DEFAULT_WIDTH_MM, self.METRIC_DEFAULT_HEIGHT_MM)
+        if not imperial_exists:
+            self._set_imperial_defaults(self.IMPERIAL_DEFAULT_WIDTH_IN, self.IMPERIAL_DEFAULT_HEIGHT_IN)
 
     def _float(self, key: str, fallback: float) -> float:
         if self._grp:
@@ -81,25 +130,10 @@ class SquatchCutPreferences:
         return self.DEFAULT_SHEET_FLAG_TEMPLATE.format(system=system)
 
     def has_default_sheet_size(self, system: str) -> bool:
-        flag_key = self._default_flag_key(system)
-        if self._bool(flag_key, False):
-            return True
-        if system == "imperial":
-            width_key = self.IMPERIAL_WIDTH_KEY
-            height_key = self.IMPERIAL_HEIGHT_KEY
-        else:
-            width_key = self.METRIC_WIDTH_KEY
-            height_key = self.METRIC_HEIGHT_KEY
-        has_width, _ = self._get_float_entry(width_key)
-        has_height, _ = self._get_float_entry(height_key)
-        if has_width and has_height:
-            return True
-        if system == "imperial":
-            has_metric_w, _ = self._get_float_entry(self.METRIC_WIDTH_KEY)
-            has_metric_h, _ = self._get_float_entry(self.METRIC_HEIGHT_KEY)
-            if has_metric_w and has_metric_h:
-                return True
-        return False
+        normalized = "imperial" if system == "imperial" else "metric"
+        if normalized == "imperial":
+            return self._imperial_defaults_exist()
+        return self._metric_defaults_exist()
 
     def _mark_sheet_defaults(self, system: str) -> None:
         flag_key = self._default_flag_key(system)
@@ -107,7 +141,7 @@ class SquatchCutPreferences:
 
     def get_default_sheet_width_mm(self, fallback: float | None = None) -> float:
         if fallback is None:
-            fallback = sheet_presets.get_factory_default_sheet_size(self.get_measurement_system())[0]
+            fallback = self.METRIC_DEFAULT_WIDTH_MM
         return self._float(self.METRIC_WIDTH_KEY, fallback)
 
     def set_default_sheet_width_mm(self, value: float) -> None:
@@ -116,7 +150,7 @@ class SquatchCutPreferences:
 
     def get_default_sheet_height_mm(self, fallback: float | None = None) -> float:
         if fallback is None:
-            fallback = sheet_presets.get_factory_default_sheet_size(self.get_measurement_system())[1]
+            fallback = self.METRIC_DEFAULT_HEIGHT_MM
         return self._float(self.METRIC_HEIGHT_KEY, fallback)
 
     def set_default_sheet_height_mm(self, value: float) -> None:
@@ -136,7 +170,6 @@ class SquatchCutPreferences:
 
     def set_default_sheet_width_in(self, value: float) -> None:
         self._set_float(self.IMPERIAL_WIDTH_KEY, value)
-        self._set_float(self.METRIC_WIDTH_KEY, inches_to_mm(value))
         self._mark_sheet_defaults("imperial")
 
     def get_default_sheet_height_in(self, fallback: float | None = None) -> float:
@@ -152,35 +185,67 @@ class SquatchCutPreferences:
 
     def set_default_sheet_height_in(self, value: float) -> None:
         self._set_float(self.IMPERIAL_HEIGHT_KEY, value)
-        self._set_float(self.METRIC_HEIGHT_KEY, inches_to_mm(value))
         self._mark_sheet_defaults("imperial")
 
-    def clear_default_sheet_size(self) -> None:
-        """Clear stored sheet defaults so UIs can render empty fields."""
-        for key in (
-            self.METRIC_WIDTH_KEY,
-            self.METRIC_HEIGHT_KEY,
-            self.IMPERIAL_WIDTH_KEY,
-            self.IMPERIAL_HEIGHT_KEY,
-            self._default_flag_key("metric"),
-            self._default_flag_key("imperial"),
-        ):
+    def clear_default_sheet_size_for_system(self, system: str) -> None:
+        """Clear defaults for a specific measurement system."""
+        normalized = "imperial" if system == "imperial" else "metric"
+        if normalized == "imperial":
+            width_key = self.IMPERIAL_WIDTH_KEY
+            height_key = self.IMPERIAL_HEIGHT_KEY
+            default_width = self.IMPERIAL_DEFAULT_WIDTH_IN
+            default_height = self.IMPERIAL_DEFAULT_HEIGHT_IN
+            setter = self._set_imperial_defaults
+        else:
+            width_key = self.METRIC_WIDTH_KEY
+            height_key = self.METRIC_HEIGHT_KEY
+            default_width = self.METRIC_DEFAULT_WIDTH_MM
+            default_height = self.METRIC_DEFAULT_HEIGHT_MM
+            setter = self._set_metric_defaults
+
+        for key in (width_key, height_key):
             if key in self._local:
                 try:
                     del self._local[key]
                 except Exception:
                     pass
+        flag_key = self._default_flag_key(normalized)
+        if flag_key in self._local:
+            self._local.pop(flag_key, None)
         if self._grp:
             try:
-                self._grp.SetBool(self._default_flag_key("metric"), False)
-                self._grp.SetBool(self._default_flag_key("imperial"), False)
+                self._grp.SetBool(flag_key, False)
+                self._grp.RemFloat(width_key)
+                self._grp.RemFloat(height_key)
             except Exception:
                 pass
+        setter(default_width, default_height)
+
+    def clear_default_sheet_size(self) -> None:
+        """Clear stored sheet defaults so UIs fall back to factory values."""
+        self.clear_default_sheet_size_for_system("metric")
+        self.clear_default_sheet_size_for_system("imperial")
 
     def get_default_sheet_size(self, system: str) -> tuple[float, float]:
         if system == "imperial":
             return self.get_default_sheet_width_in(), self.get_default_sheet_height_in()
         return self.get_default_sheet_width_mm(), self.get_default_sheet_height_mm()
+
+    def get_default_sheet_size_mm(self, system: str) -> tuple[float, float]:
+        """Return the default sheet size in millimeters for the requested system."""
+        if system == "imperial":
+            width_in = self.get_default_sheet_width_in()
+            height_in = self.get_default_sheet_height_in()
+            return inches_to_mm(width_in), inches_to_mm(height_in)
+        return self.get_default_sheet_width_mm(), self.get_default_sheet_height_mm()
+
+    def get_default_sheet_size_in(self, system: str) -> tuple[float, float]:
+        """Return the default sheet size in inches for the requested system."""
+        if system == "imperial":
+            return self.get_default_sheet_width_in(), self.get_default_sheet_height_in()
+        width_mm = self.get_default_sheet_width_mm()
+        height_mm = self.get_default_sheet_height_mm()
+        return mm_to_inches(width_mm), mm_to_inches(height_mm)
 
     def get_default_spacing_mm(self, fallback: float = 0.0) -> float:
         return self._float("DefaultSpacingMM", fallback)

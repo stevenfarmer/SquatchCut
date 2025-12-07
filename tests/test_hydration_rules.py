@@ -5,6 +5,7 @@ from SquatchCut.core import units as sc_units
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.gui.taskpanel_main import SquatchCutTaskPanel
 from SquatchCut.gui.taskpanel_settings import SquatchCutSettingsPanel
+from SquatchCut.core.units import inches_to_mm
 
 
 def _snapshot_prefs(prefs: SquatchCutPreferences) -> dict:
@@ -120,6 +121,11 @@ def test_hydrate_from_params_is_gui_free(monkeypatch):
         def get_default_sheet_height_mm(self):
             return 500.0
 
+        def get_default_sheet_size_mm(self, system):
+            if system == "imperial":
+                return inches_to_mm(48.0), inches_to_mm(96.0)
+            return 1000.0, 500.0
+
         def get_default_spacing_mm(self):
             return 4.5
 
@@ -193,7 +199,7 @@ def test_hydrate_from_params_is_gui_free(monkeypatch):
 
     assert dummy_units.units_value == "in"
     assert dummy_state.values["measurement_system"] == "imperial"
-    assert dummy_state.values["sheet_size"] == (1000.0, 500.0)
+    assert dummy_state.values["sheet_size"] == (inches_to_mm(48.0), inches_to_mm(96.0))
     assert dummy_state.values["kerf_mm"] == 1.5
     assert dummy_state.values["gap_mm"] == 4.5
     assert dummy_state.values["kerf_width_mm"] == 1.5

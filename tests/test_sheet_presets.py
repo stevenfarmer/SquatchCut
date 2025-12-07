@@ -2,7 +2,7 @@ from SquatchCut import settings
 from SquatchCut.core import sheet_presets
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.core import session_state
-from SquatchCut.core.units import inches_to_mm
+from SquatchCut.core.units import inches_to_mm, mm_to_inches
 
 
 def test_factory_defaults_per_unit_system():
@@ -96,8 +96,8 @@ def test_user_defaults_override_factory_defaults():
     orig_height = prefs.get_default_sheet_height_mm()
     try:
         prefs.set_measurement_system("imperial")
-        prefs.set_default_sheet_width_mm(1300.0)
-        prefs.set_default_sheet_height_mm(2500.0)
+        prefs.set_default_sheet_width_in(mm_to_inches(1300.0))
+        prefs.set_default_sheet_height_in(mm_to_inches(2500.0))
         settings.hydrate_from_params()
 
         width, height = session_state.get_sheet_size()

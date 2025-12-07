@@ -6,7 +6,6 @@ from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.core import session_state
 from SquatchCut.core import sheet_presets as sc_sheet_presets
 from SquatchCut.core import units as sc_units
-from SquatchCut.core.units import inches_to_mm, mm_to_inches
 
 
 def hydrate_from_params() -> None:
@@ -26,11 +25,10 @@ def hydrate_from_params() -> None:
 
     # Core defaults (per measurement system)
     if prefs.has_default_sheet_size(measurement_system):
-        default_width_mm = prefs.get_default_sheet_width_mm()
-        default_height_mm = prefs.get_default_sheet_height_mm()
-        session_state.set_sheet_size(default_width_mm, default_height_mm)
+        default_width_mm, default_height_mm = prefs.get_default_sheet_size_mm(measurement_system)
     else:
-        session_state.clear_sheet_size()
+        default_width_mm, default_height_mm = sc_sheet_presets.get_factory_default_sheet_size(measurement_system)
+    session_state.set_sheet_size(default_width_mm, default_height_mm)
     session_state.set_kerf_mm(prefs.get_default_kerf_mm())
     session_state.set_gap_mm(prefs.get_default_spacing_mm())
     session_state.set_kerf_width_mm(prefs.get_default_kerf_mm())
