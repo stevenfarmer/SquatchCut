@@ -38,6 +38,7 @@ freecad/SquatchCut/core/units.py
 freecad/SquatchCut/core/view_controller.py
 freecad/SquatchCut/gui/__init__.py
 freecad/SquatchCut/gui/dialog_preferences.py
+freecad/SquatchCut/gui/icons.py
 freecad/SquatchCut/gui/nesting_view.py
 freecad/SquatchCut/gui/qt_compat.py
 freecad/SquatchCut/gui/source_view.py
@@ -73,16 +74,23 @@ tests/test_csv_import_validation.py
 tests/test_csv_units.py
 tests/test_cut_optimization.py
 tests/test_cutlist.py
+tests/test_defaults_and_presets.py
+tests/test_docs_backlog_structure.py
 tests/test_document_model.py
+tests/test_document_units_detection.py
 tests/test_exporter.py
+tests/test_geometry_cleanup.py
 tests/test_gui_imports.py
 tests/test_gui_nesting_regression.py
 tests/test_gui_settings_command.py
 tests/test_gui_taskpanel_singleton.py
+tests/test_hydration_rules.py
+tests/test_icons_and_layout.py
 tests/test_logger.py
 tests/test_nesting.py
 tests/test_nesting_validation.py
 tests/test_nesting_view.py
+tests/test_nesting_view_cleanup.py
 tests/test_overlaps.py
 tests/test_package_version.py
 tests/test_preset_selection_state.py
@@ -99,3 +107,4 @@ tests/test_units_conversion.py
 tests/test_units_fractional_inches.py
 tests/test_view_controller.py
 tests/test_view_helpers.py
+tests/test_views.py

@@ -20,6 +20,11 @@ This updated guide focuses specifically on:
 ### **C. Forcing Codex to conform to SquatchCut’s architecture**
 Codex should never reinvent the repo or introduce new patterns.
 
+### AI Tooling & Workspace Layout
+- Developers clone SquatchCut on the host and open `squatchcut.code-workspace`; this host-visible workspace is what ChatGPT Mac app, Codex, and other AI tools discover.
+- When “Reopen in Container” is used, VS Code bind-mounts the host repo at `/workspaces/SquatchCut`, so the container simply provides tooling while the canonical code stays on the host.
+- See `docs/Development_Environment.md` for full AI-forward workflow details.
+
 ---
 
 # 1. Project Purpose
@@ -237,23 +242,104 @@ Codex must ensure:
 
 ---
 
-# 11. Backlog (v3.2)
+# 11. Status & Backlog Addendum (Dec 2025)
 
-### Critical
-- Settings panel stability  
-- Hydration order correctness  
-- TaskPanel initialization ordering  
-- UI width/overflow fixes  
+> **NOTE**  
+> This addendum does **not** change any core architectural rules.  
+> It supersedes the older backlog-alignment section that followed the post-nesting fixes, providing a reconciled, status-aware view.  
+> The information below reflects the current codebase (CSV ingestion, session-state hydration, multi-sheet helpers, guillotine engine, TaskPanel warning banner, and existing tests/backlog files).
 
-### Medium
-- Multi-sheet nesting  
-- Layout exports  
-- More robust heuristics  
+---
 
-### Future
-- Grain direction support  
-- Bookmatching  
-- Kerf simulation  
+## A. STATUS SNAPSHOT (DEC 2025)
+
+### 1. Features & Stability
+- Core CSV ingestion and session-state hydration flows remain stable and predictable.
+- All four nesting strategies (default optimized, shelf, cut-friendly, guillotine) operate reliably under normal conditions.
+- The normalized job-sheet helper in `freecad/SquatchCut/core/nesting.py` (~115–210) is the unified source of truth consumed by every strategy.
+- The TaskPanel warning banner in `freecad/SquatchCut/gui/taskpanel_main.py` (~323–354) alerts users when cut-oriented modes may ignore additional sheets.
+- Overall CSV → session → sheet normalization → nesting pipelines are cohesive and predictable.
+
+### 2. Recently Refactored / Fragile Areas
+- Multi-sheet heuristics (`freecad/SquatchCut/core/nesting.py` ~524–779) iterate sheet sizes but still lack per-sheet utilization metrics and user-visible exhaustion handling.
+- The guillotine runner (`freecad/SquatchCut/core/cut_optimization.py` ~34–151) honors multi-sheet jobs yet has no per-sheet stats and can behave unexpectedly under aggressive exhaustion.
+- Hydration/UI wiring integrated `_sheet_warning_active` via `_build_nesting_group` and `_update_cut_mode_sheet_warning`; changes must respect the hydration order.
+
+### 3. Known or Likely Regressions
+- **Preview vs Apply** (`freecad/SquatchCut/gui/taskpanel_main.py` ~840–869): Preview and Apply share the same destructive command path. Preview can mutate the document; TODO already notes need for a non-destructive channel.
+- **CSV Export** (`freecad/SquatchCut/gui/commands/cmd_run_nesting.py` ~585–614): Export remains a stub. Menu items exist without producing real artifacts, potentially misleading users.
+
+### 4. UI / UX Issues
+- TaskPanel layout is crowded (Preview/Run/Show Source row + checkbox clusters, `freecad/SquatchCut/gui/taskpanel_main.py` ~333–353) causing clipping on narrow docks.
+- The warning banner consumes full width with no adaptive fallback, increasing overflow risk in constrained layouts.
+
+### 5. Testing Coverage & Gaps
+- Full `pytest` sweeps collect ~171 tests but can time out (~120 s) in limited environments.
+- Critical suites (`tests/test_nesting.py`, `tests/test_taskpanel_hydration.py`) pass, covering baseline nesting correctness and hydration behavior.
+- Gaps remain for preview lifecycle vs apply, imperial formatting drift, sheet exhaustion behavior, warning-banner state transitions across permutations, and deep multi-sheet exhaustion edge cases.
+
+### 6. Technical Debt & Documentation
+- CSV export requires a complete implementation and deterministic cutlist output.
+- Preview determinism needs a non-destructive workflow and clear cleanup of `SquatchCut_*` groups.
+- Per-sheet visualization needs better labeling, spacing, and navigation aids.
+- Documentation: v3.2 guide and `docs/Backlog.md` now track Completed/Active/Future work; this addendum aligns both with the live code.
+
+---
+
+## B. BACKLOG ALIGNMENT (SUPERSEDES OLD SECTION 11)
+
+### 1. Completed Since v3.2
+- **Settings Panel Behavior** – Opens reliably, hydrates before widget construction, leaves defaults untouched until explicit save.
+- **Unified Job-Sheet Normalization** – `_normalize_sheet_definition` feeds every nesting strategy with the same sheet list.
+- **Multi-Sheet Support Baseline** – Standard, cut-friendly, and guillotine strategies honor advanced job sheets with correct `sheet_index` tracking.
+- **Warning Banner Infrastructure** – TaskPanel warning banner with `_sheet_warning_active` surfaces when cut-oriented modes ignore additional sheets.
+- **Documentation & Backlog Files** – v3.2 guide and `docs/Backlog.md` were aligned to reflect the unified pipeline and warning logic.
+
+### 2. Active Backlog (High Priority First)
+- **P1 – Preview Determinism & Cleanup**  
+  Separate preview from apply so preview is non-destructive; ensure `SquatchCut_Sheet_*`, `SquatchCut_SourceParts_*`, and `SquatchCut_NestedParts_*` stay consistent and cleaned up.  
+  _Scope_: `freecad/SquatchCut/gui/taskpanel_main.py`, preview helpers/tests.
+
+- **P1 – TaskPanel Overflow & Ergonomics**  
+  Restructure crowded button/checkbox rows to prevent clipping on narrow docks, ensuring the warning banner coexists without overflow.  
+  _Scope_: `freecad/SquatchCut/gui/taskpanel_main.py`.
+
+- **P1 – Multi-Sheet Visualization Polish**  
+  Improve per-sheet labeling, spacing, and navigation within the viewer; keep sheet/source/nested groups synchronized without ghosts.  
+  _Scope_: `freecad/SquatchCut/gui/nesting_view.py`, `freecad/SquatchCut/core/view_controller.py`.
+
+- **P1 – Cut-Friendly Multi-Sheet Heuristics**  
+  Refine lane/guillotine behavior so sheet order, exhaustion, and spacing are predictable.  
+  _Scope_: `freecad/SquatchCut/core/nesting.py`, `freecad/SquatchCut/core/cut_optimization.py`.
+
+- **P1 – Test Suite Expansion (Hydration, Units, Preview)**  
+  Add tests for measurement toggles, fractional-inch formatting, preview lifecycle, sheet_index propagation, and basic exhaustion scenarios.  
+  _Scope_: `tests/test_taskpanel_hydration.py`, new multi-sheet/preview suites.
+
+- **P2 – CSV Export & Cutlist Determinism**  
+  Replace the export stub with real cutlist generation and document the format.  
+  _Scope_: `freecad/SquatchCut/gui/commands/cmd_run_nesting.py` + helpers.
+
+- **P2 – Warning Banner Lifecycle Tests**  
+  Ensure banner visibility/text reacts to nesting-mode, job-sheet, and unit-system changes.  
+  _Scope_: `freecad/SquatchCut/gui/taskpanel_main.py`, UI tests.
+
+- **P2 – Sheet Exhaustion Metrics & Feedback**  
+  Surface when sheet quantities run out (logs/UI) and avoid silent truncation.  
+  _Scope_: nesting core + TaskPanel feedback.
+
+### 3. Future / Longer-Term
+- **Per-Sheet Cut-Order Visualization** – Visual guide for rip/crosscut sequences per sheet.
+- **Enhanced Sheet Exhaustion Metrics** – Utilization percentages and unused vs used counts.
+- **Multi-Sheet Presets** – Configurable sheet stacks as presets compatible with measurement rules.
+- **Kerf Simulation** – Saw-specific kerf modeling tied into both packing and cut-friendly heuristics.
+
+---
+
+## C. HOW TO USE THIS ADDENDUM
+- The core v3.2 architectural rules remain authoritative.
+- This addendum synchronizes the v3.2 guide and `docs/Backlog.md` with real status/backlog data.
+- Future architectural or backlog changes must update both the main guide (or successor) and this alignment layer, keeping architecture, status, and backlog clearly separated.
 
 ---
 
@@ -277,10 +363,12 @@ Codex must ensure:
 
 # 13. Changelog Strategy for v3.2
 
-- Add v3.2 section  
-- Note settings fixes, hydration rules, UI rules, Codex reinforcement  
-- Bump version to 0.3.2  
-- Include explicit references to v3.2 documentation  
+- Add v3.2 section
+- Note settings fixes, hydration rules, UI rules, Codex reinforcement
+- Bump version to 0.3.2
+- Include explicit references to v3.2 documentation
+- Record that backlog/status alignment was refreshed (Completed vs. Active vs. Future) and mirrored into docs/Backlog.md
+- Document the AI-forward development workflow (host-cloned repo, bind-mounted dev container, canonical `.code-workspace`)
 
 ---
 
