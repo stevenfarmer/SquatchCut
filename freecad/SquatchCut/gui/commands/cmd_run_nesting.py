@@ -14,8 +14,10 @@ from SquatchCut.core.nesting import (
     NestingConfig,
     NestingValidationError,
     Part,
-    compute_utilization,
-    estimate_cut_counts,
+    compute_utilization_for_sheets,
+    derive_sheet_definitions_for_mode,
+    derive_sheet_sizes_for_layout,
+    estimate_cut_counts_for_sheets,
     get_usable_sheet_area,
     nest_cut_optimized,
     nest_on_multiple_sheets,
@@ -24,7 +26,7 @@ from SquatchCut.core.nesting import (
 )  # type: ignore
 from SquatchCut.core.cut_optimization import estimate_cut_path_complexity
 from SquatchCut.core.overlap_check import detect_overlaps
-from SquatchCut.core.geometry_sync import ensure_sheet_object
+from SquatchCut.core.sheet_model import build_sheet_boundaries, compute_sheet_spacing
 from SquatchCut.core.session_state import (
     get_gap_mm,
     get_kerf_mm,
@@ -79,6 +81,46 @@ class RunNestingCommand:
         Relies on session helpers populated by sync_source_panels_to_document().
         """
         return session.get_source_panel_objects()
+
+    @staticmethod
+    def _safe_object_name(obj) -> str:
+        if obj is None:
+            return ""
+        try:
+            return getattr(obj, "Name", "") or ""
+        except ReferenceError:
+            return ""
+
+    def _resolve_live_source_objects(self, doc, fallback_objects):
+        """
+        Return the current, live set of source panel objects from the document.
+        Falls back to the provided list (after filtering) if the document group is empty.
+        """
+        live = []
+        seen = set()
+
+        def _add(obj):
+            name = self._safe_object_name(obj)
+            if not name or name in seen:
+                return
+            seen.add(name)
+            live.append(obj)
+
+        if doc is not None:
+            group = doc.getObject("SquatchCut_SourceParts")
+            if group is not None:
+                for member in list(getattr(group, "Group", []) or []):
+                    _add(member)
+        if live:
+            return live
+
+        for obj in fallback_objects or []:
+            name = self._safe_object_name(obj)
+            if not name or name in seen:
+                continue
+            resolved = doc.getObject(name) if doc is not None else None
+            _add(resolved or obj)
+        return live
 
     def Activated(self):
         self.validation_error = None
@@ -224,6 +266,13 @@ class RunNestingCommand:
                 self._handle_validation_error(doc, exc)
                 return
 
+            sheet_mode = session_state.get_sheet_mode()
+            job_sheets = session_state.get_job_sheets()
+            sheet_definitions = derive_sheet_definitions_for_mode(sheet_mode, job_sheets, sheet_w, sheet_h)
+            if sheet_mode == "job_sheets" and not sheet_definitions:
+                show_error("No job sheets are defined. Add at least one sheet or switch back to simple mode.", title="SquatchCut")
+                self.validation_error = ValueError("Missing job sheets in advanced mode.")
+                return
             try:
                 if cut_mode:
                     cfg = NestingConfig(
@@ -253,6 +302,7 @@ class RunNestingCommand:
                         sheet_w,
                         sheet_h,
                         cfg,
+                        sheet_definitions=sheet_definitions,
                     )
             except ValueError as e:
                 show_error(
@@ -279,9 +329,34 @@ class RunNestingCommand:
 
             logger.info(">>> [SquatchCut] Rebuilding nested layout view...")
             logger.info(">>> [SquatchCut] RunNesting: cleaning up previous nested layout")
-            session.clear_all_squatchcut_geometry(doc)
-            sheet_obj = ensure_sheet_object(sheet_w, sheet_h, doc)
-            group, nested_objs = rebuild_nested_geometry(doc, placed_parts, sheet_w, sheet_h, panel_objs)
+            session.clear_nested_layout(doc)
+            sheet_sizes = derive_sheet_sizes_for_layout(
+                sheet_mode,
+                session_state.get_job_sheets(),
+                sheet_w,
+                sheet_h,
+                placed_parts,
+            )
+            if not sheet_sizes and sheet_w and sheet_h:
+                sheet_sizes = [(sheet_w, sheet_h)]
+            sheet_spacing = compute_sheet_spacing(sheet_sizes, gap_mm)
+            boundaries, _ = build_sheet_boundaries(doc, sheet_sizes, sheet_spacing)
+            sheet_obj = boundaries[0] if boundaries else None
+            session.set_sheet_objects(boundaries)
+            live_sources = self._resolve_live_source_objects(doc, panel_objs)
+            if live_sources:
+                session.set_source_panel_objects(live_sources)
+                try:
+                    session_state.set_source_panel_objects(live_sources)
+                except Exception:
+                    pass
+            group, nested_objs = rebuild_nested_geometry(
+                doc,
+                placed_parts,
+                sheet_sizes=sheet_sizes,
+                spacing=sheet_spacing,
+                source_objects=live_sources or panel_objs,
+            )
             sheet_label = getattr(sheet_obj, "Name", "unknown sheet")
             logger.info(
                 f">>> [SquatchCut] RunNesting: created nested layout with {len(nested_objs)} parts on sheet {sheet_label}"
@@ -292,11 +367,11 @@ class RunNestingCommand:
                     doc.recompute()
                 except Exception:
                     pass
-                session.set_sheet_objects([sheet_obj] if sheet_obj else [])
+                session.set_sheet_objects(boundaries if boundaries else ([sheet_obj] if sheet_obj else []))
                 session.set_nested_panel_objects(nested_objs)
                 session_state.set_nested_sheet_group(group)
-                util = compute_utilization(placed_parts, sheet_w, sheet_h)
-                cuts = estimate_cut_counts(placed_parts, sheet_w, sheet_h)
+                util = compute_utilization_for_sheets(placed_parts, sheet_sizes)
+                cuts = estimate_cut_counts_for_sheets(placed_parts, sheet_sizes)
                 cut_complexity = estimate_cut_path_complexity(placed_parts, kerf_width_mm=kerf_width or kerf_mm)
                 overlaps = detect_overlaps(placed_parts)
                 if overlaps:

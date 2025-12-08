@@ -40,6 +40,7 @@ def _reset_session_state() -> None:
     session_state.clear_panels()
     session_state.set_last_layout(None)
     session_state.set_measurement_system("metric")
+    session_state.set_sheet_mode("simple")
 
 
 def test_imperial_default_sheet_48x96():

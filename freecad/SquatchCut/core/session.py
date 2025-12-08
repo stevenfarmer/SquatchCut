@@ -12,6 +12,7 @@ from SquatchCut.freecad_integration import App, Gui  # noqa: F401
 from SquatchCut.core import session_state
 from SquatchCut.core import sheet_presets
 from SquatchCut.core.preferences import SquatchCutPreferences
+from SquatchCut.core.sheet_model import clear_sheet_boundaries
 
 SHEET_OBJECT_NAME = "SquatchCut_Sheet"
 SOURCE_GROUP_NAME = "SquatchCut_SourceParts"
@@ -171,9 +172,26 @@ def clear_all_squatchcut_geometry(doc=None):
     clear_nested_group(resolved)
     clear_source_group(resolved)
     clear_sheet_object(resolved)
+    clear_sheet_boundaries(resolved)
     clear_sheets()
     set_source_panel_objects([])
     set_nested_panel_objects([])
+    try:
+        session_state.set_nested_sheet_group(None)
+    except Exception:
+        pass
+
+
+def clear_nested_layout(doc=None):
+    """Clear only the nested layout artifacts (sheet outlines and nested group) while keeping source panels."""
+    resolved = _resolve_doc(doc)
+    if resolved is None:
+        return
+    clear_nested_group(resolved)
+    clear_sheet_object(resolved)
+    clear_sheet_boundaries(resolved)
+    set_nested_panel_objects([])
+    set_sheet_objects([])
     try:
         session_state.set_nested_sheet_group(None)
     except Exception:
@@ -438,6 +456,14 @@ def get_panels():
 
 def set_panels(panels):
     session_state.set_panels(panels)
+
+
+def get_job_sheets():
+    return session_state.get_job_sheets()
+
+
+def set_job_sheets(sheets):
+    session_state.set_job_sheets(sheets)
 
 
 # Source panel objects ---------------------------------------------------------

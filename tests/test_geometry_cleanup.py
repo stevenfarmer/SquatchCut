@@ -1,4 +1,5 @@
 from SquatchCut.core import session
+from SquatchCut.gui.commands.cmd_run_nesting import RunNestingCommand
 
 
 class DummyObject:
@@ -85,3 +86,56 @@ def test_cleanup_runs_leave_single_group_each_time():
     nested = doc.getObject(session.NESTED_GROUP_NAME)
     assert nested is not None
     assert len(nested.Group) == 1
+
+
+def test_clear_nested_layout_preserves_sources():
+    doc = DummyDoc()
+    sheet = DummyObject(session.SHEET_OBJECT_NAME)
+    source_child = DummyObject("SourceChild")
+    source_group = DummyGroup(session.SOURCE_GROUP_NAME, members=[source_child])
+    nested = DummyGroup(session.NESTED_GROUP_NAME, members=[DummyObject("NestedChild")])
+    doc._objects[sheet.Name] = sheet
+    doc._objects[source_group.Name] = source_group
+    doc._objects[nested.Name] = nested
+
+    session.clear_nested_layout(doc)
+
+    assert doc.getObject(session.SHEET_OBJECT_NAME) is None
+    assert doc.getObject(session.NESTED_GROUP_NAME) is None
+    remaining_source = doc.getObject(session.SOURCE_GROUP_NAME)
+    assert remaining_source is source_group
+    assert remaining_source.Group == [source_child]
+
+
+class DeletedDummy:
+    def __init__(self, name):
+        self._name = name
+
+    @property
+    def Name(self):
+        raise ReferenceError("deleted object")
+
+
+def test_resolve_live_source_objects_prefers_doc_group():
+    doc = DummyDoc()
+    group_obj = DummyGroup(session.SOURCE_GROUP_NAME, members=[DummyObject("P1"), DummyObject("P2")])
+    doc._objects[group_obj.Name] = group_obj
+    cmd = RunNestingCommand()
+    live = cmd._resolve_live_source_objects(doc, [])
+    assert [obj.Name for obj in live] == ["P1", "P2"]
+
+
+def test_resolve_live_source_objects_fallback_with_deleted_handles():
+    doc = DummyDoc()
+    stale = DeletedDummy("StaleP3")
+    cmd = RunNestingCommand()
+    live = cmd._resolve_live_source_objects(doc, [stale])
+    assert live == []
+
+
+def test_resolve_live_source_objects_reuses_fallback_when_doc_empty():
+    doc = DummyDoc()
+    fallback = DummyObject("P4")
+    cmd = RunNestingCommand()
+    live = cmd._resolve_live_source_objects(doc, [fallback])
+    assert live == [fallback]

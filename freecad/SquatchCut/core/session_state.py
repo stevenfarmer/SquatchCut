@@ -16,6 +16,11 @@ from copy import deepcopy
 # Sheet size
 _sheet_width = None
 _sheet_height = None
+_job_sheets = []
+
+SHEET_MODE_SIMPLE = "simple"
+SHEET_MODE_JOB_SHEETS = "job_sheets"
+_sheet_mode = SHEET_MODE_SIMPLE
 
 # Cutting parameters
 _kerf_mm = 0.0
@@ -50,8 +55,8 @@ _nested_sheet_group = None
 def set_sheet_size(width_mm: float, height_mm: float) -> None:
     """Store sheet size in millimeters in session memory."""
     global _sheet_width, _sheet_height
-    _sheet_width = float(width_mm)
-    _sheet_height = float(height_mm)
+    _sheet_width = None if width_mm is None else float(width_mm)
+    _sheet_height = None if height_mm is None else float(height_mm)
 
 
 def clear_sheet_size() -> None:
@@ -59,12 +64,134 @@ def clear_sheet_size() -> None:
     global _sheet_width, _sheet_height
     _sheet_width = None
     _sheet_height = None
+    clear_job_sheets()
 
 
 def get_sheet_size():
     """Return current sheet size (width_mm, height_mm) or (None, None)."""
     return _sheet_width, _sheet_height
 
+
+def _safe_float(value):
+    try:
+        return float(value)
+    except Exception:
+        return None
+
+
+def _safe_int(value):
+    try:
+        return int(value)
+    except Exception:
+        return 1
+
+
+def _normalize_sheet_entry(entry):
+    if entry is None:
+        entry = {}
+    if isinstance(entry, dict):
+        width = _safe_float(entry.get("width_mm") or entry.get("width"))
+        height = _safe_float(entry.get("height_mm") or entry.get("height"))
+        quantity = _safe_int(entry.get("quantity"))
+        label = entry.get("label") or entry.get("name")
+    else:
+        width = _safe_float(getattr(entry, "width_mm", None))
+        height = _safe_float(getattr(entry, "height_mm", None))
+        quantity = _safe_int(getattr(entry, "quantity", None))
+        label = getattr(entry, "label", None) or getattr(entry, "name", None)
+    return {
+        "width_mm": width,
+        "height_mm": height,
+        "quantity": max(quantity, 1),
+        "label": str(label) if label is not None else None,
+    }
+
+
+def set_job_sheets(sheet_definitions):
+    """Replace the current job sheet list with the provided definitions."""
+    global _job_sheets
+    if sheet_definitions is None:
+        _job_sheets = []
+        return
+    normalized = []
+    for entry in sheet_definitions:
+        normalized.append(_normalize_sheet_entry(entry))
+    _job_sheets = normalized
+
+
+def get_job_sheets():
+    """Return a copy of the current job sheet definitions."""
+    return deepcopy(_job_sheets)
+
+
+def add_job_sheet(width_mm: float, height_mm: float, quantity: int = 1, label: str | None = None):
+    """Append a new sheet definition."""
+    global _job_sheets
+    entry = _normalize_sheet_entry(
+        {"width_mm": width_mm, "height_mm": height_mm, "quantity": quantity, "label": label}
+    )
+    _job_sheets.append(entry)
+    return entry
+
+
+def remove_job_sheet(index: int) -> bool:
+    """Remove a sheet definition by index; returns True if removed."""
+    global _job_sheets
+    if 0 <= index < len(_job_sheets):
+        _job_sheets.pop(index)
+        return True
+    return False
+
+
+def update_job_sheet(index: int, **updates) -> bool:
+    """Update fields for a job sheet; returns True if updated."""
+    if 0 <= index < len(_job_sheets):
+        sheet = _job_sheets[index]
+        if "width_mm" in updates:
+            sheet["width_mm"] = _safe_float(updates["width_mm"])
+        if "height_mm" in updates:
+            sheet["height_mm"] = _safe_float(updates["height_mm"])
+        if "quantity" in updates:
+            sheet["quantity"] = max(_safe_int(updates["quantity"]), 1)
+        if "label" in updates:
+            label = updates["label"]
+            sheet["label"] = str(label) if label is not None else None
+        return True
+    return False
+
+
+def clear_job_sheets():
+    """Remove all job sheet definitions."""
+    global _job_sheets
+    _job_sheets = []
+
+
+# --------------------------
+# Sheet mode helpers
+# --------------------------
+
+def set_sheet_mode(mode: str | None) -> None:
+    """Set how sheets are provided: 'simple' (default) or 'job_sheets'."""
+    global _sheet_mode
+    if mode == SHEET_MODE_JOB_SHEETS:
+        _sheet_mode = SHEET_MODE_JOB_SHEETS
+    else:
+        _sheet_mode = SHEET_MODE_SIMPLE
+
+
+def get_sheet_mode() -> str:
+    """Return the current sheet mode."""
+    return _sheet_mode or SHEET_MODE_SIMPLE
+
+
+def is_simple_sheet_mode() -> bool:
+    """Return True when repeated default sheets are active."""
+    return get_sheet_mode() == SHEET_MODE_SIMPLE
+
+
+def is_job_sheets_mode() -> bool:
+    """Return True when explicit job sheets should be used."""
+    return get_sheet_mode() == SHEET_MODE_JOB_SHEETS
 
 # --------------------------
 # Kerf / gap accessors

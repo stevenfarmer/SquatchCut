@@ -6,6 +6,7 @@ from SquatchCut.freecad_integration import App, Gui, Part
 from SquatchCut.core import logger, session
 
 SHEET_OBJECT_NAME = "SquatchCut_Sheet"
+SHEET_BOUNDARY_PREFIX = "SquatchCut_Sheet_"
 
 
 def ensure_sheet_object(width_mm: float, height_mm: float, doc=None):
@@ -113,3 +114,113 @@ def clear_group(group):
     Backwards-compatible alias for clear_group_children().
     """
     return clear_group_children(group)
+
+
+def clear_sheet_boundaries(doc):
+    """Remove any sheet boundary objects created for multi-sheet layouts."""
+    if doc is None:
+        return
+    removed = []
+    for obj in list(getattr(doc, "Objects", []) or []):
+        name = getattr(obj, "Name", "") or ""
+        if name.startswith(SHEET_BOUNDARY_PREFIX) and name != SHEET_OBJECT_NAME:
+            try:
+                doc.removeObject(name)
+                removed.append(name)
+            except Exception:
+                continue
+    return removed
+
+
+def _create_sheet_feature(doc, width_mm, height_mm, name, label, offset_x):
+    """Create a single sheet boundary plane at the requested offset."""
+    try:
+        obj = doc.addObject("Part::Feature", name)
+    except Exception:
+        return None
+    try:
+        obj.Label = label
+    except Exception:
+        pass
+    try:
+        obj.Shape = Part.makePlane(
+            float(width_mm),
+            float(height_mm),
+            App.Vector(offset_x, 0.0, 0.0),
+            App.Vector(1, 0, 0),
+            App.Vector(0, 1, 0),
+        )
+    except Exception:
+        try:
+            obj.Shape = Part.makePlane(
+                float(width_mm),
+                float(height_mm),
+                App.Vector(0.0, 0.0, 0.0),
+                App.Vector(1, 0, 0),
+                App.Vector(0, 1, 0),
+            )
+        except Exception:
+            pass
+    try:
+        if hasattr(obj, "ViewObject"):
+            obj.ViewObject.DisplayMode = "Flat Lines"
+    except Exception:
+        pass
+    try:
+        if hasattr(obj, "Placement"):
+            placement = obj.Placement
+            placement.Base = App.Vector(offset_x, 0.0, 0.0)
+            obj.Placement = placement
+    except Exception:
+        pass
+    return obj
+
+
+def build_sheet_boundaries(doc, sheet_sizes, spacing):
+    """
+    Create sheet boundary planes for each configured sheet size and return the objects plus offsets.
+    """
+    if doc is None:
+        return [], []
+    boundaries = []
+    offsets = []
+    current_x = 0.0
+    for idx, (width, height) in enumerate(sheet_sizes or []):
+        if width <= 0 or height <= 0:
+            offsets.append(current_x)
+            current_x += spacing
+            continue
+        offsets.append(current_x)
+        if idx == 0:
+            sheet_obj = ensure_sheet_object(width, height, doc)
+            if sheet_obj:
+                try:
+                    sheet_obj.Label = f"Sheet_{idx + 1}"
+                except Exception:
+                    pass
+                try:
+                    placement = sheet_obj.Placement
+                    placement.Base = App.Vector(current_x, 0.0, 0.0)
+                    sheet_obj.Placement = placement
+                except Exception:
+                    pass
+                boundaries.append(sheet_obj)
+        else:
+            name = f"{SHEET_BOUNDARY_PREFIX}{idx + 1}"
+            label = f"Sheet_{idx + 1}"
+            obj = _create_sheet_feature(doc, width, height, name, label, current_x)
+            if obj:
+                boundaries.append(obj)
+        current_x += width + spacing
+    return boundaries, offsets
+
+
+def compute_sheet_spacing(sheet_sizes, gap_mm: float | None):
+    """Determine spacing between sheets based on gap or a proportion of the widest sheet."""
+    max_width = 0.0
+    for width, _ in sheet_sizes:
+        if width and width > max_width:
+            max_width = width
+    margin_by_width = max_width * 0.25 if max_width > 0 else 0.0
+    gap = float(gap_mm or 0.0)
+    return max(margin_by_width, gap)

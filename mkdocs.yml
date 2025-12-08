@@ -27,6 +27,10 @@ nav:
       - Architecture Overview: architecture.md
       - MVP Scope: mvp.md
       - Codex Workflows: codex_workflows.md
+  - Blog:
+      - "Teaching a FreeCAD Plugin to Behave": blog/squatchcut_lessons_from_the_machine_seo.md
+  - SquatchCut:
+      - "Lessons Learned": lessons/squatchcut_lessons_learned.md
   - Reporting Bugs: reporting_bugs.md
   - Testing: dev/testing.md
 docs_dir: "docs"

@@ -36,6 +36,16 @@ def _restore_prefs(prefs: SquatchCutPreferences, snapshot: dict) -> None:
 def _reset_session_state() -> None:
     session_state.clear_sheet_size()
     session_state.set_measurement_system("metric")
+    session_state.set_sheet_mode("simple")
+
+
+def test_taskpanel_defaults_to_simple_sheet_mode():
+    settings.hydrate_from_params()
+    session_state.set_sheet_mode("simple")
+    session_state.clear_job_sheets()
+    panel = SquatchCutTaskPanel()
+    assert panel.sheet_mode_check.isChecked() is False
+    assert session_state.get_sheet_mode() == "simple"
 
 
 class _DocStub:
@@ -235,3 +245,41 @@ def test_ui_displays_correct_format_after_document_switch():
         assert panel_metric.sheet_width_edit.text() == sc_units.format_length(1220.0, "metric")
     finally:
         _restore_prefs(prefs, snap)
+
+
+def test_job_sheets_persist_across_mode_toggle_and_unit_change():
+    prefs = SquatchCutPreferences()
+    snap = _snapshot_prefs(prefs)
+    try:
+        settings.hydrate_from_params()
+        session_state.clear_job_sheets()
+        session_state.set_sheet_mode("job_sheets")
+        custom_sheets = [
+            {"width_mm": 400.0, "height_mm": 800.0, "quantity": 1, "label": "Half"},
+            {"width_mm": 600.0, "height_mm": 1200.0, "quantity": 2, "label": "Full"},
+        ]
+        session_state.set_job_sheets(custom_sheets)
+        panel = SquatchCutTaskPanel()
+
+        initial_sheets = session_state.get_job_sheets()
+        assert len(initial_sheets) == 2
+
+        panel.sheet_mode_check.setChecked(False)
+        panel._on_sheet_mode_toggled(False)
+        assert session_state.get_sheet_mode() == "simple"
+        assert session_state.get_job_sheets() == initial_sheets
+
+        panel.sheet_mode_check.setChecked(True)
+        panel._on_sheet_mode_toggled(True)
+        assert session_state.get_sheet_mode() == "job_sheets"
+        assert session_state.get_job_sheets() == initial_sheets
+
+        idx = panel.units_combo.findData("imperial")
+        assert idx >= 0
+        panel.units_combo.setCurrentIndex(idx)
+        panel._on_units_changed()
+        assert session_state.get_job_sheets() == initial_sheets
+    finally:
+        _restore_prefs(prefs, snap)
+        session_state.clear_job_sheets()
+        session_state.set_sheet_mode("simple")

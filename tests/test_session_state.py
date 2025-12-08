@@ -35,6 +35,10 @@ from SquatchCut.core.session_state import (
     get_nesting_stats,
     set_measurement_system,
     get_measurement_system,
+    set_sheet_mode,
+    get_sheet_mode,
+    is_simple_sheet_mode,
+    is_job_sheets_mode,
 )
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.core.nesting import PlacedPart
@@ -174,3 +178,19 @@ def test_measurement_system_rejects_invalid_values():
     assert get_measurement_system() == "metric"
     set_measurement_system("imperial")
     assert get_measurement_system() == "imperial"
+
+
+def test_sheet_mode_defaults_to_simple():
+    importlib.reload(session_state)
+    assert get_sheet_mode() == "simple"
+    assert is_simple_sheet_mode() is True
+    assert is_job_sheets_mode() is False
+
+
+def test_sheet_mode_switches_to_job_sheets_and_back():
+    set_sheet_mode("job_sheets")
+    assert get_sheet_mode() == "job_sheets"
+    assert is_job_sheets_mode() is True
+    set_sheet_mode("invalid")
+    assert get_sheet_mode() == "simple"
+    assert is_simple_sheet_mode() is True

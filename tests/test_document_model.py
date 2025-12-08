@@ -94,11 +94,19 @@ def test_nested_group_rebuilt_on_rerun():
         _DummyPlacement("P1", 100.0, 200.0),
         _DummyPlacement("P2", 120.0, 150.0),
     ]
-    group, objs = rebuild_nested_geometry(doc, placements, sheet_w=2440.0, sheet_h=1220.0)
+    group, objs = rebuild_nested_geometry(
+        doc,
+        placements,
+        sheet_sizes=[(2440.0, 1220.0)],
+    )
     assert group is not None
     initial_count = len(list(getattr(group, "Group", [])))
     assert initial_count == 2
-    group2, objs2 = rebuild_nested_geometry(doc, placements, sheet_w=2440.0, sheet_h=1220.0)
+    group2, objs2 = rebuild_nested_geometry(
+        doc,
+        placements,
+        sheet_sizes=[(2440.0, 1220.0)],
+    )
     assert group2 is group
     latest_children = list(getattr(group, "Group", []))
     assert len(latest_children) == initial_count

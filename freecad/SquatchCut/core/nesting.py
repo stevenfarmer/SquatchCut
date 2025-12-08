@@ -21,6 +21,9 @@ __all__ = [
     "nest_cut_optimized",
     "nest_parts",
     "NestingConfig",
+    "expand_sheet_sizes",
+    "derive_sheet_definitions_for_mode",
+    "derive_sheet_sizes_for_layout",
     "get_effective_spacing",
     "estimate_cut_counts",
     "compute_utilization",
@@ -108,6 +111,90 @@ def get_usable_sheet_area(sheet_width: float, sheet_height: float, margin_mm: fl
     return usable_width, usable_height
 
 
+def expand_sheet_sizes(sheet_entries: List[dict]) -> List[Tuple[float, float]]:
+    """Return a flattened list of sheet (width, height) tuples based on job sheet entries."""
+    result: List[Tuple[float, float]] = []
+    for entry in sheet_entries or []:
+        try:
+            width = float(entry.get("width_mm") or entry.get("width") or 0)
+        except Exception:
+            width = 0.0
+        try:
+            height = float(entry.get("height_mm") or entry.get("height") or 0)
+        except Exception:
+            height = 0.0
+        if width <= 0 or height <= 0:
+            continue
+        quantity = entry.get("quantity", 1) or 1
+        try:
+            quantity = max(1, int(float(quantity)))
+        except Exception:
+            quantity = 1
+        for _ in range(quantity):
+            result.append((width, height))
+    return result
+
+
+def derive_sheet_definitions_for_mode(
+    sheet_mode: str,
+    job_sheets: List[dict] | None,
+    default_width: float | None,
+    default_height: float | None,
+) -> List[dict]:
+    """
+    Return sheet definitions honoring sheet mode.
+
+    - Simple mode returns an empty list so callers repeat the default sheet as needed.
+    - Job sheets mode uses the supplied definitions verbatim (invalid ones filtered out elsewhere).
+    """
+    if sheet_mode == "job_sheets":
+        return list(job_sheets or [])
+    # Simple mode: rely on default repeated sheet (no explicit definitions)
+    return []
+
+
+def derive_sheet_sizes_for_layout(
+    sheet_mode: str,
+    job_sheets: List[dict] | None,
+    default_width: float | None,
+    default_height: float | None,
+    placements: List[PlacedPart] | None = None,
+) -> List[Tuple[float, float]]:
+    """
+    Determine concrete sheet sizes to render layout geometry for the current mode.
+    """
+    if sheet_mode == "job_sheets":
+        sizes = expand_sheet_sizes(job_sheets or [])
+        if sizes:
+            return sizes
+    if default_width and default_height:
+        count = 1
+        if placements:
+            count = max((pp.sheet_index for pp in placements), default=0) + 1
+        return [(default_width, default_height)] * max(count, 1)
+    return []
+
+
+def resolve_sheet_dimensions(
+    sheet_sizes: List[Tuple[float, float]],
+    index: int,
+    fallback_width: float,
+    fallback_height: float,
+) -> Tuple[float, float]:
+    """Return the sheet dimensions for the requested index (clamped)."""
+    if sheet_sizes:
+        idx = max(0, min(index, len(sheet_sizes) - 1))
+        width, height = sheet_sizes[idx]
+        if width > 0 and height > 0:
+            return width, height
+        if len(sheet_sizes) > 1:
+            for w, h in reversed(sheet_sizes[:idx + 1]):
+                if w > 0 and h > 0:
+                    return w, h
+    if fallback_width > 0 and fallback_height > 0:
+        return fallback_width, fallback_height
+    return fallback_width, fallback_height
+
 def part_fits_sheet(
     part_width: float,
     part_height: float,
@@ -166,6 +253,7 @@ def _nest_rectangular_default(
     sheet_width: float,
     sheet_height: float,
     config: NestingConfig | None = None,
+    sheet_sizes: List[Tuple[float, float]] | None = None,
 ) -> List[PlacedPart]:
     """
     Shelf-based rectangle packing across multiple sheets with optional 90° rotation.
@@ -185,15 +273,24 @@ def _nest_rectangular_default(
 
     cfg = config or NestingConfig()
     spacing = get_effective_spacing(cfg)
+    configured_sizes = sheet_sizes if sheet_sizes else [(sheet_width, sheet_height)]
 
-    # Early validation: each part must fit on an empty sheet in some allowed orientation.
+    # Early validation: each part must fit on at least one configured sheet.
     for p in parts:
-        can_fit_unrotated = p.width <= sheet_width and p.height <= sheet_height
-        can_fit_rotated = p.can_rotate and p.height <= sheet_width and p.width <= sheet_height
-        if not (can_fit_unrotated or can_fit_rotated):
+        fits_somewhere = False
+        for sw, sh in configured_sizes:
+            if sw <= 0 or sh <= 0:
+                continue
+            can_fit_unrotated = p.width <= sw and p.height <= sh
+            can_fit_rotated = p.can_rotate and p.height <= sw and p.width <= sh
+            if can_fit_unrotated or can_fit_rotated:
+                fits_somewhere = True
+                break
+        if not fits_somewhere:
+            sw, sh = configured_sizes[0]
             raise ValueError(
                 f"Part {p.id} ({p.width} x {p.height}) does not fit "
-                f"on sheet {sheet_width} x {sheet_height} in any allowed orientation."
+                f"on sheet {sw} x {sh} in any allowed orientation."
             )
 
     # Sort by max dimension so bigger parts get placed first.
@@ -209,6 +306,9 @@ def _nest_rectangular_default(
     # Each row is a dict: {"y": float, "height": float, "used_width": float}
     sheets: List[List[dict]] = []
     sheets.append([])  # first sheet with no rows yet
+
+    def _sheet_dimensions(index: int) -> Tuple[float, float]:
+        return resolve_sheet_dimensions(sheet_sizes or [], index, sheet_width, sheet_height)
 
     def orientations_for_part(p: Part):
         """Yield (w, h, rot_deg) options, preferring 0° then 90°."""
@@ -228,13 +328,14 @@ def _nest_rectangular_default(
                 if idx < len(rows) - 1:
                     total_height += spacing
 
+            current_sheet_width, current_sheet_height = _sheet_dimensions(sheet_index)
             # 1) Try to place in existing rows on this sheet
             for row in rows:
                 for w, h, rot in orientations_for_part(part):
                     # Must fit within row height and sheet width
                     if h > row["height"]:
                         continue
-                    if row["used_width"] + w + spacing > sheet_width + 1e-6:
+                    if row["used_width"] + w + spacing > current_sheet_width + 1e-6:
                         continue
 
                     # Place in this row
@@ -265,11 +366,11 @@ def _nest_rectangular_default(
 
             # 2) Couldn't fit in any existing row; try to open a new row on this sheet.
             for w, h, rot in orientations_for_part(part):
-                if w > sheet_width:
+                if w > current_sheet_width:
                     continue
 
                 new_total_height = total_height + (spacing if rows else 0.0) + h
-                if new_total_height > sheet_height:
+                if new_total_height > current_sheet_height:
                     continue
 
                 # Start a new row with fixed height = h
@@ -306,8 +407,9 @@ def _nest_rectangular_default(
         sheets.append(new_rows)
 
         placed_here = False
+        new_sheet_width, new_sheet_height = _sheet_dimensions(new_sheet_index)
         for w, h, rot in orientations_for_part(part):
-            if w <= sheet_width and h <= sheet_height:
+            if w <= new_sheet_width and h <= new_sheet_height:
                 new_row = {
                     "y": 0.0,
                     "height": h,
@@ -330,9 +432,10 @@ def _nest_rectangular_default(
                 break
 
         if not placed_here:
+            sw, sh = new_sheet_width, new_sheet_height
             raise ValueError(
                 f"Part {part.id} ({part.width} x {part.height}) unexpectedly "
-                f"cannot be placed on a new sheet {sheet_width} x {sheet_height}."
+                f"cannot be placed on a new sheet {sw} x {sh}."
             )
 
     return placed
@@ -343,11 +446,21 @@ def nest_on_multiple_sheets(
     sheet_width: float,
     sheet_height: float,
     config: NestingConfig | None = None,
+    sheet_definitions: List[dict] | None = None,
 ) -> List[PlacedPart]:
     """
-    Backward-compatible entry that runs the default shelf-based nesting.
+    Entry that runs the default shelf-based nesting across the supplied sheet definitions.
     """
-    return _nest_rectangular_default(parts, sheet_width, sheet_height, config=config)
+    sheet_sizes = expand_sheet_sizes(sheet_definitions or [])
+    if not sheet_sizes:
+        sheet_sizes = [(sheet_width, sheet_height)]
+    return _nest_rectangular_default(
+        parts,
+        sheet_width,
+        sheet_height,
+        config=config,
+        sheet_sizes=sheet_sizes,
+    )
 
 
 def nest_cut_optimized(
@@ -620,6 +733,34 @@ def estimate_cut_counts(
     return {"vertical": v_count, "horizontal": h_count, "total": v_count + h_count}
 
 
+def estimate_cut_counts_for_sheets(
+    placements: List[PlacedPart],
+    sheet_sizes: List[Tuple[float, float]],
+) -> dict:
+    """
+    Approximate cut counts when nesting spans sheets of potentially varying dimensions.
+    """
+    if not placements or not sheet_sizes:
+        return {"vertical": 0, "horizontal": 0, "total": 0}
+    vertical = set()
+    horizontal = set()
+    fallback_width, fallback_height = sheet_sizes[0]
+    for pp in placements:
+        sw, sh = resolve_sheet_dimensions(sheet_sizes, pp.sheet_index, fallback_width, fallback_height)
+        vertical.add(0.0)
+        vertical.add(float(sw))
+        horizontal.add(0.0)
+        horizontal.add(float(sh))
+    for pp in placements:
+        vertical.add(round(pp.x, 4))
+        vertical.add(round(pp.x + pp.width, 4))
+        horizontal.add(round(pp.y, 4))
+        horizontal.add(round(pp.y + pp.height, 4))
+    v_count = len(vertical)
+    h_count = len(horizontal)
+    return {"vertical": v_count, "horizontal": h_count, "total": v_count + h_count}
+
+
 def compute_utilization(
     placements: List[PlacedPart],
     sheet_width: float,
@@ -642,6 +783,28 @@ def compute_utilization(
         "sheets_used": sheets_used,
         "placed_area": placed_area,
         "sheet_area": sheet_area,
+    }
+
+
+def compute_utilization_for_sheets(
+    placements: List[PlacedPart],
+    sheet_sizes: List[Tuple[float, float]],
+) -> dict:
+    if not placements or not sheet_sizes:
+        return {"utilization_percent": 0.0, "sheets_used": 0, "placed_area": 0.0, "sheet_area": 0.0}
+    fallback_width, fallback_height = sheet_sizes[0]
+    used_sheet_indices = {pp.sheet_index for pp in placements}
+    total_sheet_area = 0.0
+    for sheet_index in used_sheet_indices:
+        sw, sh = resolve_sheet_dimensions(sheet_sizes, sheet_index, fallback_width, fallback_height)
+        total_sheet_area += sw * sh
+    placed_area = sum(pp.width * pp.height for pp in placements)
+    util_percent = (placed_area / total_sheet_area) * 100.0 if total_sheet_area > 0 else 0.0
+    return {
+        "utilization_percent": util_percent,
+        "sheets_used": len(used_sheet_indices),
+        "placed_area": placed_area,
+        "sheet_area": total_sheet_area,
     }
 
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from SquatchCut.freecad_integration import App, Gui, Part
 from SquatchCut.core import logger
+from SquatchCut.core.nesting import resolve_sheet_dimensions
 from SquatchCut.core.sheet_model import get_or_create_group, clear_group_children
 
 NESTED_GROUP_NAME = "SquatchCut_NestedParts"
@@ -19,7 +20,15 @@ def ensure_nested_group(doc):
     return get_or_create_group(doc, NESTED_GROUP_NAME)
 
 
-def rebuild_nested_geometry(doc, placements, sheet_w, sheet_h, source_objects=None):
+def rebuild_nested_geometry(
+    doc,
+    placements,
+    sheet_w=None,
+    sheet_h=None,
+    sheet_sizes=None,
+    spacing=None,
+    source_objects=None,
+):
     """
     Clear existing nested geometry and rebuild from placements.
 
@@ -44,7 +53,20 @@ def rebuild_nested_geometry(doc, placements, sheet_w, sheet_h, source_objects=No
         return source_map.get(part_id) or doc.getObject(part_id) or doc.getObject(f"SC_Source_{part_id}")
 
     nested_objs = []
-    sheet_margin = float(sheet_w) * 0.25 if sheet_w else 0.0
+    size_list = sheet_sizes or []
+    if not size_list and sheet_w and sheet_h:
+        size_list = [(sheet_w, sheet_h)]
+    if not size_list:
+        if sheet_w and sheet_h:
+            size_list = [(sheet_w, sheet_h)]
+        else:
+            size_list = [(0.0, 0.0)]
+    sheet_spacing = float(spacing) if spacing is not None else (float(size_list[0][0]) * 0.25 if size_list and size_list[0][0] else 0.0)
+    sheet_offsets = []
+    current_offset = 0.0
+    for width, _ in size_list:
+        sheet_offsets.append(current_offset)
+        current_offset += width + sheet_spacing
 
     for idx, pp in enumerate(placements or []):
         try:
@@ -70,7 +92,10 @@ def rebuild_nested_geometry(doc, placements, sheet_w, sheet_h, source_objects=No
             obj.Height = 1.0
 
         placement = obj.Placement
-        base_x = sheet_index * (float(sheet_w) + sheet_margin) + x
+        idx = min(sheet_index, len(sheet_offsets) - 1 if sheet_offsets else 0)
+        if idx < 0:
+            idx = 0
+        base_x = sheet_offsets[idx] + x
         base_y = y
         placement.Base = App.Vector(base_x, base_y, 0.0)
         try:
@@ -116,4 +141,14 @@ def _build_source_map(source_objects, doc):
                 name = _safe_object_name(member)
                 if name:
                     valid[name] = member
+        for obj in getattr(doc, "Objects", []) or []:
+            try:
+                name = getattr(obj, "Name", "") or ""
+            except ReferenceError:
+                continue
+            if not name or not name.startswith("SC_Source_"):
+                continue
+            key = name.replace("SC_Source_", "", 1) or name
+            if key not in valid:
+                valid[key] = obj
     return valid

@@ -1,5 +1,7 @@
 """Integration tests for TaskPanel behavior inside FreeCAD."""
 
+import math
+
 import pytest
 
 pytest.importorskip("FreeCAD")
@@ -7,7 +9,7 @@ pytest.importorskip("FreeCADGui")
 
 import FreeCAD  # type: ignore
 from SquatchCut import settings
-from SquatchCut.core import units as sc_units
+from SquatchCut.core import session_state, units as sc_units
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.gui.taskpanel_main import SquatchCutTaskPanel
 
@@ -90,3 +92,65 @@ def test_rotation_default_initial_state():
         assert panel2.job_allow_rotation_check.isChecked()
     finally:
         _restore_prefs(prefs, snap)
+
+
+def test_taskpanel_sheet_table_add_remove_updates_job_state():
+    settings.hydrate_from_params()
+    session_state.clear_job_sheets()
+    panel = SquatchCutTaskPanel()
+    try:
+        panel.sheet_mode_check.setChecked(True)
+        panel._on_sheet_mode_toggled(True)
+        initial = len(session_state.get_job_sheets())
+        panel._on_add_sheet_clicked()
+        assert len(session_state.get_job_sheets()) == initial + 1
+        panel._on_remove_sheet_clicked()
+        assert len(session_state.get_job_sheets()) == initial
+    finally:
+        session_state.clear_job_sheets()
+
+
+def test_taskpanel_preset_updates_primary_job_sheet():
+    settings.hydrate_from_params()
+    session_state.clear_job_sheets()
+    panel = SquatchCutTaskPanel()
+    try:
+        preset_index = 1
+        panel.preset_combo.setCurrentIndex(preset_index)
+        panel._on_preset_changed(preset_index)
+        panel.sheet_mode_check.setChecked(True)
+        panel._on_sheet_mode_toggled(True)
+        sheets = session_state.get_job_sheets()
+        assert sheets, "Job sheets should exist after preset application"
+        preset = panel._presets[preset_index]
+        size = preset.get("size")
+        assert size is not None
+        width_mm, height_mm = size
+        primary = sheets[0]
+        assert math.isclose(primary.get("width_mm") or 0.0, width_mm, rel_tol=1e-6)
+        assert math.isclose(primary.get("height_mm") or 0.0, height_mm, rel_tol=1e-6)
+    finally:
+        session_state.clear_job_sheets()
+
+
+def test_taskpanel_toggle_preserves_job_sheets():
+    settings.hydrate_from_params()
+    session_state.clear_job_sheets()
+    panel = SquatchCutTaskPanel()
+    try:
+        panel.sheet_mode_check.setChecked(True)
+        panel._on_sheet_mode_toggled(True)
+        panel._on_add_sheet_clicked()
+        initial_sheets = session_state.get_job_sheets()
+        assert initial_sheets
+
+        panel.sheet_mode_check.setChecked(False)
+        panel._on_sheet_mode_toggled(False)
+        assert session_state.get_job_sheets() == initial_sheets
+
+        panel.sheet_mode_check.setChecked(True)
+        panel._on_sheet_mode_toggled(True)
+        assert session_state.get_job_sheets() == initial_sheets
+    finally:
+        session_state.clear_job_sheets()
+        session_state.set_sheet_mode("simple")

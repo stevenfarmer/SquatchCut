@@ -2,6 +2,7 @@ import math
 
 from SquatchCut import settings
 from SquatchCut.core import units as sc_units
+from SquatchCut.core import session_state
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.gui.taskpanel_main import SquatchCutTaskPanel
 from SquatchCut.gui.taskpanel_settings import SquatchCutSettingsPanel
@@ -103,6 +104,21 @@ def test_settings_panel_hydration_and_persistence():
         assert main_panel.job_allow_rotation_check.isChecked() is False
     finally:
         _restore_prefs(prefs, snap)
+
+
+def test_hydrate_from_params_preserves_job_sheets():
+    settings.hydrate_from_params()
+    session_state.clear_job_sheets()
+    session_state.set_sheet_mode("job_sheets")
+    sheets = [
+        {"width_mm": 500.0, "height_mm": 1000.0, "quantity": 1, "label": "Test"},
+    ]
+    session_state.set_job_sheets(sheets)
+    settings.hydrate_from_params()
+    assert session_state.get_job_sheets() == sheets
+    assert session_state.get_sheet_mode() == "job_sheets"
+    session_state.clear_job_sheets()
+    session_state.set_sheet_mode("simple")
 
 
 def test_hydrate_from_params_is_gui_free(monkeypatch):

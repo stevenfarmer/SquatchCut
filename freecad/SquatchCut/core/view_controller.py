@@ -7,11 +7,13 @@ from typing import Iterable, List
 from SquatchCut.freecad_integration import App, Gui
 
 from SquatchCut.core import logger, session, session_state
+from SquatchCut.core.nesting import derive_sheet_sizes_for_layout
 from SquatchCut.core.sheet_model import (
     SHEET_OBJECT_NAME,
     ensure_sheet_object,
     get_or_create_group,
     clear_group_children,
+    compute_sheet_spacing,
 )
 from SquatchCut.gui.nesting_view import rebuild_nested_geometry
 from SquatchCut.gui.source_view import rebuild_source_preview
@@ -183,12 +185,24 @@ def _redraw_nested_group(doc):
         except Exception:
             pass
         return group, []
+    sheet_defs = session_state.get_job_sheets() or []
+    sheet_mode = session_state.get_sheet_mode()
+    sheet_sizes = derive_sheet_sizes_for_layout(
+        sheet_mode,
+        sheet_defs,
+        sheet_w,
+        sheet_h,
+        placements,
+    )
+    if not sheet_sizes and sheet_w and sheet_h:
+        sheet_sizes = [(sheet_w, sheet_h)]
+    sheet_spacing = compute_sheet_spacing(sheet_sizes, session_state.get_gap_mm())
     source_objs = session.get_source_panel_objects()
     group, nested_objs = rebuild_nested_geometry(
         doc,
         placements,
-        sheet_w,
-        sheet_h,
+        sheet_sizes=sheet_sizes,
+        spacing=sheet_spacing,
         source_objects=source_objs,
     )
     session.set_nested_panel_objects(nested_objs or [])

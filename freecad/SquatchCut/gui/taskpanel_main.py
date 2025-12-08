@@ -55,6 +55,8 @@ class SquatchCutTaskPanel:
         self._current_preset_id = None
         self._close_callback: Optional[Callable[[], None]] = None
         self._section_widgets: dict[str, QtWidgets.QWidget] = {}
+        self._selected_sheet_index: int = 0
+        self._suppress_sheet_table_events = False
 
         self.form = QtWidgets.QWidget()
         self._build_ui()
@@ -71,6 +73,16 @@ class SquatchCutTaskPanel:
             except Exception:
                 pass
             self._close_callback = None
+
+    def _connect_signal(self, signal, handler):
+        if signal is None:
+            return
+        try:
+            connect = getattr(signal, "connect", None)
+            if callable(connect):
+                connect(handler)
+        except Exception:
+            pass
 
     # ---------------- UI builders ----------------
 
@@ -223,6 +235,53 @@ class SquatchCutTaskPanel:
         grid.addWidget(self.margin_label, 1, 2)
         grid.addWidget(self.margin_edit, 1, 3)
         vbox.addLayout(grid)
+
+        self.sheet_mode_check = QtWidgets.QCheckBox("Use custom job sheets (advanced)")
+        self.sheet_mode_check.setToolTip("Enable to provide explicit sheets instead of repeating the default size.")
+        vbox.addWidget(self.sheet_mode_check)
+
+        self.sheet_table_container = QtWidgets.QWidget()
+        table_container_layout = QtWidgets.QVBoxLayout(self.sheet_table_container)
+        table_container_layout.setContentsMargins(0, 0, 0, 0)
+        table_container_layout.setSpacing(4)
+
+        sheets_label = QtWidgets.QLabel("Job sheets:")
+        table_container_layout.addWidget(sheets_label)
+
+        self.sheet_table = QtWidgets.QTableWidget()
+        self.sheet_table.setColumnCount(4)
+        self.sheet_table.setHorizontalHeaderLabels(
+            ["Name", f"Width ({self._unit_label()})", f"Height ({self._unit_label()})", "Qty"]
+        )
+        self.sheet_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.sheet_table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        header = self.sheet_table.horizontalHeader()
+        header_cls = getattr(QtWidgets, "QHeaderView", None)
+        if header_cls is not None and hasattr(header, "setSectionResizeMode"):
+            header.setSectionResizeMode(0, header_cls.Stretch)
+            header.setSectionResizeMode(1, header_cls.ResizeToContents)
+            header.setSectionResizeMode(2, header_cls.ResizeToContents)
+            header.setSectionResizeMode(3, header_cls.ResizeToContents)
+        triggers = 0
+        item_view_cls = getattr(QtWidgets, "QAbstractItemView", None)
+        if item_view_cls is not None:
+            for attr_name in ("DoubleClicked", "SelectedClicked"):
+                value = getattr(item_view_cls, attr_name, None)
+                if isinstance(value, int):
+                    triggers |= value
+        if triggers and hasattr(self.sheet_table, "setEditTriggers"):
+            self.sheet_table.setEditTriggers(triggers)
+        table_container_layout.addWidget(self.sheet_table)
+
+        table_buttons = QtWidgets.QHBoxLayout()
+        self.add_sheet_button = QtWidgets.QPushButton("Add Sheet")
+        self.remove_sheet_button = QtWidgets.QPushButton("Remove Sheet")
+        table_buttons.addWidget(self.add_sheet_button)
+        table_buttons.addWidget(self.remove_sheet_button)
+        table_buttons.addStretch(1)
+        table_container_layout.addLayout(table_buttons)
+
+        vbox.addWidget(self.sheet_table_container)
 
         reset_row = QtWidgets.QHBoxLayout()
         reset_row.addStretch(1)
@@ -440,6 +499,7 @@ class SquatchCutTaskPanel:
             "include_labels": bool(include_labels),
             "include_dimensions": bool(include_dims),
             "panels": session_state.get_panels(),
+            "sheet_mode": session_state.get_sheet_mode(),
         }
 
     def _apply_initial_state(self, state: dict) -> None:
@@ -467,6 +527,12 @@ class SquatchCutTaskPanel:
         self.job_allow_rotation_check.blockSignals(False)
         self._apply_job_rotation_state_to_session(job_rotation)
 
+        use_job_sheets = (state.get("sheet_mode") or session_state.get_sheet_mode()) == "job_sheets"
+        self.sheet_mode_check.blockSignals(True)
+        self.sheet_mode_check.setChecked(use_job_sheets)
+        self.sheet_mode_check.blockSignals(False)
+        self._apply_sheet_mode_selection(use_job_sheets, refresh_table=False)
+
         unit_idx = self.units_combo.findData(self.measurement_system)
         if unit_idx < 0:
             unit_idx = 0
@@ -474,6 +540,7 @@ class SquatchCutTaskPanel:
         self.units_combo.setCurrentIndex(unit_idx)
         self.units_combo.blockSignals(False)
         self._update_unit_labels()
+        self._populate_sheet_table()
         self._populate_table(state["panels"])
         self._reset_summary(state["mode"])
         self._refresh_summary()
@@ -508,9 +575,20 @@ class SquatchCutTaskPanel:
         self.preset_combo.currentIndexChanged.connect(self._on_preset_changed)
         self.mode_combo.currentIndexChanged.connect(self._on_mode_changed)
         self.units_combo.currentIndexChanged.connect(self._on_units_changed)
+        self.sheet_mode_check.toggled.connect(self._on_sheet_mode_toggled)
         self.load_csv_button.clicked.connect(self._choose_csv_file)
         self.show_sheet_check.toggled.connect(self._on_view_toggled)
         self.show_nested_check.toggled.connect(self._on_view_toggled)
+        self._connect_signal(
+            getattr(self.sheet_table, "itemSelectionChanged", None),
+            self._on_sheet_table_selection_changed,
+        )
+        self._connect_signal(
+            getattr(self.sheet_table, "itemChanged", None),
+            self._on_sheet_table_item_changed,
+        )
+        self.add_sheet_button.clicked.connect(self._on_add_sheet_clicked)
+        self.remove_sheet_button.clicked.connect(self._on_remove_sheet_clicked)
         self.sheet_width_edit.textChanged.connect(self.update_run_button_state)
         self.sheet_width_edit.textChanged.connect(self._on_sheet_value_changed)
         self.sheet_height_edit.textChanged.connect(self.update_run_button_state)
@@ -585,7 +663,6 @@ class SquatchCutTaskPanel:
         except Exception:
             pass
 
-        session_state.set_sheet_size(sheet_w, sheet_h)
         session_state.set_kerf_mm(kerf_mm)
         session_state.set_gap_mm(margin_mm)
         session_state.set_optimization_mode(mode)
@@ -594,6 +671,12 @@ class SquatchCutTaskPanel:
         self._apply_job_rotation_state_to_session(bool(self.job_allow_rotation_check.isChecked()))
         session_state.set_export_include_labels(export_include_labels)
         session_state.set_export_include_dimensions(export_include_dimensions)
+        session_state.set_sheet_size(sheet_w, sheet_h)
+        use_job_sheets = bool(self.sheet_mode_check.isChecked())
+        session_state.set_sheet_mode("job_sheets" if use_job_sheets else "simple")
+        if use_job_sheets and not session_state.get_job_sheets():
+            self._ensure_job_sheets_seeded()
+        self._update_sheet_mode_ui()
 
         if self.doc is not None:
             try:
@@ -632,6 +715,13 @@ class SquatchCutTaskPanel:
         sheet_h_ok, sheet_h = self._parse_length_safely(self.sheet_height_edit)
         if self.preset_combo.currentIndex() != 0:
             self._set_preset_index(0)
+        if sheet_w_ok and sheet_h_ok and sheet_w and sheet_h:
+            session_state.set_sheet_size(sheet_w, sheet_h)
+        self.update_run_button_state()
+
+    def _on_sheet_mode_toggled(self, checked: bool) -> None:
+        """Switch between simple default sheets and explicit job sheets."""
+        self._apply_sheet_mode_selection(bool(checked))
         self.update_run_button_state()
 
     def _set_run_buttons_enabled(self, enabled: bool) -> None:
@@ -817,6 +907,17 @@ class SquatchCutTaskPanel:
         else:
             widget.setText(self._format_length(float(value_mm)))
 
+    def _qt_flag_mask(self, flag_names):
+        mask = 0
+        qt = getattr(QtCore, "Qt", None)
+        if qt is None:
+            return mask
+        for name in flag_names:
+            value = getattr(qt, name, None)
+            if isinstance(value, int):
+                mask |= value
+        return mask
+
     def _parse_length(self, text: str) -> float:
         return sc_units.parse_length(text, self.measurement_system)
 
@@ -911,7 +1012,9 @@ class SquatchCutTaskPanel:
 
             for col, text in enumerate(values):
                 item = QtWidgets.QTableWidgetItem(text)
-                item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+                flags = self._qt_flag_mask(("ItemIsSelectable", "ItemIsEnabled"))
+                if flags:
+                    item.setFlags(flags)
                 self.parts_table.setItem(row, col, item)
 
         self.parts_table.resizeColumnsToContents()
@@ -923,6 +1026,166 @@ class SquatchCutTaskPanel:
         unit = self._unit_label()
         headers = ["Name", f"Width ({unit})", f"Height ({unit})", "Qty", "Allow rotate"]
         self.parts_table.setHorizontalHeaderLabels(headers)
+
+    def _update_sheet_mode_ui(self) -> None:
+        """Toggle visibility of advanced sheet controls."""
+        advanced = session_state.is_job_sheets_mode()
+        container = getattr(self, "sheet_table_container", None)
+        if container is not None:
+            setter = getattr(container, "setVisible", None)
+            if callable(setter):
+                setter(advanced)
+            enabler = getattr(container, "setEnabled", None)
+            if callable(enabler):
+                enabler(advanced)
+        if hasattr(self, "sheet_mode_check"):
+            current_checked = bool(self.sheet_mode_check.isChecked())
+            if current_checked != advanced:
+                self.sheet_mode_check.blockSignals(True)
+                self.sheet_mode_check.setChecked(advanced)
+                self.sheet_mode_check.blockSignals(False)
+
+    def _ensure_job_sheets_seeded(self) -> None:
+        """Ensure at least one job sheet exists when advanced mode is enabled."""
+        sheets = session_state.get_job_sheets()
+        if sheets:
+            return
+        width, height = session_state.get_sheet_size()
+        if width is None or height is None:
+            width, height = self._prefs.get_default_sheet_size_mm(self.measurement_system)
+            session_state.set_sheet_size(width, height)
+        session_state.set_job_sheets(
+            [
+                {
+                    "width_mm": width,
+                    "height_mm": height,
+                    "quantity": 1,
+                    "label": "Sheet 1",
+                }
+            ]
+        )
+
+    def _apply_sheet_mode_selection(self, use_job_sheets: bool, refresh_table: bool = True) -> None:
+        """Persist the requested sheet mode and update UI state."""
+        session_state.set_sheet_mode("job_sheets" if use_job_sheets else "simple")
+        if use_job_sheets:
+            self._ensure_job_sheets_seeded()
+        self._update_sheet_mode_ui()
+        if refresh_table:
+            self._populate_sheet_table()
+
+    def _update_sheet_table_headers(self) -> None:
+        unit = self._unit_label()
+        headers = ["Name", f"Width ({unit})", f"Height ({unit})", "Qty"]
+        self.sheet_table.setHorizontalHeaderLabels(headers)
+
+    def _populate_sheet_table(self) -> None:
+        sheets = session_state.get_job_sheets()
+        if session_state.is_job_sheets_mode() and not sheets:
+            self._ensure_job_sheets_seeded()
+            sheets = session_state.get_job_sheets()
+
+        self._suppress_sheet_table_events = True
+        self.sheet_table.setRowCount(len(sheets))
+        for row, sheet in enumerate(sheets):
+            name = sheet.get("label") or f"Sheet {row + 1}"
+            width = sheet.get("width_mm")
+            height = sheet.get("height_mm")
+            quantity = int(sheet.get("quantity") or 1)
+            row_values = [
+                name,
+                self._format_length(width) if width else "",
+                self._format_length(height) if height else "",
+                str(quantity),
+            ]
+            for col, text in enumerate(row_values):
+                item = QtWidgets.QTableWidgetItem(text)
+                flags = self._qt_flag_mask(
+                    ("ItemIsSelectable", "ItemIsEnabled", "ItemIsEditable")
+                )
+                if flags:
+                    item.setFlags(flags)
+                self.sheet_table.setItem(row, col, item)
+        self._suppress_sheet_table_events = False
+        self._update_sheet_table_headers()
+        self._select_sheet_row(self._selected_sheet_index)
+
+    def _select_sheet_row(self, index: int) -> None:
+        getter = getattr(self.sheet_table, "rowCount", None)
+        if callable(getter):
+            row_count = getter()
+        else:
+            row_count = len(session_state.get_job_sheets())
+        if row_count == 0:
+            return
+        index = max(0, min(index, row_count - 1))
+        self._selected_sheet_index = index
+        selector = getattr(self.sheet_table, "selectRow", None)
+        if callable(selector):
+            selector(index)
+
+    def _on_sheet_table_selection_changed(self) -> None:
+        if self._suppress_sheet_table_events:
+            return
+        selection = self.sheet_table.selectionModel().selectedRows()
+        if selection:
+            self._selected_sheet_index = selection[0].row()
+        else:
+            self._selected_sheet_index = 0
+
+    def _on_sheet_table_item_changed(self, item: QtWidgets.QTableWidgetItem) -> None:
+        if self._suppress_sheet_table_events:
+            return
+        row = item.row()
+        col = item.column()
+        sheets = session_state.get_job_sheets()
+        if not (0 <= row < len(sheets)):
+            return
+        text = item.text().strip()
+        try:
+            if col == 0:
+                session_state.update_job_sheet(row, label=text or None)
+            elif col in (1, 2):
+                if not text:
+                    value = None
+                else:
+                    value = self._parse_length(text)
+                key = "width_mm" if col == 1 else "height_mm"
+                session_state.update_job_sheet(row, **{key: value})
+            elif col == 3:
+                try:
+                    quantity = max(1, int(float(text)))
+                except Exception:
+                    quantity = 1
+                session_state.update_job_sheet(row, quantity=quantity)
+            self._populate_sheet_table()
+        except ValueError:
+            self._populate_sheet_table()
+
+    def _on_add_sheet_clicked(self) -> None:
+        sheets = session_state.get_job_sheets()
+        if sheets:
+            basis = sheets[self._selected_sheet_index]
+            width = basis.get("width_mm") or session_state.get_sheet_size()[0]
+            height = basis.get("height_mm") or session_state.get_sheet_size()[1]
+        else:
+            width, height = session_state.get_sheet_size()
+        if width is None or height is None:
+            width, height = self._prefs.get_default_sheet_size_mm(self.measurement_system)
+        label = f"Sheet {len(sheets) + 1 if sheets else 1}"
+        session_state.add_job_sheet(width, height, 1, label)
+        self._selected_sheet_index = max(0, len(session_state.get_job_sheets()) - 1)
+        self._populate_sheet_table()
+
+    def _on_remove_sheet_clicked(self) -> None:
+        if session_state.remove_job_sheet(self._selected_sheet_index):
+            sheets = session_state.get_job_sheets()
+            self._selected_sheet_index = max(0, min(self._selected_sheet_index, len(sheets) - 1))
+            if not sheets:
+                width, height = session_state.get_sheet_size()
+                if width is not None and height is not None:
+                    session_state.add_job_sheet(width, height, 1, "Sheet 1")
+            self._populate_sheet_table()
 
     def _set_csv_label(self, path: str) -> None:
         display = os.path.basename(path) if path else "No file loaded"
@@ -1070,6 +1333,7 @@ class SquatchCutTaskPanel:
                 session.sync_doc_from_state(self.doc, self.measurement_system)
             except Exception:
                 pass
+        self._populate_sheet_table()
 
     def _on_export_options_changed(self) -> None:
         """Persist export options into preferences."""
@@ -1085,6 +1349,7 @@ class SquatchCutTaskPanel:
         self.margin_label.setText(f"Edge margin ({unit}):")
         self.kerf_width_label.setText(f"Kerf Width ({unit}):")
         self._update_table_headers()
+        self._update_sheet_table_headers()
 
     def on_report_bug_clicked(self) -> None:
         """Open the SquatchCut GitHub issues page in the default browser."""
@@ -1190,6 +1455,9 @@ class SquatchCutTaskPanel:
         default_job_rotation = session_state.get_default_allow_rotate()
         self.job_allow_rotation_check.setChecked(bool(default_job_rotation))
         self._apply_job_rotation_state_to_session(bool(default_job_rotation))
+
+        if default_width and default_height:
+            session_state.set_sheet_size(default_width, default_height)
 
         # Persist defaults into session state and refresh status
         self._apply_settings_to_session()
