@@ -34,11 +34,14 @@ class SquatchCutTaskPanel:
 
     FALLBACK_SHEET_SIZE_MM = (1220.0, 2440.0)
     FALLBACK_MATCH_TOLERANCE_MM = 2.0
+    _test_force_measurement_system: str | None = None
 
     def __init__(self, doc=None):
         self._prefs = SquatchCutPreferences()
         effective_doc = doc or (App.ActiveDocument if App is not None else None)
-        doc_units = session.detect_document_measurement_system(effective_doc)
+        test_override = self.__class__._test_force_measurement_system
+        self.__class__._test_force_measurement_system = None
+        doc_units = test_override if test_override in ("metric", "imperial") else session.detect_document_measurement_system(effective_doc)
         self._initial_state = self._compute_initial_state(effective_doc, doc_units)
         self.measurement_system = self._initial_state["measurement_system"]
         self.doc = effective_doc
@@ -761,6 +764,12 @@ class SquatchCutTaskPanel:
     def _unit_label(self) -> str:
         return sc_units.unit_label_for_system(self.measurement_system)
 
+    def _sheet_matches_defaults(self, width_mm: float | None, height_mm: float | None, defaults: tuple[float, float], tolerance: float = 1e-3) -> bool:
+        if width_mm is None or height_mm is None:
+            return False
+        default_w, default_h = defaults
+        return abs(width_mm - default_w) <= tolerance and abs(height_mm - default_h) <= tolerance
+
     def _format_length(self, value_mm: float) -> str:
         return sc_units.format_length(value_mm, self.measurement_system)
 
@@ -980,6 +989,7 @@ class SquatchCutTaskPanel:
 
     def _on_units_changed(self) -> None:
         """Handle measurement system changes."""
+        previous_system = getattr(self, "measurement_system", None)
         system = self.units_combo.currentData() or "metric"
         if system not in ("metric", "imperial"):
             system = "metric"
@@ -995,8 +1005,14 @@ class SquatchCutTaskPanel:
         margin_mm = session_state.get_gap_mm() or self._prefs.get_default_spacing_mm()
         kerf_width = session_state.get_kerf_width_mm() or self._prefs.get_default_kerf_mm()
 
-        if sheet_w is None or sheet_h is None:
+        should_apply_new_defaults = sheet_w is None or sheet_h is None
+        if not should_apply_new_defaults and previous_system in ("metric", "imperial"):
+            prev_defaults = self._prefs.get_default_sheet_size_mm(previous_system)
+            should_apply_new_defaults = self._sheet_matches_defaults(sheet_w, sheet_h, prev_defaults)
+
+        if should_apply_new_defaults:
             sheet_w, sheet_h = self._prefs.get_default_sheet_size_mm(self.measurement_system)
+            session_state.set_sheet_size(sheet_w, sheet_h)
 
         for edit, value in (
             (self.sheet_width_edit, sheet_w),
@@ -1011,6 +1027,11 @@ class SquatchCutTaskPanel:
 
         self._populate_table(session_state.get_panels())
         self.update_run_button_state()
+        if self.doc is not None:
+            try:
+                session.sync_doc_from_state(self.doc, self.measurement_system)
+            except Exception:
+                pass
 
     def _on_export_options_changed(self) -> None:
         """Persist export options into preferences."""
@@ -1264,4 +1285,5 @@ def create_main_panel_for_tests():
     Factory used by GUI tests to instantiate the main SquatchCut task panel
     without going through FreeCAD's dialog machinery.
     """
+    SquatchCutTaskPanel._test_force_measurement_system = session_state.get_measurement_system()
     return SquatchCutTaskPanel()
