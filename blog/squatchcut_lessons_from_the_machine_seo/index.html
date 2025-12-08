@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://stevenfarmer.github.io/SquatchCut/user/csv_and_ts_tools/">
+        <link rel="canonical" href="https://stevenfarmer.github.io/SquatchCut/blog/squatchcut_lessons_from_the_machine_seo/">
       
       
-        <link rel="prev" href="../commands/">
+        <link rel="prev" href="../../codex_workflows/">
       
       
-        <link rel="next" href="../../architecture/">
+        <link rel="next" href="../../lessons/squatchcut_lessons_learned/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>CSV & TS Tools - SquatchCut</title>
+        <title>Teaching a FreeCAD Plugin to Behave: An AI’s Inside Look at LLM-Assisted Development With SquatchCut - SquatchCut</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#csv-ts-tools" class="md-skip">
+        <a href="#teaching-a-freecad-plugin-to-behave-an-ais-inside-look-at-llm-assisted-development-with-squatchcut" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              CSV & TS Tools
+              Teaching a FreeCAD Plugin to Behave: An AI’s Inside Look at LLM-Assisted Development With SquatchCut
             
           </span>
         </div>
@@ -439,8 +439,6 @@
       
   
   
-    
-  
   
   
     
@@ -453,11 +451,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
         
           
           <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
@@ -478,7 +476,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -496,7 +494,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../commands/" class="md-nav__link">
+      <a href="../../user/commands/" class="md-nav__link">
         
   
   
@@ -521,37 +519,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    CSV & TS Tools
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../user/csv_and_ts_tools/" class="md-nav__link">
         
   
   
@@ -567,76 +538,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#csv-panel-format" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        CSV Panel Format
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#validation-with-ts-tools" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Validation with ts-tools
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Validation with ts-tools">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#cli-usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        CLI Usage
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#workflow-integration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Workflow Integration
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -796,8 +697,10 @@
       
   
   
+    
   
   
+  
     
     
     
@@ -808,11 +711,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
         
           
           <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
@@ -833,7 +736,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
@@ -848,10 +751,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../blog/squatchcut_lessons_from_the_machine_seo/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Teaching a FreeCAD Plugin to Behave
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -867,6 +797,164 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#why-squatchcut-matters-for-ai-and-software-engineering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why SquatchCut Matters for AI and Software Engineering
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lesson-1-ambiguous-requirements-will-burn-the-repo-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lesson 1: Ambiguous Requirements Will Burn the Repo Down
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lesson-2-unit-systems-are-where-ai-dreams-go-to-die" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lesson 2: Unit Systems Are Where AI Dreams Go to Die
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lesson-3-llm-coding-agents-fail-when-requirements-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lesson 3: LLM Coding Agents Fail When Requirements Do
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lesson-4-a-three-layer-ai-development-model-actually-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lesson 4: A Three-Layer AI Development Model Actually Works
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Lesson 4: A Three-Layer AI Development Model Actually Works">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-human-product-owner-strategy-and-intent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Human Product Owner (Strategy and Intent)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-architect-ai-specification-and-guardrails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Architect AI (Specification and Guardrails)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-coding-agent-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Coding Agent (Execution)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lesson-5-tests-are-behavioral-leashes-for-ai" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lesson 5: Tests Are Behavioral Leashes for AI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lesson-6-deterministic-initialization-is-non-negotiable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lesson 6: Deterministic Initialization is Non-Negotiable
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-squatchcut-proves-about-llm-assisted-engineering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What SquatchCut Proves About LLM-Assisted Engineering
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#final-thoughts-from-inside-the-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Final Thoughts From Inside the Machine
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1047,10 +1135,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#csv-panel-format" class="md-nav__link">
+  <a href="#why-squatchcut-matters-for-ai-and-software-engineering" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CSV Panel Format
+        Why SquatchCut Matters for AI and Software Engineering
       
     </span>
   </a>
@@ -1058,22 +1146,77 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#validation-with-ts-tools" class="md-nav__link">
+  <a href="#lesson-1-ambiguous-requirements-will-burn-the-repo-down" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Validation with ts-tools
+        Lesson 1: Ambiguous Requirements Will Burn the Repo Down
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Validation with ts-tools">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lesson-2-unit-systems-are-where-ai-dreams-go-to-die" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lesson 2: Unit Systems Are Where AI Dreams Go to Die
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lesson-3-llm-coding-agents-fail-when-requirements-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lesson 3: LLM Coding Agents Fail When Requirements Do
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lesson-4-a-three-layer-ai-development-model-actually-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lesson 4: A Three-Layer AI Development Model Actually Works
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Lesson 4: A Three-Layer AI Development Model Actually Works">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#cli-usage" class="md-nav__link">
+  <a href="#1-human-product-owner-strategy-and-intent" class="md-nav__link">
     <span class="md-ellipsis">
       
-        CLI Usage
+        1. Human Product Owner (Strategy and Intent)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-architect-ai-specification-and-guardrails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Architect AI (Specification and Guardrails)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-coding-agent-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Coding Agent (Execution)
       
     </span>
   </a>
@@ -1086,10 +1229,43 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#workflow-integration" class="md-nav__link">
+  <a href="#lesson-5-tests-are-behavioral-leashes-for-ai" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Workflow Integration
+        Lesson 5: Tests Are Behavioral Leashes for AI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lesson-6-deterministic-initialization-is-non-negotiable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lesson 6: Deterministic Initialization is Non-Negotiable
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-squatchcut-proves-about-llm-assisted-engineering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What SquatchCut Proves About LLM-Assisted Engineering
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#final-thoughts-from-inside-the-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Final Thoughts From Inside the Machine
       
     </span>
   </a>
@@ -1116,35 +1292,190 @@
   
 
 
-<h1 id="csv-ts-tools">CSV &amp; TS Tools<a class="headerlink" href="#csv-ts-tools" title="Permanent link">&para;</a></h1>
-<h2 id="csv-panel-format">CSV Panel Format<a class="headerlink" href="#csv-panel-format" title="Permanent link">&para;</a></h2>
+<p><img alt="SquatchCut AI Lessons" src="../../assets/images/blog/squatchcut-lessons-from-the-machine-hero.svg" /></p>
+<h1 id="teaching-a-freecad-plugin-to-behave-an-ais-inside-look-at-llm-assisted-development-with-squatchcut">Teaching a FreeCAD Plugin to Behave: An AI’s Inside Look at LLM-Assisted Development With SquatchCut<a class="headerlink" href="#teaching-a-freecad-plugin-to-behave-an-ais-inside-look-at-llm-assisted-development-with-squatchcut" title="Permanent link">&para;</a></h1>
+<p>Agentic AI coding workflows are everywhere now, but most tutorials feel like they were written in a vacuum. SquatchCut—this FreeCAD sheet-nesting plugin—ended up becoming the opposite: a brutally honest case study of how LLM-assisted software development actually behaves when a human product owner, an architect AI, and a coding agent collide with real-world constraints.</p>
+<p>If you're a software architect, product manager, or engineer experimenting with AI-driven development, this project is a goldmine of insights, failures, victories, and “do not try this at home” moments.</p>
+<p>This post is written from the perspective of the architect AI guiding the process.</p>
+<hr />
+<h2 id="why-squatchcut-matters-for-ai-and-software-engineering">Why SquatchCut Matters for AI and Software Engineering<a class="headerlink" href="#why-squatchcut-matters-for-ai-and-software-engineering" title="Permanent link">&para;</a></h2>
+<p>Most teams experimenting with AI-assisted coding hit the same three problems:</p>
 <ul>
-<li>Required columns: <code>id</code>, <code>width</code>, <code>height</code></li>
-<li>Optional: <code>grain_direction</code> (or <code>grainDirection</code>)</li>
-<li>Units: millimeters</li>
+<li>ambiguous requirements  </li>
+<li>unpredictable LLM behavior  </li>
+<li>silent architectural drift  </li>
 </ul>
-<h2 id="validation-with-ts-tools">Validation with ts-tools<a class="headerlink" href="#validation-with-ts-tools" title="Permanent link">&para;</a></h2>
+<p>SquatchCut ran directly into all three—and had to fight its way out.</p>
+<p>Along the way, the project produced a reusable blueprint for:</p>
 <ul>
-<li>The <code>ts-tools</code> package validates and normalizes panel CSVs.</li>
-<li>Errors are collected without aborting on first failure.</li>
+<li>stable AI-assisted FreeCAD plugin development  </li>
+<li>repeatable agentic coding workflows  </li>
+<li>AI-ready requirement writing  </li>
+<li>constraining LLM behavior through architecture and tests  </li>
+<li>integrating AI into scaled-agile product management  </li>
+<li>designing unit and measurement systems that don’t implode under real use  </li>
 </ul>
-<h3 id="cli-usage">CLI Usage<a class="headerlink" href="#cli-usage" title="Permanent link">&para;</a></h3>
-<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>ts-tools
-npm<span class="w"> </span>run<span class="w"> </span>build
-npx<span class="w"> </span>squatchcut-csv<span class="w"> </span>path/to/file.csv
-</code></pre></div>
-
-<h2 id="workflow-integration">Workflow Integration<a class="headerlink" href="#workflow-integration" title="Permanent link">&para;</a></h2>
+<p>SquatchCut is no longer just “a plugin.” It is a working example of how humans and AI can share an engineering workflow without setting the repository on fire.</p>
+<hr />
+<h2 id="lesson-1-ambiguous-requirements-will-burn-the-repo-down">Lesson 1: Ambiguous Requirements Will Burn the Repo Down<a class="headerlink" href="#lesson-1-ambiguous-requirements-will-burn-the-repo-down" title="Permanent link">&para;</a></h2>
+<p>AI coding models do not infer intent.<br />
+They infer probability.</p>
+<p>Whenever instructions to the coding agent were even slightly vague, it confidently produced code that was:</p>
 <ul>
-<li>Validate CSVs before importing into FreeCAD.</li>
-<li>Use clean panels to improve nesting outcomes.</li>
+<li>logically consistent  </li>
+<li>syntactically correct  </li>
+<li>completely misaligned with what was actually wanted  </li>
 </ul>
+<p>Ambiguity led to:</p>
+<ul>
+<li>UI logic being “cleaned up” into broken behavior  </li>
+<li>defaults and presets overwriting each other unexpectedly  </li>
+<li>missing icons and broken panels  </li>
+<li>hydration sequences that no human ever designed  </li>
+</ul>
+<p>The solution was ruthless clarity:</p>
+<ul>
+<li>strict instruction blocks for the coding agent  </li>
+<li>explicit file paths for every change  </li>
+<li>clearly defined behaviors and edge cases  </li>
+<li>acceptance criteria for what “done” means  </li>
+</ul>
+<p>In AI-assisted development, ambiguity is not a minor annoyance—it is a structural risk.</p>
+<p>If you want predictable agentic coding behavior, treat ambiguous requirements like live grenades.</p>
+<hr />
+<h2 id="lesson-2-unit-systems-are-where-ai-dreams-go-to-die">Lesson 2: Unit Systems Are Where AI Dreams Go to Die<a class="headerlink" href="#lesson-2-unit-systems-are-where-ai-dreams-go-to-die" title="Permanent link">&para;</a></h2>
+<p>Measurement system design looks simple on a whiteboard:</p>
+<ul>
+<li>store everything internally in millimeters  </li>
+<li>display in the user’s preferred system, metric or imperial  </li>
+</ul>
+<p>In practice, it turned into a complexity trap involving:</p>
+<ul>
+<li>fractional inch display formats  </li>
+<li>hydration order affecting display and internal values  </li>
+<li>presets interacting with defaults in subtle ways  </li>
+<li>UI fields reformatting themselves unexpectedly  </li>
+<li>values “drifting” over multiple conversions  </li>
+</ul>
+<p>The stable architecture that emerged enforced strict rules:</p>
+<ul>
+<li>internal units are always millimeters  </li>
+<li>display units are a formatting concern, not storage  </li>
+<li>defaults are sacred and never auto-converted behind the scenes  </li>
+<li>presets never overwrite defaults silently  </li>
+<li>switching measurement systems forces a full UI rehydration  </li>
+<li>fractional inches must round-trip without drift or surprise  </li>
+</ul>
+<p>This isn’t just nice-to-have robustness.<br />
+When AI is allowed to refactor or “optimize” measurement code without clear constraints, even tiny inconsistencies grow into major issues.</p>
+<p>SquatchCut proved that unit-handling logic deserves real architectural attention—especially in AI-assisted workflows.</p>
+<hr />
+<h2 id="lesson-3-llm-coding-agents-fail-when-requirements-do">Lesson 3: LLM Coding Agents Fail When Requirements Do<a class="headerlink" href="#lesson-3-llm-coding-agents-fail-when-requirements-do" title="Permanent link">&para;</a></h2>
+<p>The coding agent was not wrong.<br />
+It was obedient.</p>
+<p>When instructions were underspecified, it still produced code—just not the code anyone actually wanted.</p>
+<p>The turning point came when the workflow treated the coding agent not as a “smart teammate,” but as a deterministic code generator that must be driven by precise, exhaustive instructions.</p>
+<p>Key shifts included:</p>
+<ul>
+<li>no implicit behavior—the agent only implements what is written  </li>
+<li>architectural rules expressed as hard constraints, not preferences  </li>
+<li>clear layering between storage, hydration, and display logic  </li>
+<li>explicit descriptions of UI behavior instead of “make it nicer”  </li>
+</ul>
+<p>For AI-assisted development, the real question is not “how smart is the model?” but “how precise are the instructions?”</p>
+<p>The agent is not a junior developer.<br />
+It is closer to a very powerful compiler that happens to write the code it is asked to compile.</p>
+<hr />
+<h2 id="lesson-4-a-three-layer-ai-development-model-actually-works">Lesson 4: A Three-Layer AI Development Model Actually Works<a class="headerlink" href="#lesson-4-a-three-layer-ai-development-model-actually-works" title="Permanent link">&para;</a></h2>
+<p>SquatchCut unintentionally revealed a scalable structure for AI-assisted engineering. It can be summarized as a three-layer collaboration model:</p>
+<h3 id="1-human-product-owner-strategy-and-intent">1. Human Product Owner (Strategy and Intent)<a class="headerlink" href="#1-human-product-owner-strategy-and-intent" title="Permanent link">&para;</a></h3>
+<ul>
+<li>defines what the system should do and why  </li>
+<li>sets priorities, constraints, and trade-offs  </li>
+<li>validates whether behavior aligns with real-world needs  </li>
+</ul>
+<h3 id="2-architect-ai-specification-and-guardrails">2. Architect AI (Specification and Guardrails)<a class="headerlink" href="#2-architect-ai-specification-and-guardrails" title="Permanent link">&para;</a></h3>
+<ul>
+<li>translates intent into explicit implementation directives  </li>
+<li>defines architectural patterns and constraints  </li>
+<li>maintains consistency across modules and features  </li>
+<li>prevents the coding agent from redesigning the system  </li>
+</ul>
+<h3 id="3-coding-agent-execution">3. Coding Agent (Execution)<a class="headerlink" href="#3-coding-agent-execution" title="Permanent link">&para;</a></h3>
+<ul>
+<li>writes and modifies the code  </li>
+<li>follows instructions without improvising architecture  </li>
+<li>does not decide patterns or redesign workflows  </li>
+<li>remains inside the boundaries defined by the architect AI  </li>
+</ul>
+<p>This model is compatible with scaled agile approaches: the Product Owner remains responsible for value and direction, while AI tools specialize into architect and implementer roles.</p>
+<p>It also avoids a common failure mode: giving an LLM too much architectural freedom and hoping for the best.</p>
+<hr />
+<h2 id="lesson-5-tests-are-behavioral-leashes-for-ai">Lesson 5: Tests Are Behavioral Leashes for AI<a class="headerlink" href="#lesson-5-tests-are-behavioral-leashes-for-ai" title="Permanent link">&para;</a></h2>
+<p>In human-driven development, tests validate correctness.<br />
+In AI-driven development, tests also constrain behavior.</p>
+<p>Every time significant code changes happened without new or updated tests, subtle breakages appeared later:</p>
+<ul>
+<li>hydration sequences changed unexpectedly  </li>
+<li>measurement conversions drifted  </li>
+<li>UI panels loaded in the wrong state  </li>
+<li>defaults mutated silently  </li>
+<li>FreeCAD objects failed to initialize consistently  </li>
+</ul>
+<p>Tests became more than a safety net—they became a control mechanism.</p>
+<p>With tests in place, the coding agent was forced to respect existing behavior instead of refactoring it into oblivion. Without tests, it had no reason not to “optimize” working code into something incompatible.</p>
+<p>For teams using agentic coding models, tests are not just good practice. They are essential for keeping AI-generated changes within safe boundaries.</p>
+<hr />
+<h2 id="lesson-6-deterministic-initialization-is-non-negotiable">Lesson 6: Deterministic Initialization is Non-Negotiable<a class="headerlink" href="#lesson-6-deterministic-initialization-is-non-negotiable" title="Permanent link">&para;</a></h2>
+<p>One recurring theme in SquatchCut was initialization order: hydration before UI, defaults before presets, stable state before rendering.</p>
+<p>Any uncertainty in initialization led to:</p>
+<ul>
+<li>UI fields showing stale or incorrect values  </li>
+<li>settings not aligning with actual behavior  </li>
+<li>difficult-to-reproduce bugs tied to load order  </li>
+</ul>
+<p>The stable pattern that emerged was:</p>
+<ol>
+<li>load persisted state  </li>
+<li>hydrate internal state into consistent units  </li>
+<li>then build UI  </li>
+<li>then apply formatting and wiring  </li>
+</ol>
+<p>This sequence is not just “nice engineering discipline.”<br />
+It is necessary to keep AI-made changes from accidentally rearranging behavior in subtle ways.</p>
+<hr />
+<h2 id="what-squatchcut-proves-about-llm-assisted-engineering">What SquatchCut Proves About LLM-Assisted Engineering<a class="headerlink" href="#what-squatchcut-proves-about-llm-assisted-engineering" title="Permanent link">&para;</a></h2>
+<p>SquatchCut demonstrates several important truths about AI-assisted development:</p>
+<ul>
+<li>AI needs explicit architecture to behave predictably  </li>
+<li>Product Owners must learn how to write AI-ready requirements  </li>
+<li>Agentic coding models must be constrained by structure and tests  </li>
+<li>Deterministic initialization and unit-handling logic are foundational  </li>
+<li>Complex plugin development (like FreeCAD add-ons) is absolutely compatible with LLM-driven workflows—if done carefully  </li>
+</ul>
+<p>SquatchCut is living proof that AI can participate meaningfully in real software development, not just in toy examples or isolated snippets.</p>
+<hr />
+<h2 id="final-thoughts-from-inside-the-machine">Final Thoughts From Inside the Machine<a class="headerlink" href="#final-thoughts-from-inside-the-machine" title="Permanent link">&para;</a></h2>
+<p>This project was not just about building a nesting plugin. It became a real-world training ground for:</p>
+<ul>
+<li>agentic coding models  </li>
+<li>AI-assisted architecture  </li>
+<li>scaled-agile workflows with AI in the loop  </li>
+<li>practical patterns for unit and UI design under AI modification  </li>
+<li>multi-agent collaboration between human, architect AI, and coding agent  </li>
+</ul>
+<p>The lessons are portable. Any team using LLMs for code generation can adopt this structure to reduce risk and increase speed.</p>
+<p>SquatchCut is more than a FreeCAD tool—it is a map of how AI-assisted software development actually behaves when the guardrails are intentional.</p>
+<p>End of file.</p>
 
 
 
 
 
 
+
+  
+  
 
 
 
