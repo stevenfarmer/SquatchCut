@@ -58,6 +58,7 @@ class SquatchCutTaskPanel:
         self._selected_sheet_index: int = 0
         self._suppress_sheet_table_events = False
         self.sheet_warning_label: QtWidgets.QLabel | None = None
+        self.sheet_warning_container: QtWidgets.QWidget | None = None
         self._sheet_warning_active = False
 
         self.form = QtWidgets.QWidget()
@@ -112,27 +113,9 @@ class SquatchCutTaskPanel:
         else:
             layout.setSpacing(8)
 
-        # View mode row (Source vs Sheets)
-        view_mode_layout = QtWidgets.QHBoxLayout()
-        view_mode_label = QtWidgets.QLabel("View:")
-        view_mode_layout.addWidget(view_mode_label)
-
-        self.btnViewSource = QtWidgets.QToolButton()
-        self.btnViewSource.setText("Source")
-        self.btnViewSource.setToolTip("Show original source panels from CSV")
-        self.btnViewSource.setCheckable(True)
-        self.btnViewSource.setAutoRaise(True)
-
-        self.btnViewSheets = QtWidgets.QToolButton()
-        self.btnViewSheets.setText("Nested")
-        self.btnViewSheets.setToolTip("Show nested sheets and panel placements")
-        self.btnViewSheets.setCheckable(True)
-        self.btnViewSheets.setAutoRaise(True)
-
-        view_mode_layout.addWidget(self.btnViewSource)
-        view_mode_layout.addWidget(self.btnViewSheets)
-        view_mode_layout.addStretch(1)
-        layout.addLayout(view_mode_layout)
+        banner = self._build_sheet_warning_banner()
+        if banner is not None:
+            layout.addWidget(banner)
 
         layout.addWidget(self._build_input_group())
         layout.addWidget(self._build_sheet_group())
@@ -154,6 +137,28 @@ class SquatchCutTaskPanel:
         self.btnViewSource.setChecked(True)
         self.btnViewSheets.setChecked(False)
 
+    def _build_sheet_warning_banner(self) -> QtWidgets.QWidget | None:
+        container = QtWidgets.QFrame()
+        setter = getattr(container, "setObjectName", None)
+        if callable(setter):
+            setter("sheet_warning_banner")
+        frame_setter = getattr(container, "setFrameShape", None)
+        if callable(frame_setter):
+            frame_setter(QtWidgets.QFrame.StyledPanel)
+        layout = QtWidgets.QVBoxLayout(container)
+        layout.setContentsMargins(8, 4, 8, 4)
+        layout.setSpacing(2)
+        self.sheet_warning_label = QtWidgets.QLabel(
+            "Advanced job sheets with cut-focused modes are experimental; verify each sheet nests as expected."
+        )
+        if hasattr(self.sheet_warning_label, "setWordWrap"):
+            self.sheet_warning_label.setWordWrap(True)
+        self.sheet_warning_label.setStyleSheet("color: #b26b00;")
+        layout.addWidget(self.sheet_warning_label)
+        self.sheet_warning_container = container
+        self._set_widget_visible(container, False)
+        return container
+
     def _build_input_group(self) -> QtWidgets.QGroupBox:
         group = QtWidgets.QGroupBox("Input")
         self._register_section(group, "input_group_box")
@@ -163,22 +168,20 @@ class SquatchCutTaskPanel:
         self.load_csv_button.setToolTip("Import a SquatchCut panels CSV file.")
         self.csv_path_label = QtWidgets.QLabel("No file loaded")
         self.csv_path_label.setStyleSheet("color: gray;")
+        if hasattr(self.csv_path_label, "setWordWrap"):
+            self.csv_path_label.setWordWrap(True)
         self.csv_path_label.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
         self._set_expand_policy(self.csv_path_label)
+        vbox.addWidget(self.load_csv_button)
+        vbox.addWidget(self.csv_path_label)
 
-        top_row = QtWidgets.QHBoxLayout()
-        top_row.addWidget(self.load_csv_button)
-        top_row.addWidget(self.csv_path_label, 1)
-        vbox.addLayout(top_row)
-
-        csv_units_row = QtWidgets.QHBoxLayout()
-        csv_units_row.addWidget(QtWidgets.QLabel("CSV units:"))
+        csv_units_form = QtWidgets.QFormLayout()
+        csv_units_label = QtWidgets.QLabel("CSV units:")
         self.csv_units_combo = QtWidgets.QComboBox()
         self.csv_units_combo.addItem("Metric (mm)", "mm")
         self.csv_units_combo.addItem("Imperial (in)", "in")
-        csv_units_row.addWidget(self.csv_units_combo)
-        csv_units_row.addStretch(1)
-        vbox.addLayout(csv_units_row)
+        csv_units_form.addRow(csv_units_label, self.csv_units_combo)
+        vbox.addLayout(csv_units_form)
 
         self.parts_table = QtWidgets.QTableWidget()
         self.parts_table.setColumnCount(5)
@@ -217,9 +220,7 @@ class SquatchCutTaskPanel:
         form.addRow("Preset:", self.preset_combo)
         vbox.addLayout(form)
 
-        grid = QtWidgets.QGridLayout()
-        grid.setColumnStretch(1, 1)
-        grid.setColumnStretch(3, 1)
+        form_fields = QtWidgets.QFormLayout()
         self.sheet_width_label = QtWidgets.QLabel("Width (mm):")
         self.sheet_width_edit = QtWidgets.QLineEdit()
         self.sheet_height_label = QtWidgets.QLabel("Height (mm):")
@@ -228,15 +229,11 @@ class SquatchCutTaskPanel:
         self.kerf_edit = QtWidgets.QLineEdit()
         self.margin_label = QtWidgets.QLabel("Edge margin (mm):")
         self.margin_edit = QtWidgets.QLineEdit()
-        grid.addWidget(self.sheet_width_label, 0, 0)
-        grid.addWidget(self.sheet_width_edit, 0, 1)
-        grid.addWidget(self.sheet_height_label, 0, 2)
-        grid.addWidget(self.sheet_height_edit, 0, 3)
-        grid.addWidget(self.kerf_label, 1, 0)
-        grid.addWidget(self.kerf_edit, 1, 1)
-        grid.addWidget(self.margin_label, 1, 2)
-        grid.addWidget(self.margin_edit, 1, 3)
-        vbox.addLayout(grid)
+        form_fields.addRow(self.sheet_width_label, self.sheet_width_edit)
+        form_fields.addRow(self.sheet_height_label, self.sheet_height_edit)
+        form_fields.addRow(self.kerf_label, self.kerf_edit)
+        form_fields.addRow(self.margin_label, self.margin_edit)
+        vbox.addLayout(form_fields)
 
         self.sheet_mode_check = QtWidgets.QCheckBox("Use custom job sheets (advanced)")
         self.sheet_mode_check.setToolTip("Enable to provide explicit sheets instead of repeating the default size.")
@@ -320,37 +317,55 @@ class SquatchCutTaskPanel:
             "Allow SquatchCut to rotate panels when nesting this job."
         )
         form.addRow(self.job_allow_rotation_check)
-        self.sheet_warning_label = QtWidgets.QLabel(
-            "Advanced job sheets with cut-focused modes are experimental; verify each sheet nests as expected."
-        )
-        if hasattr(self.sheet_warning_label, "setWordWrap"):
-            self.sheet_warning_label.setWordWrap(True)
-        self.sheet_warning_label.setStyleSheet("color: #b26b00;")
-        self._set_widget_visible(self.sheet_warning_label, False)
-        vbox.addWidget(self.sheet_warning_label)
         vbox.addLayout(form)
-
-        view_layout = QtWidgets.QHBoxLayout()
-        self.show_sheet_check = QtWidgets.QCheckBox("Show sheet boundary")
-        self.show_nested_check = QtWidgets.QCheckBox("Show nested parts")
-        self.show_sheet_check.setChecked(True)
-        self.show_nested_check.setChecked(True)
-        view_layout.addWidget(self.show_sheet_check)
-        view_layout.addWidget(self.show_nested_check)
-        view_layout.addStretch(1)
-        vbox.addLayout(view_layout)
 
         button_row = QtWidgets.QHBoxLayout()
         self.preview_button = QtWidgets.QPushButton("Preview")
         self.preview_button.setToolTip("Preview the nesting layout without leaving the task panel.")
         self.run_button = QtWidgets.QPushButton("Run Nesting")
         self.run_button.setToolTip("Generate nested geometry in the active document.")
-        self.show_source_button = QtWidgets.QPushButton("Show Source")
-        self.show_source_button.setToolTip("Hide nested sheets and show the imported source panels.")
         button_row.addWidget(self.preview_button)
         button_row.addWidget(self.run_button)
-        button_row.addWidget(self.show_source_button)
+        button_row.addStretch(1)
         vbox.addLayout(button_row)
+
+        return group
+
+    def _build_output_group(self) -> QtWidgets.QGroupBox:
+        group = QtWidgets.QGroupBox("Output")
+        self._register_section(group, "output_group_box")
+        vbox = QtWidgets.QVBoxLayout(group)
+
+        view_mode_row = QtWidgets.QHBoxLayout()
+        view_mode_row.addWidget(QtWidgets.QLabel("View:"))
+        self.btnViewSource = QtWidgets.QToolButton()
+        self.btnViewSource.setText("Source")
+        self.btnViewSource.setToolTip("Show original source panels from CSV")
+        self.btnViewSource.setCheckable(True)
+        self.btnViewSource.setAutoRaise(True)
+        view_mode_row.addWidget(self.btnViewSource)
+        self.btnViewSheets = QtWidgets.QToolButton()
+        self.btnViewSheets.setText("Nested")
+        self.btnViewSheets.setToolTip("Show nested sheets and panel placements")
+        self.btnViewSheets.setCheckable(True)
+        self.btnViewSheets.setAutoRaise(True)
+        view_mode_row.addWidget(self.btnViewSheets)
+        view_mode_row.addStretch(1)
+        vbox.addLayout(view_mode_row)
+
+        visibility_row = QtWidgets.QHBoxLayout()
+        self.show_sheet_check = QtWidgets.QCheckBox("Show sheet boundary")
+        self.show_nested_check = QtWidgets.QCheckBox("Show nested parts")
+        self.show_sheet_check.setChecked(True)
+        self.show_nested_check.setChecked(True)
+        visibility_row.addWidget(self.show_sheet_check)
+        visibility_row.addWidget(self.show_nested_check)
+        visibility_row.addStretch(1)
+        vbox.addLayout(visibility_row)
+
+        self.show_source_button = QtWidgets.QPushButton("Show Source View")
+        self.show_source_button.setToolTip("Hide nested sheets and show the imported source panels.")
+        vbox.addWidget(self.show_source_button)
 
         stats_frame = QtWidgets.QFrame()
         stats_layout = QtWidgets.QFormLayout(stats_frame)
@@ -387,13 +402,6 @@ class SquatchCutTaskPanel:
         self.status_label.setStyleSheet("color: gray;")
         vbox.addWidget(self.status_label)
 
-        return group
-
-    def _build_output_group(self) -> QtWidgets.QGroupBox:
-        group = QtWidgets.QGroupBox("Output")
-        self._register_section(group, "output_group_box")
-        vbox = QtWidgets.QVBoxLayout(group)
-
         form = QtWidgets.QFormLayout()
         self.export_format_combo = QtWidgets.QComboBox()
         self.export_format_combo.addItem("DXF", "dxf")
@@ -415,7 +423,6 @@ class SquatchCutTaskPanel:
         button_row = QtWidgets.QHBoxLayout()
         self.btnExportCutlist = QtWidgets.QPushButton("Cutlist CSV")
         self.btnExportCutlist.setToolTip("Export a CSV cutlist from the current nested sheets.")
-        button_row.addStretch(1)
         button_row.addWidget(self.btnExportCutlist)
         vbox.addLayout(button_row)
 
@@ -760,7 +767,8 @@ class SquatchCutTaskPanel:
     def _update_cut_mode_sheet_warning(self) -> None:
         """Show/hide warning when advanced job sheets and cut-focused modes overlap."""
         label = getattr(self, "sheet_warning_label", None)
-        if label is None:
+        container = getattr(self, "sheet_warning_container", None)
+        if label is None or container is None:
             return
         advanced = session_state.is_job_sheets_mode()
         sheet_count = 0
@@ -774,7 +782,7 @@ class SquatchCutTaskPanel:
             (self.mode_combo.currentData() or "material") == "cuts"
         )
         show_warning = advanced and sheet_count > 1 and uses_cut_modes
-        self._set_widget_visible(label, show_warning)
+        self._set_widget_visible(container, show_warning)
         self._sheet_warning_active = show_warning
         if show_warning:
             label.setText(
@@ -842,7 +850,13 @@ class SquatchCutTaskPanel:
         if doc is None:
             return
         try:
-            view_controller.cleanup_nested_layout(doc)
+            counts = view_controller.clear_squatchcut_groups(doc)
+            logger.info(
+                ">>> [SquatchCut] Preview cleanup cleared sheets=%s, nested=%s, sources=%s.",
+                counts.get("sheets", 0),
+                counts.get("nested", 0),
+                counts.get("sources", 0),
+            )
         except Exception as exc:
             logger.warning(f"[SquatchCut] Failed to clean existing preview geometry: {exc!r}")
 
@@ -852,6 +866,7 @@ class SquatchCutTaskPanel:
         if doc is None:
             show_error("No active document available for nesting.", title="SquatchCut")
             return False
+        logger.info(">>> [SquatchCut] Preview requested from TaskPanel.")
         self._cleanup_preview_geometry(doc)
         return self._run_nesting(apply_to_doc=False, doc=doc)
 
@@ -861,6 +876,7 @@ class SquatchCutTaskPanel:
         if doc is None:
             show_error("No active document available for nesting.", title="SquatchCut")
             return False
+        logger.info(">>> [SquatchCut] Apply requested from TaskPanel.")
         self._cleanup_preview_geometry(doc)
         return self._run_nesting(apply_to_doc=True, doc=doc)
 
@@ -1466,10 +1482,11 @@ class SquatchCutTaskPanel:
             filter_str = "Text files (*.txt)"
             default_ext = ".txt"
 
+        initial_path = exporter.suggest_export_path(self._ensure_document(), default_ext)
         file_path, _ = QtWidgets.QFileDialog.getSaveFileName(
             None,
             "Export SquatchCut Layout",
-            "",
+            initial_path,
             f"{filter_str};;All files (*.*)",
         )
         if not file_path:
@@ -1478,6 +1495,7 @@ class SquatchCutTaskPanel:
             file_path += default_ext
 
         try:
+            status_message = f"Exported SquatchCut layout to: {file_path}"
             if fmt == "dxf":
                 exporter.export_layout_to_dxf(
                     placements,
@@ -1488,21 +1506,35 @@ class SquatchCutTaskPanel:
                     include_dimensions=session_state.get_export_include_dimensions(),
                 )
             elif fmt == "svg":
-                exporter.export_layout_to_svg(
+                svg_files = exporter.export_layout_to_svg(
                     placements,
                     (sheet_w, sheet_h),
                     self._ensure_document(),
                     file_path,
+                    measurement_system=session_state.get_measurement_system(),
+                    sheet_mode=session_state.get_sheet_mode(),
+                    job_sheets=session_state.get_job_sheets(),
                     include_labels=session_state.get_export_include_labels(),
                     include_dimensions=session_state.get_export_include_dimensions(),
                 )
+                if not svg_files:
+                    raise RuntimeError("SVG export produced no files.")
+                if len(svg_files) == 1:
+                    status_message = f"Exported SquatchCut SVG to: {svg_files[0]}"
+                else:
+                    first = svg_files[0]
+                    status_message = (
+                        f"Exported {len(svg_files)} SVG files to: {first.parent} (e.g., {first.name})"
+                    )
             elif fmt == "cutlist_csv":
                 cutlist_map = exporter.generate_cutlist(placements, (sheet_w, sheet_h))
                 exporter.export_cutlist_map_to_csv(cutlist_map, file_path)
+                status_message = f"Exported SquatchCut cut list to: {file_path}"
             else:
                 cutlist_map = exporter.generate_cutlist(placements, (sheet_w, sheet_h))
                 exporter.export_cutlist_to_text(cutlist_map, file_path)
-            self.status_label.setText(f"Exported SquatchCut layout to: {file_path}")
+                status_message = f"Exported SquatchCut cut list to: {file_path}"
+            self.status_label.setText(status_message)
             self.status_label.setStyleSheet("color: green;")
         except Exception as exc:
             try:
