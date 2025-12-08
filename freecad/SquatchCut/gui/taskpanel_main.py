@@ -38,7 +38,8 @@ class SquatchCutTaskPanel:
     def __init__(self, doc=None):
         self._prefs = SquatchCutPreferences()
         effective_doc = doc or (App.ActiveDocument if App is not None else None)
-        self._initial_state = self._compute_initial_state(effective_doc)
+        doc_units = session.detect_document_measurement_system(effective_doc)
+        self._initial_state = self._compute_initial_state(effective_doc, doc_units)
         self.measurement_system = self._initial_state["measurement_system"]
         self.doc = effective_doc
         self._last_csv_path: str | None = None
@@ -323,20 +324,31 @@ class SquatchCutTaskPanel:
 
     # ---------------- State helpers ----------------
 
-    def _compute_initial_state(self, doc) -> dict:
+    def _compute_initial_state(self, doc, doc_measurement_system: str | None = None) -> dict:
         """Hydrate persisted settings before any UI widgets are built."""
+        override = doc_measurement_system if doc_measurement_system in ("metric", "imperial") else None
         try:
-            settings.hydrate_from_params()
+            settings.hydrate_from_params(measurement_override=override)
         except Exception:
             pass
 
+        measurement_system = override or session_state.get_measurement_system()
+        has_defaults = self._prefs.has_default_sheet_size(measurement_system)
+        if has_defaults:
+            pref_sheet_w, pref_sheet_h = self._prefs.get_default_sheet_size_mm(measurement_system)
+            user_defaults = (pref_sheet_w, pref_sheet_h)
+            default_sheet_mm = user_defaults
+        else:
+            user_defaults = (None, None)
+            default_sheet_mm = sc_sheet_presets.get_factory_default_sheet_size(measurement_system)
+
         if doc is not None:
             try:
-                session.sync_state_from_doc(doc)
+                session.sync_state_from_doc(doc, measurement_system, default_sheet_mm)
             except Exception:
                 pass
 
-        measurement_system = session_state.get_measurement_system()
+        measurement_system = override or session_state.get_measurement_system()
         session_state.set_measurement_system(measurement_system)
         sc_units.set_units("in" if measurement_system == "imperial" else "mm")
 
@@ -350,12 +362,6 @@ class SquatchCutTaskPanel:
         include_labels = self._prefs.get_export_include_labels()
         include_dims = self._prefs.get_export_include_dimensions()
 
-        has_defaults = self._prefs.has_default_sheet_size(measurement_system)
-        if has_defaults:
-            pref_sheet_w, pref_sheet_h = self._prefs.get_default_sheet_size_mm(measurement_system)
-            user_defaults = (pref_sheet_w, pref_sheet_h)
-        else:
-            user_defaults = (None, None)
         sheet_w, sheet_h = sc_sheet_presets.get_initial_sheet_size(
             measurement_system,
             session_sheet,

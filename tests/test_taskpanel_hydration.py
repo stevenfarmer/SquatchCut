@@ -33,6 +33,26 @@ def _restore_prefs(prefs: SquatchCutPreferences, snapshot: dict) -> None:
     settings.hydrate_from_params()
 
 
+def _reset_session_state() -> None:
+    session_state.clear_sheet_size()
+    session_state.set_measurement_system("metric")
+
+
+class _DocStub:
+    def __init__(self, unit_label: str, width: float | None = None, height: float | None = None):
+        self.Metadata = {"UnitSystem": unit_label}
+        if width is not None:
+            self.SquatchCutSheetWidth = float(width)
+        if height is not None:
+            self.SquatchCutSheetHeight = float(height)
+
+    def addProperty(self, *_args, **_kwargs):
+        return None
+
+    def recompute(self):
+        return None
+
+
 def test_taskpanel_initial_state_uses_hydrated_defaults_imperial():
     prefs = SquatchCutPreferences()
     snap = _snapshot_prefs(prefs)
@@ -89,3 +109,129 @@ def test_taskpanel_init_does_not_auto_select_preset():
     # The initial preset state should remain at index 0 (None) until the user changes it.
     assert panel._preset_state.current_index == 0
     assert panel._preset_state.current_id is None
+
+
+def test_imperial_document_initializes_imperial_defaults():
+    prefs = SquatchCutPreferences()
+    snap = _snapshot_prefs(prefs)
+    try:
+        prefs.set_default_sheet_width_in(48.0)
+        prefs.set_default_sheet_height_in(96.0)
+        prefs.set_default_sheet_width_mm(1300.0)
+        prefs.set_default_sheet_height_mm(2600.0)
+        _reset_session_state()
+        doc = _DocStub("Imperial (ft-in)")
+        panel = SquatchCutTaskPanel(doc=doc)
+        assert panel.measurement_system == "imperial"
+        width_mm, height_mm = session_state.get_sheet_size()
+        expected = prefs.get_default_sheet_size_mm("imperial")
+        assert math.isclose(width_mm, expected[0], rel_tol=1e-9)
+        assert math.isclose(height_mm, expected[1], rel_tol=1e-9)
+        assert panel.sheet_width_edit.text() == sc_units.format_length(expected[0], "imperial")
+        assert getattr(doc, "SquatchCutSheetUnits", "") == "in"
+    finally:
+        _restore_prefs(prefs, snap)
+
+
+def test_metric_document_initializes_metric_defaults():
+    prefs = SquatchCutPreferences()
+    snap = _snapshot_prefs(prefs)
+    try:
+        prefs.set_default_sheet_width_mm(1500.0)
+        prefs.set_default_sheet_height_mm(3000.0)
+        prefs.set_default_sheet_width_in(40.0)
+        prefs.set_default_sheet_height_in(80.0)
+        _reset_session_state()
+        doc = _DocStub("Metric (mm)")
+        panel = SquatchCutTaskPanel(doc=doc)
+        assert panel.measurement_system == "metric"
+        width_mm, height_mm = session_state.get_sheet_size()
+        assert math.isclose(width_mm, 1500.0, rel_tol=1e-9)
+        assert math.isclose(height_mm, 3000.0, rel_tol=1e-9)
+        assert panel.sheet_width_edit.text() == sc_units.format_length(1500.0, "metric")
+        assert getattr(doc, "SquatchCutSheetUnits", "") == "mm"
+    finally:
+        _restore_prefs(prefs, snap)
+
+
+def test_switching_documents_switches_modes_without_overwriting_defaults():
+    prefs = SquatchCutPreferences()
+    snap = _snapshot_prefs(prefs)
+    try:
+        prefs.set_default_sheet_width_mm(1800.0)
+        prefs.set_default_sheet_height_mm(3200.0)
+        prefs.set_default_sheet_width_in(60.0)
+        prefs.set_default_sheet_height_in(110.0)
+        _reset_session_state()
+
+        doc_imperial = _DocStub("Imperial (ft-in)")
+        panel_imperial = SquatchCutTaskPanel(doc=doc_imperial)
+        assert panel_imperial.measurement_system == "imperial"
+        width_imperial, height_imperial = session_state.get_sheet_size()
+        expected_imperial = prefs.get_default_sheet_size_mm("imperial")
+        assert math.isclose(width_imperial, expected_imperial[0], rel_tol=1e-9)
+        assert math.isclose(height_imperial, expected_imperial[1], rel_tol=1e-9)
+
+        doc_metric = _DocStub("Metric (mm)")
+        panel_metric = SquatchCutTaskPanel(doc=doc_metric)
+        assert panel_metric.measurement_system == "metric"
+        width_metric, height_metric = session_state.get_sheet_size()
+        assert math.isclose(width_metric, 1800.0, rel_tol=1e-9)
+        assert math.isclose(height_metric, 3200.0, rel_tol=1e-9)
+
+        assert math.isclose(prefs.get_default_sheet_width_in(), 60.0, rel_tol=1e-9)
+        assert math.isclose(prefs.get_default_sheet_height_in(), 110.0, rel_tol=1e-9)
+        assert math.isclose(prefs.get_default_sheet_width_mm(), 1800.0, rel_tol=1e-9)
+        assert math.isclose(prefs.get_default_sheet_height_mm(), 3200.0, rel_tol=1e-9)
+    finally:
+        _restore_prefs(prefs, snap)
+
+
+def test_job_sheet_mm_stays_constant_when_document_units_change():
+    prefs = SquatchCutPreferences()
+    snap = _snapshot_prefs(prefs)
+    try:
+        prefs.set_default_sheet_width_mm(1600.0)
+        prefs.set_default_sheet_height_mm(2800.0)
+        prefs.set_default_sheet_width_in(60.0)
+        prefs.set_default_sheet_height_in(120.0)
+        _reset_session_state()
+        doc = _DocStub("Metric (mm)", width=1400.0, height=2600.0)
+
+        panel_metric = SquatchCutTaskPanel(doc=doc)
+        assert panel_metric.measurement_system == "metric"
+        width_metric, height_metric = session_state.get_sheet_size()
+        assert math.isclose(width_metric, 1400.0, rel_tol=1e-9)
+        assert math.isclose(height_metric, 2600.0, rel_tol=1e-9)
+
+        doc.Metadata["UnitSystem"] = "Imperial (ft-in)"
+        panel_imperial = SquatchCutTaskPanel(doc=doc)
+        assert panel_imperial.measurement_system == "imperial"
+        width_after, height_after = session_state.get_sheet_size()
+        assert math.isclose(width_after, 1400.0, rel_tol=1e-9)
+        assert math.isclose(height_after, 2600.0, rel_tol=1e-9)
+        assert panel_imperial.sheet_width_edit.text() == sc_units.format_length(1400.0, "imperial")
+    finally:
+        _restore_prefs(prefs, snap)
+
+
+def test_ui_displays_correct_format_after_document_switch():
+    prefs = SquatchCutPreferences()
+    snap = _snapshot_prefs(prefs)
+    try:
+        prefs.set_default_sheet_width_mm(1220.0)
+        prefs.set_default_sheet_height_mm(2440.0)
+        prefs.set_default_sheet_width_in(48.0)
+        prefs.set_default_sheet_height_in(96.0)
+        _reset_session_state()
+
+        doc_imperial = _DocStub("Imperial (ft-in)")
+        panel_imperial = SquatchCutTaskPanel(doc=doc_imperial)
+        expected_imperial = prefs.get_default_sheet_size_mm("imperial")
+        assert panel_imperial.sheet_width_edit.text() == sc_units.format_length(expected_imperial[0], "imperial")
+
+        doc_metric = _DocStub("Metric (mm)")
+        panel_metric = SquatchCutTaskPanel(doc=doc_metric)
+        assert panel_metric.sheet_width_edit.text() == sc_units.format_length(1220.0, "metric")
+    finally:
+        _restore_prefs(prefs, snap)

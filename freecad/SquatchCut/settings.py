@@ -8,7 +8,7 @@ from SquatchCut.core import sheet_presets as sc_sheet_presets
 from SquatchCut.core import units as sc_units
 
 
-def hydrate_from_params() -> None:
+def hydrate_from_params(measurement_override: str | None = None) -> None:
     """
     Load persisted preferences from FreeCAD ParamGet into in-memory session_state.
 
@@ -16,7 +16,10 @@ def hydrate_from_params() -> None:
     """
     prefs = SquatchCutPreferences()
 
-    measurement_system = prefs.get_measurement_system()
+    if measurement_override in ("metric", "imperial"):
+        measurement_system = measurement_override
+    else:
+        measurement_system = prefs.get_measurement_system()
     units = "in" if measurement_system == "imperial" else "mm"
 
     # Ensure global units preference matches the measurement system

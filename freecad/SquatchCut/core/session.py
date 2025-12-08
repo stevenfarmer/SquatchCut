@@ -6,14 +6,100 @@
 #   - Provides helpers to sync state to/from the active FreeCAD document.
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 from SquatchCut.freecad_integration import Gui  # noqa: F401
 from SquatchCut.core import session_state
+from SquatchCut.core import sheet_presets
 
 # Additional SquatchCut session-related state
 _source_panel_objects = []
 _sheet_objects = []
 _nested_panel_objects = []
 _last_csv_path = None
+
+
+def _normalize_measurement_value(value):
+    """Normalize metadata/unit hints into 'metric' or 'imperial'."""
+    if value is None:
+        return None
+    if isinstance(value, (list, tuple, set)):
+        for item in value:
+            normalized = _normalize_measurement_value(item)
+            if normalized:
+                return normalized
+        return None
+    text = str(value).strip().lower()
+    if not text:
+        return None
+    if any(token in text for token in ("imperial", "inch", "us customary", "in/lb", "ft/in", "ft-in", "us-in")):
+        return "imperial"
+    if any(token in text for token in ("metric", "millimeter", "mm", "si", "mks")):
+        return "metric"
+    if text in ("in", "inch", "inches"):
+        return "imperial"
+    if text in ("mm", "millimeters"):
+        return "metric"
+    return None
+
+
+def _extract_units_from_metadata(meta):
+    """Inspect metadata containers for unit hints."""
+    if meta is None:
+        return None
+    if isinstance(meta, Mapping):
+        items = meta.items()
+    elif isinstance(meta, (list, tuple, set)):
+        items = meta
+    else:
+        if isinstance(meta, str):
+            return _normalize_measurement_value(meta)
+        return None
+    for entry in items:
+        if isinstance(entry, (list, tuple)) and len(entry) == 2:
+            key, value = entry
+        else:
+            continue
+        if "unit" not in str(key).lower():
+            continue
+        normalized = _normalize_measurement_value(value)
+        if normalized:
+            return normalized
+    return None
+
+
+def detect_document_measurement_system(doc) -> str | None:
+    """Best-effort detection of a FreeCAD document's measurement system."""
+    if doc is None:
+        return None
+
+    for attr_name in ("Metadata", "Meta", "DocumentMetadata"):
+        meta = getattr(doc, attr_name, None)
+        normalized = _extract_units_from_metadata(meta)
+        if normalized:
+            return normalized
+
+    getter = getattr(doc, "getMetadata", None)
+    if callable(getter):
+        for key in ("UnitSystem", "UnitSchema", "Units", "MeasurementSystem"):
+            try:
+                normalized = _normalize_measurement_value(getter(key))
+            except Exception:
+                normalized = None
+            if normalized:
+                return normalized
+
+    attr_candidates = [
+        getattr(doc, "SquatchCutSheetUnits", None),
+        getattr(doc, "UnitSystem", None),
+        getattr(doc, "unit_system", None),
+    ]
+    for candidate in attr_candidates:
+        normalized = _normalize_measurement_value(candidate)
+        if normalized:
+            return normalized
+
+    return None
 
 
 def update_sheet_size_from_doc(doc):
@@ -74,10 +160,24 @@ def set_sheet_properties(doc, width, height, units="mm"):
         pass
 
 
-def ensure_doc_settings(doc):
+def ensure_doc_settings(
+    doc,
+    measurement_system: str | None = None,
+    default_sheet_mm: tuple[float | None, float | None] | None = None,
+):
     """
     Ensure the active document has the SquatchCut settings properties.
     """
+    normalized_system = measurement_system if measurement_system in ("metric", "imperial") else None
+    if normalized_system is None:
+        normalized_system = detect_document_measurement_system(doc) or "metric"
+    fallback_width, fallback_height = sheet_presets.get_factory_default_sheet_size(normalized_system)
+    if default_sheet_mm:
+        default_width = float(default_sheet_mm[0]) if default_sheet_mm[0] is not None else fallback_width
+        default_height = float(default_sheet_mm[1]) if default_sheet_mm[1] is not None else fallback_height
+    else:
+        default_width, default_height = fallback_width, fallback_height
+
     if not hasattr(doc, "SquatchCutSheetWidth"):
         try:
             doc.addProperty(
@@ -89,7 +189,7 @@ def ensure_doc_settings(doc):
         except Exception:
             pass
         try:
-            doc.SquatchCutSheetWidth = 1220.0
+            doc.SquatchCutSheetWidth = float(default_width)
         except Exception:
             pass
     if not hasattr(doc, "SquatchCutSheetHeight"):
@@ -103,7 +203,7 @@ def ensure_doc_settings(doc):
         except Exception:
             pass
         try:
-            doc.SquatchCutSheetHeight = 2440.0
+            doc.SquatchCutSheetHeight = float(default_height)
         except Exception:
             pass
 
@@ -151,12 +251,31 @@ def ensure_doc_settings(doc):
         except Exception:
             pass
 
+    if not hasattr(doc, "SquatchCutSheetUnits"):
+        try:
+            doc.addProperty(
+                "App::PropertyString",
+                "SquatchCutSheetUnits",
+                "SquatchCut",
+                "Measurement system used for SquatchCut sheet defaults.",
+            )
+        except Exception:
+            pass
+        try:
+            doc.SquatchCutSheetUnits = "in" if normalized_system == "imperial" else "mm"
+        except Exception:
+            pass
 
-def sync_state_from_doc(doc):
+
+def sync_state_from_doc(
+    doc,
+    measurement_system: str | None = None,
+    default_sheet_mm: tuple[float | None, float | None] | None = None,
+):
     """
     Read settings from the FreeCAD document and push them into session_state.
     """
-    ensure_doc_settings(doc)
+    ensure_doc_settings(doc, measurement_system, default_sheet_mm)
 
     session_state.set_sheet_size(
         float(doc.SquatchCutSheetWidth),
@@ -168,13 +287,19 @@ def sync_state_from_doc(doc):
     default_allow = bool(doc.SquatchCutDefaultAllowRotate)
     session_state.set_default_allow_rotate(default_allow)
 
+    doc_units = getattr(doc, "SquatchCutSheetUnits", None)
+    normalized = _normalize_measurement_value(doc_units)
+    if normalized in ("metric", "imperial"):
+        session_state.set_measurement_system(normalized)
 
-def sync_doc_from_state(doc):
+
+def sync_doc_from_state(doc, measurement_system: str | None = None):
     """
     Write current session_state values back into the document properties.
     Useful if state was changed directly.
     """
-    ensure_doc_settings(doc)
+    normalized_system = measurement_system if measurement_system in ("metric", "imperial") else session_state.get_measurement_system()
+    ensure_doc_settings(doc, normalized_system)
 
     w, h = session_state.get_sheet_size()
     if w is not None:
@@ -185,6 +310,10 @@ def sync_doc_from_state(doc):
     doc.SquatchCutKerfMM = float(session_state.get_kerf_mm())
     doc.SquatchCutGapMM = float(session_state.get_gap_mm())
     doc.SquatchCutDefaultAllowRotate = bool(session_state.get_default_allow_rotate())
+    try:
+        doc.SquatchCutSheetUnits = "in" if normalized_system == "imperial" else "mm"
+    except Exception:
+        pass
 
 
 # Convenience wrappers to mirror session_state panel storage -------------------
