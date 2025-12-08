@@ -837,11 +837,38 @@ class SquatchCutTaskPanel:
             self.set_status("CSV import failed. See report view for details.")
             show_error(f"Failed to import CSV:\n{exc}", title="SquatchCut")
 
-    def _run_nesting(self, apply_to_doc: bool = True) -> None:
+    def _cleanup_preview_geometry(self, doc) -> None:
+        """Remove any existing SquatchCut preview/apply geometry before rebuilding."""
+        if doc is None:
+            return
+        try:
+            view_controller.cleanup_nested_layout(doc)
+        except Exception as exc:
+            logger.warning(f"[SquatchCut] Failed to clean existing preview geometry: {exc!r}")
+
+    def _run_preview_nesting(self) -> None:
+        """Execute a preview-only nesting run without closing the task panel."""
         doc = self._ensure_document()
         if doc is None:
             show_error("No active document available for nesting.", title="SquatchCut")
-            return
+            return False
+        self._cleanup_preview_geometry(doc)
+        return self._run_nesting(apply_to_doc=False, doc=doc)
+
+    def _run_apply_nesting(self) -> None:
+        """Execute a deterministic apply run and close the task panel on success."""
+        doc = self._ensure_document()
+        if doc is None:
+            show_error("No active document available for nesting.", title="SquatchCut")
+            return False
+        self._cleanup_preview_geometry(doc)
+        return self._run_nesting(apply_to_doc=True, doc=doc)
+
+    def _run_nesting(self, apply_to_doc: bool = True, doc=None) -> bool:
+        doc = doc or self._ensure_document()
+        if doc is None:
+            show_error("No active document available for nesting.", title="SquatchCut")
+            return False
 
         self._apply_settings_to_session()
         self._ensure_shapes_exist(doc)
@@ -857,7 +884,7 @@ class SquatchCutTaskPanel:
         except Exception as exc:
             show_error(f"Nesting failed:\n{exc}", title="SquatchCut")
             self.set_status("Nesting failed. See report view for details.")
-            return
+            return False
 
         self._refresh_summary()
         self.update_run_button_state()
@@ -870,6 +897,7 @@ class SquatchCutTaskPanel:
                 Gui.Control.closeDialog()
             except Exception:
                 pass
+        return True
 
     def _on_view_toggled(self) -> None:
         """Toggle visibility of sheet boundaries and nested parts (best-effort)."""
@@ -1590,13 +1618,13 @@ class SquatchCutTaskPanel:
 
     def on_preview_clicked(self):
         try:
-            Gui.runCommand("SquatchCut_RunNesting")
+            self._run_preview_nesting()
         except Exception as e:
             logger.error(f"Failed to run preview nesting: {e!r}")
 
     def on_apply_clicked(self):
         try:
-            Gui.runCommand("SquatchCut_ApplyNesting")
+            self._run_apply_nesting()
         except Exception as e:
             logger.error(f"Failed to apply nesting: {e!r}")
 
