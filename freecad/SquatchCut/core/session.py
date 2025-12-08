@@ -8,9 +8,15 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from SquatchCut.freecad_integration import Gui  # noqa: F401
+from SquatchCut.freecad_integration import App, Gui  # noqa: F401
 from SquatchCut.core import session_state
 from SquatchCut.core import sheet_presets
+
+SHEET_OBJECT_NAME = "SquatchCut_Sheet"
+SOURCE_GROUP_NAME = "SquatchCut_SourceParts"
+NESTED_GROUP_NAME = "SquatchCut_NestedParts"
+SOURCE_PREFIX = "SC_Source_"
+NESTED_PREFIX = "SC_Nested_"
 
 # Additional SquatchCut session-related state
 _source_panel_objects = []
@@ -62,10 +68,110 @@ def _extract_units_from_metadata(meta):
             continue
         if "unit" not in str(key).lower():
             continue
-        normalized = _normalize_measurement_value(value)
-        if normalized:
-            return normalized
+    normalized = _normalize_measurement_value(value)
+    if normalized:
+        return normalized
     return None
+
+
+def _resolve_doc(doc):
+    """Resolve to an existing FreeCAD document if available."""
+    if doc is not None:
+        return doc
+    if App is None:
+        return None
+    return App.ActiveDocument
+
+
+def _safe_remove(doc, name, removed=None):
+    if doc is None or not name:
+        return False
+    try:
+        doc.removeObject(name)
+        if removed is not None:
+            removed.append(name)
+        return True
+    except Exception:
+        return False
+
+
+def _remove_objects_by_prefix(doc, prefix, removed=None):
+    if doc is None:
+        return
+    for obj in list(getattr(doc, "Objects", []) or []):
+        name = getattr(obj, "Name", "") or ""
+        if name.startswith(prefix):
+            _safe_remove(doc, name, removed)
+
+
+def get_sheet_object(doc=None):
+    resolved = _resolve_doc(doc)
+    if resolved is None:
+        return None
+    return resolved.getObject(SHEET_OBJECT_NAME)
+
+
+def get_source_group(doc=None):
+    resolved = _resolve_doc(doc)
+    if resolved is None:
+        return None
+    return resolved.getObject(SOURCE_GROUP_NAME)
+
+
+def get_nested_group(doc=None):
+    resolved = _resolve_doc(doc)
+    if resolved is None:
+        return None
+    return resolved.getObject(NESTED_GROUP_NAME)
+
+
+def clear_sheet_object(doc=None):
+    resolved = _resolve_doc(doc)
+    if resolved is None:
+        return
+    _safe_remove(resolved, SHEET_OBJECT_NAME)
+
+
+def clear_source_group(doc=None):
+    resolved = _resolve_doc(doc)
+    if resolved is None:
+        return
+    group = get_source_group(resolved)
+    if group is not None:
+        for member in list(getattr(group, "Group", []) or []):
+            _safe_remove(resolved, getattr(member, "Name", None))
+        _safe_remove(resolved, getattr(group, "Name", None))
+    _remove_objects_by_prefix(resolved, SOURCE_PREFIX)
+
+
+def clear_nested_group(doc=None):
+    resolved = _resolve_doc(doc)
+    if resolved is None:
+        return
+    group = get_nested_group(resolved)
+    removed = []
+    if group is not None:
+        for member in list(getattr(group, "Group", []) or []):
+            _safe_remove(resolved, getattr(member, "Name", None), removed)
+        _safe_remove(resolved, getattr(group, "Name", None), removed)
+    _remove_objects_by_prefix(resolved, NESTED_PREFIX, removed)
+    return removed
+
+
+def clear_all_squatchcut_geometry(doc=None):
+    resolved = _resolve_doc(doc)
+    if resolved is None:
+        return
+    clear_nested_group(resolved)
+    clear_source_group(resolved)
+    clear_sheet_object(resolved)
+    clear_sheets()
+    set_source_panel_objects([])
+    set_nested_panel_objects([])
+    try:
+        session_state.set_nested_sheet_group(None)
+    except Exception:
+        pass
 
 
 def detect_document_measurement_system(doc) -> str | None:

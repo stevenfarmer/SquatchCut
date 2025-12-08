@@ -222,16 +222,8 @@ def cleanup_nested_layout(doc=None) -> None:
             _safe_remove(resolved_doc, getattr(child, "Name", None), removed)
         _safe_remove(resolved_doc, getattr(legacy, "Name", None), removed)
 
-    nested_group = resolved_doc.getObject(NESTED_GROUP_NAME)
-    if nested_group is not None:
-        for child in list(getattr(nested_group, "Group", [])):
-            _safe_remove(resolved_doc, getattr(child, "Name", None), removed)
-        _safe_remove(resolved_doc, getattr(nested_group, "Name", None), removed)
-
-    for obj in list(getattr(resolved_doc, "Objects", [])):
-        name = getattr(obj, "Name", "")
-        if name.startswith("SC_Nested_"):
-            _safe_remove(resolved_doc, name, removed)
+    nested_removed = session.clear_nested_group(resolved_doc) or []
+    removed.extend(nested_removed)
 
     session.clear_sheets()
     try:

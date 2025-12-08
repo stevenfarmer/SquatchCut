@@ -284,7 +284,7 @@ class RunNestingCommand:
 
             logger.info(">>> [SquatchCut] Rebuilding nested layout view...")
             logger.info(">>> [SquatchCut] RunNesting: cleaning up previous nested layout")
-            view_controller.cleanup_nested_layout(doc)
+            session.clear_all_squatchcut_geometry(doc)
             sheet_obj = ensure_sheet_object(sheet_w, sheet_h, doc)
             group, nested_objs = rebuild_nested_geometry(doc, placed_parts, sheet_w, sheet_h, panel_objs)
             sheet_label = getattr(sheet_obj, "Name", "unknown sheet")
