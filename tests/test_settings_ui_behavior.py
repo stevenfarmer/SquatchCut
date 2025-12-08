@@ -122,6 +122,20 @@ def test_main_taskpanel_no_longer_has_gui_test_button():
     assert not hasattr(panel, "run_gui_tests_button")
 
 
+def test_taskpanel_sections_groupboxes():
+    settings.hydrate_from_params()
+    panel = SquatchCutTaskPanel()
+    widgets = panel._section_widgets
+    assert "input_group_box" in widgets
+    assert "sheet_group_box" in widgets
+    assert "nesting_group_box" in widgets
+    assert "output_group_box" in widgets
+    assert widgets["input_group_box"] is panel._section_widgets["input_group_box"]
+    assert widgets["sheet_group_box"] is panel._section_widgets["sheet_group_box"]
+    assert widgets["nesting_group_box"] is panel._section_widgets["nesting_group_box"]
+    assert widgets["output_group_box"] is panel._section_widgets["output_group_box"]
+
+
 def test_settings_panel_runs_gui_tests_via_button(monkeypatch):
     panel = SquatchCutSettingsPanel()
     assert hasattr(panel, "run_gui_tests_button")

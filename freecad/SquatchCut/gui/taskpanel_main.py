@@ -54,6 +54,7 @@ class SquatchCutTaskPanel:
         self._presets = sc_sheet_presets.get_preset_entries(self.measurement_system)
         self._current_preset_id = None
         self._close_callback: Optional[Callable[[], None]] = None
+        self._section_widgets: dict[str, QtWidgets.QWidget] = {}
 
         self.form = QtWidgets.QWidget()
         self._build_ui()
@@ -74,9 +75,28 @@ class SquatchCutTaskPanel:
     # ---------------- UI builders ----------------
 
     def _build_ui(self) -> None:
-        layout = QtWidgets.QVBoxLayout(self.form)
-        layout.setContentsMargins(6, 6, 6, 6)
-        layout.setSpacing(8)
+        outer_layout = QtWidgets.QVBoxLayout(self.form)
+        outer_layout.setContentsMargins(6, 6, 6, 6)
+        outer_layout.setSpacing(4)
+
+        layout = outer_layout
+        scroll_area = None
+        scroll_cls = getattr(QtWidgets, "QScrollArea", None)
+        try:
+            scroll_area = scroll_cls() if scroll_cls is not None else None
+        except Exception:
+            scroll_area = None
+        if scroll_area is not None and hasattr(scroll_area, "setWidgetResizable"):
+            scroll_area.setWidgetResizable(True)
+            scroll_area.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+            outer_layout.addWidget(scroll_area)
+            content = QtWidgets.QWidget()
+            scroll_area.setWidget(content)
+            layout = QtWidgets.QVBoxLayout(content)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.setSpacing(8)
+        else:
+            layout.setSpacing(8)
 
         # View mode row (Source vs Sheets)
         view_mode_layout = QtWidgets.QHBoxLayout()
@@ -100,28 +120,10 @@ class SquatchCutTaskPanel:
         view_mode_layout.addStretch(1)
         layout.addLayout(view_mode_layout)
 
-        layout.addWidget(self._build_general_group())
+        layout.addWidget(self._build_input_group())
+        layout.addWidget(self._build_sheet_group())
         layout.addWidget(self._build_nesting_group())
-        layout.addWidget(self._build_cut_optimization_group())
-        layout.addWidget(self._build_stats_group())
-        layout.addWidget(self._build_export_group())
-
-        # Bottom action buttons
-        buttons_row = QtWidgets.QHBoxLayout()
-        buttons_row.addStretch(1)
-        self.preview_button = QtWidgets.QPushButton("Preview")
-        self.run_button = QtWidgets.QPushButton("Run Nesting")
-        self.show_source_button = QtWidgets.QPushButton("Show Source")
-        self.btnExportCutlist = QtWidgets.QPushButton("Cutlist CSV")
-        self.preview_button.setToolTip("Preview the nesting layout without leaving the task panel.")
-        self.run_button.setToolTip("Generate nested geometry in the active document.")
-        self.show_source_button.setToolTip("Hide nested sheets and show the imported source panels.")
-        self.btnExportCutlist.setToolTip("Export a CSV cutlist from the current nested sheets.")
-        buttons_row.addWidget(self.preview_button)
-        buttons_row.addWidget(self.run_button)
-        buttons_row.addWidget(self.show_source_button)
-        buttons_row.addWidget(self.btnExportCutlist)
-        layout.addLayout(buttons_row)
+        layout.addWidget(self._build_output_group())
 
         # Report bug link/button (low visual weight)
         report_row = QtWidgets.QHBoxLayout()
@@ -132,44 +134,25 @@ class SquatchCutTaskPanel:
         report_row.addWidget(self.report_bug_button)
         layout.addLayout(report_row)
 
-        # Status label
-        self.status_label = QtWidgets.QLabel("Status: Ready")
-        self.status_label.setStyleSheet("color: gray;")
-        layout.addWidget(self.status_label)
+        layout.addStretch(1)
 
         self._set_run_buttons_enabled(False)
         self.btnViewSource.setChecked(True)
         self.btnViewSheets.setChecked(False)
 
-    def _build_general_group(self) -> QtWidgets.QGroupBox:
-        group = QtWidgets.QGroupBox("Cut List")
+    def _build_input_group(self) -> QtWidgets.QGroupBox:
+        group = QtWidgets.QGroupBox("Input")
+        self._register_section(group, "input_group_box")
         vbox = QtWidgets.QVBoxLayout(group)
 
-        form = QtWidgets.QFormLayout()
-        self.units_combo = QtWidgets.QComboBox()
-        self.units_combo.addItem("Metric (mm)", "metric")
-        self.units_combo.addItem("Imperial (in)", "imperial")
-        form.addRow("Units:", self.units_combo)
-
-        self.preset_combo = QtWidgets.QComboBox()
-        self._refresh_preset_labels()
-        self.mode_combo = QtWidgets.QComboBox()
-        self.mode_combo.addItem("Material (minimize waste)", "material")
-        self.mode_combo.addItem("Cuts (minimize number of cuts)", "cuts")
-        self.mode_combo.setToolTip(
-            "Material: prioritize yield. Cuts: row/column layout to approximate fewer saw cuts."
-        )
-        form.addRow("Preset:", self.preset_combo)
-        form.addRow("Optimization:", self.mode_combo)
-
-        vbox.addLayout(form)
-
-        # Parts / CSV section
-        top_row = QtWidgets.QHBoxLayout()
         self.load_csv_button = QtWidgets.QPushButton("Import CSV")
+        self.load_csv_button.setToolTip("Import a SquatchCut panels CSV file.")
         self.csv_path_label = QtWidgets.QLabel("No file loaded")
         self.csv_path_label.setStyleSheet("color: gray;")
         self.csv_path_label.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
+        self._set_expand_policy(self.csv_path_label)
+
+        top_row = QtWidgets.QHBoxLayout()
         top_row.addWidget(self.load_csv_button)
         top_row.addWidget(self.csv_path_label, 1)
         vbox.addLayout(top_row)
@@ -192,7 +175,95 @@ class SquatchCutTaskPanel:
         vbox.addWidget(self.parts_table)
         self._update_table_headers()
 
-        # View toggles
+        return group
+
+    def _build_sheet_group(self) -> QtWidgets.QGroupBox:
+        group = QtWidgets.QGroupBox("Sheet")
+        self._register_section(group, "sheet_group_box")
+        vbox = QtWidgets.QVBoxLayout(group)
+
+        form = QtWidgets.QFormLayout()
+        self.units_combo = QtWidgets.QComboBox()
+        self.units_combo.addItem("Metric (mm)", "metric")
+        self.units_combo.addItem("Imperial (in)", "imperial")
+        form.addRow("Units:", self.units_combo)
+
+        self.preset_combo = QtWidgets.QComboBox()
+        self._refresh_preset_labels()
+        form.addRow("Preset:", self.preset_combo)
+        vbox.addLayout(form)
+
+        grid = QtWidgets.QGridLayout()
+        grid.setColumnStretch(1, 1)
+        grid.setColumnStretch(3, 1)
+        self.sheet_width_label = QtWidgets.QLabel("Width (mm):")
+        self.sheet_width_edit = QtWidgets.QLineEdit()
+        self.sheet_height_label = QtWidgets.QLabel("Height (mm):")
+        self.sheet_height_edit = QtWidgets.QLineEdit()
+        self.kerf_label = QtWidgets.QLabel("Kerf width (mm):")
+        self.kerf_edit = QtWidgets.QLineEdit()
+        self.margin_label = QtWidgets.QLabel("Edge margin (mm):")
+        self.margin_edit = QtWidgets.QLineEdit()
+        grid.addWidget(self.sheet_width_label, 0, 0)
+        grid.addWidget(self.sheet_width_edit, 0, 1)
+        grid.addWidget(self.sheet_height_label, 0, 2)
+        grid.addWidget(self.sheet_height_edit, 0, 3)
+        grid.addWidget(self.kerf_label, 1, 0)
+        grid.addWidget(self.kerf_edit, 1, 1)
+        grid.addWidget(self.margin_label, 1, 2)
+        grid.addWidget(self.margin_edit, 1, 3)
+        vbox.addLayout(grid)
+
+        rotation_row = QtWidgets.QHBoxLayout()
+        self.allow_90_check = QtWidgets.QCheckBox("Allow 90° rotation")
+        self.allow_180_check = QtWidgets.QCheckBox("Allow 180° rotation")
+        rotation_row.addWidget(self.allow_90_check)
+        rotation_row.addWidget(self.allow_180_check)
+        rotation_row.addStretch(1)
+        vbox.addLayout(rotation_row)
+
+        reset_row = QtWidgets.QHBoxLayout()
+        reset_row.addStretch(1)
+        self.reset_defaults_button = QtWidgets.QPushButton("Reset to Defaults")
+        reset_row.addWidget(self.reset_defaults_button)
+        vbox.addLayout(reset_row)
+
+        return group
+
+    def _build_nesting_group(self) -> QtWidgets.QGroupBox:
+        group = QtWidgets.QGroupBox("Nesting")
+        self._register_section(group, "nesting_group_box")
+        vbox = QtWidgets.QVBoxLayout(group)
+
+        self.mode_combo = QtWidgets.QComboBox()
+        self.mode_combo.addItem("Material (minimize waste)", "material")
+        self.mode_combo.addItem("Cuts (minimize number of cuts)", "cuts")
+        self.mode_combo.setToolTip(
+            "Material: prioritize yield. Cuts: row/column layout to approximate fewer saw cuts."
+        )
+        self.cut_mode_check = QtWidgets.QCheckBox("Cut-friendly layout")
+        self.cut_mode_check.setToolTip(
+            "Bias nesting toward woodshop-style rips/crosscuts instead of tight packing."
+        )
+        self.kerf_width_label = QtWidgets.QLabel("Kerf width (mm):")
+        self.kerf_width_edit = QtWidgets.QLineEdit()
+        self.kerf_width_edit.setToolTip("Blade thickness used to maintain spacing between parts.")
+        rot_layout = QtWidgets.QHBoxLayout()
+        self.rot0_check = QtWidgets.QCheckBox("0°")
+        self.rot90_check = QtWidgets.QCheckBox("90°")
+        self.rot0_check.setToolTip("Allowed orientations for nesting. 0° only means no rotation; 90° allows rotated placement.")
+        self.rot90_check.setToolTip("Allowed orientations for nesting. 0° only means no rotation; 90° allows rotated placement.")
+        rot_layout.addWidget(self.rot0_check)
+        rot_layout.addWidget(self.rot90_check)
+        rot_layout.addStretch(1)
+
+        form = QtWidgets.QFormLayout()
+        form.addRow("Optimization:", self.mode_combo)
+        form.addRow(self.cut_mode_check)
+        form.addRow(self.kerf_width_label, self.kerf_width_edit)
+        form.addRow("Allowed rotations:", rot_layout)
+        vbox.addLayout(form)
+
         view_layout = QtWidgets.QHBoxLayout()
         self.show_sheet_check = QtWidgets.QCheckBox("Show sheet boundary")
         self.show_nested_check = QtWidgets.QCheckBox("Show nested parts")
@@ -203,78 +274,20 @@ class SquatchCutTaskPanel:
         view_layout.addStretch(1)
         vbox.addLayout(view_layout)
 
-        return group
+        button_row = QtWidgets.QHBoxLayout()
+        self.preview_button = QtWidgets.QPushButton("Preview")
+        self.preview_button.setToolTip("Preview the nesting layout without leaving the task panel.")
+        self.run_button = QtWidgets.QPushButton("Run Nesting")
+        self.run_button.setToolTip("Generate nested geometry in the active document.")
+        self.show_source_button = QtWidgets.QPushButton("Show Source")
+        self.show_source_button.setToolTip("Hide nested sheets and show the imported source panels.")
+        button_row.addWidget(self.preview_button)
+        button_row.addWidget(self.run_button)
+        button_row.addWidget(self.show_source_button)
+        vbox.addLayout(button_row)
 
-    def _build_nesting_group(self) -> QtWidgets.QGroupBox:
-        group = QtWidgets.QGroupBox("Sheet & Settings")
-        form = QtWidgets.QGridLayout(group)
-        form.setColumnStretch(1, 1)
-
-        self.sheet_width_label = QtWidgets.QLabel("Width (mm):")
-        self.sheet_width_edit = QtWidgets.QLineEdit()
-
-        self.sheet_height_label = QtWidgets.QLabel("Height (mm):")
-        self.sheet_height_edit = QtWidgets.QLineEdit()
-
-        self.kerf_label = QtWidgets.QLabel("Kerf width (mm):")
-        self.kerf_edit = QtWidgets.QLineEdit()
-
-        self.margin_label = QtWidgets.QLabel("Edge margin (mm):")
-        self.margin_edit = QtWidgets.QLineEdit()
-
-        self.allow_90_check = QtWidgets.QCheckBox("Allow 90° rotation")
-        self.allow_180_check = QtWidgets.QCheckBox("Allow 180° rotation")
-
-        form.addWidget(self.sheet_width_label, 0, 0)
-        form.addWidget(self.sheet_width_edit, 0, 1)
-        form.addWidget(self.sheet_height_label, 0, 2)
-        form.addWidget(self.sheet_height_edit, 0, 3)
-        form.addWidget(self.kerf_label, 1, 0)
-        form.addWidget(self.kerf_edit, 1, 1)
-        form.addWidget(self.margin_label, 1, 2)
-        form.addWidget(self.margin_edit, 1, 3)
-        form.addWidget(self.allow_90_check, 2, 0, 1, 2)
-        form.addWidget(self.allow_180_check, 2, 2, 1, 2)
-
-        reset_row = QtWidgets.QHBoxLayout()
-        reset_row.addStretch(1)
-        self.reset_defaults_button = QtWidgets.QPushButton("Reset to Defaults")
-        reset_row.addWidget(self.reset_defaults_button)
-        form.addLayout(reset_row, 3, 0, 1, 4)
-
-        return group
-
-    def _build_cut_optimization_group(self) -> QtWidgets.QGroupBox:
-        group = QtWidgets.QGroupBox("Cut Optimization")
-        form = QtWidgets.QFormLayout(group)
-
-        self.cut_mode_check = QtWidgets.QCheckBox("Cut-friendly layout")
-        self.cut_mode_check.setToolTip(
-            "Bias nesting toward woodshop-style rips/crosscuts instead of tight packing."
-        )
-
-        self.kerf_width_label = QtWidgets.QLabel("Kerf Width (mm):")
-        self.kerf_width_edit = QtWidgets.QLineEdit()
-        self.kerf_width_edit.setToolTip("Blade thickness used to maintain spacing between parts.")
-
-        rot_layout = QtWidgets.QHBoxLayout()
-        self.rot0_check = QtWidgets.QCheckBox("0°")
-        self.rot90_check = QtWidgets.QCheckBox("90°")
-        self.rot0_check.setToolTip("Allowed orientations for nesting. 0° only means no rotation; 90° allows rotated placement.")
-        self.rot90_check.setToolTip("Allowed orientations for nesting. 0° only means no rotation; 90° allows rotated placement.")
-        rot_layout.addWidget(self.rot0_check)
-        rot_layout.addWidget(self.rot90_check)
-        rot_layout.addStretch(1)
-
-        form.addRow(self.cut_mode_check)
-        form.addRow(self.kerf_width_label, self.kerf_width_edit)
-        form.addRow("Allowed rotations:", rot_layout)
-
-        return group
-
-    def _build_stats_group(self) -> QtWidgets.QGroupBox:
-        group = QtWidgets.QGroupBox("Nesting Stats")
-        form = QtWidgets.QFormLayout(group)
+        stats_frame = QtWidgets.QFrame()
+        stats_layout = QtWidgets.QFormLayout(stats_frame)
         self.mode_label = QtWidgets.QLabel("Mode: –")
         self.sheets_label = QtWidgets.QLabel("Sheets used: –")
         self.utilization_label = QtWidgets.QLabel("Utilization: –")
@@ -294,36 +307,64 @@ class SquatchCutTaskPanel:
             self.overlaps_label,
         ):
             lbl.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
-        form.addRow("Mode:", self.mode_label)
-        form.addRow("Sheets:", self.sheets_label)
-        form.addRow("Utilization:", self.utilization_label)
-        form.addRow("Estimated cuts:", self.cutcount_label)
-        form.addRow("Unplaced parts:", self.unplaced_label)
-        form.addRow("Sheets used:", self.stats_sheets_label)
-        form.addRow("Cut path complexity:", self.stats_complexity_label)
-        form.addRow("Overlaps:", self.overlaps_label)
+        stats_layout.addRow("Mode:", self.mode_label)
+        stats_layout.addRow("Sheets:", self.sheets_label)
+        stats_layout.addRow("Utilization:", self.utilization_label)
+        stats_layout.addRow("Estimated cuts:", self.cutcount_label)
+        stats_layout.addRow("Unplaced parts:", self.unplaced_label)
+        stats_layout.addRow("Sheets used:", self.stats_sheets_label)
+        stats_layout.addRow("Cut path complexity:", self.stats_complexity_label)
+        stats_layout.addRow("Overlaps:", self.overlaps_label)
+        vbox.addWidget(stats_frame)
+
+        self.status_label = QtWidgets.QLabel("Status: Ready")
+        self.status_label.setStyleSheet("color: gray;")
+        vbox.addWidget(self.status_label)
+
         return group
 
-    def _build_export_group(self) -> QtWidgets.QGroupBox:
-        group = QtWidgets.QGroupBox("Export")
-        form = QtWidgets.QFormLayout(group)
+    def _build_output_group(self) -> QtWidgets.QGroupBox:
+        group = QtWidgets.QGroupBox("Output")
+        self._register_section(group, "output_group_box")
+        vbox = QtWidgets.QVBoxLayout(group)
+
+        form = QtWidgets.QFormLayout()
         self.export_format_combo = QtWidgets.QComboBox()
         self.export_format_combo.addItem("DXF", "dxf")
         self.export_format_combo.addItem("SVG", "svg")
         self.export_format_combo.addItem("Cut list CSV", "cutlist_csv")
         self.export_format_combo.addItem("Cut list script (text)", "cutlist_script")
-        self.export_button = QtWidgets.QPushButton("Export SquatchCut")
+        self.export_button = QtWidgets.QPushButton("Export Layout")
         self.export_button.setToolTip("Export the current SquatchCut layout in the selected format.")
         self.include_labels_check = QtWidgets.QCheckBox("Include part labels")
         self.include_labels_check.setToolTip("Include part names as text labels in DXF/SVG exports.")
         self.include_dimensions_check = QtWidgets.QCheckBox("Include dimensions")
         self.include_dimensions_check.setToolTip("Include basic width/height dimensions in DXF/SVG exports.")
-
         form.addRow("Export format:", self.export_format_combo)
         form.addRow(self.include_labels_check)
         form.addRow(self.include_dimensions_check)
         form.addRow(self.export_button)
+        vbox.addLayout(form)
+
+        button_row = QtWidgets.QHBoxLayout()
+        self.btnExportCutlist = QtWidgets.QPushButton("Cutlist CSV")
+        self.btnExportCutlist.setToolTip("Export a CSV cutlist from the current nested sheets.")
+        button_row.addStretch(1)
+        button_row.addWidget(self.btnExportCutlist)
+        vbox.addLayout(button_row)
+
         return group
+
+    def _register_section(self, group: QtWidgets.QWidget, name: str) -> None:
+        setter = getattr(group, "setObjectName", None)
+        if callable(setter):
+            setter(name)
+        self._section_widgets[name] = group
+
+    def _set_expand_policy(self, widget: QtWidgets.QWidget) -> None:
+        setter = getattr(widget, "setSizePolicy", None)
+        if callable(setter):
+            setter(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
 
     # ---------------- State helpers ----------------
 
