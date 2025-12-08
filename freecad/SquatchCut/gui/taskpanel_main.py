@@ -214,14 +214,6 @@ class SquatchCutTaskPanel:
         grid.addWidget(self.margin_edit, 1, 3)
         vbox.addLayout(grid)
 
-        rotation_row = QtWidgets.QHBoxLayout()
-        self.allow_90_check = QtWidgets.QCheckBox("Allow 90° rotation")
-        self.allow_180_check = QtWidgets.QCheckBox("Allow 180° rotation")
-        rotation_row.addWidget(self.allow_90_check)
-        rotation_row.addWidget(self.allow_180_check)
-        rotation_row.addStretch(1)
-        vbox.addLayout(rotation_row)
-
         reset_row = QtWidgets.QHBoxLayout()
         reset_row.addStretch(1)
         self.reset_defaults_button = QtWidgets.QPushButton("Reset to Defaults")
@@ -248,20 +240,15 @@ class SquatchCutTaskPanel:
         self.kerf_width_label = QtWidgets.QLabel("Kerf width (mm):")
         self.kerf_width_edit = QtWidgets.QLineEdit()
         self.kerf_width_edit.setToolTip("Blade thickness used to maintain spacing between parts.")
-        rot_layout = QtWidgets.QHBoxLayout()
-        self.rot0_check = QtWidgets.QCheckBox("0°")
-        self.rot90_check = QtWidgets.QCheckBox("90°")
-        self.rot0_check.setToolTip("Allowed orientations for nesting. 0° only means no rotation; 90° allows rotated placement.")
-        self.rot90_check.setToolTip("Allowed orientations for nesting. 0° only means no rotation; 90° allows rotated placement.")
-        rot_layout.addWidget(self.rot0_check)
-        rot_layout.addWidget(self.rot90_check)
-        rot_layout.addStretch(1)
-
         form = QtWidgets.QFormLayout()
         form.addRow("Optimization:", self.mode_combo)
         form.addRow(self.cut_mode_check)
         form.addRow(self.kerf_width_label, self.kerf_width_edit)
-        form.addRow("Allowed rotations:", rot_layout)
+        self.job_allow_rotation_check = QtWidgets.QCheckBox("Allow rotation for this job")
+        self.job_allow_rotation_check.setToolTip(
+            "Allow SquatchCut to rotate panels when nesting this job."
+        )
+        form.addRow(self.job_allow_rotation_check)
         vbox.addLayout(form)
 
         view_layout = QtWidgets.QHBoxLayout()
@@ -399,10 +386,10 @@ class SquatchCutTaskPanel:
         session_sheet = session_state.get_sheet_size()
         kerf_mm = session_state.get_kerf_mm()
         margin_mm = session_state.get_gap_mm()
-        default_allow = session_state.get_default_allow_rotate()
         cut_mode = session_state.get_optimize_for_cut_path()
         kerf_width = session_state.get_kerf_width_mm()
-        rotations = set(session_state.get_allowed_rotations_deg())
+        job_allow_rotate = session_state.get_default_allow_rotate()
+        self._apply_job_rotation_state_to_session(job_allow_rotate)
         include_labels = self._prefs.get_export_include_labels()
         include_dims = self._prefs.get_export_include_dimensions()
 
@@ -436,9 +423,8 @@ class SquatchCutTaskPanel:
             "kerf_mm": float(kerf_mm),
             "margin_mm": float(margin_mm),
             "kerf_width_mm": float(kerf_width),
-            "default_allow": bool(default_allow),
             "cut_mode": bool(cut_mode),
-            "rotations": rotations,
+            "job_allow_rotate": bool(job_allow_rotate),
             "mode": mode,
             "csv_units": csv_units,
             "include_labels": bool(include_labels),
@@ -458,15 +444,18 @@ class SquatchCutTaskPanel:
             self._set_length_text(edit, float(value) if value is not None else None)
             edit.blockSignals(False)
 
-        self.allow_90_check.setChecked(bool(state["default_allow"]))
-        self.allow_180_check.setChecked(bool(state["default_allow"]))
-
         mode_idx = self.mode_combo.findData(state["mode"])
         if mode_idx < 0:
             mode_idx = 0
         self.mode_combo.blockSignals(True)
         self.mode_combo.setCurrentIndex(mode_idx)
         self.mode_combo.blockSignals(False)
+
+        job_rotation = bool(state.get("job_allow_rotate"))
+        self.job_allow_rotation_check.blockSignals(True)
+        self.job_allow_rotation_check.setChecked(job_rotation)
+        self.job_allow_rotation_check.blockSignals(False)
+        self._apply_job_rotation_state_to_session(job_rotation)
 
         unit_idx = self.units_combo.findData(self.measurement_system)
         if unit_idx < 0:
@@ -486,9 +475,6 @@ class SquatchCutTaskPanel:
         self.kerf_width_edit.blockSignals(True)
         self._set_length_text(self.kerf_width_edit, float(state["kerf_width_mm"]))
         self.kerf_width_edit.blockSignals(False)
-        self.rot0_check.setChecked(0 in state["rotations"] or not state["rotations"])
-        self.rot90_check.setChecked(90 in state["rotations"])
-
         csv_units_idx = self.csv_units_combo.findData(state["csv_units"])
         if csv_units_idx >= 0:
             self.csv_units_combo.blockSignals(True)
@@ -523,6 +509,7 @@ class SquatchCutTaskPanel:
         self.margin_edit.textChanged.connect(self.update_run_button_state)
         self.reset_defaults_button.clicked.connect(self._reset_defaults)
         self.cut_mode_check.toggled.connect(self._on_mode_changed)
+        self.job_allow_rotation_check.toggled.connect(self._on_job_rotation_toggled)
         self.kerf_width_edit.textChanged.connect(self.update_run_button_state)
         self.export_button.clicked.connect(self.on_export_clicked)
         self.include_labels_check.stateChanged.connect(self._on_export_options_changed)
@@ -578,20 +565,10 @@ class SquatchCutTaskPanel:
         if kerf_mm < 0 or margin_mm < 0:
             self._handle_parse_error(ValueError("Kerf/margin cannot be negative."), "Kerf and edge margin cannot be negative.")
             return
-        # session_state tracks a single default rotation flag; map from 90° toggle.
-        default_allow = bool(self.allow_90_check.isChecked() or self.allow_180_check.isChecked())
         mode = self.mode_combo.currentData() or "material"
         cut_mode = bool(self.cut_mode_check.isChecked())
         export_include_labels = bool(self.include_labels_check.isChecked())
         export_include_dimensions = bool(self.include_dimensions_check.isChecked())
-        rotations = []
-        if self.rot0_check.isChecked():
-            rotations.append(0)
-        if self.rot90_check.isChecked():
-            rotations.append(90)
-        if not rotations:
-            rotations = [0]
-
         # Persist measurement system preference for future sessions.
         try:
             self._prefs.set_measurement_system(self.measurement_system)
@@ -601,11 +578,10 @@ class SquatchCutTaskPanel:
         session_state.set_sheet_size(sheet_w, sheet_h)
         session_state.set_kerf_mm(kerf_mm)
         session_state.set_gap_mm(margin_mm)
-        session_state.set_default_allow_rotate(default_allow)
         session_state.set_optimization_mode(mode)
         session_state.set_optimize_for_cut_path(cut_mode)
         session_state.set_kerf_width_mm(kerf_width)
-        session_state.set_allowed_rotations_deg(tuple(rotations))
+        self._apply_job_rotation_state_to_session(bool(self.job_allow_rotation_check.isChecked()))
         session_state.set_export_include_labels(export_include_labels)
         session_state.set_export_include_dimensions(export_include_dimensions)
 
@@ -665,11 +641,22 @@ class SquatchCutTaskPanel:
             self.run_button.setToolTip("Create sheet objects in the active document.")
         self._update_status_label()
 
+    def _apply_job_rotation_state_to_session(self, allow_rotation: bool) -> None:
+        """Keep job-level rotation flags and allowed rotations in sync."""
+        session_state.set_job_allow_rotate(bool(allow_rotation))
+        allowed = (0, 90) if allow_rotation else (0,)
+        session_state.set_allowed_rotations_deg(allowed)
+
     def _on_mode_changed(self) -> None:
         """Persist optimization mode change immediately."""
         mode = self.mode_combo.currentData() or "material"
         session_state.set_optimization_mode(mode)
         session_state.set_nesting_mode("cut_friendly" if self.cut_mode_check.isChecked() else "pack")
+        self.update_run_button_state()
+
+    def _on_job_rotation_toggled(self, checked: bool) -> None:
+        """Track per-job rotation preferences without touching defaults."""
+        self._apply_job_rotation_state_to_session(bool(checked))
         self.update_run_button_state()
 
     def _choose_csv_file(self) -> None:
@@ -1187,13 +1174,12 @@ class SquatchCutTaskPanel:
         self._set_length_text(self.sheet_height_edit, default_height)
         self._set_length_text(self.kerf_edit, self._prefs.get_default_kerf_mm())
         self._set_length_text(self.margin_edit, self._prefs.get_default_spacing_mm())
-        self.allow_90_check.setChecked(False)
-        self.allow_180_check.setChecked(False)
         self.mode_combo.setCurrentIndex(0)
         self.cut_mode_check.setChecked(self._prefs.get_default_optimize_for_cut_path())
         self._set_length_text(self.kerf_width_edit, self._prefs.get_default_kerf_mm())
-        self.rot0_check.setChecked(True)
-        self.rot90_check.setChecked(True)
+        default_job_rotation = session_state.get_default_allow_rotate()
+        self.job_allow_rotation_check.setChecked(bool(default_job_rotation))
+        self._apply_job_rotation_state_to_session(bool(default_job_rotation))
 
         # Persist defaults into session state and refresh status
         self._apply_settings_to_session()

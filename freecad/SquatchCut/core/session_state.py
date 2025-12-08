@@ -21,6 +21,7 @@ _sheet_height = None
 _kerf_mm = 0.0
 _gap_mm = 0.0
 _default_allow_rotate = False
+_job_allow_rotate = None
 _optimize_for_cut_path = False
 _kerf_width_mm = 3.0
 _allowed_rotations_deg = (0, 90)
@@ -100,6 +101,23 @@ def set_default_allow_rotate(value: bool) -> None:
 def get_default_allow_rotate() -> bool:
     """Return default allow-rotate flag."""
     return bool(_default_allow_rotate)
+
+
+def set_job_allow_rotate(value: bool | None) -> None:
+    """Set job-specific allow-rotate flag (used for the current nesting session)."""
+    global _job_allow_rotate
+    _job_allow_rotate = bool(value) if value is not None else None
+
+
+def get_job_allow_rotate() -> bool | None:
+    """Return job-specific allow-rotate preference, or None if unset."""
+    return _job_allow_rotate
+
+
+def clear_job_allow_rotate() -> None:
+    """Reset job-specific allow-rotate flag so it re-aligns with defaults."""
+    global _job_allow_rotate
+    _job_allow_rotate = None
 
 
 def set_optimize_for_cut_path(value: bool) -> None:

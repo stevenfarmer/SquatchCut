@@ -81,14 +81,12 @@ def test_rotation_defaults_sync_to_taskpanel():
         prefs.set_default_allow_rotate(True)
         settings.hydrate_from_params()
         panel = SquatchCutTaskPanel()
-        assert panel.allow_90_check.isChecked()
-        assert panel.allow_180_check.isChecked()
+        assert panel.job_allow_rotation_check.isChecked()
 
         prefs.set_default_allow_rotate(False)
         settings.hydrate_from_params()
         panel2 = SquatchCutTaskPanel()
-        assert not panel2.allow_90_check.isChecked()
-        assert not panel2.allow_180_check.isChecked()
+        assert not panel2.job_allow_rotation_check.isChecked()
     finally:
         _restore_prefs(prefs, snap)
 
@@ -134,6 +132,24 @@ def test_taskpanel_sections_groupboxes():
     assert widgets["sheet_group_box"] is panel._section_widgets["sheet_group_box"]
     assert widgets["nesting_group_box"] is panel._section_widgets["nesting_group_box"]
     assert widgets["output_group_box"] is panel._section_widgets["output_group_box"]
+
+
+def test_taskpanel_job_rotation_toggle_does_not_change_defaults():
+    prefs = SquatchCutPreferences()
+    snap = _snapshot_prefs(prefs)
+    try:
+        prefs.set_default_allow_rotate(False)
+        settings.hydrate_from_params()
+        panel = SquatchCutTaskPanel()
+        panel._on_job_rotation_toggled(True)
+        assert session_state.get_job_allow_rotate() is True
+        assert session_state.get_allowed_rotations_deg() == (0, 90)
+        panel._on_job_rotation_toggled(False)
+        assert session_state.get_job_allow_rotate() is False
+        assert session_state.get_allowed_rotations_deg() == (0,)
+        assert prefs.get_default_allow_rotate() is False
+    finally:
+        _restore_prefs(prefs, snap)
 
 
 def test_settings_panel_runs_gui_tests_via_button(monkeypatch):

@@ -100,7 +100,7 @@ def test_settings_panel_hydration_and_persistence():
         main_panel = SquatchCutTaskPanel()
         assert math.isclose(main_panel._initial_state["sheet_width_mm"], 1500.0, rel_tol=1e-6)
         assert math.isclose(main_panel._initial_state["sheet_height_mm"], 3100.0, rel_tol=1e-6)
-        assert main_panel.allow_90_check.isChecked() is False
+        assert main_panel.job_allow_rotation_check.isChecked() is False
     finally:
         _restore_prefs(prefs, snap)
 

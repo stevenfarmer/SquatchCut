@@ -82,13 +82,11 @@ def test_rotation_default_initial_state():
         prefs.set_default_allow_rotate(False)
         settings.hydrate_from_params()
         panel = SquatchCutTaskPanel()
-        assert not panel.allow_90_check.isChecked()
-        assert not panel.allow_180_check.isChecked()
+        assert not panel.job_allow_rotation_check.isChecked()
 
         prefs.set_default_allow_rotate(True)
         settings.hydrate_from_params()
         panel2 = SquatchCutTaskPanel()
-        assert panel2.allow_90_check.isChecked()
-        assert panel2.allow_180_check.isChecked()
+        assert panel2.job_allow_rotation_check.isChecked()
     finally:
         _restore_prefs(prefs, snap)

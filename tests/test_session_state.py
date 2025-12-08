@@ -16,6 +16,9 @@ from SquatchCut.core.session_state import (
     get_last_layout,
     set_default_allow_rotate,
     get_default_allow_rotate,
+    set_job_allow_rotate,
+    get_job_allow_rotate,
+    clear_job_allow_rotate,
     set_panels,
     add_panels,
     get_panels,
@@ -84,6 +87,17 @@ def test_default_allow_rotate_roundtrip():
     assert get_default_allow_rotate() is False
 
 
+def test_job_allow_rotate_roundtrip():
+    clear_job_allow_rotate()
+    assert get_job_allow_rotate() is None
+    set_job_allow_rotate(True)
+    assert get_job_allow_rotate() is True
+    set_job_allow_rotate(False)
+    assert get_job_allow_rotate() is False
+    clear_job_allow_rotate()
+    assert get_job_allow_rotate() is None
+
+
 def test_panels_set_add_clear_are_copied():
     clear_panels()
 
@@ -150,6 +164,7 @@ def test_session_state_defaults_after_reload():
     assert session_state.get_gap_mm() == 0.0
     assert session_state.get_kerf_mm() == 0.0
     assert session_state.get_default_allow_rotate() is False
+    assert session_state.get_job_allow_rotate() is None
     assert session_state.get_measurement_system() == "metric"
 
 
