@@ -11,12 +11,16 @@ from collections.abc import Mapping
 from SquatchCut.freecad_integration import App, Gui  # noqa: F401
 from SquatchCut.core import session_state
 from SquatchCut.core import sheet_presets
+from SquatchCut.core.preferences import SquatchCutPreferences
 
 SHEET_OBJECT_NAME = "SquatchCut_Sheet"
 SOURCE_GROUP_NAME = "SquatchCut_SourceParts"
 NESTED_GROUP_NAME = "SquatchCut_NestedParts"
 SOURCE_PREFIX = "SC_Source_"
 NESTED_PREFIX = "SC_Nested_"
+
+# Default measurement if detection fails
+DEFAULT_MEASUREMENT_SYSTEM = "metric"
 
 # Additional SquatchCut session-related state
 _source_panel_objects = []
@@ -28,16 +32,16 @@ _last_csv_path = None
 def _normalize_measurement_value(value):
     """Normalize metadata/unit hints into 'metric' or 'imperial'."""
     if value is None:
-        return None
+        return DEFAULT_MEASUREMENT_SYSTEM
     if isinstance(value, (list, tuple, set)):
         for item in value:
             normalized = _normalize_measurement_value(item)
             if normalized:
                 return normalized
-        return None
+        return DEFAULT_MEASUREMENT_SYSTEM
     text = str(value).strip().lower()
     if not text:
-        return None
+        return DEFAULT_MEASUREMENT_SYSTEM
     if any(token in text for token in ("imperial", "inch", "us customary", "in/lb", "ft/in", "ft-in", "us-in")):
         return "imperial"
     if any(token in text for token in ("metric", "millimeter", "mm", "si", "mks")):
@@ -46,13 +50,13 @@ def _normalize_measurement_value(value):
         return "imperial"
     if text in ("mm", "millimeters"):
         return "metric"
-    return None
+    return DEFAULT_MEASUREMENT_SYSTEM
 
 
 def _extract_units_from_metadata(meta):
     """Inspect metadata containers for unit hints."""
     if meta is None:
-        return None
+        return DEFAULT_MEASUREMENT_SYSTEM
     if isinstance(meta, Mapping):
         items = meta.items()
     elif isinstance(meta, (list, tuple, set)):
@@ -60,18 +64,20 @@ def _extract_units_from_metadata(meta):
     else:
         if isinstance(meta, str):
             return _normalize_measurement_value(meta)
-        return None
+        return DEFAULT_MEASUREMENT_SYSTEM
+    value = None
     for entry in items:
         if isinstance(entry, (list, tuple)) and len(entry) == 2:
             key, value = entry
         else:
             continue
         if "unit" not in str(key).lower():
+            value = None
             continue
-    normalized = _normalize_measurement_value(value)
-    if normalized:
-        return normalized
-    return None
+        break
+    if value is None:
+        return DEFAULT_MEASUREMENT_SYSTEM
+    return _normalize_measurement_value(value)
 
 
 def _resolve_doc(doc):
@@ -177,7 +183,8 @@ def clear_all_squatchcut_geometry(doc=None):
 def detect_document_measurement_system(doc) -> str | None:
     """Best-effort detection of a FreeCAD document's measurement system."""
     if doc is None:
-        return None
+        prefs = SquatchCutPreferences()
+        return prefs.get_measurement_system() or DEFAULT_MEASUREMENT_SYSTEM
 
     for attr_name in ("Metadata", "Meta", "DocumentMetadata"):
         meta = getattr(doc, attr_name, None)
@@ -205,7 +212,8 @@ def detect_document_measurement_system(doc) -> str | None:
         if normalized:
             return normalized
 
-    return None
+    prefs = SquatchCutPreferences()
+    return prefs.get_measurement_system() or DEFAULT_MEASUREMENT_SYSTEM
 
 
 def update_sheet_size_from_doc(doc):

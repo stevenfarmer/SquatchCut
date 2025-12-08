@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 
-from SquatchCut.gui.qt_compat import QtGui
 from SquatchCut.core import logger
 
 ICON_DIR = os.path.join(os.path.dirname(__file__), "..", "resources", "icons")
@@ -34,31 +33,11 @@ def _log_missing(name: str, path: str) -> None:
     logger.warning(f"Icon '{name}' missing at {path}; falling back to default.")
 
 
-def get_icon(name: str):
-    """Return a Qt icon for the given logical name, falling back gracefully."""
+def get_icon(name: str) -> str:
+    """Return the file path for the logical icon name, falling back gracefully."""
     path = _icon_path(name)
-    icon_cls = getattr(QtGui, "QIcon", None)
-    if icon_cls is None:
-        if not os.path.exists(path):
-            _log_missing(name, path)
-            path = os.path.join(ICON_DIR, FALLBACK_ICON_NAME)
+    if os.path.exists(path):
         return path
-
-    if not os.path.exists(path):
-        _log_missing(name, path)
-        path = os.path.join(ICON_DIR, FALLBACK_ICON_NAME)
-
-    try:
-        icon = icon_cls(path)
-    except Exception:
-        _log_missing(name, path)
-        icon = icon_cls(os.path.join(ICON_DIR, FALLBACK_ICON_NAME))
-
-    if not hasattr(icon, "isNull"):
-        return path
-
-    if icon.isNull():
-        _log_missing(name, path)
-        icon = icon_cls(os.path.join(ICON_DIR, FALLBACK_ICON_NAME))
-
-    return icon
+    _log_missing(name, path)
+    fallback = os.path.join(ICON_DIR, FALLBACK_ICON_NAME)
+    return fallback if os.path.exists(fallback) else path
