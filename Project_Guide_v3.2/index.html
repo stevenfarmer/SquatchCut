@@ -404,6 +404,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#ai-tooling-workspace-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AI Tooling &amp; Workspace Layout
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1089,6 +1100,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#ai-tooling-workspace-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AI Tooling &amp; Workspace Layout
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1134,6 +1156,12 @@
 </ul>
 <h3 id="c-forcing-codex-to-conform-to-squatchcuts-architecture"><strong>C. Forcing Codex to conform to SquatchCut’s architecture</strong><a class="headerlink" href="#c-forcing-codex-to-conform-to-squatchcuts-architecture" title="Permanent link">&para;</a></h3>
 <p>Codex should never reinvent the repo or introduce new patterns.</p>
+<h3 id="ai-tooling-workspace-layout">AI Tooling &amp; Workspace Layout<a class="headerlink" href="#ai-tooling-workspace-layout" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Developers clone SquatchCut on the host and open <code>squatchcut.code-workspace</code>; this host-visible workspace is what ChatGPT Mac app, Codex, and other AI tools discover.</li>
+<li>When “Reopen in Container” is used, VS Code bind-mounts the host repo at <code>/workspaces/SquatchCut</code>, so the container simply provides tooling while the canonical code stays on the host.</li>
+<li>See <code>docs/Development_Environment.md</code> for full AI-forward workflow details.</li>
+</ul>
 <hr />
 <h1 id="1-project-purpose">1. Project Purpose<a class="headerlink" href="#1-project-purpose" title="Permanent link">&para;</a></h1>
 <p>SquatchCut is a FreeCAD add-on that takes CSV part lists and generates optimized sheet nests for woodworking, cabinetry, and general sheet-material workflows.</p>
@@ -1335,25 +1363,118 @@ Must round-trip without drift.</p>
 <li>Version increments  </li>
 </ul>
 <hr />
-<h1 id="11-backlog-v32">11. Backlog (v3.2)<a class="headerlink" href="#11-backlog-v32" title="Permanent link">&para;</a></h1>
-<h3 id="critical">Critical<a class="headerlink" href="#critical" title="Permanent link">&para;</a></h3>
+<h1 id="11-status-backlog-addendum-dec-2025">11. Status &amp; Backlog Addendum (Dec 2025)<a class="headerlink" href="#11-status-backlog-addendum-dec-2025" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>NOTE</strong><br />
+This addendum does <strong>not</strong> change any core architectural rules.<br />
+It supersedes the older backlog-alignment section that followed the post-nesting fixes, providing a reconciled, status-aware view.<br />
+The information below reflects the current codebase (CSV ingestion, session-state hydration, multi-sheet helpers, guillotine engine, TaskPanel warning banner, and existing tests/backlog files).</p>
+</blockquote>
+<hr />
+<h2 id="a-status-snapshot-dec-2025">A. STATUS SNAPSHOT (DEC 2025)<a class="headerlink" href="#a-status-snapshot-dec-2025" title="Permanent link">&para;</a></h2>
+<h3 id="1-features-stability">1. Features &amp; Stability<a class="headerlink" href="#1-features-stability" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Settings panel stability  </li>
-<li>Hydration order correctness  </li>
-<li>TaskPanel initialization ordering  </li>
-<li>UI width/overflow fixes  </li>
+<li>Core CSV ingestion and session-state hydration flows remain stable and predictable.</li>
+<li>All four nesting strategies (default optimized, shelf, cut-friendly, guillotine) operate reliably under normal conditions.</li>
+<li>The normalized job-sheet helper in <code>freecad/SquatchCut/core/nesting.py</code> (~115–210) is the unified source of truth consumed by every strategy.</li>
+<li>The TaskPanel warning banner in <code>freecad/SquatchCut/gui/taskpanel_main.py</code> (~323–354) alerts users when cut-oriented modes may ignore additional sheets.</li>
+<li>Overall CSV → session → sheet normalization → nesting pipelines are cohesive and predictable.</li>
 </ul>
-<h3 id="medium">Medium<a class="headerlink" href="#medium" title="Permanent link">&para;</a></h3>
+<h3 id="2-recently-refactored-fragile-areas">2. Recently Refactored / Fragile Areas<a class="headerlink" href="#2-recently-refactored-fragile-areas" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Multi-sheet nesting  </li>
-<li>Layout exports  </li>
-<li>More robust heuristics  </li>
+<li>Multi-sheet heuristics (<code>freecad/SquatchCut/core/nesting.py</code> ~524–779) iterate sheet sizes but still lack per-sheet utilization metrics and user-visible exhaustion handling.</li>
+<li>The guillotine runner (<code>freecad/SquatchCut/core/cut_optimization.py</code> ~34–151) honors multi-sheet jobs yet has no per-sheet stats and can behave unexpectedly under aggressive exhaustion.</li>
+<li>Hydration/UI wiring integrated <code>_sheet_warning_active</code> via <code>_build_nesting_group</code> and <code>_update_cut_mode_sheet_warning</code>; changes must respect the hydration order.</li>
 </ul>
-<h3 id="future">Future<a class="headerlink" href="#future" title="Permanent link">&para;</a></h3>
+<h3 id="3-known-or-likely-regressions">3. Known or Likely Regressions<a class="headerlink" href="#3-known-or-likely-regressions" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Grain direction support  </li>
-<li>Bookmatching  </li>
-<li>Kerf simulation  </li>
+<li><strong>Preview vs Apply</strong> (<code>freecad/SquatchCut/gui/taskpanel_main.py</code> ~840–869): Preview and Apply share the same destructive command path. Preview can mutate the document; TODO already notes need for a non-destructive channel.</li>
+<li><strong>CSV Export</strong> (<code>freecad/SquatchCut/gui/commands/cmd_run_nesting.py</code> ~585–614): Export remains a stub. Menu items exist without producing real artifacts, potentially misleading users.</li>
+</ul>
+<h3 id="4-ui-ux-issues">4. UI / UX Issues<a class="headerlink" href="#4-ui-ux-issues" title="Permanent link">&para;</a></h3>
+<ul>
+<li>TaskPanel layout is crowded (Preview/Run/Show Source row + checkbox clusters, <code>freecad/SquatchCut/gui/taskpanel_main.py</code> ~333–353) causing clipping on narrow docks.</li>
+<li>The warning banner consumes full width with no adaptive fallback, increasing overflow risk in constrained layouts.</li>
+</ul>
+<h3 id="5-testing-coverage-gaps">5. Testing Coverage &amp; Gaps<a class="headerlink" href="#5-testing-coverage-gaps" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Full <code>pytest</code> sweeps collect ~171 tests but can time out (~120 s) in limited environments.</li>
+<li>Critical suites (<code>tests/test_nesting.py</code>, <code>tests/test_taskpanel_hydration.py</code>) pass, covering baseline nesting correctness and hydration behavior.</li>
+<li>Gaps remain for preview lifecycle vs apply, imperial formatting drift, sheet exhaustion behavior, warning-banner state transitions across permutations, and deep multi-sheet exhaustion edge cases.</li>
+</ul>
+<h3 id="6-technical-debt-documentation">6. Technical Debt &amp; Documentation<a class="headerlink" href="#6-technical-debt-documentation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>CSV export requires a complete implementation and deterministic cutlist output.</li>
+<li>Preview determinism needs a non-destructive workflow and clear cleanup of <code>SquatchCut_*</code> groups.</li>
+<li>Per-sheet visualization needs better labeling, spacing, and navigation aids.</li>
+<li>Documentation: v3.2 guide and <code>docs/Backlog.md</code> now track Completed/Active/Future work; this addendum aligns both with the live code.</li>
+</ul>
+<hr />
+<h2 id="b-backlog-alignment-supersedes-old-section-11">B. BACKLOG ALIGNMENT (SUPERSEDES OLD SECTION 11)<a class="headerlink" href="#b-backlog-alignment-supersedes-old-section-11" title="Permanent link">&para;</a></h2>
+<h3 id="1-completed-since-v32">1. Completed Since v3.2<a class="headerlink" href="#1-completed-since-v32" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Settings Panel Behavior</strong> – Opens reliably, hydrates before widget construction, leaves defaults untouched until explicit save.</li>
+<li><strong>Unified Job-Sheet Normalization</strong> – <code>_normalize_sheet_definition</code> feeds every nesting strategy with the same sheet list.</li>
+<li><strong>Multi-Sheet Support Baseline</strong> – Standard, cut-friendly, and guillotine strategies honor advanced job sheets with correct <code>sheet_index</code> tracking.</li>
+<li><strong>Warning Banner Infrastructure</strong> – TaskPanel warning banner with <code>_sheet_warning_active</code> surfaces when cut-oriented modes ignore additional sheets.</li>
+<li><strong>Documentation &amp; Backlog Files</strong> – v3.2 guide and <code>docs/Backlog.md</code> were aligned to reflect the unified pipeline and warning logic.</li>
+</ul>
+<h3 id="2-active-backlog-high-priority-first">2. Active Backlog (High Priority First)<a class="headerlink" href="#2-active-backlog-high-priority-first" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p><strong>P1 – Preview Determinism &amp; Cleanup</strong><br />
+  Separate preview from apply so preview is non-destructive; ensure <code>SquatchCut_Sheet_*</code>, <code>SquatchCut_SourceParts_*</code>, and <code>SquatchCut_NestedParts_*</code> stay consistent and cleaned up.<br />
+<em>Scope</em>: <code>freecad/SquatchCut/gui/taskpanel_main.py</code>, preview helpers/tests.</p>
+</li>
+<li>
+<p><strong>P1 – TaskPanel Overflow &amp; Ergonomics</strong><br />
+  Restructure crowded button/checkbox rows to prevent clipping on narrow docks, ensuring the warning banner coexists without overflow.<br />
+<em>Scope</em>: <code>freecad/SquatchCut/gui/taskpanel_main.py</code>.</p>
+</li>
+<li>
+<p><strong>P1 – Multi-Sheet Visualization Polish</strong><br />
+  Improve per-sheet labeling, spacing, and navigation within the viewer; keep sheet/source/nested groups synchronized without ghosts.<br />
+<em>Scope</em>: <code>freecad/SquatchCut/gui/nesting_view.py</code>, <code>freecad/SquatchCut/core/view_controller.py</code>.</p>
+</li>
+<li>
+<p><strong>P1 – Cut-Friendly Multi-Sheet Heuristics</strong><br />
+  Refine lane/guillotine behavior so sheet order, exhaustion, and spacing are predictable.<br />
+<em>Scope</em>: <code>freecad/SquatchCut/core/nesting.py</code>, <code>freecad/SquatchCut/core/cut_optimization.py</code>.</p>
+</li>
+<li>
+<p><strong>P1 – Test Suite Expansion (Hydration, Units, Preview)</strong><br />
+  Add tests for measurement toggles, fractional-inch formatting, preview lifecycle, sheet_index propagation, and basic exhaustion scenarios.<br />
+<em>Scope</em>: <code>tests/test_taskpanel_hydration.py</code>, new multi-sheet/preview suites.</p>
+</li>
+<li>
+<p><strong>P2 – CSV Export &amp; Cutlist Determinism</strong><br />
+  Replace the export stub with real cutlist generation and document the format.<br />
+<em>Scope</em>: <code>freecad/SquatchCut/gui/commands/cmd_run_nesting.py</code> + helpers.</p>
+</li>
+<li>
+<p><strong>P2 – Warning Banner Lifecycle Tests</strong><br />
+  Ensure banner visibility/text reacts to nesting-mode, job-sheet, and unit-system changes.<br />
+<em>Scope</em>: <code>freecad/SquatchCut/gui/taskpanel_main.py</code>, UI tests.</p>
+</li>
+<li>
+<p><strong>P2 – Sheet Exhaustion Metrics &amp; Feedback</strong><br />
+  Surface when sheet quantities run out (logs/UI) and avoid silent truncation.<br />
+<em>Scope</em>: nesting core + TaskPanel feedback.</p>
+</li>
+</ul>
+<h3 id="3-future-longer-term">3. Future / Longer-Term<a class="headerlink" href="#3-future-longer-term" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Per-Sheet Cut-Order Visualization</strong> – Visual guide for rip/crosscut sequences per sheet.</li>
+<li><strong>Enhanced Sheet Exhaustion Metrics</strong> – Utilization percentages and unused vs used counts.</li>
+<li><strong>Multi-Sheet Presets</strong> – Configurable sheet stacks as presets compatible with measurement rules.</li>
+<li><strong>Kerf Simulation</strong> – Saw-specific kerf modeling tied into both packing and cut-friendly heuristics.</li>
+</ul>
+<hr />
+<h2 id="c-how-to-use-this-addendum">C. HOW TO USE THIS ADDENDUM<a class="headerlink" href="#c-how-to-use-this-addendum" title="Permanent link">&para;</a></h2>
+<ul>
+<li>The core v3.2 architectural rules remain authoritative.</li>
+<li>This addendum synchronizes the v3.2 guide and <code>docs/Backlog.md</code> with real status/backlog data.</li>
+<li>Future architectural or backlog changes must update both the main guide (or successor) and this alignment layer, keeping architecture, status, and backlog clearly separated.</li>
 </ul>
 <hr />
 <h1 id="12-development-rules-summary">12. Development Rules Summary<a class="headerlink" href="#12-development-rules-summary" title="Permanent link">&para;</a></h1>
@@ -1375,10 +1496,12 @@ Must round-trip without drift.</p>
 <hr />
 <h1 id="13-changelog-strategy-for-v32">13. Changelog Strategy for v3.2<a class="headerlink" href="#13-changelog-strategy-for-v32" title="Permanent link">&para;</a></h1>
 <ul>
-<li>Add v3.2 section  </li>
-<li>Note settings fixes, hydration rules, UI rules, Codex reinforcement  </li>
-<li>Bump version to 0.3.2  </li>
-<li>Include explicit references to v3.2 documentation  </li>
+<li>Add v3.2 section</li>
+<li>Note settings fixes, hydration rules, UI rules, Codex reinforcement</li>
+<li>Bump version to 0.3.2</li>
+<li>Include explicit references to v3.2 documentation</li>
+<li>Record that backlog/status alignment was refreshed (Completed vs. Active vs. Future) and mirrored into docs/Backlog.md</li>
+<li>Document the AI-forward development workflow (host-cloned repo, bind-mounted dev container, canonical <code>.code-workspace</code>)</li>
 </ul>
 <hr />
 <h1 id="end-of-squatchcut-project-guide-v32">END OF SquatchCut Project Guide v3.2<a class="headerlink" href="#end-of-squatchcut-project-guide-v32" title="Permanent link">&para;</a></h1>
