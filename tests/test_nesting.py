@@ -206,6 +206,30 @@ def test_cut_optimized_layout_builds_rows():
             assert not _rects_overlap(placements[i], placements[j])
 
 
+def test_cut_optimized_respects_job_sheet_dimensions():
+    parts = [
+        Part(id="fit_first", width=280, height=180),
+        Part(id="needs_second", width=520, height=120),
+    ]
+    sheet_sizes = [(300, 200), (600, 300)]
+    placements = nest_cut_optimized(
+        parts,
+        sheet_width=300,
+        sheet_height=200,
+        kerf=0.0,
+        margin=0.0,
+        sheet_sizes=sheet_sizes,
+    )
+    assert len(placements) == len(parts)
+    second = next(p for p in placements if p.id == "needs_second")
+    assert second.sheet_index == 1
+    assert second.x + second.width <= sheet_sizes[1][0] + 1e-6
+    for pp in placements:
+        sw, sh = sheet_sizes[min(pp.sheet_index, len(sheet_sizes) - 1)]
+        assert pp.x + pp.width <= sw + 1e-6
+        assert pp.y + pp.height <= sh + 1e-6
+
+
 def test_guillotine_nesting_no_overlap_detector():
     parts = [
         Part(id="a", width=120, height=80),
@@ -215,6 +239,31 @@ def test_guillotine_nesting_no_overlap_detector():
     cfg = NestingConfig(optimize_for_cut_path=True, kerf_width_mm=2.0)
     placed = nest_parts(parts, 400, 300, cfg)
     assert not detect_overlaps(placed)
+
+
+def test_guillotine_uses_multiple_job_sheets():
+    parts = [
+        Part(id="sheet0_part", width=450, height=200),
+        Part(id="sheet1_part", width=620, height=120),
+    ]
+    sheet_sizes = [(500, 300), (700, 300)]
+    cfg = NestingConfig(optimize_for_cut_path=True, kerf_width_mm=1.0)
+    placements = nest_parts(
+        parts,
+        sheet_width=sheet_sizes[0][0],
+        sheet_height=sheet_sizes[0][1],
+        config=cfg,
+        sheet_sizes=sheet_sizes,
+    )
+    assert len(placements) == len(parts)
+    assert {pp.sheet_index for pp in placements} == {0, 1}
+    second = next(p for p in placements if p.id == "sheet1_part")
+    assert second.sheet_index == 1
+    assert second.x + second.width <= sheet_sizes[1][0] + 1e-6
+    for pp in placements:
+        sw, sh = sheet_sizes[min(pp.sheet_index, len(sheet_sizes) - 1)]
+        assert pp.x + pp.width <= sw + 1e-6
+        assert pp.y + pp.height <= sh + 1e-6
 
 
 def test_estimate_cut_counts_uses_unique_boundaries():

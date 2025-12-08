@@ -15,9 +15,10 @@ from SquatchCut.core.nesting import (
     NestingValidationError,
     Part,
     compute_utilization_for_sheets,
-    derive_sheet_definitions_for_mode,
+    expand_sheet_sizes,
     derive_sheet_sizes_for_layout,
     estimate_cut_counts_for_sheets,
+    get_effective_job_sheets_for_nesting,
     get_usable_sheet_area,
     nest_cut_optimized,
     nest_on_multiple_sheets,
@@ -268,11 +269,25 @@ class RunNestingCommand:
 
             sheet_mode = session_state.get_sheet_mode()
             job_sheets = session_state.get_job_sheets()
-            sheet_definitions = derive_sheet_definitions_for_mode(sheet_mode, job_sheets, sheet_w, sheet_h)
+            sheet_definitions = get_effective_job_sheets_for_nesting(sheet_mode, job_sheets)
             if sheet_mode == "job_sheets" and not sheet_definitions:
                 show_error("No job sheets are defined. Add at least one sheet or switch back to simple mode.", title="SquatchCut")
                 self.validation_error = ValueError("Missing job sheets in advanced mode.")
                 return
+            sheet_sizes_override = expand_sheet_sizes(sheet_definitions or [])
+            if sheet_definitions:
+                total_instances = len(sheet_sizes_override) or len(sheet_definitions)
+                summary_parts = []
+                for idx, sheet in enumerate(sheet_definitions):
+                    label = sheet.get("label") or f"Sheet {idx + 1}"
+                    width = sheet.get("width_mm") or 0
+                    height = sheet.get("height_mm") or 0
+                    qty = sheet.get("quantity") or 1
+                    summary_parts.append(f"{label}={width:.1f}x{height:.1f}mm (qty {qty})")
+                logger.info(
+                    f">>> [SquatchCut] Advanced job sheets active with {total_instances} sheet instance(s): "
+                    + "; ".join(summary_parts)
+                )
             try:
                 if cut_mode:
                     cfg = NestingConfig(
@@ -282,7 +297,7 @@ class RunNestingCommand:
                         spacing_mm=gap_mm,
                         nesting_mode="cut_friendly",
                     )
-                    placed_parts = nest_parts(parts, sheet_w, sheet_h, cfg)
+                    placed_parts = nest_parts(parts, sheet_w, sheet_h, cfg, sheet_sizes=sheet_sizes_override)
                 elif opt_mode == "cuts":
                     placed_parts = nest_cut_optimized(
                         parts,
@@ -290,6 +305,7 @@ class RunNestingCommand:
                         sheet_h,
                         kerf=float(kerf_mm),
                         margin=float(gap_mm),
+                        sheet_sizes=sheet_sizes_override,
                     )
                 else:
                     cfg = NestingConfig(

@@ -283,3 +283,60 @@ def test_job_sheets_persist_across_mode_toggle_and_unit_change():
         _restore_prefs(prefs, snap)
         session_state.clear_job_sheets()
         session_state.set_sheet_mode("simple")
+
+
+def test_cut_mode_warning_shown_with_multiple_job_sheets():
+    settings.hydrate_from_params()
+    _reset_session_state()
+    try:
+        session_state.set_sheet_mode("job_sheets")
+        session_state.set_job_sheets(
+            [
+                {"width_mm": 300.0, "height_mm": 400.0, "quantity": 1},
+                {"width_mm": 600.0, "height_mm": 400.0, "quantity": 1},
+            ]
+        )
+        panel = SquatchCutTaskPanel()
+        panel.cut_mode_check.setChecked(True)
+        panel.update_run_button_state()
+        assert panel._sheet_warning_active is True
+        assert "Advanced job sheets" in panel.sheet_warning_label.text()
+    finally:
+        _reset_session_state()
+        session_state.clear_job_sheets()
+
+
+def test_warning_shown_for_cuts_mode_when_multiple_sheets_active():
+    settings.hydrate_from_params()
+    _reset_session_state()
+    try:
+        session_state.set_sheet_mode("job_sheets")
+        session_state.set_job_sheets(
+            [
+                {"width_mm": 400.0, "height_mm": 800.0, "quantity": 2},
+            ]
+        )
+        panel = SquatchCutTaskPanel()
+        panel.cut_mode_check.setChecked(False)
+        idx = panel.mode_combo.findData("cuts")
+        assert idx >= 0
+        panel.mode_combo.setCurrentIndex(idx)
+        panel.update_run_button_state()
+        assert panel._sheet_warning_active is True
+    finally:
+        _reset_session_state()
+        session_state.clear_job_sheets()
+
+
+def test_sheet_warning_hidden_when_advanced_disabled():
+    settings.hydrate_from_params()
+    _reset_session_state()
+    try:
+        session_state.set_sheet_mode("simple")
+        session_state.clear_job_sheets()
+        panel = SquatchCutTaskPanel()
+        panel.cut_mode_check.setChecked(True)
+        panel.update_run_button_state()
+        assert panel._sheet_warning_active is False
+    finally:
+        _reset_session_state()

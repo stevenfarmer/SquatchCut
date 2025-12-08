@@ -57,6 +57,8 @@ class SquatchCutTaskPanel:
         self._section_widgets: dict[str, QtWidgets.QWidget] = {}
         self._selected_sheet_index: int = 0
         self._suppress_sheet_table_events = False
+        self.sheet_warning_label: QtWidgets.QLabel | None = None
+        self._sheet_warning_active = False
 
         self.form = QtWidgets.QWidget()
         self._build_ui()
@@ -318,6 +320,14 @@ class SquatchCutTaskPanel:
             "Allow SquatchCut to rotate panels when nesting this job."
         )
         form.addRow(self.job_allow_rotation_check)
+        self.sheet_warning_label = QtWidgets.QLabel(
+            "Advanced job sheets with cut-focused modes are experimental; verify each sheet nests as expected."
+        )
+        if hasattr(self.sheet_warning_label, "setWordWrap"):
+            self.sheet_warning_label.setWordWrap(True)
+        self.sheet_warning_label.setStyleSheet("color: #b26b00;")
+        self._set_widget_visible(self.sheet_warning_label, False)
+        vbox.addWidget(self.sheet_warning_label)
         vbox.addLayout(form)
 
         view_layout = QtWidgets.QHBoxLayout()
@@ -421,6 +431,11 @@ class SquatchCutTaskPanel:
         setter = getattr(widget, "setSizePolicy", None)
         if callable(setter):
             setter(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+
+    def _set_widget_visible(self, widget, visible: bool) -> None:
+        setter = getattr(widget, "setVisible", None)
+        if callable(setter):
+            setter(bool(visible))
 
     # ---------------- State helpers ----------------
 
@@ -740,6 +755,34 @@ class SquatchCutTaskPanel:
             self.preview_button.setToolTip("Generate a preview nesting layout.")
             self.run_button.setToolTip("Create sheet objects in the active document.")
         self._update_status_label()
+        self._update_cut_mode_sheet_warning()
+
+    def _update_cut_mode_sheet_warning(self) -> None:
+        """Show/hide warning when advanced job sheets and cut-focused modes overlap."""
+        label = getattr(self, "sheet_warning_label", None)
+        if label is None:
+            return
+        advanced = session_state.is_job_sheets_mode()
+        sheet_count = 0
+        for entry in session_state.get_job_sheets() or []:
+            qty = entry.get("quantity", 1)
+            try:
+                sheet_count += max(1, int(qty))
+            except Exception:
+                sheet_count += 1
+        uses_cut_modes = bool(self.cut_mode_check.isChecked()) or (
+            (self.mode_combo.currentData() or "material") == "cuts"
+        )
+        show_warning = advanced and sheet_count > 1 and uses_cut_modes
+        self._set_widget_visible(label, show_warning)
+        self._sheet_warning_active = show_warning
+        if show_warning:
+            label.setText(
+                "Advanced job sheets with cut-friendly or guillotine layouts are partially supported. "
+                "Sheets are processed sequentially; review the layout to ensure each configured sheet was used."
+            )
+        else:
+            label.setText("")
 
     def _apply_job_rotation_state_to_session(self, allow_rotation: bool) -> None:
         """Keep job-level rotation flags and allowed rotations in sync."""

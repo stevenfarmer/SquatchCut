@@ -31,12 +31,13 @@ def _orientations_for_part(part, allowed_rotations: Tuple[int, ...]) -> Iterable
         yield part.height, part.width, 90
 
 
-def guillotine_nest_parts(parts, sheet, config) -> List:
+def guillotine_nest_parts(parts, sheet, config, sheet_sizes: List[Tuple[float, float]] | None = None) -> List:
     """
     Guillotine-style nesting: place parts in free rectangles, splitting space after each placement.
 
     - Parts sorted largest-first.
     - Honors allowed rotations and kerf spacing.
+    - Supports multi-sheet input by advancing through sheet_sizes when provided.
     - Returns PlacedPart objects from SquatchCut.core.nesting.
     """
 
@@ -44,16 +45,47 @@ def guillotine_nest_parts(parts, sheet, config) -> List:
     if sheet_w <= 0 or sheet_h <= 0:
         return []
 
-    free_rects = [{"x": 0.0, "y": 0.0, "w": sheet_w, "h": sheet_h}]
+    sizes = sheet_sizes or []
+
+    def _sheet_dimensions(index: int) -> tuple[float, float]:
+        return nesting_mod.resolve_sheet_dimensions(sizes, index, sheet_w, sheet_h)
+
+    configured_sizes = sizes or [(sheet_w, sheet_h)]
+    for part in parts:
+        fits_somewhere = False
+        for sw, sh in configured_sizes:
+            if sw <= 0 or sh <= 0:
+                continue
+            fits_plain = part.width <= sw and part.height <= sh
+            fits_rotated = (
+                getattr(part, "can_rotate", False) and part.height <= sw and part.width <= sh
+            )
+            if fits_plain or fits_rotated:
+                fits_somewhere = True
+                break
+        if not fits_somewhere:
+            sw, sh = configured_sizes[0]
+            raise ValueError(
+                f"Part {part.id} ({part.width} x {part.height}) does not fit "
+                f"on sheet {sw} x {sh} in any allowed orientation."
+            )
+
+    current_sheet_width, current_sheet_height = _sheet_dimensions(0)
+    if current_sheet_width <= 0 or current_sheet_height <= 0:
+        return []
+
+    free_rects = [{"x": 0.0, "y": 0.0, "w": current_sheet_width, "h": current_sheet_height}]
     placements: list[nesting_mod.PlacedPart] = []
 
-    sorted_parts = sorted(parts, key=lambda p: p.width * p.height, reverse=True)
+    remaining_parts = sorted(parts, key=lambda p: p.width * p.height, reverse=True)
 
     spacing = get_effective_spacing(config)
     kerf = spacing  # treat spacing as kerf/spacing budget
     allowed_rots = tuple(getattr(config, "allowed_rotations_deg", (0, 90)) or (0, 90))
 
-    for part in sorted_parts:
+    sheet_index = 0
+    while remaining_parts:
+        part = remaining_parts.pop(0)
         placed = False
         for fr_idx, fr in enumerate(list(free_rects)):
             for w, h, rot in _orientations_for_part(part, allowed_rots):
@@ -65,13 +97,13 @@ def guillotine_nest_parts(parts, sheet, config) -> List:
                     continue
                 x = fr["x"]
                 y = fr["y"]
-                if x + w > sheet_w + 1e-6 or y + h > sheet_h + 1e-6:
+                if x + w > current_sheet_width + 1e-6 or y + h > current_sheet_height + 1e-6:
                     continue
 
                 placements.append(
                     nesting_mod.PlacedPart(
                         id=part.id,
-                        sheet_index=0,
+                        sheet_index=sheet_index,
                         x=x,
                         y=y,
                         width=w,
@@ -105,7 +137,16 @@ def guillotine_nest_parts(parts, sheet, config) -> List:
                 break
 
         if not placed:
-            raise ValueError(f"Part {part.id} does not fit on sheet with guillotine nesting.")
+            sheet_index += 1
+            current_sheet_width, current_sheet_height = _sheet_dimensions(sheet_index)
+            if current_sheet_width <= 0 or current_sheet_height <= 0:
+                raise ValueError(
+                    f"Part {part.id} ({part.width} x {part.height}) does not fit "
+                    f"on sheet {current_sheet_width} x {current_sheet_height} with guillotine nesting."
+                )
+            free_rects = [{"x": 0.0, "y": 0.0, "w": current_sheet_width, "h": current_sheet_height}]
+            remaining_parts.insert(0, part)
+            continue
 
     return placements
 
