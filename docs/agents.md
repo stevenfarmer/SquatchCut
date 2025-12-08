@@ -65,3 +65,12 @@ Instruction block structure:
 - Do not invent new patterns or modules.
 - Do not widen scope; only change what the task requires.
 - Do not reduce test coverage or remove tests without explicit approval in instructions.
+
+## Export Rules (binding)
+
+- All user-facing exports (CSV, SVG, DXF) must go through `freecad/SquatchCut/core/exporter.py`.
+- `ExportJob`/`ExportSheet`/`ExportPartPlacement` are the **only** sources of truth for export geometry; Codex must never derive exports from FreeCAD document objects when ExportJob exists.
+- Codex must not add new file writes in arbitrary modules or reintroduce direct FreeCAD SVG/DXF exporters.
+- CSV/SVG implementations must use ExportJob values in millimeters and rely on exporter helpers for measurement-system display strings.
+- Any export behavior change requires updated tests (`tests/test_exporter.py`, `tests/test_exporter_svg.py`, etc.).
+- DXF export is currently deferred; Codex must not implement or prioritize DXF unless explicitly instructed by the backlog/requirements.

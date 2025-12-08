@@ -242,7 +242,31 @@ Codex must ensure:
 
 ---
 
-# 11. Status & Backlog Addendum (Dec 2025)
+# 11. Export Architecture (v3.3 preparation)
+
+## 11.1 Canonical Export Data Model
+- `freecad/SquatchCut/core/exporter.py` defines the only valid export model:
+  - `ExportJob` – job-wide metadata + sheets, measurement system, job name.
+  - `ExportSheet` – sheet index, width/height in mm, list of part placements.
+  - `ExportPartPlacement` – per-part geometry (x_mm, y_mm, width_mm, height_mm, rotation_deg) and part_id.
+- ExportJob is built from the latest nesting layout + sheet config via `build_export_job_from_current_nesting`.
+- **All geometry is stored in millimeters.** Measurement system only affects formatted strings.
+
+## 11.2 Deterministic Export Behavior
+- **CSV export (`export_cutlist`)**
+  - Emits stable header columns (sheet_index, mm geometry, formatted strings).
+  - Raw mm values are untouched. `width_display/height_display` respect ExportJob.measurement_system.
+  - Tests cover both metric and imperial output.
+- **SVG export (`export_nesting_to_svg`)**
+  - Generates one 2D SVG per sheet; filenames include `_S{n}` suffix.
+  - Draws sheet border, stroke-only part rectangles, deterministic labels (ID + dimensions), and header “Sheet i of N – WxH units”.
+  - No FreeCAD 3D/export calls; everything is generated from ExportJob data.
+- **Design Principle:** Export behavior must be deterministic and driven solely by ExportJob. FreeCAD document geometry is never a source of truth for exported artifacts.
+
+## 11.3 Out-of-scope
+- DXF export remains deferred. Implementing DXF is explicitly out of scope for the current release cycle and cannot block delivery.
+
+# 12. Status & Backlog Addendum (Dec 2025)
 
 > **NOTE**  
 > This addendum does **not** change any core architectural rules.  
@@ -343,7 +367,7 @@ Codex must ensure:
 
 ---
 
-# 12. Development Rules Summary
+# 13. Development Rules Summary
 
 1. Internal unit = mm  
 2. Imperial UI = fractions only  
@@ -369,7 +393,38 @@ Codex must ensure:
 - Include explicit references to v3.2 documentation
 - Record that backlog/status alignment was refreshed (Completed vs. Active vs. Future) and mirrored into docs/Backlog.md
 - Document the AI-forward development workflow (host-cloned repo, bind-mounted dev container, canonical `.code-workspace`)
+- Added v3.3 Roadmap section describing required deliverables for FreeCAD Add-On Manager readiness and release planning.
 
 ---
 
+# 14. Roadmap for v3.3 – FreeCAD Add-On Release Candidate
+
+v3.3 is a stabilization and polish release aimed at making SquatchCut ready for the FreeCAD Add-On Manager.
+No new “hero features” are allowed unless they directly support stability, usability, or Add-On compliance.
+
+## 14.1 v3.3 Goals
+- Deliver a non-destructive, deterministic nesting workflow.
+- Eliminate UI overflow issues in the TaskPanel.
+- Polish multi-sheet visualization and eliminate ghost objects.
+- Implement a fully functional CSV export path.
+- Surface sheet-exhaustion metrics and warnings.
+- Achieve full Add-On Manager compliance.
+- Update user docs and include example CSVs.
+
+## 14.2 Phase 1 – Critical Completion (Release Blockers)
+[INSERT ALL SUBSECTIONS EXACTLY AS PROVIDED BY ARCHITECT AI]
+
+## 14.3 Phase 2 – Core Features Required for Release
+[INSERT ALL SUBSECTIONS EXACTLY AS PROVIDED BY ARCHITECT AI]
+
+## 14.4 Phase 3 – Add-On Manager Readiness
+[INSERT ALL SUBSECTIONS EXACTLY AS PROVIDED BY ARCHITECT AI]
+
+## 14.5 Phase 4 – Optional Items (Candidates for v3.4)
+[INSERT ALL SUBSECTIONS EXACTLY AS PROVIDED BY ARCHITECT AI]
+
+## 14.6 v3.3 Exit Criteria
+[INSERT ALL SUBSECTIONS EXACTLY AS PROVIDED BY ARCHITECT AI]
+
+# END OF SquatchCut Project Guide v3.2
 # END OF SquatchCut Project Guide v3.2
