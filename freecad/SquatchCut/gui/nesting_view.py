@@ -36,7 +36,9 @@ def rebuild_nested_geometry(doc, placements, sheet_w, sheet_h, source_objects=No
     logger.info(f">>> [SquatchCut] Nested group cleared and rebuilt with {removed} parts")
 
     source_objects = source_objects or []
-    source_map = {getattr(o, "Name", ""): o for o in source_objects}
+    source_map = _build_source_map(source_objects, doc)
+    if not source_map and placements:
+        logger.warning("[SquatchCut][WARN] No valid source objects found for nesting; using fallback boxes.")
 
     def _find_source(part_id):
         return source_map.get(part_id) or doc.getObject(part_id) or doc.getObject(f"SC_Source_{part_id}")
@@ -90,3 +92,28 @@ def rebuild_nested_geometry(doc, placements, sheet_w, sheet_h, source_objects=No
 
     logger.info(f">>> [SquatchCut] Rebuilt nesting view with {len(nested_objs)} object(s).")
     return group, nested_objs
+
+
+def _safe_object_name(obj):
+    if obj is None:
+        return ""
+    try:
+        return getattr(obj, "Name", "") or ""
+    except ReferenceError:
+        return ""
+
+
+def _build_source_map(source_objects, doc):
+    valid = {}
+    for obj in source_objects or []:
+        name = _safe_object_name(obj)
+        if name:
+            valid[name] = obj
+    if doc is not None:
+        source_group = doc.getObject("SquatchCut_SourceParts")
+        if source_group is not None:
+            for member in getattr(source_group, "Group", []) or []:
+                name = _safe_object_name(member)
+                if name:
+                    valid[name] = member
+    return valid
