@@ -1363,7 +1363,33 @@ Must round-trip without drift.</p>
 <li>Version increments  </li>
 </ul>
 <hr />
-<h1 id="11-status-backlog-addendum-dec-2025">11. Status &amp; Backlog Addendum (Dec 2025)<a class="headerlink" href="#11-status-backlog-addendum-dec-2025" title="Permanent link">&para;</a></h1>
+<h1 id="11-export-architecture-v33-preparation">11. Export Architecture (v3.3 preparation)<a class="headerlink" href="#11-export-architecture-v33-preparation" title="Permanent link">&para;</a></h1>
+<h2 id="111-canonical-export-data-model">11.1 Canonical Export Data Model<a class="headerlink" href="#111-canonical-export-data-model" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>freecad/SquatchCut/core/exporter.py</code> defines the only valid export model:</li>
+<li><code>ExportJob</code> – job-wide metadata + sheets, measurement system, job name.</li>
+<li><code>ExportSheet</code> – sheet index, width/height in mm, list of part placements.</li>
+<li><code>ExportPartPlacement</code> – per-part geometry (x_mm, y_mm, width_mm, height_mm, rotation_deg) and part_id.</li>
+<li>ExportJob is built from the latest nesting layout + sheet config via <code>build_export_job_from_current_nesting</code>.</li>
+<li><strong>All geometry is stored in millimeters.</strong> Measurement system only affects formatted strings.</li>
+</ul>
+<h2 id="112-deterministic-export-behavior">11.2 Deterministic Export Behavior<a class="headerlink" href="#112-deterministic-export-behavior" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>CSV export (<code>export_cutlist</code>)</strong></li>
+<li>Emits stable header columns (sheet_index, mm geometry, formatted strings).</li>
+<li>Raw mm values are untouched. <code>width_display/height_display</code> respect ExportJob.measurement_system.</li>
+<li>Tests cover both metric and imperial output.</li>
+<li><strong>SVG export (<code>export_nesting_to_svg</code>)</strong></li>
+<li>Generates one 2D SVG per sheet; filenames include <code>_S{n}</code> suffix.</li>
+<li>Draws sheet border, stroke-only part rectangles, deterministic labels (ID + dimensions), and header “Sheet i of N – WxH units”.</li>
+<li>No FreeCAD 3D/export calls; everything is generated from ExportJob data.</li>
+<li><strong>Design Principle:</strong> Export behavior must be deterministic and driven solely by ExportJob. FreeCAD document geometry is never a source of truth for exported artifacts.</li>
+</ul>
+<h2 id="113-out-of-scope">11.3 Out-of-scope<a class="headerlink" href="#113-out-of-scope" title="Permanent link">&para;</a></h2>
+<ul>
+<li>DXF export remains deferred. Implementing DXF is explicitly out of scope for the current release cycle and cannot block delivery.</li>
+</ul>
+<h1 id="12-status-backlog-addendum-dec-2025">12. Status &amp; Backlog Addendum (Dec 2025)<a class="headerlink" href="#12-status-backlog-addendum-dec-2025" title="Permanent link">&para;</a></h1>
 <blockquote>
 <p><strong>NOTE</strong><br />
 This addendum does <strong>not</strong> change any core architectural rules.<br />
@@ -1477,7 +1503,7 @@ The information below reflects the current codebase (CSV ingestion, session-stat
 <li>Future architectural or backlog changes must update both the main guide (or successor) and this alignment layer, keeping architecture, status, and backlog clearly separated.</li>
 </ul>
 <hr />
-<h1 id="12-development-rules-summary">12. Development Rules Summary<a class="headerlink" href="#12-development-rules-summary" title="Permanent link">&para;</a></h1>
+<h1 id="13-development-rules-summary">13. Development Rules Summary<a class="headerlink" href="#13-development-rules-summary" title="Permanent link">&para;</a></h1>
 <ol>
 <li>Internal unit = mm  </li>
 <li>Imperial UI = fractions only  </li>
@@ -1502,9 +1528,34 @@ The information below reflects the current codebase (CSV ingestion, session-stat
 <li>Include explicit references to v3.2 documentation</li>
 <li>Record that backlog/status alignment was refreshed (Completed vs. Active vs. Future) and mirrored into docs/Backlog.md</li>
 <li>Document the AI-forward development workflow (host-cloned repo, bind-mounted dev container, canonical <code>.code-workspace</code>)</li>
+<li>Added v3.3 Roadmap section describing required deliverables for FreeCAD Add-On Manager readiness and release planning.</li>
 </ul>
 <hr />
+<h1 id="14-roadmap-for-v33-freecad-add-on-release-candidate">14. Roadmap for v3.3 – FreeCAD Add-On Release Candidate<a class="headerlink" href="#14-roadmap-for-v33-freecad-add-on-release-candidate" title="Permanent link">&para;</a></h1>
+<p>v3.3 is a stabilization and polish release aimed at making SquatchCut ready for the FreeCAD Add-On Manager.
+No new “hero features” are allowed unless they directly support stability, usability, or Add-On compliance.</p>
+<h2 id="141-v33-goals">14.1 v3.3 Goals<a class="headerlink" href="#141-v33-goals" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Deliver a non-destructive, deterministic nesting workflow.</li>
+<li>Eliminate UI overflow issues in the TaskPanel.</li>
+<li>Polish multi-sheet visualization and eliminate ghost objects.</li>
+<li>Implement a fully functional CSV export path.</li>
+<li>Surface sheet-exhaustion metrics and warnings.</li>
+<li>Achieve full Add-On Manager compliance.</li>
+<li>Update user docs and include example CSVs.</li>
+</ul>
+<h2 id="142-phase-1-critical-completion-release-blockers">14.2 Phase 1 – Critical Completion (Release Blockers)<a class="headerlink" href="#142-phase-1-critical-completion-release-blockers" title="Permanent link">&para;</a></h2>
+<p>[INSERT ALL SUBSECTIONS EXACTLY AS PROVIDED BY ARCHITECT AI]</p>
+<h2 id="143-phase-2-core-features-required-for-release">14.3 Phase 2 – Core Features Required for Release<a class="headerlink" href="#143-phase-2-core-features-required-for-release" title="Permanent link">&para;</a></h2>
+<p>[INSERT ALL SUBSECTIONS EXACTLY AS PROVIDED BY ARCHITECT AI]</p>
+<h2 id="144-phase-3-add-on-manager-readiness">14.4 Phase 3 – Add-On Manager Readiness<a class="headerlink" href="#144-phase-3-add-on-manager-readiness" title="Permanent link">&para;</a></h2>
+<p>[INSERT ALL SUBSECTIONS EXACTLY AS PROVIDED BY ARCHITECT AI]</p>
+<h2 id="145-phase-4-optional-items-candidates-for-v34">14.5 Phase 4 – Optional Items (Candidates for v3.4)<a class="headerlink" href="#145-phase-4-optional-items-candidates-for-v34" title="Permanent link">&para;</a></h2>
+<p>[INSERT ALL SUBSECTIONS EXACTLY AS PROVIDED BY ARCHITECT AI]</p>
+<h2 id="146-v33-exit-criteria">14.6 v3.3 Exit Criteria<a class="headerlink" href="#146-v33-exit-criteria" title="Permanent link">&para;</a></h2>
+<p>[INSERT ALL SUBSECTIONS EXACTLY AS PROVIDED BY ARCHITECT AI]</p>
 <h1 id="end-of-squatchcut-project-guide-v32">END OF SquatchCut Project Guide v3.2<a class="headerlink" href="#end-of-squatchcut-project-guide-v32" title="Permanent link">&para;</a></h1>
+<h1 id="end-of-squatchcut-project-guide-v32_1">END OF SquatchCut Project Guide v3.2<a class="headerlink" href="#end-of-squatchcut-project-guide-v32_1" title="Permanent link">&para;</a></h1>
 
 
 

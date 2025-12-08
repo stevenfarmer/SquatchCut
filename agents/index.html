@@ -1020,6 +1020,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#export-rules-binding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Export Rules (binding)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1103,6 +1114,15 @@
 <li>Do not invent new patterns or modules.</li>
 <li>Do not widen scope; only change what the task requires.</li>
 <li>Do not reduce test coverage or remove tests without explicit approval in instructions.</li>
+</ul>
+<h2 id="export-rules-binding">Export Rules (binding)<a class="headerlink" href="#export-rules-binding" title="Permanent link">&para;</a></h2>
+<ul>
+<li>All user-facing exports (CSV, SVG, DXF) must go through <code>freecad/SquatchCut/core/exporter.py</code>.</li>
+<li><code>ExportJob</code>/<code>ExportSheet</code>/<code>ExportPartPlacement</code> are the <strong>only</strong> sources of truth for export geometry; Codex must never derive exports from FreeCAD document objects when ExportJob exists.</li>
+<li>Codex must not add new file writes in arbitrary modules or reintroduce direct FreeCAD SVG/DXF exporters.</li>
+<li>CSV/SVG implementations must use ExportJob values in millimeters and rely on exporter helpers for measurement-system display strings.</li>
+<li>Any export behavior change requires updated tests (<code>tests/test_exporter.py</code>, <code>tests/test_exporter_svg.py</code>, etc.).</li>
+<li>DXF export is currently deferred; Codex must not implement or prioritize DXF unless explicitly instructed by the backlog/requirements.</li>
 </ul>
 
 

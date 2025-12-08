@@ -1005,49 +1005,76 @@
 <li><strong>Warning Banner Infrastructure</strong> – TaskPanel warning banner warns when cut modes may ignore sheets; <code>_sheet_warning_active</code> wiring covered by hydration tests (<code>freecad/SquatchCut/gui/taskpanel_main.py</code>, <code>tests/test_taskpanel_hydration.py</code>).</li>
 <li><strong>Documentation &amp; Backlog Sync</strong> – v3.2 guide and this backlog reflect the shared job-sheet pipeline, warning banner, and current priorities (<code>docs/Project_Guide_v3.2.md</code>).</li>
 <li><strong>AI-Friendly Dev Environment</strong> – Host-cloned repo, bind-mounted dev container, and <code>squatchcut.code-workspace</code> defined for ChatGPT/Codex compatibility (<code>.devcontainer/devcontainer.json</code>, <code>squatchcut.code-workspace</code>, <code>docs/Development_Environment.md</code>).</li>
+<li><strong>Canonical ExportJob Model</strong> – <code>ExportJob</code>, <code>ExportSheet</code>, and <code>ExportPartPlacement</code> defined/tested in <code>freecad/SquatchCut/core/exporter.py</code>; <code>build_export_job_from_current_nesting</code> is the sole bridge from nesting to exports.</li>
+<li><strong>CSV Cutlist Export from ExportJob</strong> – <code>export_cutlist</code> now writes deterministic CSV rows (raw mm + formatted strings) using ExportJob; TaskPanel routes CSV flows exclusively through exporter.py.</li>
+<li><strong>SVG 2D Export from ExportJob</strong> – <code>export_nesting_to_svg</code> renders one sheet-per-file SVG with sheet borders, part rectangles, and labels without touching FreeCAD geometry; TaskPanel uses this gateway for SVG.</li>
+<li><strong>Centralized Export Gateway</strong> – All TaskPanel exports call <code>build_export_job_from_current_nesting</code> + <code>exporter.export_*</code>; no other module writes CSV/SVG files directly.</li>
 </ul>
 <h2 id="active-backlog-high-priority">Active Backlog (High Priority)<a class="headerlink" href="#active-backlog-high-priority" title="Permanent link">&para;</a></h2>
 <ul>
 <li>
-<p><strong>P1 – Preview Determinism &amp; Cleanup</strong> – Separate preview from apply so preview is non-destructive, and keep <code>SquatchCut_Sheet_*</code>, <code>SquatchCut_SourceParts_*</code>, and <code>SquatchCut_NestedParts_*</code> groups synchronized/cleared.<br />
+<p><strong>P1 – Preview Determinism &amp; Cleanup</strong> – Separate preview from apply so preview is non-destructive, and keep <code>SquatchCut_Sheet_*</code>, <code>SquatchCut_SourceParts_*</code>, and <code>SquatchCut_NestedParts_*</code> groups synchronized/cleared across Preview/Apply runs.<br />
 <em>Scope</em>: <code>freecad/SquatchCut/gui/taskpanel_main.py</code>, <code>freecad/SquatchCut/core/view_controller.py</code>, <code>freecad/SquatchCut/core/session.py</code></p>
 </li>
 <li>
-<p><strong>P1 – TaskPanel Overflow &amp; Ergonomics</strong> – Rework dense button/checkbox rows (Preview/Run/Show Source, warning banner, sheet controls) to prevent clipping on narrow docks.<br />
-<em>Scope</em>: <code>freecad/SquatchCut/gui/taskpanel_main.py</code></p>
+<p><strong>P1 – TaskPanel Overflow &amp; Ergonomics</strong> – Rework dense button/checkbox rows (Preview/Run/Show Source, warning banner, sheet controls) to prevent clipping on narrow docks, and add/update minimal UI smoke checks to ensure the TaskPanel initializes cleanly at narrow dock widths (~300–350 px).<br />
+<em>Scope</em>: <code>freecad/SquatchCut/gui/taskpanel_main.py</code>, <code>tests/test_taskpanel_hydration.py</code> (and/or lightweight GUI smoke tests)</p>
 </li>
 <li>
-<p><strong>P1 – Multi-Sheet Visualization Polish</strong> – Improve per-sheet labeling, spacing, and navigation inside the 3D view so advanced sheet stacks are obvious and ghost objects never remain.<br />
+<p><strong>P1 – Multi-Sheet Visualization Polish</strong> – Improve per-sheet labeling, spacing, and navigation inside the 3D view so advanced sheet stacks are obvious and ghost objects never remain after reruns.<br />
 <em>Scope</em>: <code>freecad/SquatchCut/gui/nesting_view.py</code>, <code>freecad/SquatchCut/core/view_controller.py</code></p>
 </li>
 <li>
-<p><strong>P1 – Cut-Friendly Multi-Sheet Heuristics</strong> – Refine lane/guillotine handling of sheet order, spacing, and exhaustion so parts aren’t silently dropped or restarted unpredictably.<br />
+<p><strong>P1 – Cut-Friendly Multi-Sheet Heuristics</strong> – Refine lane/guillotine handling of sheet order, spacing, and exhaustion so parts aren’t silently dropped or restarted unpredictably when jobs span multiple sheets.<br />
 <em>Scope</em>: <code>freecad/SquatchCut/core/nesting.py</code>, <code>freecad/SquatchCut/core/cut_optimization.py</code></p>
 </li>
 <li>
-<p><strong>P1 – Test Suite Expansion (Hydration, Units, Preview)</strong> – Add coverage for measurement toggles, fractional-inch formatting drift, preview lifecycle, sheet_index propagation, and basic exhaustion scenarios.<br />
-<em>Scope</em>: <code>tests/test_taskpanel_hydration.py</code>, <code>tests/test_nesting.py</code>, new preview/exhaustion suites</p>
+<p><strong>P1 – Test Suite Expansion (Hydration, Units, Preview)</strong> – Add coverage for measurement toggles, fractional-inch formatting drift, preview lifecycle (Preview → Preview → Apply vs Apply-only), <code>sheet_index</code> propagation, and basic sheet exhaustion scenarios.<br />
+<em>Scope</em>: <code>tests/test_taskpanel_hydration.py</code>, <code>tests/test_nesting.py</code>, new preview/exhaustion-focused suites</p>
 </li>
 <li>
-<p><strong>P2 – CSV Export &amp; Cutlist Determinism</strong> – Replace the placeholder export command with a working, deterministic cutlist writer.<br />
+<p><strong>P2 – CSV Export &amp; Cutlist Determinism</strong> – Replace the placeholder export command with a working, deterministic cutlist writer that orders rows by sheet index and cut order and emits stable, documented fields.<br />
 <em>Scope</em>: <code>freecad/SquatchCut/gui/commands/cmd_run_nesting.py</code> + helpers</p>
 </li>
 <li>
-<p><strong>P2 – Warning Banner Lifecycle Tests</strong> – Ensure <code>_sheet_warning_active</code> and banner text update correctly when nesting mode, job sheets, or unit systems change.<br />
+<p><strong>P2 – DXF Export from ExportJob (Deferred)</strong> – Implement DXF generation from the same 2D sheet/part representation once CSV/SVG pipelines are locked. Until then, DXF remains non-blocking.<br />
+<em>Scope</em>: <code>freecad/SquatchCut/core/exporter.py</code> (future work)</p>
+</li>
+<li>
+<p><strong>P2 – Documentation &amp; Sample Data Updates</strong> – Update user-facing docs and examples to match the v3.3 UX, including Preview vs Apply workflow, multi-sheet nesting behavior, and shipping both metric and imperial sample CSVs with expected results.<br />
+<em>Scope</em>: <code>docs/Project_Guide_v3.2.md</code>, <code>docs/user_guide.md</code>, <code>docs/samples/*</code></p>
+</li>
+<li>
+<p><strong>P2 – Warning Banner Lifecycle Tests</strong> – Ensure <code>_sheet_warning_active</code> and banner text update correctly when nesting mode, job sheets, or unit systems change so the banner never gets stuck “on” or “off”.<br />
 <em>Scope</em>: <code>freecad/SquatchCut/gui/taskpanel_main.py</code>, <code>tests/test_taskpanel_hydration.py</code></p>
 </li>
 <li>
-<p><strong>P2 – Sheet Exhaustion Metrics &amp; Feedback</strong> – Detect and communicate when configured sheet quantities run out, ideally via stats and UI/log hints.<br />
+<p><strong>P2 – Sheet Exhaustion Metrics &amp; Feedback</strong> – Detect and communicate when configured sheet quantities run out, ideally via simple usage stats (used vs available) and clear UI/log hints rather than silent truncation.<br />
 <em>Scope</em>: <code>freecad/SquatchCut/core/nesting.py</code>, <code>freecad/SquatchCut/gui/taskpanel_main.py</code></p>
 </li>
 </ul>
 <h2 id="future-longer-term-items">Future / Longer-Term Items<a class="headerlink" href="#future-longer-term-items" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Per-Sheet Cut-Order Visualization</strong> – Highlight rip/crosscut sequences and provide per-sheet cut-order visualization guidance in the viewer (<code>freecad/SquatchCut/gui/nesting_view.py</code>, <code>freecad/SquatchCut/core/cut_optimization.py</code>).</li>
-<li><strong>Enhanced Sheet Exhaustion Metrics</strong> – Provide utilization percentages and unused/used counts once baseline exhaustion warnings exist (<code>freecad/SquatchCut/core/nesting.py</code>, <code>freecad/SquatchCut/gui/taskpanel_main.py</code>).</li>
-<li><strong>Multi-Sheet Presets</strong> – Save/load named sheet stacks that respect measurement rules (<code>freecad/SquatchCut/gui/taskpanel_main.py</code>, <code>freecad/SquatchCut/core/session_state.py</code>, <code>docs/user_guide.md</code>).</li>
-<li><strong>Kerf Simulation</strong> – Model saw-specific kerf widths in both packing and cut-friendly heuristics (<code>freecad/SquatchCut/core/nesting.py</code>, <code>freecad/SquatchCut/core/cut_optimization.py</code>, <code>docs/user_guide.md</code>).</li>
-<li><strong>Grain Direction &amp; Bookmatching</strong> – Add metadata/constraints for honoring grain orientation or mirrored layouts (<code>freecad/SquatchCut/core/nesting.py</code>, <code>freecad/SquatchCut/gui/taskpanel_main.py</code>).</li>
+<li>
+<p><strong>Per-Sheet Cut-Order Visualization</strong> – Highlight rip/crosscut sequences and provide per-sheet cut-order visualization guidance in the viewer once core v3.3 visuals are stable.<br />
+<em>Scope</em>: <code>freecad/SquatchCut/gui/nesting_view.py</code>, <code>freecad/SquatchCut/core/cut_optimization.py</code></p>
+</li>
+<li>
+<p><strong>Enhanced Sheet Exhaustion Metrics</strong> – Provide utilization percentages and unused/used counts after baseline exhaustion warnings are in place, to help users tune their sheet configurations.<br />
+<em>Scope</em>: <code>freecad/SquatchCut/core/nesting.py</code>, <code>freecad/SquatchCut/gui/taskpanel_main.py</code></p>
+</li>
+<li>
+<p><strong>Multi-Sheet Presets</strong> – Save/load named sheet stacks that respect measurement rules and provide quick-select for common configurations (e.g., 4×8 plywood stacks).<br />
+<em>Scope</em>: <code>freecad/SquatchCut/gui/taskpanel_main.py</code>, <code>freecad/SquatchCut/core/session_state.py</code>, <code>docs/user_guide.md</code></p>
+</li>
+<li>
+<p><strong>Kerf Simulation</strong> – Model saw-specific kerf widths in both packing and cut-friendly heuristics, and expose configuration in the UI and documentation.<br />
+<em>Scope</em>: <code>freecad/SquatchCut/core/nesting.py</code>, <code>freecad/SquatchCut/core/cut_optimization.py</code>, <code>docs/user_guide.md</code></p>
+</li>
+<li>
+<p><strong>Grain Direction &amp; Bookmatching</strong> – Add metadata/constraints for honoring grain orientation or mirrored/bookmatched layouts, with UI toggles and clear export semantics.<br />
+<em>Scope</em>: <code>freecad/SquatchCut/core/nesting.py</code>, <code>freecad/SquatchCut/gui/taskpanel_main.py</code></p>
+</li>
 </ul>
 
 
