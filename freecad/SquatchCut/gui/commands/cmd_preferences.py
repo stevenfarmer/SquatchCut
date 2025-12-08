@@ -8,17 +8,9 @@ Interactions: Should display preferences UI and read/write via core preferences.
 Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 """
 
-import os
-
 from SquatchCut.freecad_integration import App, Gui
-from SquatchCut.gui.qt_compat import QtWidgets
 from SquatchCut.gui.dialog_preferences import SquatchCutPreferencesDialog
-
-ICONS_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),  # .../freecad/SquatchCut
-    "resources",
-    "icons",
-)
+from SquatchCut.gui.icons import get_icon
 
 
 class SC_PreferencesCommand:
@@ -30,7 +22,7 @@ class SC_PreferencesCommand:
         return {
             "MenuText": "Preferences",
             "ToolTip": "Open the SquatchCut preferences dialog.",
-            "Pixmap": os.path.join(ICONS_DIR, "preferences.svg"),
+            "Pixmap": get_icon("preferences"),
         }
 
     def Activated(self):  # noqa: N802  (FreeCAD API)

@@ -3,17 +3,12 @@ FreeCAD command to run the SquatchCut nesting engine and create geometry.
 Primary user entry is via SquatchCut_ShowTaskPanel; this command remains for advanced/legacy flows.
 """
 
-import os
 import traceback
 
 from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.gui.qt_compat import QtWidgets
+from SquatchCut.gui.icons import get_icon
 
-ICONS_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-    "resources",
-    "icons",
-)
 from SquatchCut.core import logger, session, session_state, view_controller
 from SquatchCut.core.nesting import (
     NestingConfig,
@@ -70,7 +65,7 @@ class RunNestingCommand:
 
     def GetResources(self):
         return {
-            "Pixmap": os.path.join(ICONS_DIR, "run_nesting.svg"),
+            "Pixmap": get_icon("run_nesting"),
             "MenuText": "Nest Parts",
             "ToolTip": "Run the SquatchCut nesting algorithm to place panels on the active sheet.",
         }
@@ -385,6 +380,7 @@ class ApplyNestingCommand:
         return {
             "MenuText": "Apply Layout",
             "ToolTip": "Re-run nesting and apply the latest layout to the document.",
+            "Pixmap": get_icon("run_nesting"),
         }
 
     def IsActive(self):
@@ -461,7 +457,7 @@ class ApplyNestingCommand:
 class ToggleSourcePanelsCommand:
     def GetResources(self):
         return {
-            "Pixmap": os.path.join(ICONS_DIR, "toggle_visibility.svg"),
+            "Pixmap": get_icon("toggle_visibility"),
             "MenuText": "Toggle Sources",
             "ToolTip": "Show or hide the original source panel objects.",
         }

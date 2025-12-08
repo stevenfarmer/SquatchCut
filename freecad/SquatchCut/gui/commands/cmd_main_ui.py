@@ -2,17 +2,10 @@
 
 from __future__ import annotations
 
-import os
-
 from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.core import logger
+from SquatchCut.gui.icons import get_icon
 from SquatchCut.gui.taskpanel_main import SquatchCutTaskPanel
-
-ICONS_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-    "resources",
-    "icons",
-)
 
 _main_panel_instance: SquatchCutTaskPanel | None = None
 
@@ -32,7 +25,7 @@ class SquatchCutMainUICommand:
         return {
             "MenuText": "SquatchCut",
             "ToolTip": "Open SquatchCut sheet optimization UI",
-            "Pixmap": os.path.join(ICONS_DIR, "squatchcut.svg"),
+            "Pixmap": get_icon("main"),
         }
 
     def IsActive(self):

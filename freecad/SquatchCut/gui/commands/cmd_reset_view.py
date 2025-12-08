@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import os
-
 from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.core import logger
+from SquatchCut.gui.icons import get_icon
 from SquatchCut.gui.view_helpers import (
     fit_view_to_sheet_and_nested,
     fit_view_to_source,
@@ -13,12 +12,6 @@ from SquatchCut.gui.view_helpers import (
     get_sheet_object,
     show_nested_only,
     show_source_and_sheet,
-)
-
-ICONS_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),  # .../SquatchCut/gui
-    "resources",
-    "icons",
 )
 
 
@@ -31,7 +24,7 @@ class ResetViewCommand:
         return {
             "MenuText": "Reset View",
             "ToolTip": "Show the sheet and nested layout, hide source parts, and fit the view.",
-            "Pixmap": os.path.join(ICONS_DIR, "squatchcut.svg"),
+            "Pixmap": get_icon("main"),
         }
 
     def Activated(self):

@@ -10,18 +10,11 @@ Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 
 from SquatchCut.gui.qt_compat import QtWidgets, QtCore, QtGui
 
-import os
-
 from SquatchCut.freecad_integration import App, Gui
+from SquatchCut.gui.icons import get_icon
 from ...core.report_generator import ReportGenerator
 from ...core import session_state
 from ..dialogs.dlg_export_report import SC_ExportReportDialog
-
-ICONS_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),  # .../freecad/SquatchCut
-    "resources",
-    "icons",
-)
 
 
 class SC_ExportReportCommand:
@@ -33,7 +26,7 @@ class SC_ExportReportCommand:
         return {
             "MenuText": "Export Report",
             "ToolTip": "Export nesting results to PDF and CSV.",
-            "Pixmap": os.path.join(ICONS_DIR, "export_report.svg"),
+            "Pixmap": get_icon("export_report"),
         }
 
     def Activated(self):  # noqa: N802  (FreeCAD API)

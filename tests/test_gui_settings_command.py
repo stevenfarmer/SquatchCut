@@ -40,8 +40,11 @@ def test_settings_icon_path_points_to_squatchcut_resource():
     command = cmd_settings.SquatchCutSettingsCommand()
     resources = command.GetResources()
     icon_path = resources.get("Pixmap", "")
-    assert icon_path.endswith("squatchcut-settings.svg")
-    assert os.path.isfile(icon_path)
+    if hasattr(icon_path, "isNull"):
+        assert icon_path.isNull() is False
+    else:
+        assert icon_path.endswith("squatchcut-settings.svg")
+        assert os.path.isfile(icon_path)
 
 
 def test_settings_command_reuses_panel(monkeypatch):

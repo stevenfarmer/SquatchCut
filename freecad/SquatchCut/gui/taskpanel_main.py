@@ -168,7 +168,17 @@ class SquatchCutTaskPanel:
 
         self.parts_table = QtWidgets.QTableWidget()
         self.parts_table.setColumnCount(5)
-        self.parts_table.horizontalHeader().setStretchLastSection(True)
+        header = self.parts_table.horizontalHeader()
+        if hasattr(header, "setStretchLastSection"):
+            header.setStretchLastSection(True)
+        header_view_cls = getattr(QtWidgets, "QHeaderView", None)
+        if header_view_cls is not None and hasattr(header, "setSectionResizeMode"):
+            header.setSectionResizeMode(0, header_view_cls.Stretch)
+            for col in range(1, 5):
+                header.setSectionResizeMode(col, header_view_cls.ResizeToContents)
+        size_policy_cls = getattr(QtWidgets, "QSizePolicy", None)
+        if size_policy_cls is not None and hasattr(self.parts_table, "setSizePolicy"):
+            self.parts_table.setSizePolicy(size_policy_cls.Expanding, size_policy_cls.Expanding)
         self.parts_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.parts_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.parts_table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)

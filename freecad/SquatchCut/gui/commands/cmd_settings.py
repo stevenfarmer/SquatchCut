@@ -1,17 +1,11 @@
 from __future__ import annotations
 
-import os
 import traceback
 
 from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.core import logger
+from SquatchCut.gui.icons import get_icon
 from SquatchCut.gui.taskpanel_settings import TaskPanel_Settings
-
-ICONS_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-    "resources",
-    "icons",
-)
 
 _settings_panel_instance: TaskPanel_Settings | None = None
 
@@ -36,7 +30,7 @@ class SquatchCutSettingsCommand:
 
     def GetResources(self):
         return {
-            "Pixmap": os.path.join(ICONS_DIR, "squatchcut-settings.svg"),
+            "Pixmap": get_icon("tool_settings"),
             "MenuText": "Settings",
             "ToolTip": "Open SquatchCut settings for sheet size, logging, and developer tools.",
         }

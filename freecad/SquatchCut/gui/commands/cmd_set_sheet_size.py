@@ -8,11 +8,11 @@ Interactions: Should use SC_SheetSizeDialog and update core preferences defaults
 Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 """
 
-import os
 from SquatchCut.freecad_integration import App, Gui
 
 from SquatchCut.gui.qt_compat import QtWidgets
 from SquatchCut.gui.view_helpers import fit_view_to_sheet_and_nested, show_sheet_only
+from SquatchCut.gui.icons import get_icon
 from SquatchCut.core import logger
 
 try:
@@ -27,12 +27,6 @@ except Exception:
 from SquatchCut.core import units as sc_units
 from SquatchCut.ui.messages import show_error
 
-ICONS_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),  # .../freecad/SquatchCut
-    "resources",
-    "icons",
-)
-
 
 class SC_SetSheetSizeCommand:
     """Open the Sheet Size dialog to configure sheet dimensions and spacing."""
@@ -41,7 +35,7 @@ class SC_SetSheetSizeCommand:
 
     def GetResources(self):  # noqa: N802  (FreeCAD API)
         return {
-            "Pixmap": os.path.join(ICONS_DIR, "set_sheet_size.svg"),
+            "Pixmap": get_icon("set_sheet_size"),
             "MenuText": "Set Sheet",
             "ToolTip": "Set the sheet dimensions used for SquatchCut nesting.",
         }

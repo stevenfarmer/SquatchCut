@@ -6,25 +6,18 @@ Interactions: Should invoke SC_CSVImportDialog and hand validated rows to core c
 Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 """
 
-import os
-
 from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.core import logger
 
 # Qt imports (FreeCAD standard pattern)
 from SquatchCut.gui.qt_compat import QtWidgets, QtCore, QtGui
 
+from SquatchCut.gui.icons import get_icon
 from SquatchCut.core import session, session_state
 from SquatchCut.core.csv_import import validate_csv_file
 from SquatchCut.gui.view_helpers import fit_view_to_source, show_source_and_sheet
 from SquatchCut.ui.messages import show_error
 from SquatchCut.core.geometry_sync import sync_source_panels_to_document
-
-ICONS_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),  # .../freecad/SquatchCut
-    "resources",
-    "icons",
-)
 
 
 MM_PER_INCH = 25.4
@@ -108,7 +101,7 @@ class ImportCSVCommand:
         return {
             "MenuText": "Import Parts",
             "ToolTip": "Import rectangular parts from a CSV into the SquatchCut Source Parts group.",
-            "Pixmap": os.path.join(ICONS_DIR, "import_csv.svg"),
+            "Pixmap": get_icon("import_csv"),
         }
 
     def Activated(self):

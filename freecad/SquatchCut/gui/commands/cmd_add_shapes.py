@@ -10,18 +10,10 @@ Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 
 from SquatchCut.gui.qt_compat import QtWidgets, QtCore, QtGui
 
-import os
-
 from SquatchCut.freecad_integration import App, Gui, Part
+from SquatchCut.gui.icons import get_icon
 
 from SquatchCut.core import session_state
-
-
-ICONS_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),  # .../freecad/SquatchCut
-    "resources",
-    "icons",
-)
 
 
 class AddShapesCommand:
@@ -31,7 +23,7 @@ class AddShapesCommand:
         return {
             "MenuText": "Add Shapes",
             "ToolTip": "Create rectangle shapes for all loaded CSV panels.",
-            "Pixmap": os.path.join(ICONS_DIR, "add_shapes.svg"),
+            "Pixmap": get_icon("add_shapes"),
         }
 
     def Activated(self):
