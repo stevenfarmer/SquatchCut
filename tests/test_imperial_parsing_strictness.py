@@ -1,5 +1,5 @@
 import pytest
-from freecad.SquatchCut.core.units import parse_imperial_inches
+from SquatchCut.core.units import parse_imperial_inches
 
 def test_strict_parsing_rejects_malformed_dashes():
     """
