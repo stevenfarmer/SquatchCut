@@ -117,37 +117,48 @@ def parse_imperial_inches(text: str) -> float:
     if not raw:
         raise ValueError("Invalid imperial length format: empty input")
 
-    # Normalize dash-separated mixed numbers: "48-3/4" -> "48 3/4"
-    norm = raw.replace("-", " ")
-    norm = re.sub(r"\s*/\s*", "/", norm)
-    norm = " ".join(norm.split())
+    # Regex strict pattern:
+    # 1. Whole number (optional decimal) followed optionally by a fraction (mixed number)
+    # 2. Or just a fraction
+    # The mixed number part allows separator of space or dash (with optional surrounding spaces)
+    pattern = re.compile(r"""
+        ^
+        (?:
+            (?P<whole>(?:\d+(?:\.\d*)?|\.\d+)) # Whole number (int or float, e.g. 5, 5., .5, 5.5)
+            (?:
+                \s*[- ]\s*                    # Separator: dash or space
+                (?P<frac_mixed>\d+\s*/\s*\d+) # Fraction part of mixed number
+            )?
+        |
+            (?P<frac_only>\d+\s*/\s*\d+)      # Fraction only
+        )
+        $
+    """, re.VERBOSE)
 
-    # Try mixed number "A B/C"
-    parts = norm.split(" ")
-    if len(parts) == 2 and "/" in parts[1]:
-        whole_part = parts[0]
-        frac_part = parts[1]
-        try:
-            whole_val = float(whole_part)
-            num, den = frac_part.split("/")
-            frac_val = float(num) / float(den)
-            return whole_val + frac_val
-        except Exception:
-            pass
-
-    # Simple fraction "B/C"
-    if len(parts) == 1 and "/" in parts[0]:
-        try:
-            num, den = parts[0].split("/")
-            return float(num) / float(den)
-        except Exception:
-            pass
-
-    # Fallback: decimal or whole number
-    try:
-        return float(norm)
-    except Exception:
+    match = pattern.match(raw)
+    if not match:
         raise ValueError(f"Invalid imperial length format: '{text}'")
+
+    whole_str = match.group("whole")
+    frac_mixed_str = match.group("frac_mixed")
+    frac_only_str = match.group("frac_only")
+
+    val = 0.0
+
+    if whole_str:
+        val += float(whole_str)
+
+    frac_str = frac_mixed_str or frac_only_str
+    if frac_str:
+        # Normalize fraction slash spacing for splitting
+        frac_clean = frac_str.replace(" ", "")
+        num_str, den_str = frac_clean.split("/")
+        den = float(den_str)
+        if den == 0:
+            raise ValueError(f"Invalid imperial length format: '{text}' (division by zero)")
+        val += float(num_str) / den
+
+    return val
 
 
 def mm_to_display(value_mm: float) -> float:
