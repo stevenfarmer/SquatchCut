@@ -52,28 +52,43 @@ def _emit_console(message: str, minimum_level: int, console_level: int):
         pass
 
 
-def debug(msg: str):
+def _format_message(msg, args):
+    if not args:
+        return str(msg)
+    try:
+        return str(msg) % args
+    except Exception:
+        # Fallback to a simple join if formatting fails
+        safe_args = " ".join(repr(arg) for arg in args)
+        return f"{msg} {safe_args}"
+
+
+def debug(msg: str, *args):
+    formatted = _format_message(msg, args)
     report_level, console_level = _get_levels()
     minimum = LogLevel.VERBOSE
-    _emit_report(f"[SquatchCut][DEBUG] {msg}", minimum, report_level, "debug")
-    _emit_console(f"[SquatchCut][DEBUG] {msg}", minimum, console_level)
+    _emit_report(f"[SquatchCut][DEBUG] {formatted}", minimum, report_level, "debug")
+    _emit_console(f"[SquatchCut][DEBUG] {formatted}", minimum, console_level)
 
 
-def info(msg: str):
+def info(msg: str, *args):
+    formatted = _format_message(msg, args)
     report_level, console_level = _get_levels()
     minimum = LogLevel.NORMAL
-    _emit_report(f"[SquatchCut] {msg}", minimum, report_level, "info")
-    _emit_console(f"[SquatchCut] {msg}", minimum, console_level)
+    _emit_report(f"[SquatchCut] {formatted}", minimum, report_level, "info")
+    _emit_console(f"[SquatchCut] {formatted}", minimum, console_level)
 
 
-def warning(msg: str):
+def warning(msg: str, *args):
+    formatted = _format_message(msg, args)
     report_level, console_level = _get_levels()
     minimum = LogLevel.NORMAL
-    _emit_report(f"[SquatchCut][WARN] {msg}", minimum, report_level, "warning")
-    _emit_console(f"[SquatchCut][WARN] {msg}", minimum, console_level)
+    _emit_report(f"[SquatchCut][WARN] {formatted}", minimum, report_level, "warning")
+    _emit_console(f"[SquatchCut][WARN] {formatted}", minimum, console_level)
 
 
-def error(msg: str):
+def error(msg: str, *args):
+    formatted = _format_message(msg, args)
     report_level, console_level = _get_levels()
-    _emit_report(f"[SquatchCut][ERROR] {msg}", LogLevel.NONE, report_level, "error")
-    _emit_console(f"[SquatchCut][ERROR] {msg}", LogLevel.NONE, console_level)
+    _emit_report(f"[SquatchCut][ERROR] {formatted}", LogLevel.NONE, report_level, "error")
+    _emit_console(f"[SquatchCut][ERROR] {formatted}", LogLevel.NONE, console_level)

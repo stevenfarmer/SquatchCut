@@ -29,3 +29,10 @@ def test_logger_none_level(monkeypatch):
     logger.info("info message")
     logger.warning("warning message")
     logger.error("error message")
+
+
+def test_logger_printf_support(monkeypatch):
+    monkeypatch.setattr(logger, "SquatchCutPreferences", lambda: StubPrefs(rv="verbose", pc="verbose"))
+    logger.info("Cleaned %d sheet(s) with %s", 3, "preview")
+    logger.warning("Removed %s objects (%d failures)", "nested", 0)
+    logger.error("Export failed for %s: %s", "svg", "permission denied")
