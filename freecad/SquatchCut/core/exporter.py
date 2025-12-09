@@ -25,7 +25,17 @@ from SquatchCut.freecad_integration import App, Part
 from SquatchCut.core import logger, session_state, units as unit_utils
 from SquatchCut.core.cutlist import generate_cutlist
 from SquatchCut.core.nesting import PlacedPart, derive_sheet_sizes_for_layout, resolve_sheet_dimensions
-from SquatchCut.core.text_helpers import create_export_shape_text
+try:
+    from SquatchCut.core.text_helpers import create_export_shape_text
+except ImportError:  # pragma: no cover - fallback for stripped installs
+    _MISSING_TEXT_HELPER_WARNED = False
+
+    def create_export_shape_text(*_args, **_kwargs):
+        global _MISSING_TEXT_HELPER_WARNED
+        if not _MISSING_TEXT_HELPER_WARNED:
+            logger.warning("[SquatchCut] text helper module unavailable; export labels disabled.")
+            _MISSING_TEXT_HELPER_WARNED = True
+        return None
 
 _EXPORT_SUBDIR = "SquatchCutExports"
 
