@@ -340,3 +340,11 @@ def test_sheet_warning_hidden_when_advanced_disabled():
         assert panel._sheet_warning_active is False
     finally:
         _reset_session_state()
+
+
+def test_sheet_warning_banner_container_initialized_hidden():
+    settings.hydrate_from_params()
+    panel = SquatchCutTaskPanel()
+    container = getattr(panel, "sheet_warning_container", None)
+    assert container is not None
+    assert panel._sheet_warning_active is False

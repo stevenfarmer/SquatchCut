@@ -1456,15 +1456,9 @@ class SquatchCutTaskPanel:
             self.status_label.setStyleSheet("color: red;")
             return
 
-        placements = session_state.get_last_layout() or []
-        if not placements:
+        export_job = exporter.build_export_job_from_current_nesting(self._ensure_document())
+        if export_job is None or not export_job.sheets:
             self.status_label.setText("Cannot export: no nesting layout available.")
-            self.status_label.setStyleSheet("color: orange;")
-            return
-
-        sheet_w, sheet_h = session_state.get_sheet_size()
-        if not sheet_w or not sheet_h:
-            self.status_label.setText("Cannot export: sheet size missing.")
             self.status_label.setStyleSheet("color: orange;")
             return
 
@@ -1497,23 +1491,17 @@ class SquatchCutTaskPanel:
         try:
             status_message = f"Exported SquatchCut layout to: {file_path}"
             if fmt == "dxf":
-                exporter.export_layout_to_dxf(
-                    placements,
-                    (sheet_w, sheet_h),
-                    self._ensure_document(),
-                    file_path,
-                    include_labels=session_state.get_export_include_labels(),
-                    include_dimensions=session_state.get_export_include_dimensions(),
-                )
+                try:
+                    exporter.export_nesting_to_dxf(export_job, file_path)
+                except NotImplementedError:
+                    self.status_label.setText("DXF export not yet available.")
+                    self.status_label.setStyleSheet("color: orange;")
+                    return
+                status_message = f"Exported SquatchCut DXF to: {file_path}"
             elif fmt == "svg":
-                svg_files = exporter.export_layout_to_svg(
-                    placements,
-                    (sheet_w, sheet_h),
-                    self._ensure_document(),
+                svg_files = exporter.export_nesting_to_svg(
+                    export_job,
                     file_path,
-                    measurement_system=session_state.get_measurement_system(),
-                    sheet_mode=session_state.get_sheet_mode(),
-                    job_sheets=session_state.get_job_sheets(),
                     include_labels=session_state.get_export_include_labels(),
                     include_dimensions=session_state.get_export_include_dimensions(),
                 )
@@ -1527,12 +1515,10 @@ class SquatchCutTaskPanel:
                         f"Exported {len(svg_files)} SVG files to: {first.parent} (e.g., {first.name})"
                     )
             elif fmt == "cutlist_csv":
-                cutlist_map = exporter.generate_cutlist(placements, (sheet_w, sheet_h))
-                exporter.export_cutlist_map_to_csv(cutlist_map, file_path)
+                exporter.export_cutlist(export_job, file_path)
                 status_message = f"Exported SquatchCut cut list to: {file_path}"
             else:
-                cutlist_map = exporter.generate_cutlist(placements, (sheet_w, sheet_h))
-                exporter.export_cutlist_to_text(cutlist_map, file_path)
+                exporter.export_cutlist(export_job, file_path, as_text=True)
                 status_message = f"Exported SquatchCut cut list to: {file_path}"
             self.status_label.setText(status_message)
             self.status_label.setStyleSheet("color: green;")

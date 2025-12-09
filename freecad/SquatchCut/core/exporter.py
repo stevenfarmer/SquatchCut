@@ -1,4 +1,13 @@
-"""Export helpers for SquatchCut nesting layouts (DXF, SVG, cut list CSV)."""
+"""Export helpers for SquatchCut nesting layouts (DXF, SVG, cut list CSV).
+
+This module also defines the canonical export data model:
+    - ExportPartPlacement: single nested part instance (geometry in mm).
+    - ExportSheet: one sheet with its parts.
+    - ExportJob: the entire nesting result (list of sheets + measurement system hint).
+
+All geometry must remain in millimeters internally. Measurement system metadata
+is only used when formatting strings for UI/export output.
+"""
 
 from __future__ import annotations
 
@@ -6,18 +15,51 @@ import csv
 import os
 import tempfile
 from collections import defaultdict
+from dataclasses import dataclass, field
 from datetime import datetime
 from html import escape
 from pathlib import Path
 from typing import Dict, Iterable, List, Sequence, Tuple
 
 from SquatchCut.freecad_integration import App, Part
-from SquatchCut.core import logger, units as unit_utils
+from SquatchCut.core import logger, session_state, units as unit_utils
 from SquatchCut.core.cutlist import generate_cutlist
-from SquatchCut.core.nesting import derive_sheet_sizes_for_layout, resolve_sheet_dimensions
+from SquatchCut.core.nesting import PlacedPart, derive_sheet_sizes_for_layout, resolve_sheet_dimensions
 from SquatchCut.core.text_helpers import create_export_shape_text
 
 _EXPORT_SUBDIR = "SquatchCutExports"
+
+
+@dataclass
+class ExportPartPlacement:
+    """Normalized placement information for a single nested part (all units in mm)."""
+
+    part_id: str
+    sheet_index: int
+    x_mm: float
+    y_mm: float
+    width_mm: float
+    height_mm: float
+    rotation_deg: int = 0
+
+
+@dataclass
+class ExportSheet:
+    """One nested sheet and its associated parts."""
+
+    sheet_index: int
+    width_mm: float
+    height_mm: float
+    parts: List[ExportPartPlacement] = field(default_factory=list)
+
+
+@dataclass
+class ExportJob:
+    """Canonical description of a full SquatchCut nesting result."""
+
+    job_name: str
+    measurement_system: str  # "metric" or "imperial"
+    sheets: List[ExportSheet] = field(default_factory=list)
 
 
 def _default_export_directory() -> Path:
@@ -382,10 +424,11 @@ def _render_sheet_svg(
     sheet_number: int,
     total_sheets: int,
     sheet_dimensions: Tuple[float, float],
-    placements: List,
+    sheet: ExportSheet,
     measurement_system: str,
     include_labels: bool,
     include_dimensions: bool,
+    export_job: ExportJob,
 ) -> str:
     width_mm, height_mm = sheet_dimensions
     width_mm = float(width_mm or 0.0)
@@ -393,8 +436,7 @@ def _render_sheet_svg(
     min_sheet_dim = max(min(width_mm, height_mm), 1.0)
     header_font = max(min_sheet_dim / 18.0, 10.0)
     header_margin = min(max(min_sheet_dim * 0.04, 8.0), 30.0)
-    header_y_math = height_mm - header_margin
-    header_y = _svg_y(height_mm, header_y_math)
+    header_y = height_mm - header_margin
     header_text = f"Sheet {sheet_number} of {total_sheets} – {_format_dimension_pair(width_mm, height_mm, measurement_system)}"
     style_block = (
         "<style>"
@@ -418,33 +460,22 @@ def _render_sheet_svg(
     )
     body.append(
         f'<text class="sheet-header" font-size="{_fmt_float(header_font)}" '
-        f'x="{_fmt_float(width_mm / 2.0)}" y="{_fmt_float(header_y)}">'
+        f'x="{_fmt_float(width_mm / 2.0)}" y="{_fmt_float(header_y)}" dominant-baseline="middle">'
         f"{escape(header_text)}</text>"
     )
 
-    sorted_parts = sorted(
-        placements,
-        key=lambda p: (
-            -float(getattr(p, "y", 0.0) or 0.0),
-            float(getattr(p, "x", 0.0) or 0.0),
-            str(getattr(p, "id", "")),
-        ),
-    )
+    parts_sorted = sorted(sheet.parts, key=lambda p: (p.y_mm, p.x_mm, p.part_id or ""))
 
-    for placement in sorted_parts:
-        try:
-            x = float(getattr(placement, "x", 0.0))
-            y = float(getattr(placement, "y", 0.0))
-            w = float(getattr(placement, "width", 0.0))
-            h = float(getattr(placement, "height", 0.0))
-        except Exception:
-            continue
+    for part in parts_sorted:
+        x = float(part.x_mm or 0.0)
+        y = float(part.y_mm or 0.0)
+        w = float(part.width_mm or 0.0)
+        h = float(part.height_mm or 0.0)
         if w <= 0 or h <= 0:
             continue
 
-        rect_y = _svg_y(height_mm, y + h)
         body.append(
-            f'<rect class="part-rect" x="{_fmt_float(x)}" y="{_fmt_float(rect_y)}" '
+            f'<rect class="part-rect" x="{_fmt_float(x)}" y="{_fmt_float(y)}" '
             f'width="{_fmt_float(w)}" height="{_fmt_float(h)}" />'
         )
 
@@ -453,8 +484,9 @@ def _render_sheet_svg(
 
         part_font = _part_font_size(w, h, (width_mm, height_mm))
         center_x = x + w / 2.0
-        center_y = _svg_y(height_mm, y + h / 2.0)
-        lines = [str(getattr(placement, "id", "") or "Part")]
+        center_y = y + h / 2.0
+        ident = part.part_id or "Part"
+        lines = [str(ident)]
         if include_dimensions:
             dim_text = _format_dimension_pair(w, h, measurement_system)
             lines.append(dim_text)
@@ -480,3 +512,274 @@ def _render_sheet_svg(
 
     body.append("</svg>")
     return "\n".join(body)
+
+
+def build_export_job_from_current_nesting(doc=None) -> ExportJob | None:
+    """
+    Adapt the latest nesting layout stored in session_state to the ExportJob model.
+
+    Returns None when no placements are available.
+    """
+
+    placements = session_state.get_last_layout() or []
+    if not placements:
+        logger.info("[SquatchCut] ExportJob build skipped: no placements stored.")
+        return None
+
+    measurement_system = session_state.get_measurement_system() or "metric"
+    sheet_mode = session_state.get_sheet_mode()
+    job_sheets = session_state.get_job_sheets()
+    default_sheet_w, default_sheet_h = session_state.get_sheet_size()
+    sheet_sizes = derive_sheet_sizes_for_layout(
+        sheet_mode,
+        job_sheets,
+        default_sheet_w,
+        default_sheet_h,
+        placements,
+    )
+
+    fallback_w = float(default_sheet_w or 0.0)
+    fallback_h = float(default_sheet_h or 0.0)
+    grouped = _group_placements_by_sheet(placements)
+
+    sheets: List[ExportSheet] = []
+    total_parts = 0
+    for sheet_index in sorted(grouped.keys()):
+        width_mm, height_mm = resolve_sheet_dimensions(sheet_sizes, sheet_index, fallback_w, fallback_h)
+        export_parts: List[ExportPartPlacement] = []
+        for placement in grouped[sheet_index]:
+            try:
+                part_id = str(getattr(placement, "id", "") or "")
+                x_mm = float(getattr(placement, "x", 0.0))
+                y_mm = float(getattr(placement, "y", 0.0))
+                width = float(getattr(placement, "width", 0.0))
+                height = float(getattr(placement, "height", 0.0))
+                rotation = int(getattr(placement, "rotation_deg", 0) or 0)
+            except Exception:
+                continue
+            export_parts.append(
+                ExportPartPlacement(
+                    part_id=part_id,
+                    sheet_index=sheet_index,
+                    x_mm=x_mm,
+                    y_mm=y_mm,
+                    width_mm=width,
+                    height_mm=height,
+                    rotation_deg=rotation,
+                )
+            )
+        total_parts += len(export_parts)
+        sheets.append(
+            ExportSheet(
+                sheet_index=sheet_index,
+                width_mm=float(width_mm or 0.0),
+                height_mm=float(height_mm or 0.0),
+                parts=export_parts,
+            )
+        )
+
+    job_name = _resolve_job_name(doc)
+    export_job = ExportJob(job_name=job_name, measurement_system=measurement_system, sheets=sheets)
+    logger.info(f"[SquatchCut] ExportJob summary: {len(sheets)} sheet(s), {total_parts} part(s).")
+    for sheet in sheets[:3]:
+        logger.info(
+            "[SquatchCut]   Sheet %s: %s x %s mm, %s part(s)."
+            % (
+                sheet.sheet_index,
+                _fmt_float(sheet.width_mm),
+                _fmt_float(sheet.height_mm),
+                len(sheet.parts),
+            )
+        )
+    return export_job
+
+
+def _resolve_job_name(doc) -> str:
+    if doc is None:
+        return "SquatchCut Job"
+    for attr in ("Label", "LabelText", "Name"):
+        try:
+            value = getattr(doc, attr, None)
+        except Exception:
+            value = None
+        if value:
+            return str(value)
+    file_name = getattr(doc, "FileName", "") or ""
+    if file_name:
+        return Path(file_name).stem
+    return "SquatchCut Job"
+
+
+def export_cutlist(export_job: ExportJob, target_path: str, *, as_text: bool = False) -> None:
+    """
+    Export a cutlist for the provided ExportJob.
+
+    CSV path writes rows directly from ExportJob. Text path reuses legacy helpers.
+    """
+    if as_text:
+        placements = _export_job_to_placements(export_job)
+        if not placements:
+            logger.warning("[SquatchCut] No placements available; cutlist export skipped.")
+            return
+        primary_sheet = _job_primary_sheet_size(export_job)
+        cutlist_map = generate_cutlist(placements, primary_sheet)
+        export_cutlist_to_text(cutlist_map, target_path)
+        return
+
+    if export_job is None or not export_job.sheets:
+        logger.warning("[SquatchCut] No sheets available; cutlist export skipped.")
+        return
+
+    header = [
+        "sheet_index",
+        "sheet_width_mm",
+        "sheet_height_mm",
+        "part_id",
+        "x_mm",
+        "y_mm",
+        "width_mm",
+        "height_mm",
+        "rotation_deg",
+        "width_display",
+        "height_display",
+    ]
+    path = Path(target_path)
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+    try:
+        with path.open("w", newline="", encoding="utf-8") as fh:
+            writer = csv.writer(fh)
+            writer.writerow(header)
+            for sheet in export_job.sheets:
+                for part in sheet.parts:
+                    writer.writerow(
+                        [
+                            sheet.sheet_index,
+                            _fmt_float(sheet.width_mm),
+                            _fmt_float(sheet.height_mm),
+                            part.part_id,
+                            _fmt_float(part.x_mm),
+                            _fmt_float(part.y_mm),
+                            _fmt_float(part.width_mm),
+                            _fmt_float(part.height_mm),
+                            int(part.rotation_deg or 0),
+                            format_dimension_for_export(part.width_mm, export_job),
+                            format_dimension_for_export(part.height_mm, export_job),
+                        ]
+                    )
+    except OSError as exc:
+        logger.warning(f"[SquatchCut] CSV export failed for '{target_path}': {exc}")
+        raise
+    return
+
+
+def export_nesting_to_svg(
+    export_job: ExportJob,
+    base_path: str,
+    *,
+    include_labels: bool = True,
+    include_dimensions: bool = False,
+) -> List[Path]:
+    """
+    Export one SVG per sheet for the provided ExportJob.
+
+    Returns the list of generated file paths.
+    """
+    if export_job is None or not export_job.sheets:
+        logger.warning("[SquatchCut] SVG export skipped: job has no sheets.")
+        return []
+
+    base_target = Path(base_path)
+    if base_target.suffix.lower() != ".svg":
+        base_target = base_target.with_suffix(".svg")
+    try:
+        base_target.parent.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+
+    total_sheets = len(export_job.sheets)
+    measurement_system = export_job.measurement_system or "metric"
+    generated_paths: List[Path] = []
+    for idx, sheet in enumerate(sorted(export_job.sheets, key=lambda s: s.sheet_index)):
+        content = _render_sheet_svg(
+            sheet_number=idx + 1,
+            total_sheets=total_sheets,
+            sheet_dimensions=(sheet.width_mm, sheet.height_mm),
+            sheet=sheet,
+            measurement_system=measurement_system,
+            include_labels=include_labels,
+            include_dimensions=include_dimensions,
+            export_job=export_job,
+        )
+        target_path = _sheet_specific_path(base_target, idx + 1)
+        try:
+            target_path.write_text(content, encoding="utf-8")
+        except OSError as exc:
+            logger.warning(f"[SquatchCut] SVG export failed for '{target_path}': {exc}")
+            raise
+        generated_paths.append(target_path)
+
+    logger.info(f"[SquatchCut] SVG export complete via gateway: {len(generated_paths)} file(s).")
+    return generated_paths
+
+
+def export_nesting_to_dxf(export_job: ExportJob, base_path: str) -> None:
+    """Placeholder DXF exporter for ExportJob inputs."""
+    logger.warning("[SquatchCut] DXF export via gateway is not implemented yet.")
+    raise NotImplementedError("DXF export via ExportJob is not available yet.")
+
+
+def _job_primary_sheet_size(export_job: ExportJob) -> tuple[float, float]:
+    if export_job.sheets:
+        first = export_job.sheets[0]
+        return float(first.width_mm or 0.0), float(first.height_mm or 0.0)
+    return 0.0, 0.0
+
+
+def _export_job_to_placements(export_job: ExportJob) -> List[PlacedPart]:
+    placements: List[PlacedPart] = []
+    for sheet in export_job.sheets:
+        for part in sheet.parts:
+            placements.append(
+                PlacedPart(
+                    id=part.part_id or "",
+                    sheet_index=sheet.sheet_index,
+                    x=part.x_mm,
+                    y=part.y_mm,
+                    width=part.width_mm,
+                    height=part.height_mm,
+                    rotation_deg=int(part.rotation_deg or 0),
+                )
+            )
+    return placements
+
+
+def _sheet_part_proxies(sheet: ExportSheet) -> List[ExportPartPlacement]:
+    # Return shallow copies to avoid mutating the original ExportJob data.
+    proxies: List[ExportPartPlacement] = []
+    for part in sheet.parts:
+        proxies.append(
+            ExportPartPlacement(
+                part_id=part.part_id,
+                sheet_index=sheet.sheet_index,
+                x_mm=part.x_mm,
+                y_mm=part.y_mm,
+                width_mm=part.width_mm,
+                height_mm=part.height_mm,
+                rotation_deg=part.rotation_deg,
+            )
+        )
+    return proxies
+
+
+def format_dimension_for_export(value_mm: float, export_job: ExportJob) -> str:
+    """Format a dimension in the measurement system requested by the ExportJob."""
+    system = (export_job.measurement_system or "metric").lower()
+    if system == "imperial":
+        inches = unit_utils.mm_to_inches(value_mm)
+        formatted = unit_utils.inches_to_fraction_str(inches)
+        return f"{formatted} in"
+    metric_value = unit_utils.format_metric_length(value_mm, decimals=3)
+    return f"{metric_value} mm"

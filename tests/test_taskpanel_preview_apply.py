@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import types
 
 import pytest
@@ -210,3 +211,18 @@ def test_apply_without_preview_matches_preview_then_apply(monkeypatch):
     apply_snapshot = _snapshot(doc_apply)
 
     assert preview_snapshot == apply_snapshot
+
+
+def test_preview_apply_preserve_session_configuration(monkeypatch):
+    panel, _, app_stub = _create_panel(monkeypatch)
+    session_state.set_measurement_system("imperial")
+    session_state.set_sheet_mode("job_sheets")
+    configured_sheets = [
+        {"width_mm": 600.0, "height_mm": 1200.0, "quantity": 2, "label": "Configured"}
+    ]
+    session_state.set_job_sheets(copy.deepcopy(configured_sheets))
+    panel.measurement_system = "imperial"
+    _run_preview(panel, app_stub)
+    _run_apply(panel, app_stub)
+    assert session_state.get_measurement_system() == "imperial"
+    assert session_state.get_job_sheets() == configured_sheets

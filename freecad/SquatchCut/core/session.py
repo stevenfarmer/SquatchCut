@@ -135,20 +135,22 @@ def get_nested_group(doc=None):
 def clear_sheet_object(doc=None):
     resolved = _resolve_doc(doc)
     if resolved is None:
-        return
-    _safe_remove(resolved, SHEET_OBJECT_NAME)
+        return 0
+    return 1 if _safe_remove(resolved, SHEET_OBJECT_NAME) else 0
 
 
 def clear_source_group(doc=None):
     resolved = _resolve_doc(doc)
     if resolved is None:
-        return
+        return []
+    removed = []
     group = get_source_group(resolved)
     if group is not None:
         for member in list(getattr(group, "Group", []) or []):
-            _safe_remove(resolved, getattr(member, "Name", None))
-        _safe_remove(resolved, getattr(group, "Name", None))
-    _remove_objects_by_prefix(resolved, SOURCE_PREFIX)
+            _safe_remove(resolved, getattr(member, "Name", None), removed)
+        _safe_remove(resolved, getattr(group, "Name", None), removed)
+    _remove_objects_by_prefix(resolved, SOURCE_PREFIX, removed)
+    return removed
 
 
 def clear_nested_group(doc=None):

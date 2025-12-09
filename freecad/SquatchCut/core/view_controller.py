@@ -13,6 +13,7 @@ from SquatchCut.core.sheet_model import (
     ensure_sheet_object,
     get_or_create_group,
     clear_group_children,
+    clear_sheet_boundaries,
     compute_sheet_spacing,
 )
 from SquatchCut.gui.nesting_view import rebuild_nested_geometry
@@ -22,7 +23,63 @@ from SquatchCut.gui.view_utils import zoom_to_objects
 SOURCE_GROUP_NAME = "SquatchCut_SourceParts"
 NESTED_GROUP_NAME = "SquatchCut_NestedParts"
 LEGACY_SHEET_GROUP_NAME = "SquatchCut_Sheets"
+EXPORT_GROUP_NAME = "SquatchCut_ExportSVG"
 SQUATCHCUT_GROUP_NAMES = (SHEET_OBJECT_NAME, SOURCE_GROUP_NAME, NESTED_GROUP_NAME)
+
+
+def clear_squatchcut_groups(doc=None, include_source=False):
+    """Remove existing SquatchCut sheet/nested groups (and optionally source groups)."""
+    resolved_doc = _resolve_doc(doc)
+    if resolved_doc is None:
+        return {"sheets": 0, "nested": 0, "sources": 0}
+
+    removed_counts = {"sheets": 0, "nested": 0, "sources": 0}
+    nested_removed = session.clear_nested_group(resolved_doc) or []
+    removed_counts["nested"] = len(nested_removed)
+    removed_counts["sheets"] += session.clear_sheet_object(resolved_doc) or 0
+    boundary_removed = clear_sheet_boundaries(resolved_doc) or []
+    removed_counts["sheets"] += len(boundary_removed)
+    if include_source:
+        source_removed = session.clear_source_group(resolved_doc) or []
+        removed_counts["sources"] = len(source_removed)
+
+    session.clear_sheets()
+    try:
+        session_state.set_nested_sheet_group(None)
+    except Exception:
+        pass
+
+    if any(removed_counts.values()):
+        logger.info(
+            ">>> [SquatchCut] Cleared SquatchCut groups (sheets=%s, nested=%s, sources=%s).",
+            removed_counts["sheets"],
+            removed_counts["nested"],
+            removed_counts["sources"],
+        )
+    return removed_counts
+
+
+def ensure_squatchcut_groups(doc=None):
+    """Ensure canonical SquatchCut source/nested groups exist."""
+    resolved_doc = _resolve_doc(doc)
+    if resolved_doc is None:
+        return None, None
+    source = get_or_create_group(resolved_doc, SOURCE_GROUP_NAME)
+    nested = get_or_create_group(resolved_doc, NESTED_GROUP_NAME)
+    return source, nested
+
+
+def get_or_create_export_group(doc=None):
+    resolved_doc = _resolve_doc(doc)
+    if resolved_doc is None:
+        return None
+    return get_or_create_group(resolved_doc, EXPORT_GROUP_NAME)
+
+
+def clear_export_group(group):
+    if group is None:
+        return
+    clear_group_children(group)
 
 
 def _resolve_doc(doc=None):
@@ -236,14 +293,12 @@ def cleanup_nested_layout(doc=None) -> None:
             _safe_remove(resolved_doc, getattr(child, "Name", None), removed)
         _safe_remove(resolved_doc, getattr(legacy, "Name", None), removed)
 
-    nested_removed = session.clear_nested_group(resolved_doc) or []
-    removed.extend(nested_removed)
-
-    session.clear_sheets()
-    try:
-        session_state.set_nested_sheet_group(None)
-    except Exception:
-        pass
+    group_counts = clear_squatchcut_groups(resolved_doc)
+    total_group_removals = (
+        group_counts["sheets"] + group_counts["nested"] + group_counts["sources"]
+    )
+    if total_group_removals:
+        removed.append(f"squatchcut_groups:{total_group_removals}")
 
     if removed:
         logger.info(f">>> [SquatchCut] Removed {len(removed)} stale nested object(s).")
