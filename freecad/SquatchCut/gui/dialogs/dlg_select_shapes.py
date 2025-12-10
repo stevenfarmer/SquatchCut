@@ -9,7 +9,7 @@ Note: UI only; do not implement business logic here.
 """
 
 # Qt bindings (FreeCAD ships PySide / PySide2, not PySide6)
-from SquatchCut.gui.qt_compat import QtWidgets, QtCore, QtGui
+from SquatchCut.gui.qt_compat import QtCore, QtWidgets
 
 
 class SC_SelectShapesDialog(QtWidgets.QDialog):

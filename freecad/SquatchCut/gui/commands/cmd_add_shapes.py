@@ -8,12 +8,10 @@ Interactions: Should open SC_SelectShapesDialog and forward selections to core s
 Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 """
 
-from SquatchCut.gui.qt_compat import QtWidgets, QtCore, QtGui
-
+from SquatchCut.core import session_state
 from SquatchCut.freecad_integration import App, Gui, Part
 from SquatchCut.gui.icons import get_icon
-
-from SquatchCut.core import session_state
+from SquatchCut.gui.qt_compat import QtWidgets
 
 
 class AddShapesCommand:

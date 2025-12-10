@@ -3,8 +3,8 @@ import math
 from SquatchCut import settings
 from SquatchCut.core import session_state
 from SquatchCut.core import units as sc_units
-from SquatchCut.core.units import inches_to_mm, mm_to_inches
 from SquatchCut.core.preferences import SquatchCutPreferences
+from SquatchCut.core.units import inches_to_mm, mm_to_inches
 from SquatchCut.gui.taskpanel_main import SquatchCutTaskPanel
 from SquatchCut.gui.taskpanel_settings import SquatchCutSettingsPanel
 

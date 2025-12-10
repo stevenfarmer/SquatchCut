@@ -9,10 +9,9 @@ Note: UI only; do not implement business logic here.
 """
 
 # Qt bindings (FreeCAD ships PySide / PySide2, not PySide6)
-from SquatchCut.gui.qt_compat import QtWidgets
-
-from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.core import units as sc_units
+from SquatchCut.core.preferences import SquatchCutPreferences
+from SquatchCut.gui.qt_compat import QtWidgets
 
 
 class SC_SheetSizeDialog(QtWidgets.QDialog):

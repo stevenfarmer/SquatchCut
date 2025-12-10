@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import os
-from typing import List
 
-from SquatchCut.gui.qt_compat import QtWidgets, QtCore
-from SquatchCut.core import session_state, logger, units as sc_units
-from SquatchCut.gui.commands.cmd_import_csv import run_csv_import
-from SquatchCut.ui.messages import show_error
+from SquatchCut.core import logger, session_state
+from SquatchCut.core import units as sc_units
 from SquatchCut.freecad_integration import App
+from SquatchCut.gui.commands.cmd_import_csv import run_csv_import
+from SquatchCut.gui.qt_compat import QtCore, QtWidgets
+from SquatchCut.ui.messages import show_error
 
 
 class InputGroupWidget(QtWidgets.QGroupBox):

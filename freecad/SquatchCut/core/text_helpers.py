@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-from typing import Optional
 
 from SquatchCut.core import logger
 from SquatchCut.freecad_integration import App, Draft
@@ -69,7 +68,7 @@ def create_screen_text(doc, label: str, x: float, y: float, z: float = 0.0):
     return text_obj
 
 
-def _resolve_shape_font_file() -> Optional[str]:
+def _resolve_shape_font_file() -> str | None:
     if App is None:
         return ""
     font_candidates = []

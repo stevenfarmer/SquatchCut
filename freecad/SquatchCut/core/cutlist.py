@@ -1,8 +1,9 @@
-from dataclasses import dataclass
-from typing import List
+from __future__ import annotations
 
-from SquatchCut.freecad_integration import App, Gui
-from SquatchCut.core import session, logger, session_state
+from dataclasses import dataclass
+
+from SquatchCut.core import logger, session, session_state
+from SquatchCut.freecad_integration import App
 
 
 @dataclass
@@ -85,7 +86,7 @@ def _get_panel_bounds(panel_obj):
     return bb.XMin, bb.XMax, bb.YMin, bb.YMax
 
 
-def generate_cutops_from_session() -> List[CutOp]:
+def generate_cutops_from_session() -> list[CutOp]:
     """
     Inspect the current SquatchCut nesting in the active document and
     derive a simple list of cut operations.
@@ -111,7 +112,7 @@ def generate_cutops_from_session() -> List[CutOp]:
         logger.warning("cutlist: session.get_nested_panel_objects() not available or failed.")
         panel_objs = []
 
-    cut_ops: List[CutOp] = []
+    cut_ops: list[CutOp] = []
 
     if sheet_objs and panel_objs:
         for sheet_index, sheet_obj in enumerate(sheet_objs, start=1):
@@ -201,7 +202,7 @@ def generate_cutops_from_session() -> List[CutOp]:
     return cut_ops
 
 
-def export_cutops_to_csv(path: str, cut_ops: List[CutOp]):
+def export_cutops_to_csv(path: str, cut_ops: list[CutOp]):
     """Write the given cut operations to a CSV file at 'path'."""
     import csv
 
@@ -329,9 +330,9 @@ def generate_cutlist(placements, sheet_size_mm):
     return cutlist_by_sheet
 
 
-def _cutops_from_cutlist_map(cutlist_map: dict) -> List[CutOp]:
+def _cutops_from_cutlist_map(cutlist_map: dict) -> list[CutOp]:
     """Convert legacy cutlist map format into CutOp entries."""
-    cut_ops: List[CutOp] = []
+    cut_ops: list[CutOp] = []
     for sheet_idx in sorted(cutlist_map.keys()):
         sheet_name = f"Sheet_{sheet_idx + 1}"
         for cut in cutlist_map.get(sheet_idx, []):

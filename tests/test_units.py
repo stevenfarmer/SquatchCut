@@ -1,10 +1,10 @@
 from SquatchCut.core.units import (
-    inches_to_fraction_str,
     format_length,
-    parse_length,
     format_preset_label,
-    unit_label_for_system,
+    inches_to_fraction_str,
     parse_imperial_inches,
+    parse_length,
+    unit_label_for_system,
 )
 
 

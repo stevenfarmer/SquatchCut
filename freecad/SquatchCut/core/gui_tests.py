@@ -4,15 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from SquatchCut.freecad_integration import App, Gui
-from SquatchCut.core import logger, session, session_state
 from SquatchCut import settings
-from SquatchCut.core import cutlist
-from SquatchCut.core.geometry_sync import sync_source_panels_to_document
-from SquatchCut.gui.commands import cmd_run_nesting, cmd_import_csv
+from SquatchCut.core import cutlist, logger, session, session_state
 from SquatchCut.core import units as sc_units
+from SquatchCut.core.geometry_sync import sync_source_panels_to_document
 from SquatchCut.core.preferences import SquatchCutPreferences
-from SquatchCut.gui import taskpanel_settings, taskpanel_main
+from SquatchCut.freecad_integration import App, Gui
+from SquatchCut.gui import taskpanel_main, taskpanel_settings
+from SquatchCut.gui.commands import cmd_import_csv, cmd_run_nesting
 
 GUI_TEST_PREFIX = ">>> [SquatchCut] [GUI TEST]"
 

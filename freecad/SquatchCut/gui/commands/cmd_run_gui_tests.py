@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.core import gui_tests, logger
+from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.gui.qt_compat import QtWidgets
 
 

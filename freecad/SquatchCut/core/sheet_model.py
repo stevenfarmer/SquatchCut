@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from SquatchCut.freecad_integration import App, Gui, Part
 from SquatchCut.core import logger, session
+from SquatchCut.freecad_integration import App, Gui, Part
 
 SHEET_OBJECT_NAME = "SquatchCut_Sheet"
 SHEET_BOUNDARY_PREFIX = "SquatchCut_Sheet_"

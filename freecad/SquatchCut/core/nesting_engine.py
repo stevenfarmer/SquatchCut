@@ -8,7 +8,6 @@ Note: Update incrementally; do not overwrite this module when adding logic.
 from __future__ import annotations
 
 
-
 class NestingEngine:
     """Places panels on a single sheet using rectangular nesting."""
 
@@ -143,7 +142,7 @@ def compute_layout(panels, sheet_width, sheet_height, kerf=0.0, allow_rotation=T
 
     normalized = []
     panel_id = 1
-    for idx, p in enumerate(panels or []):
+    for _idx, p in enumerate(panels or []):
         try:
             w = float(p.get("width"))
             h = float(p.get("height"))

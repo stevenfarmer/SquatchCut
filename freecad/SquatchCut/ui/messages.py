@@ -1,5 +1,4 @@
 from SquatchCut.freecad_integration import Gui as FreeCADGui
-
 from SquatchCut.gui.qt_compat import QtWidgets
 
 

@@ -8,12 +8,12 @@ Interactions: Should use SC_ExportReportDialog and call core report_generator ou
 Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 """
 
-from SquatchCut.gui.qt_compat import QtWidgets, QtCore, QtGui
-
 from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.gui.icons import get_icon
-from ...core.report_generator import ReportGenerator
+from SquatchCut.gui.qt_compat import QtWidgets
+
 from ...core import session_state
+from ...core.report_generator import ReportGenerator
 from ..dialogs.dlg_export_report import SC_ExportReportDialog
 
 

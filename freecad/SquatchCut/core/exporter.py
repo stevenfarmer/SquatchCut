@@ -15,16 +15,22 @@ import csv
 import os
 import tempfile
 from collections import defaultdict
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
 from html import escape
 from pathlib import Path
-from typing import Dict, Iterable, List, Sequence, Tuple
 
-from SquatchCut.freecad_integration import App, Part
-from SquatchCut.core import logger, session_state, units as unit_utils
+from SquatchCut.core import logger, session_state
+from SquatchCut.core import units as unit_utils
 from SquatchCut.core.cutlist import generate_cutlist
-from SquatchCut.core.nesting import PlacedPart, derive_sheet_sizes_for_layout, resolve_sheet_dimensions
+from SquatchCut.core.nesting import (
+    PlacedPart,
+    derive_sheet_sizes_for_layout,
+    resolve_sheet_dimensions,
+)
+from SquatchCut.freecad_integration import App, Part
+
 try:
     from SquatchCut.core.text_helpers import create_export_shape_text
 except ImportError:  # pragma: no cover - fallback for stripped installs
@@ -60,7 +66,7 @@ class ExportSheet:
     sheet_index: int
     width_mm: float
     height_mm: float
-    parts: List[ExportPartPlacement] = field(default_factory=list)
+    parts: list[ExportPartPlacement] = field(default_factory=list)
 
 
 @dataclass
@@ -69,7 +75,7 @@ class ExportJob:
 
     job_name: str
     measurement_system: str  # "metric" or "imperial"
-    sheets: List[ExportSheet] = field(default_factory=list)
+    sheets: list[ExportSheet] = field(default_factory=list)
 
 
 def _default_export_directory() -> Path:
@@ -240,7 +246,7 @@ def _build_rectangles(
     return objs
 
 
-def export_cutlist_map_to_csv(cutlist_by_sheet: Dict[int, list], file_path: str) -> None:
+def export_cutlist_map_to_csv(cutlist_by_sheet: dict[int, list], file_path: str) -> None:
     """Write a cutlist mapping (sheet -> cuts) to CSV."""
     with open(file_path, "w", newline="", encoding="utf-8") as fh:
         writer = csv.writer(fh)
@@ -275,7 +281,7 @@ def export_cutlist_map_to_csv(cutlist_by_sheet: Dict[int, list], file_path: str)
 
 
 def export_cutlist_to_text(
-    cutlist_by_sheet: Dict[int, list],
+    cutlist_by_sheet: dict[int, list],
     file_path: str,
     export_job: ExportJob | None = None,
 ) -> None:
@@ -347,7 +353,7 @@ def export_layout_to_svg(
     job_sheets: Sequence[dict] | None,
     include_labels: bool = True,
     include_dimensions: bool = False,
-) -> List[Path]:
+) -> list[Path]:
     """
     Export placements to one SVG per sheet using a deterministic 2D writer.
 
@@ -372,7 +378,7 @@ def export_layout_to_svg(
     max_sheet_index = max(placements_by_sheet.keys())
     sheet_total = max_sheet_index + 1
 
-    generated_paths: List[Path] = []
+    generated_paths: list[Path] = []
     for sheet_index in sorted(placements_by_sheet.keys()):
         width_mm, height_mm = resolve_sheet_dimensions(sheet_sizes, sheet_index, sheet_w, sheet_h)
         content = _render_sheet_svg(
@@ -398,8 +404,8 @@ def export_layout_to_svg(
     return generated_paths
 
 
-def _group_placements_by_sheet(placements: Sequence) -> Dict[int, List]:
-    grouped: Dict[int, List] = defaultdict(list)
+def _group_placements_by_sheet(placements: Sequence) -> dict[int, list]:
+    grouped: dict[int, list] = defaultdict(list)
     for placement in placements or []:
         try:
             sheet_index = int(getattr(placement, "sheet_index", 0) or 0)
@@ -433,7 +439,7 @@ def _format_dimension_pair(width_mm: float, height_mm: float, measurement_system
     return f"{width_str} x {height_str} {label}"
 
 
-def _part_font_size(width_mm: float, height_mm: float, sheet_size: Tuple[float, float]) -> float:
+def _part_font_size(width_mm: float, height_mm: float, sheet_size: tuple[float, float]) -> float:
     min_sheet_dim = max(min(sheet_size), 1.0)
     base = min(width_mm, height_mm) * 0.25
     base = min(base, min_sheet_dim / 10.0)
@@ -443,7 +449,7 @@ def _part_font_size(width_mm: float, height_mm: float, sheet_size: Tuple[float, 
 def _render_sheet_svg(
     sheet_number: int,
     total_sheets: int,
-    sheet_dimensions: Tuple[float, float],
+    sheet_dimensions: tuple[float, float],
     sheet: ExportSheet,
     measurement_system: str,
     include_labels: bool,
@@ -467,7 +473,7 @@ def _render_sheet_svg(
         "</style>"
     )
 
-    body: List[str] = []
+    body: list[str] = []
     body.append('<?xml version="1.0" encoding="UTF-8"?>')
     body.append(
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{_fmt_float(width_mm)}mm" '
@@ -562,11 +568,11 @@ def build_export_job_from_current_nesting(doc=None) -> ExportJob | None:
     fallback_h = float(default_sheet_h or 0.0)
     grouped = _group_placements_by_sheet(placements)
 
-    sheets: List[ExportSheet] = []
+    sheets: list[ExportSheet] = []
     total_parts = 0
     for sheet_index in sorted(grouped.keys()):
         width_mm, height_mm = resolve_sheet_dimensions(sheet_sizes, sheet_index, fallback_w, fallback_h)
-        export_parts: List[ExportPartPlacement] = []
+        export_parts: list[ExportPartPlacement] = []
         for placement in grouped[sheet_index]:
             try:
                 part_id = str(getattr(placement, "id", "") or "")
@@ -603,13 +609,7 @@ def build_export_job_from_current_nesting(doc=None) -> ExportJob | None:
     logger.info(f"[SquatchCut] ExportJob summary: {len(sheets)} sheet(s), {total_parts} part(s).")
     for sheet in sheets[:3]:
         logger.info(
-            "[SquatchCut]   Sheet %s: %s x %s mm, %s part(s)."
-            % (
-                sheet.sheet_index,
-                _fmt_float(sheet.width_mm),
-                _fmt_float(sheet.height_mm),
-                len(sheet.parts),
-            )
+            f"[SquatchCut]   Sheet {sheet.sheet_index}: {_fmt_float(sheet.width_mm)} x {_fmt_float(sheet.height_mm)} mm, {len(sheet.parts)} part(s)."
         )
     return export_job
 
@@ -701,7 +701,7 @@ def export_nesting_to_svg(
     *,
     include_labels: bool = True,
     include_dimensions: bool = False,
-) -> List[Path]:
+) -> list[Path]:
     """
     Export one SVG per sheet for the provided ExportJob.
 
@@ -721,7 +721,7 @@ def export_nesting_to_svg(
 
     total_sheets = len(export_job.sheets)
     measurement_system = export_job.measurement_system or "metric"
-    generated_paths: List[Path] = []
+    generated_paths: list[Path] = []
     for idx, sheet in enumerate(sorted(export_job.sheets, key=lambda s: s.sheet_index)):
         content = _render_sheet_svg(
             sheet_number=idx + 1,
@@ -758,8 +758,8 @@ def _job_primary_sheet_size(export_job: ExportJob) -> tuple[float, float]:
     return 0.0, 0.0
 
 
-def _export_job_to_placements(export_job: ExportJob) -> List[PlacedPart]:
-    placements: List[PlacedPart] = []
+def _export_job_to_placements(export_job: ExportJob) -> list[PlacedPart]:
+    placements: list[PlacedPart] = []
     for sheet in export_job.sheets:
         for part in sheet.parts:
             placements.append(
@@ -776,9 +776,9 @@ def _export_job_to_placements(export_job: ExportJob) -> List[PlacedPart]:
     return placements
 
 
-def _sheet_part_proxies(sheet: ExportSheet) -> List[ExportPartPlacement]:
+def _sheet_part_proxies(sheet: ExportSheet) -> list[ExportPartPlacement]:
     # Return shallow copies to avoid mutating the original ExportJob data.
-    proxies: List[ExportPartPlacement] = []
+    proxies: list[ExportPartPlacement] = []
     for part in sheet.parts:
         proxies.append(
             ExportPartPlacement(

@@ -5,19 +5,16 @@ Primary user entry is via SquatchCut_ShowTaskPanel; this command remains for adv
 
 import traceback
 
-from SquatchCut.freecad_integration import App, Gui
-from SquatchCut.gui.qt_compat import QtWidgets
-from SquatchCut.gui.icons import get_icon
-
 from SquatchCut.core import logger, session, session_state, view_controller
+from SquatchCut.core.cut_optimization import estimate_cut_path_complexity
 from SquatchCut.core.nesting import (
     NestingConfig,
     NestingValidationError,
     Part,
     compute_utilization_for_sheets,
-    expand_sheet_sizes,
     derive_sheet_sizes_for_layout,
     estimate_cut_counts_for_sheets,
+    expand_sheet_sizes,
     get_effective_job_sheets_for_nesting,
     get_usable_sheet_area,
     nest_cut_optimized,
@@ -25,31 +22,32 @@ from SquatchCut.core.nesting import (
     nest_parts,
     validate_parts_fit_sheet,
 )  # type: ignore
-from SquatchCut.core.cut_optimization import estimate_cut_path_complexity
 from SquatchCut.core.overlap_check import detect_overlaps
-from SquatchCut.core.sheet_model import build_sheet_boundaries, compute_sheet_spacing
 from SquatchCut.core.session_state import (
+    get_allowed_rotations_deg,
+    get_export_include_dimensions,
+    get_export_include_labels,
     get_gap_mm,
     get_kerf_mm,
     get_kerf_width_mm,
-    get_last_layout,
-    get_sheet_size,
     get_optimization_mode,
     get_optimize_for_cut_path,
-    get_allowed_rotations_deg,
-    get_export_include_labels,
-    get_export_include_dimensions,
+    get_sheet_size,
     set_last_layout,
     set_nesting_stats,
 )
+from SquatchCut.core.sheet_model import build_sheet_boundaries, compute_sheet_spacing
+from SquatchCut.freecad_integration import App, Gui
+from SquatchCut.gui.icons import get_icon
 from SquatchCut.gui.nesting_view import rebuild_nested_geometry
-from SquatchCut.ui.messages import show_error, show_info, show_warning
+from SquatchCut.gui.qt_compat import QtWidgets
 from SquatchCut.gui.view_helpers import (
     fit_view_to_sheet_and_nested,
     fit_view_to_source,
     show_nested_only,
     show_source_and_sheet,
 )
+from SquatchCut.ui.messages import show_error, show_warning
 
 
 class RunNestingCommand:

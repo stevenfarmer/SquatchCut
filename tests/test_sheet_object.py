@@ -2,9 +2,8 @@ import pytest
 
 pytest.importorskip("FreeCAD")
 import FreeCAD  # type: ignore
-
-from SquatchCut.core.geometry_sync import ensure_sheet_object
 from SquatchCut.core import session_state
+from SquatchCut.core.geometry_sync import ensure_sheet_object
 
 
 def _new_doc(name):

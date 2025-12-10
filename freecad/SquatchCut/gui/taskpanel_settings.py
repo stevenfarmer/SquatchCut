@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+from SquatchCut import settings
+from SquatchCut.core import gui_tests, logger, sheet_presets
+from SquatchCut.core import units as sc_units
+from SquatchCut.core.preferences import SquatchCutPreferences
+from SquatchCut.core.units import mm_to_inches
 from SquatchCut.freecad_integration import Gui
 from SquatchCut.gui.qt_compat import QtWidgets
-from SquatchCut.core import units as sc_units
-from SquatchCut.core.units import mm_to_inches
-from SquatchCut import settings
-from SquatchCut.core.preferences import SquatchCutPreferences
-from SquatchCut.core import gui_tests, logger, sheet_presets
 
 
 class _UnitRadioProxy:
@@ -196,7 +196,7 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         try:
             return sc_units.parse_length(text, self.measurement_system)
         except Exception as exc:
-            raise ValueError(f"Invalid value for {name}: {exc}")
+            raise ValueError(f"Invalid value for {name}: {exc}") from exc
 
     def _apply_changes(self) -> bool:
         try:

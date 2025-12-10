@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import pathlib
 
-
 DOCS_DIR = pathlib.Path(__file__).resolve().parents[1] / "docs"
 PROJECT_GUIDE = DOCS_DIR / "Project_Guide_v3.2.md"
 BACKLOG_DOC = DOCS_DIR / "Backlog.md"

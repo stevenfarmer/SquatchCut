@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Iterable, List, Tuple
+from collections.abc import Iterable
 
 
-def detect_overlaps(placements: Iterable, epsilon: float = 1e-6) -> List[Tuple]:
+def detect_overlaps(placements: Iterable, epsilon: float = 1e-6) -> list[tuple]:
     """
     Given a sequence of placed parts, returns a list of overlap conflicts.
 
@@ -21,9 +21,9 @@ def detect_overlaps(placements: Iterable, epsilon: float = 1e-6) -> List[Tuple]:
     for p in placements or []:
         by_sheet[getattr(p, "sheet_index", 0)].append(p)
 
-    conflicts: List[Tuple] = []
+    conflicts: list[tuple] = []
 
-    for sheet_index, plist in by_sheet.items():
+    for _sheet_index, plist in by_sheet.items():
         n = len(plist)
         for i in range(n):
             a = plist[i]

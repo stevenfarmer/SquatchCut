@@ -12,6 +12,8 @@ Thanks for helping improve SquatchCut! This is an active beta project—please o
    ```bash
    PYTHONPATH=freecad .venv/bin/pytest --cov=SquatchCut.core.nesting --cov=SquatchCut.core.session_state --cov-report=term-missing --cov-fail-under=80
    ```
+   **Note**: `PYTHONPATH=freecad` is required because the codebase imports modules as `from SquatchCut...` rather than `from freecad.SquatchCut...`. This ensures compatibility with both the FreeCAD internal module loader and external test runners.
+
 3. Optional: run FreeCAD E2E scripts inside FreeCAD (see `freecad/testing/`).
 
 ## Style & Expectations
