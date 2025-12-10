@@ -620,6 +620,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Overview
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -636,6 +654,80 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-project-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Project Layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-core-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Core Modules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-gui-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. GUI Layer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-data-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Data Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-supporting-documentation-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Supporting Documentation &amp; Tools
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -953,6 +1045,69 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-project-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Project Layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-core-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Core Modules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-gui-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. GUI Layer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-data-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Data Flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-supporting-documentation-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Supporting Documentation &amp; Tools
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -972,220 +1127,130 @@
 
 
 <h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
-<p>This document defines the technical architecture of the SquatchCut FreeCAD Nesting Workbench MVP. It outlines the project structure, module responsibilities, data flow, and Codex conventions to ensure consistent implementation.</p>
+<p>This document snapshots how SquatchCut is organized so new work streams (AI agents or humans) stay aligned with the existing structure, data flow, and helper layers.</p>
 <hr />
-<h1 id="1-project-structure">1. Project Structure<a class="headerlink" href="#1-project-structure" title="Permanent link">&para;</a></h1>
-<p>The repository is organized as follows:</p>
-<p>root/
-│
-├── freecad/
-│ └── SquatchCut/
-│ ├── InitGui.py
-│ ├── init.py
-│ ├── gui/
-│ │ ├── commands/
-│ │ │ ├── cmd_add_shapes.py
-│ │ │ ├── cmd_import_csv.py
-│ │ │ ├── cmd_run_nesting.py
-│ │ │ ├── cmd_set_sheet_size.py
-│ │ │ ├── cmd_export_report.py
-│ │ │ └── cmd_preferences.py
-│ │ └── dialogs/
-│ │ ├── dlg_select_shapes.py
-│ │ ├── dlg_csv_import.py
-│ │ ├── dlg_sheet_size.py
-│ │ ├── dlg_run_nesting.py
-│ │ └── dlg_export_report.py
-│ │
-│ ├── core/
-│ │ ├── shape_extractor.py
-│ │ ├── csv_loader.py
-│ │ ├── nesting_engine.py
-│ │ ├── multi_sheet_optimizer.py
-│ │ ├── geometry_output.py
-│ │ ├── report_generator.py
-│ │ └── preferences.py
-│ └── resources/
-│ ├── icons/
-│ └── ui/
-│
-└── docs/
-├── mvp.md
-├── architecture.md
-└── roadmap.md</p>
+<h2 id="1-project-layout">1. Project Layout<a class="headerlink" href="#1-project-layout" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>root/</code></li>
+<li><code>freecad/SquatchCut/</code><ul>
+<li><code>InitGui.py</code>: workbench registration, toolbar/menu hooks, icon loading.</li>
+<li><code>__init__.py</code>: module metadata, lazy-bundled imports for FreeCAD.</li>
+<li><code>gui/</code>: Qt widgets, commands, dialogs, and view helpers.</li>
+<li><code>core/</code>: pure-Python algorithms, session plumbing, exporters, and utilities.</li>
+<li><code>resources/</code>: icons, templates, and static UI helpers.</li>
+</ul>
+</li>
+<li><code>docs/</code>: architecture/roadmap/backlog, developer guidance, UAT + testing instructions.</li>
+<li><code>tests/</code>: pytest regression suite exercising hydration, nesting, exports, and docs.</li>
+<li><code>assets/</code> &amp; <code>blog/</code>: site collateral (screenshots, articles) that support docs.</li>
+<li>Top-level helpers: README, <code>AGENTS.md</code>, <code>squatchcut.code-workspace</code>, and CI config files.</li>
+</ul>
+<p>This layout keeps FreeCAD integrations under <code>freecad/SquatchCut</code> while leaving tests/docs at the repo root for easy access by automation and documentation flows.</p>
 <hr />
-<h1 id="2-module-responsibilities">2. Module Responsibilities<a class="headerlink" href="#2-module-responsibilities" title="Permanent link">&para;</a></h1>
-<h2 id="21-core-modules">2.1 <code>/core</code> modules<a class="headerlink" href="#21-core-modules" title="Permanent link">&para;</a></h2>
-<h3 id="shape_extractorpy"><strong>shape_extractor.py</strong><a class="headerlink" href="#shape_extractorpy" title="Permanent link">&para;</a></h3>
+<h2 id="2-core-modules">2. Core Modules<a class="headerlink" href="#2-core-modules" title="Permanent link">&para;</a></h2>
+<p>The <code>core/</code> package is the heart of the nesting logic and keeps FreeCAD dependencies confined to integration points.</p>
 <ul>
-<li>Scans FreeCAD document for valid shapes</li>
-<li>Extracts bounding boxes (width, height)</li>
-<li>Converts shapes to panel objects</li>
-<li>Enforces rotation rules</li>
-<li>Filters by user selection</li>
+<li><strong>Session + settings</strong></li>
+<li><code>session_state.py</code>: in-memory defaults, job sheets, panels, measurement system, and export flags used by all UI wiring.</li>
+<li><code>session.py</code>: mirrors <code>session_state</code> into the active FreeCAD document, tracks FreeCAD objects, and clears/chases Group nodes.</li>
+<li><code>preferences.py</code> &amp; <code>presets.py</code>: wrap FreeCAD preferences, expose defaults per measurement system, and manage preset metadata used by the TaskPanel.</li>
+<li>
+<p><code>settings.py</code>: hydrates defaults, exposes the configuration API, and guards persistence rules described in <code>docs/Project_Guide_v3.2.md</code>.</p>
+</li>
+<li>
+<p><strong>Unit conversion &amp; logging</strong></p>
+</li>
+<li><code>units.py</code> + <code>text_helpers.py</code>: convert between millimeters and fractional inches, format preset labels, and share helper text strings.</li>
+<li>
+<p><code>logger.py</code>: centralized logger with SquatchCut-friendly prefixes for reporting and GUI tests.</p>
+</li>
+<li>
+<p><strong>CSV ingestion</strong></p>
+</li>
+<li><code>csv_import.py</code>: high-level validation harness used by GUI commands and CLI integrations (includes measurement overrides).</li>
+<li>
+<p><code>csv_loader.py</code>: low-level importer that normalizes rows, enforces required headers, and converts everything into panel dictionaries.</p>
+</li>
+<li>
+<p><strong>Panel discovery + validation</strong></p>
+</li>
+<li><code>shape_extractor.py</code>: reads selected FreeCAD objects, enforces <code>SquatchCutCanRotate</code>, and exposes clean panel metadata.</li>
+<li>
+<p><code>overlap_check.py</code>: utility to ensure placements do not overlap when verifying layouts.</p>
+</li>
+<li>
+<p><strong>Nesting &amp; optimization</strong></p>
+</li>
+<li><code>nesting.py</code>: orchestrates the multi-sheet workflow (sheet iteration, job sheet handling, compute_utilization, estimate_cut_counts).</li>
+<li><code>cut_optimization.py</code>: solver that does guillotine/shelf packing against free rectangles.</li>
+<li><code>nesting_engine.py</code>: encapsulates the algorithm that <code>cut_optimization</code> relies on; supports both “material” and “cuts” optimization modes.</li>
+<li>
+<p><code>multi_sheet_optimizer.py</code>: spreads panels across multiple sheets, stopping when all parts are placed or sheets are exhausted.</p>
+</li>
+<li>
+<p><strong>Geometry &amp; exports</strong></p>
+</li>
+<li><code>geometry_output.py</code>: turns placements into FreeCAD rectangles, groups, and sources/nested sheet hierarchies.</li>
+<li><code>geometry_sync.py</code>: keeps the document in sync after imports/nesting by rebuilding views and logging stale-reference issues.</li>
+<li><code>view_controller.py</code>: TaskPanel-driven helpers to show source vs. nesting views, clear groups, and zoom to objects.</li>
+<li><code>gui_tests.py</code>: GUI-level smoke checks invoked from the Settings panel and the developer toolbar.</li>
+<li>
+<p><code>cutlist.py</code>, <code>exporter.py</code>, <code>report_generator.py</code>: build deterministic exports (CSV cutlists, SVG maps, PDF reports) from <code>ExportJob</code>/<code>ExportSheet</code> state instead of FreeCAD objects.</p>
+</li>
+<li>
+<p><strong>Sheet helpers</strong></p>
+</li>
+<li><code>sheet_model.py</code>: manages FreeCAD Group/Boundary helpers and ensures canonical names/clear/rebuild flows.</li>
+<li><code>sheet_presets.py</code>: provides factory presets for metric/imperial defaults that never auto-select themselves.</li>
 </ul>
-<h3 id="csv_loaderpy"><strong>csv_loader.py</strong><a class="headerlink" href="#csv_loaderpy" title="Permanent link">&para;</a></h3>
+<p>The <code>core</code> package intentionally minimizes FreeCAD API surface, enabling the python-only tests to run inside the Docker/devcontainer environment described in <code>docs/TESTING.md</code>.</p>
+<hr />
+<h2 id="3-gui-layer">3. GUI Layer<a class="headerlink" href="#3-gui-layer" title="Permanent link">&para;</a></h2>
+<p><code>gui/</code> wraps commands, dialogs, and widgets for user interaction.</p>
 <ul>
-<li>Loads CSV into panel objects</li>
-<li>Validates fields</li>
-<li>Normalizes types and units</li>
-<li>Produces list of panels</li>
-</ul>
-<h3 id="nesting_enginepy"><strong>nesting_engine.py</strong><a class="headerlink" href="#nesting_enginepy" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Implements rectangular nesting (Skyline or Guillotine)</li>
-<li>Places panels at (x, y) with rotation</li>
-<li>Detects collisions + boundaries</li>
-<li>Produces placements for one sheet</li>
-</ul>
-<h3 id="multi_sheet_optimizerpy"><strong>multi_sheet_optimizer.py</strong><a class="headerlink" href="#multi_sheet_optimizerpy" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Uses nesting_engine repeatedly</li>
-<li>Allocates panels across sheets</li>
-<li>Stops when all panels placed</li>
-<li>Returns a list of sheets + placements</li>
-</ul>
-<h3 id="geometry_outputpy"><strong>geometry_output.py</strong><a class="headerlink" href="#geometry_outputpy" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Creates FreeCAD geometry for each sheet</li>
-<li>Adds groups and rectangles</li>
-<li>Applies x, y placement, rotation, and labeling</li>
-</ul>
-<h3 id="report_generatorpy"><strong>report_generator.py</strong><a class="headerlink" href="#report_generatorpy" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Builds a PDF summary:</li>
-<li>Sheet count</li>
-<li>Panel placements</li>
-<li>Efficiency / waste %</li>
-<li>Timestamp</li>
-<li>Builds CSV summary</li>
-</ul>
-<h3 id="preferencespy"><strong>preferences.py</strong><a class="headerlink" href="#preferencespy" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Wraps FreeCAD preference system</li>
-<li>Stores:</li>
-<li>Default sheet size</li>
-<li>Kerf/spacing</li>
-<li>Rotation allowed</li>
-<li>Auto-detect shapes</li>
-<li>Export directory</li>
-<li>Branding toggle</li>
+<li><code>gui/commands/</code>: entry points that plug into the FreeCAD GUI.</li>
+<li><code>cmd_run_nesting.py</code>, <code>cmd_export_report.py</code>, <code>cmd_import_csv.py</code>, <code>cmd_set_sheet_size.py</code>, <code>cmd_preferences.py</code>, <code>cmd_run_gui_tests.py</code>, <code>cmd_add_shapes.py</code>.</li>
+<li>
+<p>Commands import <code>core</code> helpers, show dialogs, and set <code>session_state</code> before running logic.</p>
+</li>
+<li>
+<p>Dialogs: <code>gui/dialogs/*.py</code> (CSV import, export report, run nesting, select shapes, sheet size) gather structured input before deferring to commands.</p>
+</li>
+<li>
+<p>TaskPanel widgets: </p>
+</li>
+<li><code>taskpanel_main.py</code> (main TaskPanel + summary stats + new developer tools section), </li>
+<li><code>taskpanel_settings.py</code> (settings UI with GUI test launcher/status), </li>
+<li><code>taskpanel_nesting.py</code>, <code>taskpanel_sheet.py</code>, <code>taskpanel_input.py</code>.</li>
+<li>
+<p><code>qt_compat.py</code> provides lightweight Qt stubs so tests can instantiate widgets headlessly.</p>
+</li>
+<li>
+<p>Views/helpers: <code>source_view.py</code>, <code>nesting_view.py</code>, <code>view_helpers.py</code>, <code>view_utils.py</code> coordinate FreeCAD object visibility.</p>
+</li>
+<li>
+<p><code>icons.py</code> resolves bundled icon names for commands and panels (no new icon dependencies allowed without review).</p>
+</li>
 </ul>
 <hr />
-<h1 id="3-gui-layer">3. GUI Layer<a class="headerlink" href="#3-gui-layer" title="Permanent link">&para;</a></h1>
-<h2 id="31-workbench-setup">3.1 Workbench Setup<a class="headerlink" href="#31-workbench-setup" title="Permanent link">&para;</a></h2>
-<h3 id="initguipy"><code>InitGui.py</code><a class="headerlink" href="#initguipy" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Registers SquatchCut workbench</li>
-<li>Adds toolbar buttons</li>
-<li>Loads icons</li>
-</ul>
-<h3 id="__init__py"><code>__init__.py</code><a class="headerlink" href="#__init__py" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Metadata</li>
-<li>Bootstrapping</li>
-</ul>
-<h2 id="32-commands">3.2 Commands<a class="headerlink" href="#32-commands" title="Permanent link">&para;</a></h2>
-<p>Each command lives inside <code>/gui/commands</code>:</p>
-<ul>
-<li><code>cmd_add_shapes.py</code></li>
-<li><code>cmd_import_csv.py</code></li>
-<li><code>cmd_run_nesting.py</code></li>
-<li><code>cmd_set_sheet_size.py</code></li>
-<li><code>cmd_export_report.py</code></li>
-<li><code>cmd_preferences.py</code></li>
-</ul>
-<p>Commands:</p>
-<ul>
-<li>Call dialogs</li>
-<li>Trigger core functions</li>
-<li>Update UI</li>
-</ul>
-<h2 id="33-dialogs">3.3 Dialogs<a class="headerlink" href="#33-dialogs" title="Permanent link">&para;</a></h2>
-<p>Each dialog in <code>/gui/dialogs</code> handles user input:</p>
-<ul>
-<li>Select shapes</li>
-<li>Import CSV</li>
-<li>Sheet size configuration</li>
-<li>Nesting run settings</li>
-<li>Export settings</li>
-</ul>
-<p>Dialogs emit structured data for core modules.</p>
+<h2 id="4-data-flow">4. Data Flow<a class="headerlink" href="#4-data-flow" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>CSV import or FreeCAD shape selection</strong> feeds panel metadata into <code>session_state</code>.</li>
+<li>The TaskPanel (main + settings) hydrates defaults via <code>settings.hydrate_from_params()</code> and populates widgets/sheets.</li>
+<li><code>session_state</code> + <code>nesting.py</code> assemble panels, job sheets, kerf/spacing, and routing (optimize-for-cut vs material). This includes <code>nesting_engine</code>, <code>cut_optimization</code>, and <code>multi_sheet_optimizer</code>.</li>
+<li><code>geometry_output</code> + <code>view_controller</code> rebuild the FreeCAD scene (source vs nested) and log visual diagnostics.</li>
+<li><code>Exporter</code>, <code>cutlist</code>, and <code>report_generator</code> read <code>ExportJob</code>/<code>ExportSheet</code> state to write deterministic CSV/SVG reports; FreeCAD geometry is never directly traversed when exports exist.</li>
+<li>Developer-facing GUI tests (<code>core/gui_tests.py</code>, TaskPanel developer group) run a lean import + nesting cycle and log formatted results for Report view visibility.</li>
+</ol>
 <hr />
-<h1 id="4-data-model">4. Data Model<a class="headerlink" href="#4-data-model" title="Permanent link">&para;</a></h1>
-<h3 id="panel-object">Panel Object<a class="headerlink" href="#panel-object" title="Permanent link">&para;</a></h3>
-<p>{
-"id": str,
-"width": float,
-"height": float,
-"rotation_allowed": bool,
-}</p>
-<h3 id="placement-object">Placement Object<a class="headerlink" href="#placement-object" title="Permanent link">&para;</a></h3>
-<p>{
-"panel_id": str,
-"x": float,
-"y": float,
-"rotation": int, # 0 or 90
-"sheet_id": int
-}</p>
-<h3 id="sheet-object">Sheet Object<a class="headerlink" href="#sheet-object" title="Permanent link">&para;</a></h3>
-<p>{
-"sheet_id": int,
-"width": float,
-"height": float,
-"placements": list[Placement]
-}</p>
-<hr />
-<h1 id="5-data-flow">5. Data Flow<a class="headerlink" href="#5-data-flow" title="Permanent link">&para;</a></h1>
-<p>FreeCAD Shapes ──────► shape_extractor
-CSV File ──────► csv_loader</p>
-<p>Extracted Panels
-▼
-multi_sheet_optimizer
-▼
-nesting_engine (per sheet)
-▼
-Sheet Placement Sets
-▼
-geometry_output ──► FreeCAD Document
-report_generator ──► PDF / CSV</p>
-<hr />
-<h1 id="6-codex-conventions">6. Codex Conventions<a class="headerlink" href="#6-codex-conventions" title="Permanent link">&para;</a></h1>
-<p>Codex must follow these rules when generating code:</p>
-<h3 id="61-use-codex-blocks">6.1 Use <code>@codex</code> blocks<a class="headerlink" href="#61-use-codex-blocks" title="Permanent link">&para;</a></h3>
-<p>Example:</p>
-<div class="codehilite"><pre><span></span><code><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">@codex</span>
-<span class="sd">Implement the NestingEngine class.</span>
-<span class="sd">Requirements:</span>
-<span class="sd">- Do not use recursion.</span>
-<span class="sd">- Accept list of panels + sheet size.</span>
-<span class="sd">- Return list of placements.</span>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="mf">6.2</span> <span class="n">Avoid</span> <span class="k">global</span> <span class="n">state</span>
-<span class="n">Modules</span> <span class="n">must</span> <span class="n">be</span> <span class="n">pure</span> <span class="n">where</span> <span class="n">possible</span><span class="o">.</span>
-
-<span class="mf">6.3</span> <span class="n">Small</span> <span class="n">functions</span>
-<span class="n">Break</span> <span class="nb">complex</span> <span class="n">logic</span> <span class="n">into</span> <span class="n">testable</span> <span class="n">units</span><span class="o">.</span>
-
-<span class="mf">6.4</span> <span class="n">FreeCAD</span> <span class="n">imports</span> <span class="n">must</span> <span class="n">be</span> <span class="n">lazy</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">FreeCAD</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">App</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">FreeCADGui</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">Gui</span>
-
-<span class="mf">6.5</span> <span class="n">Use</span> <span class="n">unified</span> <span class="n">logging</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.preferences</span><span class="w"> </span><span class="kn">import</span> <span class="n">log</span>
-
-<span class="mf">7.</span> <span class="n">Future</span> <span class="n">Expansion</span> <span class="p">(</span><span class="n">Post</span><span class="o">-</span><span class="n">MVP</span> <span class="n">Hooks</span><span class="p">)</span>
-<span class="n">Architecture</span> <span class="n">reserves</span> <span class="n">space</span> <span class="k">for</span><span class="p">:</span>
-<span class="n">Bookmatching</span>
-<span class="n">Grain</span> <span class="n">direction</span> <span class="n">optimization</span>
-<span class="n">Curved</span><span class="o">/</span><span class="n">polygon</span> <span class="n">nesting</span>
-<span class="n">Advanced</span> <span class="n">nesting</span> <span class="n">heuristics</span>
-<span class="n">Path</span> <span class="n">Workbench</span> <span class="n">integration</span>
-<span class="n">Material</span> <span class="n">libraries</span>
-<span class="n">Drag</span><span class="o">-</span><span class="ow">and</span><span class="o">-</span><span class="n">drop</span> <span class="n">sheet</span> <span class="n">editing</span>
-<span class="n">These</span> <span class="n">will</span> <span class="n">attach</span> <span class="n">cleanly</span> <span class="n">onto</span> <span class="n">existing</span> <span class="n">modules</span> <span class="n">without</span> <span class="n">rewriting</span> <span class="n">MVP</span> <span class="n">code</span><span class="o">.</span>
-</code></pre></div>
+<h2 id="5-supporting-documentation-tools">5. Supporting Documentation &amp; Tools<a class="headerlink" href="#5-supporting-documentation-tools" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Docs: <code>docs/Project_Guide_v3.2.md</code>, <code>docs/Backlog.md</code>, <code>docs/TESTING.md</code>, <code>docs/Development_Environment.md</code>, <code>docs/user_guide.md</code>, and the root <code>AGENTS.md</code> describe policies every change must obey.</li>
+<li>Testing: <code>docs/TESTING.md</code> and the Docker/devcontainer instructions explain how to run <code>pytest</code> (pure Python and FreeCAD-aware) plus <code>FreeCADCmd</code> GUI flows.</li>
+<li>Developer tooling: <code>gui/taskpanel_settings.py</code> and <code>core/gui_tests.py</code> surface the GUI test launcher, while <code>docs/TESTING.md</code> explains the Docker workflow for matching CI.</li>
+<li>Markdown assets (roadmap/backlog) live under <code>docs/</code>; they are validated by <code>tests/test_docs_backlog_structure.py</code> so future edits stay aligned with stated priorities.</li>
+</ul>
+<p>Keeping this document synchronized with the real file tree prevents misconceptions about where logic lives and what responsibilities each module bears.</p>
 
 
 

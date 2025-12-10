@@ -1510,6 +1510,15 @@ The information below reflects the current codebase (CSV ingestion, session-stat
 <li>Future architectural or backlog changes must update both the main guide (or successor) and this alignment layer, keeping architecture, status, and backlog clearly separated.</li>
 </ul>
 <hr />
+<h2 id="d-developer-tooling-documentation">D. Developer Tooling &amp; Documentation<a class="headerlink" href="#d-developer-tooling-documentation" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Documentation hygiene</strong> – Update both this guide and <code>docs/Backlog.md</code> whenever the backlog or architectural narratives change; <code>tests/test_docs_backlog_structure.py</code> enforces the presence of required sections and key phrases inside the backlog to keep the narrative aligned.</li>
+<li><strong>Developer GUI test suite</strong> – <code>gui/taskpanel_settings.py</code> surfaces a “Run GUI Test Suite” button that delegates to <code>core/gui_tests.py</code>. The suite seeds a small panel set, imports CSVs, runs nesting, and logs <code>[GUI TEST]</code>‑prefixed status to the Report view for clarity.</li>
+<li><strong>Runner environment</strong> – <code>docs/Development_Environment.md</code> and <code>docs/TESTING.md</code> describe how to build the <code>squatchcut-dev</code> Docker/devcontainer image, install <code>pip install -e .[dev]</code>, and run both pure-Python and FreeCAD-aware <code>pytest</code> runs (prepend <code>PYTHONPATH=/usr/lib/freecad-python3/lib</code> when needed or use <code>FreeCADCmd -c "import run_freecad_tests"</code>).</li>
+<li><strong>Architecture reference</strong> – Keep <code>docs/architecture.md</code> in sync with the actual <code>freecad/SquatchCut/*</code> tree; it is the single source of truth for module responsibilities when onboarding new agents or contributors.</li>
+<li><strong>Agent conduct</strong> – The root <code>AGENTS.md</code> governs measurement rules, hydration order, interaction protocol, and reasoning-level expectations; it complements this guide rather than replacing it.</li>
+<li><strong>Export rules reminder</strong> – All exports (CSV, SVG, future DXF) must flow through <code>freecad/SquatchCut/core/exporter.py</code> and rely on <code>ExportJob</code>/<code>ExportSheet</code>/<code>ExportPartPlacement</code> data for deterministic outputs.</li>
+</ul>
 <h1 id="13-development-rules-summary">13. Development Rules Summary<a class="headerlink" href="#13-development-rules-summary" title="Permanent link">&para;</a></h1>
 <ol>
 <li>Internal unit = mm  </li>
