@@ -16,6 +16,7 @@ from SquatchCut.core.sheet_model import (
 )
 from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.gui.nesting_view import rebuild_nested_geometry
+from SquatchCut.gui.view_helpers import fit_view_to_sheet_and_nested
 from SquatchCut.gui.source_view import rebuild_source_preview
 from SquatchCut.gui.view_utils import zoom_to_objects
 
@@ -347,9 +348,11 @@ def show_nesting_view(
     if resolved_doc is None:
         return
 
+    sheet_obj = _redraw_sheet_object(resolved_doc)
     group, nested_objs = _redraw_nested_group(resolved_doc)
     set_squatchcut_group_visibility(resolved_doc, NESTED_GROUP_NAME)
+    if sheet_obj is not None:
+        _set_object_visibility(sheet_obj, True)
     count = len(nested_objs or getattr(group, "Group", []))
     logger.info(f">>> [SquatchCut] View: showing nested layout only ({count} objects).")
-    view = _resolve_view()
-    auto_zoom_to_group(view, group)
+    fit_view_to_sheet_and_nested(resolved_doc)

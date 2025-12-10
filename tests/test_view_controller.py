@@ -81,7 +81,6 @@ def test_show_nesting_view_hides_sources(monkeypatch):
     zoom_calls = []
 
     monkeypatch.setattr(view_controller, "_resolve_doc", lambda _doc=None: doc)
-    monkeypatch.setattr(view_controller, "_resolve_view", lambda: "nested-view")
     monkeypatch.setattr(
         view_controller,
         "_redraw_nested_group",
@@ -89,17 +88,19 @@ def test_show_nesting_view_hides_sources(monkeypatch):
     )
     monkeypatch.setattr(
         view_controller,
-        "auto_zoom_to_group",
-        lambda view, group: zoom_calls.append((view, group)),
+        "fit_view_to_sheet_and_nested",
+        lambda resolved_doc: zoom_calls.append(resolved_doc),
     )
+    monkeypatch.setattr(view_controller, "_redraw_sheet_object", lambda resolved_doc: sheet)
+    monkeypatch.setattr(view_controller, "_resolve_view", lambda: "nested-view")
 
     view_controller.show_nesting_view(doc)
 
     assert nested.ViewObject.Visibility is True
     assert nested.Group[0].ViewObject.Visibility is True
-    assert sheet.ViewObject.Visibility is False
+    assert sheet.ViewObject.Visibility is True
     assert source.ViewObject.Visibility is False
-    assert zoom_calls == [("nested-view", nested)]
+    assert zoom_calls == [doc]
 
 
 def test_cleanup_nested_layout_removes_old_objects():
