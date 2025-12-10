@@ -12,8 +12,14 @@ except ImportError:
         from PySide2 import QtWidgets, QtCore, QtGui  # type: ignore
     except ImportError:
         class _Signal:
+            def __init__(self, *args, **kwargs):
+                pass
+
             def connect(self, *args, **kwargs):
                 return None
+
+            def emit(self, *args, **kwargs):
+                pass
 
         class _Widget:
             def __init__(self, *args, **kwargs):
@@ -267,6 +273,7 @@ except ImportError:
             QAbstractItemView = _DummyAbstractItemView
             QTableWidget = _TableWidget
             QTableWidgetItem = _TableWidgetItem
+            Signal = _Signal
 
             def __getattr__(self, name):
                 return _Widget

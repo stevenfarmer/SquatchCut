@@ -274,8 +274,18 @@ def export_cutlist_map_to_csv(cutlist_by_sheet: Dict[int, list], file_path: str)
                 )
 
 
-def export_cutlist_to_text(cutlist_by_sheet: Dict[int, list], file_path: str) -> None:
+def export_cutlist_to_text(
+    cutlist_by_sheet: Dict[int, list],
+    file_path: str,
+    export_job: ExportJob | None = None,
+) -> None:
     """Write a human-readable cutlist script to text."""
+
+    def _fmt(val_mm):
+        if export_job:
+            return format_dimension_for_export(float(val_mm or 0.0), export_job)
+        return f"{float(val_mm or 0.0):.1f} mm"
+
     with open(file_path, "w", encoding="utf-8") as fh:
         for sheet_index in sorted(cutlist_by_sheet.keys()):
             fh.write(f"Sheet {sheet_index + 1}\n")
@@ -284,9 +294,9 @@ def export_cutlist_to_text(cutlist_by_sheet: Dict[int, list], file_path: str) ->
                 fh.write(f"{cut.get('cut_order', '')}. {cut.get('cut_type', '')} cut:\n")
                 fh.write(
                     f"   Direction: {cut.get('cut_direction', '')} from {cut.get('from_edge', '')} "
-                    f"at {float(cut.get('distance_from_edge_mm', 0.0)):.1f} mm\n"
+                    f"at {_fmt(cut.get('distance_from_edge_mm'))}\n"
                 )
-                fh.write(f"   Length: {float(cut.get('cut_length_mm', 0.0)):.1f} mm\n")
+                fh.write(f"   Length: {_fmt(cut.get('cut_length_mm'))}\n")
                 parts = ";".join(cut.get("parts_affected", []) or []) or "None"
                 fh.write(f"   Parts released: {parts}\n\n")
 def export_layout_to_dxf(
@@ -633,7 +643,7 @@ def export_cutlist(export_job: ExportJob, target_path: str, *, as_text: bool = F
             return
         primary_sheet = _job_primary_sheet_size(export_job)
         cutlist_map = generate_cutlist(placements, primary_sheet)
-        export_cutlist_to_text(cutlist_map, target_path)
+        export_cutlist_to_text(cutlist_map, target_path, export_job=export_job)
         return
 
     if export_job is None or not export_job.sheets:

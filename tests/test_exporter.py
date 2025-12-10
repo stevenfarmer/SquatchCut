@@ -125,3 +125,14 @@ def test_build_export_job_returns_none_when_no_layout():
     _reset_session_state_for_export_tests()
     session_state.set_last_layout(None)
     assert exporter.build_export_job_from_current_nesting() is None
+
+def test_cutlist_text_export_respects_imperial_units(tmp_path: Path):
+    job = _sample_export_job("imperial")
+    out = tmp_path / "cutlist_script.txt"
+    exporter.export_cutlist(job, str(out), as_text=True)
+    assert out.exists()
+    content = out.read_text("utf-8")
+
+    # Verify that content uses "in" and not "mm" for dimensions
+    assert "mm" not in content, "Text export should not contain 'mm' when using Imperial"
+    assert "in" in content, "Text export should contain 'in'"

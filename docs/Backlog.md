@@ -23,9 +23,6 @@
 - **P1 – Multi-Sheet Visualization Polish** – Improve per-sheet labeling, spacing, and navigation inside the 3D view so advanced sheet stacks are obvious and ghost objects never remain after reruns.  
   _Scope_: `freecad/SquatchCut/gui/nesting_view.py`, `freecad/SquatchCut/core/view_controller.py`
 
-- **P1 – Cut-Friendly Multi-Sheet Heuristics** – Refine lane/guillotine handling of sheet order, spacing, and exhaustion so parts aren’t silently dropped or restarted unpredictably when jobs span multiple sheets.  
-  _Scope_: `freecad/SquatchCut/core/nesting.py`, `freecad/SquatchCut/core/cut_optimization.py`
-
 - **P1 – Test Suite Expansion (Hydration, Units, Preview)** – Add coverage for measurement toggles, fractional-inch formatting drift, preview lifecycle (Preview → Preview → Apply vs Apply-only), `sheet_index` propagation, and basic sheet exhaustion scenarios.  
   _Scope_: `tests/test_taskpanel_hydration.py`, `tests/test_nesting.py`, new preview/exhaustion-focused suites
 

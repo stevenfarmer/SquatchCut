@@ -44,7 +44,7 @@ def test_taskpanel_defaults_to_simple_sheet_mode():
     session_state.set_sheet_mode("simple")
     session_state.clear_job_sheets()
     panel = SquatchCutTaskPanel()
-    assert panel.sheet_mode_check.isChecked() is False
+    assert panel.sheet_widget.sheet_mode_check.isChecked() is False
     assert session_state.get_sheet_mode() == "simple"
 
 
@@ -137,7 +137,7 @@ def test_imperial_document_initializes_imperial_defaults():
         expected = prefs.get_default_sheet_size_mm("imperial")
         assert math.isclose(width_mm, expected[0], rel_tol=1e-9)
         assert math.isclose(height_mm, expected[1], rel_tol=1e-9)
-        assert panel.sheet_width_edit.text() == sc_units.format_length(expected[0], "imperial")
+        assert panel.sheet_widget.sheet_width_edit.text() == sc_units.format_length(expected[0], "imperial")
         assert getattr(doc, "SquatchCutSheetUnits", "") == "in"
     finally:
         _restore_prefs(prefs, snap)
@@ -158,7 +158,7 @@ def test_metric_document_initializes_metric_defaults():
         width_mm, height_mm = session_state.get_sheet_size()
         assert math.isclose(width_mm, 1500.0, rel_tol=1e-9)
         assert math.isclose(height_mm, 3000.0, rel_tol=1e-9)
-        assert panel.sheet_width_edit.text() == sc_units.format_length(1500.0, "metric")
+        assert panel.sheet_widget.sheet_width_edit.text() == sc_units.format_length(1500.0, "metric")
         assert getattr(doc, "SquatchCutSheetUnits", "") == "mm"
     finally:
         _restore_prefs(prefs, snap)
@@ -220,7 +220,7 @@ def test_job_sheet_mm_stays_constant_when_document_units_change():
         width_after, height_after = session_state.get_sheet_size()
         assert math.isclose(width_after, 1400.0, rel_tol=1e-9)
         assert math.isclose(height_after, 2600.0, rel_tol=1e-9)
-        assert panel_imperial.sheet_width_edit.text() == sc_units.format_length(1400.0, "imperial")
+        assert panel_imperial.sheet_widget.sheet_width_edit.text() == sc_units.format_length(1400.0, "imperial")
     finally:
         _restore_prefs(prefs, snap)
 
@@ -238,11 +238,11 @@ def test_ui_displays_correct_format_after_document_switch():
         doc_imperial = _DocStub("Imperial (ft-in)")
         panel_imperial = SquatchCutTaskPanel(doc=doc_imperial)
         expected_imperial = prefs.get_default_sheet_size_mm("imperial")
-        assert panel_imperial.sheet_width_edit.text() == sc_units.format_length(expected_imperial[0], "imperial")
+        assert panel_imperial.sheet_widget.sheet_width_edit.text() == sc_units.format_length(expected_imperial[0], "imperial")
 
         doc_metric = _DocStub("Metric (mm)")
         panel_metric = SquatchCutTaskPanel(doc=doc_metric)
-        assert panel_metric.sheet_width_edit.text() == sc_units.format_length(1220.0, "metric")
+        assert panel_metric.sheet_widget.sheet_width_edit.text() == sc_units.format_length(1220.0, "metric")
     finally:
         _restore_prefs(prefs, snap)
 
@@ -264,20 +264,20 @@ def test_job_sheets_persist_across_mode_toggle_and_unit_change():
         initial_sheets = session_state.get_job_sheets()
         assert len(initial_sheets) == 2
 
-        panel.sheet_mode_check.setChecked(False)
-        panel._on_sheet_mode_toggled(False)
+        panel.sheet_widget.sheet_mode_check.setChecked(False)
+        panel.sheet_widget._on_sheet_mode_toggled(False)
         assert session_state.get_sheet_mode() == "simple"
         assert session_state.get_job_sheets() == initial_sheets
 
-        panel.sheet_mode_check.setChecked(True)
-        panel._on_sheet_mode_toggled(True)
+        panel.sheet_widget.sheet_mode_check.setChecked(True)
+        panel.sheet_widget._on_sheet_mode_toggled(True)
         assert session_state.get_sheet_mode() == "job_sheets"
         assert session_state.get_job_sheets() == initial_sheets
 
-        idx = panel.units_combo.findData("imperial")
+        idx = panel.sheet_widget.units_combo.findData("imperial")
         assert idx >= 0
-        panel.units_combo.setCurrentIndex(idx)
-        panel._on_units_changed()
+        panel.sheet_widget.units_combo.setCurrentIndex(idx)
+        panel.sheet_widget._on_units_changed()
         assert session_state.get_job_sheets() == initial_sheets
     finally:
         _restore_prefs(prefs, snap)
@@ -297,7 +297,7 @@ def test_cut_mode_warning_shown_with_multiple_job_sheets():
             ]
         )
         panel = SquatchCutTaskPanel()
-        panel.cut_mode_check.setChecked(True)
+        panel.nesting_widget.cut_mode_check.setChecked(True)
         panel.update_run_button_state()
         assert panel._sheet_warning_active is True
         assert "Advanced job sheets" in panel.sheet_warning_label.text()
@@ -317,10 +317,10 @@ def test_warning_shown_for_cuts_mode_when_multiple_sheets_active():
             ]
         )
         panel = SquatchCutTaskPanel()
-        panel.cut_mode_check.setChecked(False)
-        idx = panel.mode_combo.findData("cuts")
+        panel.nesting_widget.cut_mode_check.setChecked(False)
+        idx = panel.nesting_widget.mode_combo.findData("cuts")
         assert idx >= 0
-        panel.mode_combo.setCurrentIndex(idx)
+        panel.nesting_widget.mode_combo.setCurrentIndex(idx)
         panel.update_run_button_state()
         assert panel._sheet_warning_active is True
     finally:
@@ -335,7 +335,7 @@ def test_sheet_warning_hidden_when_advanced_disabled():
         session_state.set_sheet_mode("simple")
         session_state.clear_job_sheets()
         panel = SquatchCutTaskPanel()
-        panel.cut_mode_check.setChecked(True)
+        panel.nesting_widget.cut_mode_check.setChecked(True)
         panel.update_run_button_state()
         assert panel._sheet_warning_active is False
     finally:
