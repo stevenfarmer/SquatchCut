@@ -35,6 +35,13 @@ def sync_source_panels_to_document():
 
     logger.info(">>> [SquatchCut] Rebuilding source preview via view controller...")
 
+    try:
+        view_controller.show_source_view(doc)
+    except ReferenceError:
+
+        logger.error("ReferenceError during show_source_view()", exc_info=True)
+        raise
+
     # Optional debug: log the first panel's vertices to verify orientation
     if session.get_source_panel_objects():
         first = session.get_source_panel_objects()[0]
@@ -44,10 +51,3 @@ def sync_source_panels_to_document():
             logger.debug(f"First source panel '{first.Name}' vertices: {coords}")
         except Exception as exc:  # pragma: no cover
             logger.warning(f"Failed to inspect source panel vertices: {exc!r}")
-
-    try:
-        view_controller.show_source_view(doc)
-    except ReferenceError:
-
-        logger.error("ReferenceError during show_source_view()", exc_info=True)
-        raise
