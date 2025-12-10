@@ -375,6 +375,15 @@ Agents must ensure:
 
 ---
 
+## D. Developer Tooling & Documentation
+
+- **Documentation hygiene** – Update both this guide and `docs/Backlog.md` whenever the backlog or architectural narratives change; `tests/test_docs_backlog_structure.py` enforces the presence of required sections and key phrases inside the backlog to keep the narrative aligned.
+- **Developer GUI test suite** – `gui/taskpanel_settings.py` surfaces a “Run GUI Test Suite” button that delegates to `core/gui_tests.py`. The suite seeds a small panel set, imports CSVs, runs nesting, and logs `[GUI TEST]`‑prefixed status to the Report view for clarity.
+- **Runner environment** – `docs/Development_Environment.md` and `docs/TESTING.md` describe how to build the `squatchcut-dev` Docker/devcontainer image, install `pip install -e .[dev]`, and run both pure-Python and FreeCAD-aware `pytest` runs (prepend `PYTHONPATH=/usr/lib/freecad-python3/lib` when needed or use `FreeCADCmd -c "import run_freecad_tests"`).
+- **Architecture reference** – Keep `docs/architecture.md` in sync with the actual `freecad/SquatchCut/*` tree; it is the single source of truth for module responsibilities when onboarding new agents or contributors.
+- **Agent conduct** – The root `AGENTS.md` governs measurement rules, hydration order, interaction protocol, and reasoning-level expectations; it complements this guide rather than replacing it.
+- **Export rules reminder** – All exports (CSV, SVG, future DXF) must flow through `freecad/SquatchCut/core/exporter.py` and rely on `ExportJob`/`ExportSheet`/`ExportPartPlacement` data for deterministic outputs.
+
 # 13. Development Rules Summary
 
 1. Internal unit = mm  

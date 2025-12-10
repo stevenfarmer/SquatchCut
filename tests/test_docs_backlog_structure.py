@@ -48,14 +48,13 @@ def test_backlog_file_has_required_sections():
 def test_backlog_active_section_contains_key_items():
     backlog = read_file(BACKLOG_DOC)
     key_phrases = [
-        "Preview Determinism",
-        "TaskPanel Overflow",
-        "Multi-Sheet Visualization",
-        "Cut-Friendly Multi-Sheet",
-        "Test Suite Expansion",
-        "CSV Export & Cutlist",
-        "Warning Banner Lifecycle",
-        "Sheet Exhaustion Metrics",
+        "Preview Determinism & Cleanup",
+        "TaskPanel Overflow & Ergonomics",
+        "Multi-Sheet Visualization Polish",
+        "Test Suite Expansion (Hydration, Units, Preview)",
+        "CSV Export & Cutlist Determinism",
+        "Warning Banner Lifecycle Tests",
+        "Sheet Exhaustion Metrics & Feedback",
     ]
     missing = [phrase for phrase in key_phrases if phrase not in backlog]
     assert not missing, f"Missing expected active backlog items: {missing}"

@@ -1,248 +1,108 @@
 # Architecture
 
-This document defines the technical architecture of the SquatchCut FreeCAD Nesting Workbench MVP. It outlines the project structure, module responsibilities, data flow, and Codex conventions to ensure consistent implementation.
+This document snapshots how SquatchCut is organized so new work streams (AI agents or humans) stay aligned with the existing structure, data flow, and helper layers.
 
 ---
 
-# 1. Project Structure
+## 1. Project Layout
 
-The repository is organized as follows:
+- `root/`
+  - `freecad/SquatchCut/`
+    - `InitGui.py`: workbench registration, toolbar/menu hooks, icon loading.
+    - `__init__.py`: module metadata, lazy-bundled imports for FreeCAD.
+    - `gui/`: Qt widgets, commands, dialogs, and view helpers.
+    - `core/`: pure-Python algorithms, session plumbing, exporters, and utilities.
+    - `resources/`: icons, templates, and static UI helpers.
+  - `docs/`: architecture/roadmap/backlog, developer guidance, UAT + testing instructions.
+  - `tests/`: pytest regression suite exercising hydration, nesting, exports, and docs.
+  - `assets/` & `blog/`: site collateral (screenshots, articles) that support docs.
+  - Top-level helpers: README, `AGENTS.md`, `squatchcut.code-workspace`, and CI config files.
 
-root/
-│
-├── freecad/
-│ └── SquatchCut/
-│ ├── InitGui.py
-│ ├── init.py
-│ ├── gui/
-│ │ ├── commands/
-│ │ │ ├── cmd_add_shapes.py
-│ │ │ ├── cmd_import_csv.py
-│ │ │ ├── cmd_run_nesting.py
-│ │ │ ├── cmd_set_sheet_size.py
-│ │ │ ├── cmd_export_report.py
-│ │ │ └── cmd_preferences.py
-│ │ └── dialogs/
-│ │ ├── dlg_select_shapes.py
-│ │ ├── dlg_csv_import.py
-│ │ ├── dlg_sheet_size.py
-│ │ ├── dlg_run_nesting.py
-│ │ └── dlg_export_report.py
-│ │
-│ ├── core/
-│ │ ├── shape_extractor.py
-│ │ ├── csv_loader.py
-│ │ ├── nesting_engine.py
-│ │ ├── multi_sheet_optimizer.py
-│ │ ├── geometry_output.py
-│ │ ├── report_generator.py
-│ │ └── preferences.py
-│ └── resources/
-│ ├── icons/
-│ └── ui/
-│
-└── docs/
-├── mvp.md
-├── architecture.md
-└── roadmap.md
+This layout keeps FreeCAD integrations under `freecad/SquatchCut` while leaving tests/docs at the repo root for easy access by automation and documentation flows.
 
 ---
 
-# 2. Module Responsibilities
+## 2. Core Modules
 
-## 2.1 `/core` modules
+The `core/` package is the heart of the nesting logic and keeps FreeCAD dependencies confined to integration points.
 
-### **shape_extractor.py**
+- **Session + settings**
+  - `session_state.py`: in-memory defaults, job sheets, panels, measurement system, and export flags used by all UI wiring.
+  - `session.py`: mirrors `session_state` into the active FreeCAD document, tracks FreeCAD objects, and clears/chases Group nodes.
+  - `preferences.py` & `presets.py`: wrap FreeCAD preferences, expose defaults per measurement system, and manage preset metadata used by the TaskPanel.
+  - `settings.py`: hydrates defaults, exposes the configuration API, and guards persistence rules described in `docs/Project_Guide_v3.2.md`.
 
-- Scans FreeCAD document for valid shapes
-- Extracts bounding boxes (width, height)
-- Converts shapes to panel objects
-- Enforces rotation rules
-- Filters by user selection
+- **Unit conversion & logging**
+  - `units.py` + `text_helpers.py`: convert between millimeters and fractional inches, format preset labels, and share helper text strings.
+  - `logger.py`: centralized logger with SquatchCut-friendly prefixes for reporting and GUI tests.
 
-### **csv_loader.py**
+- **CSV ingestion**
+  - `csv_import.py`: high-level validation harness used by GUI commands and CLI integrations (includes measurement overrides).
+  - `csv_loader.py`: low-level importer that normalizes rows, enforces required headers, and converts everything into panel dictionaries.
 
-- Loads CSV into panel objects
-- Validates fields
-- Normalizes types and units
-- Produces list of panels
+- **Panel discovery + validation**
+  - `shape_extractor.py`: reads selected FreeCAD objects, enforces `SquatchCutCanRotate`, and exposes clean panel metadata.
+  - `overlap_check.py`: utility to ensure placements do not overlap when verifying layouts.
 
-### **nesting_engine.py**
+- **Nesting & optimization**
+  - `nesting.py`: orchestrates the multi-sheet workflow (sheet iteration, job sheet handling, compute_utilization, estimate_cut_counts).
+  - `cut_optimization.py`: solver that does guillotine/shelf packing against free rectangles.
+  - `nesting_engine.py`: encapsulates the algorithm that `cut_optimization` relies on; supports both “material” and “cuts” optimization modes.
+  - `multi_sheet_optimizer.py`: spreads panels across multiple sheets, stopping when all parts are placed or sheets are exhausted.
 
-- Implements rectangular nesting (Skyline or Guillotine)
-- Places panels at (x, y) with rotation
-- Detects collisions + boundaries
-- Produces placements for one sheet
+- **Geometry & exports**
+  - `geometry_output.py`: turns placements into FreeCAD rectangles, groups, and sources/nested sheet hierarchies.
+  - `geometry_sync.py`: keeps the document in sync after imports/nesting by rebuilding views and logging stale-reference issues.
+  - `view_controller.py`: TaskPanel-driven helpers to show source vs. nesting views, clear groups, and zoom to objects.
+  - `gui_tests.py`: GUI-level smoke checks invoked from the Settings panel and the developer toolbar.
+  - `cutlist.py`, `exporter.py`, `report_generator.py`: build deterministic exports (CSV cutlists, SVG maps, PDF reports) from `ExportJob`/`ExportSheet` state instead of FreeCAD objects.
 
-### **multi_sheet_optimizer.py**
+- **Sheet helpers**
+  - `sheet_model.py`: manages FreeCAD Group/Boundary helpers and ensures canonical names/clear/rebuild flows.
+  - `sheet_presets.py`: provides factory presets for metric/imperial defaults that never auto-select themselves.
 
-- Uses nesting_engine repeatedly
-- Allocates panels across sheets
-- Stops when all panels placed
-- Returns a list of sheets + placements
-
-### **geometry_output.py**
-
-- Creates FreeCAD geometry for each sheet
-- Adds groups and rectangles
-- Applies x, y placement, rotation, and labeling
-
-### **report_generator.py**
-
-- Builds a PDF summary:
-  - Sheet count
-  - Panel placements
-  - Efficiency / waste %
-  - Timestamp
-- Builds CSV summary
-
-### **preferences.py**
-
-- Wraps FreeCAD preference system
-- Stores:
-  - Default sheet size
-  - Kerf/spacing
-  - Rotation allowed
-  - Auto-detect shapes
-  - Export directory
-  - Branding toggle
+The `core` package intentionally minimizes FreeCAD API surface, enabling the python-only tests to run inside the Docker/devcontainer environment described in `docs/TESTING.md`.
 
 ---
 
-# 3. GUI Layer
+## 3. GUI Layer
 
-## 3.1 Workbench Setup
+`gui/` wraps commands, dialogs, and widgets for user interaction.
 
-### `InitGui.py`
+- `gui/commands/`: entry points that plug into the FreeCAD GUI.
+  - `cmd_run_nesting.py`, `cmd_export_report.py`, `cmd_import_csv.py`, `cmd_set_sheet_size.py`, `cmd_preferences.py`, `cmd_run_gui_tests.py`, `cmd_add_shapes.py`.
+  - Commands import `core` helpers, show dialogs, and set `session_state` before running logic.
 
-- Registers SquatchCut workbench
-- Adds toolbar buttons
-- Loads icons
+- Dialogs: `gui/dialogs/*.py` (CSV import, export report, run nesting, select shapes, sheet size) gather structured input before deferring to commands.
 
-### `__init__.py`
+- TaskPanel widgets: 
+  - `taskpanel_main.py` (main TaskPanel + summary stats + new developer tools section), 
+  - `taskpanel_settings.py` (settings UI with GUI test launcher/status), 
+  - `taskpanel_nesting.py`, `taskpanel_sheet.py`, `taskpanel_input.py`.
+  - `qt_compat.py` provides lightweight Qt stubs so tests can instantiate widgets headlessly.
 
-- Metadata
-- Bootstrapping
+- Views/helpers: `source_view.py`, `nesting_view.py`, `view_helpers.py`, `view_utils.py` coordinate FreeCAD object visibility.
 
-## 3.2 Commands
-
-Each command lives inside `/gui/commands`:
-
-- `cmd_add_shapes.py`
-- `cmd_import_csv.py`
-- `cmd_run_nesting.py`
-- `cmd_set_sheet_size.py`
-- `cmd_export_report.py`
-- `cmd_preferences.py`
-
-Commands:
-
-- Call dialogs
-- Trigger core functions
-- Update UI
-
-## 3.3 Dialogs
-
-Each dialog in `/gui/dialogs` handles user input:
-
-- Select shapes
-- Import CSV
-- Sheet size configuration
-- Nesting run settings
-- Export settings
-
-Dialogs emit structured data for core modules.
+- `icons.py` resolves bundled icon names for commands and panels (no new icon dependencies allowed without review).
 
 ---
 
-# 4. Data Model
+## 4. Data Flow
 
-### Panel Object
-
-{
-"id": str,
-"width": float,
-"height": float,
-"rotation_allowed": bool,
-}
-
-### Placement Object
-
-{
-"panel_id": str,
-"x": float,
-"y": float,
-"rotation": int, # 0 or 90
-"sheet_id": int
-}
-
-### Sheet Object
-
-{
-"sheet_id": int,
-"width": float,
-"height": float,
-"placements": list[Placement]
-}
+1. **CSV import or FreeCAD shape selection** feeds panel metadata into `session_state`.
+2. The TaskPanel (main + settings) hydrates defaults via `settings.hydrate_from_params()` and populates widgets/sheets.
+3. `session_state` + `nesting.py` assemble panels, job sheets, kerf/spacing, and routing (optimize-for-cut vs material). This includes `nesting_engine`, `cut_optimization`, and `multi_sheet_optimizer`.
+4. `geometry_output` + `view_controller` rebuild the FreeCAD scene (source vs nested) and log visual diagnostics.
+5. `Exporter`, `cutlist`, and `report_generator` read `ExportJob`/`ExportSheet` state to write deterministic CSV/SVG reports; FreeCAD geometry is never directly traversed when exports exist.
+6. Developer-facing GUI tests (`core/gui_tests.py`, TaskPanel developer group) run a lean import + nesting cycle and log formatted results for Report view visibility.
 
 ---
 
-# 5. Data Flow
+## 5. Supporting Documentation & Tools
 
-FreeCAD Shapes ──────► shape_extractor
-CSV File ──────► csv_loader
+- Docs: `docs/Project_Guide_v3.2.md`, `docs/Backlog.md`, `docs/TESTING.md`, `docs/Development_Environment.md`, `docs/user_guide.md`, and the root `AGENTS.md` describe policies every change must obey.
+- Testing: `docs/TESTING.md` and the Docker/devcontainer instructions explain how to run `pytest` (pure Python and FreeCAD-aware) plus `FreeCADCmd` GUI flows.
+- Developer tooling: `gui/taskpanel_settings.py` and `core/gui_tests.py` surface the GUI test launcher, while `docs/TESTING.md` explains the Docker workflow for matching CI.
+- Markdown assets (roadmap/backlog) live under `docs/`; they are validated by `tests/test_docs_backlog_structure.py` so future edits stay aligned with stated priorities.
 
-Extracted Panels
-▼
-multi_sheet_optimizer
-▼
-nesting_engine (per sheet)
-▼
-Sheet Placement Sets
-▼
-geometry_output ──► FreeCAD Document
-report_generator ──► PDF / CSV
-
----
-
-# 6. Codex Conventions
-
-Codex must follow these rules when generating code:
-
-### 6.1 Use `@codex` blocks
-
-Example:
-
-```python
-"""
-@codex
-Implement the NestingEngine class.
-Requirements:
-- Do not use recursion.
-- Accept list of panels + sheet size.
-- Return list of placements.
-"""
-6.2 Avoid global state
-Modules must be pure where possible.
-
-6.3 Small functions
-Break complex logic into testable units.
-
-6.4 FreeCAD imports must be lazy
-import FreeCAD as App
-import FreeCADGui as Gui
-
-6.5 Use unified logging
-from .preferences import log
-
-7. Future Expansion (Post-MVP Hooks)
-Architecture reserves space for:
-Bookmatching
-Grain direction optimization
-Curved/polygon nesting
-Advanced nesting heuristics
-Path Workbench integration
-Material libraries
-Drag-and-drop sheet editing
-These will attach cleanly onto existing modules without rewriting MVP code.
-```
+Keeping this document synchronized with the real file tree prevents misconceptions about where logic lives and what responsibilities each module bears.

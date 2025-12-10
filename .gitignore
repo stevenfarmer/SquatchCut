@@ -17,6 +17,7 @@ __pycache__/
 
 # Logs
 *.log
+ruff_ci_errors.txt
 
 # Build output
 dist/
