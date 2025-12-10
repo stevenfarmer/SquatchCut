@@ -16,8 +16,8 @@ from SquatchCut.core.sheet_model import (
 )
 from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.gui.nesting_view import rebuild_nested_geometry
-from SquatchCut.gui.view_helpers import fit_view_to_sheet_and_nested
 from SquatchCut.gui.source_view import rebuild_source_preview
+from SquatchCut.gui.view_helpers import fit_view_to_sheet_and_nested
 from SquatchCut.gui.view_utils import zoom_to_objects
 
 SOURCE_GROUP_NAME = "SquatchCut_SourceParts"
