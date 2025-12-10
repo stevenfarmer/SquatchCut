@@ -20,6 +20,11 @@ Thanks for helping improve SquatchCut! This is an active beta project—please o
 - Add or update docstrings for public functions/classes; note beta/heuristic behavior where relevant.
 - Maintain existing commands for compatibility; new UI goes through `SquatchCut_ShowTaskPanel`.
 
+## AI Agents & Detailed Architecture
+If you are an AI Agent or need detailed architectural/behavioral rules, please refer to:
+- `AGENTS.md` (in the root directory) for strict behavioral guidelines.
+- `docs/Project_Guide_v3.2.md` for the comprehensive project guide and architecture.
+
 ## Adding a New Optimization Strategy (High Level)
 1. Implement a pure-Python strategy in `freecad/SquatchCut/core/nesting.py`.
 2. Provide summary helpers if needed (utilization, cut counts, etc.).

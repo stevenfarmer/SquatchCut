@@ -1,29 +1,30 @@
-# SquatchCut Project Guide (v3.2 – Codex-Fortified Edition)
+# SquatchCut Project Guide (v3.2 – AI Agent Edition)
 
 ## 0. Meta Goals of v3.2
 
 This updated guide focuses specifically on:
 
-### **A. Eliminating ambiguity in Codex instructions**
-- Codex blocks now have strict, enforceable structure  
+### **A. Eliminating ambiguity in AI Agent instructions**
+- Instruction blocks now have strict, enforceable structure
 - No markdown, no commentary inside blocks  
 - Reasoning level declarations mandatory  
 - File paths and expected patterns must be explicit  
 - UI behavior described unambiguously  
 - Persistent behavior safeguarded from accidental overwrites  
 
-### **B. Making YOU faster and making ME (GPT) more consistent**
+### **B. Making YOU faster and making ME (The User) more consistent**
 - You describe requirements  
 - I translate them into clear directives  
-- Codex executes  
+- The Agent executes
 
-### **C. Forcing Codex to conform to SquatchCut’s architecture**
-Codex should never reinvent the repo or introduce new patterns.
+### **C. Forcing AI Agents to conform to SquatchCut’s architecture**
+Agents should never reinvent the repo or introduce new patterns.
 
 ### AI Tooling & Workspace Layout
-- Developers clone SquatchCut on the host and open `squatchcut.code-workspace`; this host-visible workspace is what ChatGPT Mac app, Codex, and other AI tools discover.
+- Developers clone SquatchCut on the host and open `squatchcut.code-workspace`; this host-visible workspace is what AI tools discover.
 - When “Reopen in Container” is used, VS Code bind-mounts the host repo at `/workspaces/SquatchCut`, so the container simply provides tooling while the canonical code stays on the host.
 - See `docs/Development_Environment.md` for full AI-forward workflow details.
+- **See also `AGENTS.md` in the root directory for strict behavioral rules.**
 
 ---
 
@@ -42,24 +43,25 @@ SquatchCut is a FreeCAD add-on that takes CSV part lists and generates optimized
 
 # 2. Roles
 
-## **You (Steven)**
+## **User (Steven)**
 - Product Owner  
 - Scrum-ish Master  
 - UAT wrangler  
 - Requirements authority  
 
-## **ChatGPT (Architect / PM / Spec Writer)**
+## **Architect (AI/Human)**
 - Writes requirements  
-- Produces Codex instruction blocks  
+- Produces Agent instruction blocks
 - Ensures patterns and rules never drift  
 - Maintains documentation  
 
-## **Codex (Engineering Automaton)**
+## **AI Agent (Engineering Automaton)**
 - Writes code  
 - Must obey patterns  
 - Must obey reasoning levels  
 - Must never “guess”  
 - Must build tests with every core change  
+- **Must follow rules in `AGENTS.md`**
 
 ---
 
@@ -71,7 +73,7 @@ SquatchCut is a FreeCAD add-on that takes CSV part lists and generates optimized
 4. **Presets never override defaults**  
 5. **TaskPanel never auto-selects presets**  
 6. **hydrate_from_params() ALWAYS runs before UI widgets**  
-7. **Codex must use reasoning level declarations**  
+7. **Agents must use reasoning level declarations**
 8. **Every logic change must include tests**  
 9. **UI must not overflow or fail to load**  
 10. **Settings panel must always open**  
@@ -81,20 +83,20 @@ SquatchCut is a FreeCAD add-on that takes CSV part lists and generates optimized
 
 ---
 
-# 4. Codex Communication Rules (Updated + Hardened)
+# 4. AI Agent Communication Rules (Updated + Hardened)
 
-## 4.1 Codex Block Format
+## 4.1 Instruction Block Format
 
-Every Codex block MUST begin with:
+Every instruction block MUST begin with:
 
 ```
-Recommended Codex reasoning level: <LEVEL>
+Recommended reasoning level: <LEVEL>
 ```
 
 Followed by:
 
 ```
-Codex, this task requires <LEVEL> reasoning.
+Agent, this task requires <LEVEL> reasoning.
 
 <instructions>
 ```
@@ -103,7 +105,7 @@ Codex, this task requires <LEVEL> reasoning.
 - No language tag  
 - No commentary  
 - Only instructions  
-- Must be safe to paste directly into Codex  
+- Must be safe to paste directly into the Agent
 
 ## 4.2 Required Elements Inside Each Block
 - Full file paths  
@@ -116,7 +118,7 @@ Codex, this task requires <LEVEL> reasoning.
 - LOW: trivial  
 - MEDIUM: single-file  
 - HIGH: multi-file + UI or settings  
-- EXTRA-HIGH: architecture or algorithm refactor  
+- EXTRA-HIGH: architectural or algorithm refactor
 
 ---
 
@@ -238,7 +240,7 @@ Exactly **48 × 96 inches**.
 
 # 10. Add-On Manager Rules
 
-Codex must ensure:
+Agents must ensure:
 
 - Correct zip structure  
 - Correct metadata  
@@ -381,7 +383,7 @@ Codex must ensure:
 4. Presets never overwrite defaults  
 5. TaskPanel never auto-selects presets  
 6. Hydration before UI  
-7. Codex must use reasoning levels  
+7. Agents must use reasoning levels
 8. Tests accompany logic changes  
 9. UI must never overflow  
 10. Settings panel must open  
@@ -394,7 +396,7 @@ Codex must ensure:
 # 13. Changelog Strategy for v3.2
 
 - Add v3.2 section
-- Note settings fixes, hydration rules, UI rules, Codex reinforcement
+- Note settings fixes, hydration rules, UI rules, Agent reinforcement
 - Bump version to 0.3.2
 - Include explicit references to v3.2 documentation
 - Record that backlog/status alignment was refreshed (Completed vs. Active vs. Future) and mirrored into docs/Backlog.md
@@ -432,5 +434,4 @@ No new “hero features” are allowed unless they directly support stability, u
 ## 14.6 v3.3 Exit Criteria
 [INSERT ALL SUBSECTIONS EXACTLY AS PROVIDED BY ARCHITECT AI]
 
-# END OF SquatchCut Project Guide v3.2
 # END OF SquatchCut Project Guide v3.2
