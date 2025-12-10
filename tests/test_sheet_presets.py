@@ -1,7 +1,6 @@
 from SquatchCut import settings
-from SquatchCut.core import sheet_presets
+from SquatchCut.core import session_state, sheet_presets
 from SquatchCut.core.preferences import SquatchCutPreferences
-from SquatchCut.core import session_state
 from SquatchCut.core.units import inches_to_mm, mm_to_inches
 
 

@@ -2,26 +2,21 @@
 
 from __future__ import annotations
 
-import os
-from typing import Callable, List, Optional
 import webbrowser
-
-from SquatchCut.freecad_integration import App, Gui
-from SquatchCut.gui.qt_compat import QtWidgets, QtCore
+from collections.abc import Callable
 
 from SquatchCut import settings
-from SquatchCut.core import sheet_presets as sc_sheet_presets
-from SquatchCut.core import session, session_state, view_controller, logger
+from SquatchCut.core import exporter, logger, session, session_state, view_controller
 from SquatchCut.core import units as sc_units
 from SquatchCut.core.nesting import compute_utilization, estimate_cut_counts
 from SquatchCut.core.preferences import SquatchCutPreferences
-from SquatchCut.core import exporter
-from SquatchCut.gui.commands import cmd_add_shapes, cmd_run_nesting, cmd_export_cutlist
-from SquatchCut.ui.messages import show_error
-
+from SquatchCut.freecad_integration import App, Gui
+from SquatchCut.gui.commands import cmd_run_nesting
+from SquatchCut.gui.qt_compat import QtCore, QtWidgets
 from SquatchCut.gui.taskpanel_input import InputGroupWidget
-from SquatchCut.gui.taskpanel_sheet import SheetConfigWidget
 from SquatchCut.gui.taskpanel_nesting import NestingGroupWidget
+from SquatchCut.gui.taskpanel_sheet import SheetConfigWidget
+from SquatchCut.ui.messages import show_error
 
 
 class SquatchCutTaskPanel:
@@ -41,7 +36,7 @@ class SquatchCutTaskPanel:
         doc_units = test_override if test_override in ("metric", "imperial") else session.detect_document_measurement_system(effective_doc)
 
         self.doc = effective_doc
-        self._close_callback: Optional[Callable[[], None]] = None
+        self._close_callback: Callable[[], None] | None = None
 
         self.has_csv_data = False
         self.is_sheet_valid = False
@@ -56,6 +51,12 @@ class SquatchCutTaskPanel:
         self._initial_state = self._compute_initial_state(effective_doc, doc_units)
         self.measurement_system = self._initial_state["measurement_system"]
         self._apply_initial_state(self._initial_state)
+
+        # Force unit update if mismatch (fixes initialization default)
+        if self.sheet_widget.units_combo.currentData() != self.measurement_system:
+             idx = self.sheet_widget.units_combo.findData(self.measurement_system)
+             if idx >= 0:
+                 self.sheet_widget.units_combo.setCurrentIndex(idx)
 
     def set_close_callback(self, callback: Callable[[], None]) -> None:
         self._close_callback = callback

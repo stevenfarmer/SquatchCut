@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from SquatchCut.freecad_integration import Gui
 
+
 class ShapeExtractor:
     """Scans a FreeCAD document and produces panel objects for nesting."""
 

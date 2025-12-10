@@ -1,7 +1,6 @@
 from SquatchCut.core.units import (
-    inches_to_mm,
     format_imperial_length,
-    mm_to_inches,
+    inches_to_mm,
     parse_imperial_inches,
 )
 

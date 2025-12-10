@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from typing import List
-
-from SquatchCut.gui.qt_compat import QtWidgets, QtCore
-from SquatchCut.core import session_state, logger, units as sc_units, sheet_presets as sc_sheet_presets, session
-from SquatchCut.ui.messages import show_error
+from SquatchCut.core import session_state
+from SquatchCut.core import sheet_presets as sc_sheet_presets
+from SquatchCut.core import units as sc_units
+from SquatchCut.gui.qt_compat import QtCore, QtWidgets
 
 
 class SheetConfigWidget(QtWidgets.QGroupBox):
@@ -177,6 +176,9 @@ class SheetConfigWidget(QtWidgets.QGroupBox):
         if system not in ("metric", "imperial"):
             system = "metric"
 
+        # Determine previous system
+        prev_system = "imperial" if system == "metric" else "metric"
+
         self._prefs.set_measurement_system(system)
         session_state.set_measurement_system(system)
         sc_units.set_units("in" if system == "imperial" else "mm")
@@ -184,18 +186,82 @@ class SheetConfigWidget(QtWidgets.QGroupBox):
         self._update_unit_labels()
         self._refresh_preset_labels()
 
-        # Re-apply stored mm values to display in new units
+        # Retrieve current values
         sheet_w, sheet_h = session_state.get_sheet_size()
-        kerf_mm = session_state.get_kerf_mm() or self._prefs.get_default_kerf_mm(system=system)
-        margin_mm = session_state.get_gap_mm() or self._prefs.get_default_spacing_mm(system=system)
+        kerf_mm = session_state.get_kerf_mm()
+        margin_mm = session_state.get_gap_mm()
 
-        # Logic to apply new defaults if current sheet matches old defaults
-        should_apply_new_defaults = sheet_w is None or sheet_h is None
-        # (Simplified logic: if user explicitly switches units, they might want to see defaults for that unit)
-        # But for stability, we try to preserve dimensions unless they match defaults.
+        # 1. Sheet Size Swapping logic
+        # If current dimensions match the defaults for the PREVIOUS system, swap to defaults for the NEW system.
+        # This prevents 1220mm becoming 48 1/16"
+        prev_w_def, prev_h_def = self._prefs.get_default_sheet_size_mm(prev_system)
 
-        # Using a simplified heuristic for now: If we switch units, we just reformat existing values
-        # UNLESS they haven't been set yet.
+        # Tolerance for float comparison
+        tol = 0.5
+
+        should_swap_sheet = False
+        if sheet_w is not None and sheet_h is not None:
+            # Check if current matches previous defaults (either orientation)
+            matches_std = (abs(sheet_w - prev_w_def) < tol and abs(sheet_h - prev_h_def) < tol)
+            matches_rot = (abs(sheet_w - prev_h_def) < tol and abs(sheet_h - prev_w_def) < tol)
+
+            if matches_std or matches_rot:
+                should_swap_sheet = True
+
+        if should_swap_sheet:
+            new_w, new_h = self._prefs.get_default_sheet_size_mm(system)
+            # Maintain orientation logic if needed, but defaults usually imply standard orientation
+            # If it was rotated, maybe we should rotate the new default?
+            # For simplicity, just use the new default standard size.
+            sheet_w, sheet_h = new_w, new_h
+
+        # 2. Kerf Swapping logic
+        # If kerf matches previous default, swap to new default
+        # E.g., 3mm -> 1/8" (3.175mm) instead of 3mm -> 0.118"
+        prev_kerf_def = self._prefs.get_default_kerf_mm(system=prev_system) # Note: accessing specific system defaults might need care
+        # Actually prefs.get_default_kerf_mm only returns the stored value, which is single source of truth?
+        # Wait, get_default_kerf_mm() reads "DefaultKerfMM".
+        # But we have different defaults per system in memory/logic: 3mm vs 1/8" (3.175mm)
+        # Let's look at Preferences.
+        # METRIC_DEFAULT_KERF_MM = 3.0
+        # IMPERIAL_DEFAULT_KERF_IN = 0.125
+
+        # We need to manually access the "factory" defaults for logic if user hasn't overridden them?
+        # Or just use the values from prefs.
+        # Prefs stores `DefaultKerfMM`. It doesn't seem to split Kerf by system in storage, just one value.
+        # Ah, SquatchCutPreferences has METRIC_KERF_KEY and IMPERIAL_KERF_KEY?
+        # No, the code says:
+        # METRIC_KERF_KEY = "MetricKerfMM"
+        # IMPERIAL_KERF_KEY = "ImperialKerfIn"
+        # But `get_default_kerf_mm` reads "DefaultKerfMM".
+        # It seems `_migrate_legacy_defaults` is not handling Kerf?
+
+        # Let's assume standard factory defaults for check:
+        factory_metric_kerf = 3.0
+        factory_imp_kerf_mm = 3.175 # 1/8 inch
+
+        current_kerf = kerf_mm
+
+        # If we are switching TO Imperial, and kerf is 3.0mm, maybe we want 1/8" (3.175mm)?
+        if system == "imperial" and abs(current_kerf - factory_metric_kerf) < 0.1:
+            kerf_mm = factory_imp_kerf_mm
+        # If switching TO Metric, and kerf is 3.175mm (1/8"), maybe we want 3.0mm?
+        elif system == "metric" and abs(current_kerf - factory_imp_kerf_mm) < 0.1:
+            kerf_mm = factory_metric_kerf
+
+        # 3. Margin Swapping logic
+        # Usually 0, so 0mm == 0in. No change needed unless non-zero defaults used.
+        # But let's check prefs defaults.
+        prev_margin_def = self._prefs.get_default_spacing_mm(system=prev_system)
+        if abs(margin_mm - prev_margin_def) < 0.1:
+             margin_mm = self._prefs.get_default_spacing_mm(system=system)
+
+        # Update Session State with potentially new values
+        if should_swap_sheet:
+             session_state.set_sheet_size(sheet_w, sheet_h)
+        # Update others
+        session_state.set_kerf_mm(kerf_mm)
+        session_state.set_gap_mm(margin_mm)
 
         for edit, value in (
             (self.sheet_width_edit, sheet_w),

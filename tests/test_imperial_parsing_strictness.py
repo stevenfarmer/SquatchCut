@@ -1,6 +1,7 @@
 import pytest
 from SquatchCut.core.units import parse_imperial_inches
 
+
 def test_strict_parsing_rejects_malformed_dashes():
     """
     Ensure that trailing dashes, leading dashes, or multiple dashes

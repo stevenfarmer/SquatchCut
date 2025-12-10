@@ -2,9 +2,9 @@ import math
 
 from SquatchCut import settings
 from SquatchCut.core import session_state
+from SquatchCut.core import sheet_presets as sc_sheet_presets
 from SquatchCut.core import units as sc_units
 from SquatchCut.core.preferences import SquatchCutPreferences
-from SquatchCut.core import sheet_presets as sc_sheet_presets
 from SquatchCut.gui.taskpanel_main import SquatchCutTaskPanel
 
 

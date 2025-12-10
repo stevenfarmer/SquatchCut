@@ -7,9 +7,9 @@ import pytest
 pytest.importorskip("FreeCAD")
 pytest.importorskip("FreeCADGui")
 
-import FreeCAD  # type: ignore
 from SquatchCut import settings
-from SquatchCut.core import session_state, units as sc_units
+from SquatchCut.core import session_state
+from SquatchCut.core import units as sc_units
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.gui.taskpanel_main import SquatchCutTaskPanel
 

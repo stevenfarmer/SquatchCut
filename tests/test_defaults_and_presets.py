@@ -3,8 +3,8 @@ import math
 from SquatchCut import settings
 from SquatchCut.core import session_state
 from SquatchCut.core import units as sc_units
-from SquatchCut.core.units import inches_to_mm, mm_to_inches
 from SquatchCut.core.preferences import SquatchCutPreferences
+from SquatchCut.core.units import inches_to_mm, mm_to_inches
 from SquatchCut.gui.taskpanel_main import SquatchCutTaskPanel
 from SquatchCut.gui.taskpanel_settings import SquatchCutSettingsPanel
 
@@ -329,12 +329,9 @@ def test_unit_toggle_swaps_defaults_when_using_system_default():
         new_width, new_height = session_state.get_sheet_size()
         metric_defaults = prefs.get_default_sheet_size_mm("metric")
 
-        # Current behavior preserves values (converted) rather than swapping to system defaults
-        # 48" = 1219.2mm. Metric default = 1220.0mm.
-        # Expect preserved value.
-        assert math.isclose(new_width, 1219.2, rel_tol=1e-4)
-        assert math.isclose(new_height, 2438.4, rel_tol=1e-4)
-        assert panel.sheet_widget.sheet_width_edit.text() == sc_units.format_length(new_width, "metric")
+        assert math.isclose(new_width, metric_defaults[0], rel_tol=1e-9)
+        assert math.isclose(new_height, metric_defaults[1], rel_tol=1e-9)
+        assert panel.sheet_widget.sheet_width_edit.text() == sc_units.format_length(metric_defaults[0], "metric")
     finally:
         sc_units.set_units("mm")
         _restore_prefs(prefs, snap)

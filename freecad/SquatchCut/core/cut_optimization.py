@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable, List, Tuple
 
 from SquatchCut.core import nesting as nesting_mod
 from SquatchCut.core.nesting import get_effective_spacing
@@ -24,14 +24,14 @@ def _get_sheet_dims(sheet) -> tuple[float, float]:
     return float(getattr(sheet, "width", 0.0)), float(getattr(sheet, "height", 0.0))
 
 
-def _orientations_for_part(part, allowed_rotations: Tuple[int, ...]) -> Iterable[tuple[float, float, int]]:
+def _orientations_for_part(part, allowed_rotations: tuple[int, ...]) -> Iterable[tuple[float, float, int]]:
     """Yield (width, height, rotation_deg) respecting part.can_rotate and allowed_rotations."""
     yield part.width, part.height, 0
     if getattr(part, "can_rotate", False) and 90 in allowed_rotations and part.width != part.height:
         yield part.height, part.width, 90
 
 
-def guillotine_nest_parts(parts, sheet, config, sheet_sizes: List[Tuple[float, float]] | None = None) -> List:
+def guillotine_nest_parts(parts, sheet, config, sheet_sizes: list[tuple[float, float]] | None = None) -> list:
     """
     Guillotine-style nesting: place parts in free rectangles, splitting space after each placement.
 
@@ -51,6 +51,8 @@ def guillotine_nest_parts(parts, sheet, config, sheet_sizes: List[Tuple[float, f
         return nesting_mod.resolve_sheet_dimensions(sizes, index, sheet_w, sheet_h)
 
     configured_sizes = sizes or [(sheet_w, sheet_h)]
+    allowed_rots = tuple(getattr(config, "allowed_rotations_deg", (0, 90)) or (0, 90))
+
     for part in parts:
         fits_somewhere = False
         for sw, sh in configured_sizes:
@@ -58,7 +60,10 @@ def guillotine_nest_parts(parts, sheet, config, sheet_sizes: List[Tuple[float, f
                 continue
             fits_plain = part.width <= sw and part.height <= sh
             fits_rotated = (
-                getattr(part, "can_rotate", False) and part.height <= sw and part.width <= sh
+                getattr(part, "can_rotate", False)
+                and 90 in allowed_rots
+                and part.height <= sw
+                and part.width <= sh
             )
             if fits_plain or fits_rotated:
                 fits_somewhere = True
@@ -81,7 +86,6 @@ def guillotine_nest_parts(parts, sheet, config, sheet_sizes: List[Tuple[float, f
 
     spacing = get_effective_spacing(config)
     kerf = spacing  # treat spacing as kerf/spacing budget
-    allowed_rots = tuple(getattr(config, "allowed_rotations_deg", (0, 90)) or (0, 90))
 
     sheet_index = 0
     while remaining_parts:
@@ -91,12 +95,17 @@ def guillotine_nest_parts(parts, sheet, config, sheet_sizes: List[Tuple[float, f
             for w, h, rot in _orientations_for_part(part, allowed_rots):
                 if w <= 0 or h <= 0:
                     continue
-                req_w = w + kerf
-                req_h = h + kerf
-                if req_w > fr["w"] or req_h > fr["h"]:
+
+                # Check if part fits in free rect.
+                # Note: We do NOT enforce w + kerf <= fr["w"] here, because a part
+                # fitting exactly on the edge doesn't need trailing kerf if no other
+                # part follows it in that direction. The split logic handles spacing.
+                if w > fr["w"] + 1e-6 or h > fr["h"] + 1e-6:
                     continue
+
                 x = fr["x"]
                 y = fr["y"]
+                # Sanity check against sheet bounds
                 if x + w > current_sheet_width + 1e-6 or y + h > current_sheet_height + 1e-6:
                     continue
 
@@ -112,17 +121,20 @@ def guillotine_nest_parts(parts, sheet, config, sheet_sizes: List[Tuple[float, f
                     )
                 )
 
-                # Split rectangle: right and bottom regions with kerf spacing.
+                # Split rectangle: Guillotine split (Vertical Split First strategy).
+                # Right rect: covers full height to the right of the vertical cut line.
                 right_rect = {
                     "x": x + w + kerf,
                     "y": y,
                     "w": fr["w"] - w - kerf,
                     "h": fr["h"],
                 }
+                # Bottom rect: covers width of the part (plus left region) below the horizontal cut line.
+                # Constrained to width=w to avoid overlap with right_rect.
                 bottom_rect = {
                     "x": x,
                     "y": y + h + kerf,
-                    "w": fr["w"],
+                    "w": w,
                     "h": fr["h"] - h - kerf,
                 }
 

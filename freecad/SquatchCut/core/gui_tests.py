@@ -4,15 +4,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from SquatchCut.freecad_integration import App, Gui
-from SquatchCut.core import logger, session, session_state
 from SquatchCut import settings
-from SquatchCut.core import cutlist
-from SquatchCut.core.geometry_sync import sync_source_panels_to_document
-from SquatchCut.gui.commands import cmd_run_nesting, cmd_import_csv
+from SquatchCut.core import cutlist, logger, session, session_state
 from SquatchCut.core import units as sc_units
+from SquatchCut.core.geometry_sync import sync_source_panels_to_document
 from SquatchCut.core.preferences import SquatchCutPreferences
-from SquatchCut.gui import taskpanel_settings, taskpanel_main
+from SquatchCut.freecad_integration import App, Gui
+from SquatchCut.gui import taskpanel_main, taskpanel_settings
+from SquatchCut.gui.commands import cmd_import_csv, cmd_run_nesting
 
 GUI_TEST_PREFIX = ">>> [SquatchCut] [GUI TEST]"
 
@@ -291,8 +290,11 @@ def test_sheet_size_suffix_tracks_units():
         sc_units.set_units("mm")
         settings.hydrate_from_params()
         panel_mm = taskpanel_main.create_main_panel_for_tests()
-        lbl_w_mm = getattr(panel_mm, "sheet_width_label", None)
-        lbl_h_mm = getattr(panel_mm, "sheet_height_label", None)
+        # Labels are now in the sheet_widget sub-component
+        sheet_widget = getattr(panel_mm, "sheet_widget", None)
+        lbl_w_mm = getattr(sheet_widget, "sheet_width_label", None) if sheet_widget else None
+        lbl_h_mm = getattr(sheet_widget, "sheet_height_label", None) if sheet_widget else None
+
         if lbl_w_mm is None or lbl_h_mm is None:
             raise RuntimeError("Main panel missing sheet_width_label/sheet_height_label.")
         if "mm" not in lbl_w_mm.text() or "mm" not in lbl_h_mm.text():
@@ -305,8 +307,10 @@ def test_sheet_size_suffix_tracks_units():
         sc_units.set_units("in")
         settings.hydrate_from_params()
         panel_in = taskpanel_main.create_main_panel_for_tests()
-        lbl_w_in = getattr(panel_in, "sheet_width_label", None)
-        lbl_h_in = getattr(panel_in, "sheet_height_label", None)
+        sheet_widget = getattr(panel_in, "sheet_widget", None)
+        lbl_w_in = getattr(sheet_widget, "sheet_width_label", None) if sheet_widget else None
+        lbl_h_in = getattr(sheet_widget, "sheet_height_label", None) if sheet_widget else None
+
         if lbl_w_in is None or lbl_h_in is None:
             raise RuntimeError("Main panel missing sheet_width_label/sheet_height_label.")
         if "in" not in lbl_w_in.text() or "in" not in lbl_h_in.text():

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.core import logger
+from SquatchCut.freecad_integration import App
 from SquatchCut.gui.icons import get_icon
 from SquatchCut.gui.view_helpers import (
     fit_view_to_sheet_and_nested,

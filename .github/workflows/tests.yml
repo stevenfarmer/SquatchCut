@@ -24,6 +24,11 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
 
+      - name: Lint with Ruff
+        run: |
+          # Fails on errors, import sorting, or outdated syntax
+          ruff check --select E,F,I,UP,B .
+
       - name: Run tests with coverage
         env:
           PYTHONPATH: freecad

@@ -2,14 +2,9 @@
 
 import os
 
-import FreeCAD as App  # type: ignore
-
 from SquatchCut.core.csv_loader import CsvLoader  # type: ignore
-from SquatchCut.core.preferences import PreferencesManager  # type: ignore
-from SquatchCut.core.nesting_engine import NestingEngine  # type: ignore
 from SquatchCut.core.multi_sheet_optimizer import MultiSheetOptimizer  # type: ignore
 from SquatchCut.core.report_generator import ReportGenerator  # type: ignore
-
 
 FIXTURE_DIR = os.path.join(os.path.dirname(__file__), "csv")
 SMALL_CSV = os.path.join(FIXTURE_DIR, "valid_panels_small.csv")

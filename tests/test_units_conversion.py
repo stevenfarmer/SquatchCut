@@ -1,5 +1,5 @@
 from SquatchCut.core import session_state
-from SquatchCut.core.units import mm_to_inches, inches_to_mm
+from SquatchCut.core.units import inches_to_mm, mm_to_inches
 
 
 def test_mm_to_inches_and_back():

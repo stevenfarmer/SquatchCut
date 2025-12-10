@@ -1,7 +1,7 @@
 import math
 
 from SquatchCut import settings
-from SquatchCut.core import session_state, gui_tests
+from SquatchCut.core import gui_tests, session_state
 from SquatchCut.core import units as sc_units
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.gui.taskpanel_main import SquatchCutTaskPanel

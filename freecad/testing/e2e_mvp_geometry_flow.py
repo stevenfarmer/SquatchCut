@@ -1,10 +1,10 @@
 """E2E smoke test: geometry extraction -> nesting -> report."""
 
-import FreeCAD as App  # type: ignore
 
-from SquatchCut.core.shape_extractor import ShapeExtractor  # type: ignore
 from SquatchCut.core.multi_sheet_optimizer import MultiSheetOptimizer  # type: ignore
 from SquatchCut.core.report_generator import ReportGenerator  # type: ignore
+from SquatchCut.core.shape_extractor import ShapeExtractor  # type: ignore
+
 from .helpers.generate_test_documents import create_basic_rectangles_doc
 
 

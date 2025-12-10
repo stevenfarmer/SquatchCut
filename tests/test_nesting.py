@@ -3,16 +3,15 @@ Tests for the core nesting algorithm (overlaps, rotation, multi-sheet behavior).
 """
 
 import pytest
-
 from SquatchCut.core.nesting import (
+    NestingConfig,
     Part,
     PlacedPart,
-    nest_on_multiple_sheets,
-    nest_cut_optimized,
-    nest_parts,
-    NestingConfig,
-    estimate_cut_counts,
     compute_utilization,
+    estimate_cut_counts,
+    nest_cut_optimized,
+    nest_on_multiple_sheets,
+    nest_parts,
     run_shelf_nesting,
 )
 from SquatchCut.core.overlap_check import detect_overlaps

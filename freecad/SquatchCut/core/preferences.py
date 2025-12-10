@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import math
 
-from SquatchCut.freecad_integration import App
 from SquatchCut.core.units import inches_to_mm, mm_to_inches
+from SquatchCut.freecad_integration import App
 
 
 class SquatchCutPreferences:
@@ -289,18 +289,33 @@ class SquatchCutPreferences:
             self._set_float(self.METRIC_SPACING_KEY, value)
 
     def get_default_kerf_mm(self, fallback: float = 3.0, system: str | None = None) -> float:
+        """
+        Return default kerf in mm.
+        If system is None, uses the current preferred measurement system.
+        """
         sys = system or self.get_measurement_system()
         if sys == "imperial":
             val_in = self._float(self.IMPERIAL_KERF_KEY, self.IMPERIAL_DEFAULT_KERF_IN)
             return inches_to_mm(val_in)
-        return self._float(self.METRIC_KERF_KEY, fallback or self.METRIC_DEFAULT_KERF_MM)
+
+        # For metric, prefer the specific key, fallback to legacy
+        has_metric, val = self._get_float_entry(self.METRIC_KERF_KEY)
+        if has_metric:
+            return val
+        return self._float("DefaultKerfMM", fallback or self.METRIC_DEFAULT_KERF_MM)
 
     def set_default_kerf_mm(self, value: float, system: str | None = None) -> None:
+        """
+        Set default kerf from mm input.
+        If system is Imperial, converts mm -> inches and stores in Imperial key.
+        """
         sys = system or self.get_measurement_system()
         if sys == "imperial":
             self._set_float(self.IMPERIAL_KERF_KEY, mm_to_inches(value))
         else:
             self._set_float(self.METRIC_KERF_KEY, value)
+            # Update legacy key for backward compatibility
+            self._set_float("DefaultKerfMM", value)
 
     def get_default_optimize_for_cut_path(self, fallback: bool = False) -> bool:
         return self._bool("DefaultOptimizeForCutPath", fallback)

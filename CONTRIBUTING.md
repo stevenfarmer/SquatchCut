@@ -12,6 +12,8 @@ Thanks for helping improve SquatchCut! This is an active beta project—please o
    ```bash
    PYTHONPATH=freecad .venv/bin/pytest --cov=SquatchCut.core.nesting --cov=SquatchCut.core.session_state --cov-report=term-missing --cov-fail-under=80
    ```
+   **Note**: `PYTHONPATH=freecad` is required because the codebase imports modules as `from SquatchCut...` rather than `from freecad.SquatchCut...`. This ensures compatibility with both the FreeCAD internal module loader and external test runners.
+
 3. Optional: run FreeCAD E2E scripts inside FreeCAD (see `freecad/testing/`).
 
 ## Style & Expectations
@@ -19,6 +21,11 @@ Thanks for helping improve SquatchCut! This is an active beta project—please o
 - Prefer small, well-documented helpers over large inline blocks.
 - Add or update docstrings for public functions/classes; note beta/heuristic behavior where relevant.
 - Maintain existing commands for compatibility; new UI goes through `SquatchCut_ShowTaskPanel`.
+
+## AI Agents & Detailed Architecture
+If you are an AI Agent or need detailed architectural/behavioral rules, please refer to:
+- `AGENTS.md` (in the root directory) for strict behavioral guidelines.
+- `docs/Project_Guide_v3.2.md` for the comprehensive project guide and architecture.
 
 ## Adding a New Optimization Strategy (High Level)
 1. Implement a pure-Python strategy in `freecad/SquatchCut/core/nesting.py`.

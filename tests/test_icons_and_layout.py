@@ -1,8 +1,7 @@
 import pytest
-
 from SquatchCut.gui import icons
-from SquatchCut.gui.taskpanel_main import SquatchCutTaskPanel
 from SquatchCut.gui.qt_compat import QtWidgets
+from SquatchCut.gui.taskpanel_main import SquatchCutTaskPanel
 
 
 def test_icon_helper_resolves_all_keys():

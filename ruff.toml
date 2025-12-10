@@ -1,6 +1,6 @@
 [lint]
-select = ["E", "F"]          # syntax, undefined names, real errors
-ignore = ["E501"]            # ignore line length for now
+select = ["E", "F", "I", "B", "UP"]  # syntax, undefined names, errors, isort, bugbear, pyupgrade
+ignore = ["E501"]                    # ignore line length for now
 
 # Optional but recommended
 exclude = ["freecad/build", "dist", ".venv"]
