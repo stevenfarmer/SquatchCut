@@ -81,12 +81,12 @@ def test_rotation_defaults_sync_to_taskpanel():
         prefs.set_default_allow_rotate(True)
         settings.hydrate_from_params()
         panel = SquatchCutTaskPanel()
-        assert panel.job_allow_rotation_check.isChecked()
+        assert panel.nesting_widget.job_allow_rotation_check.isChecked()
 
         prefs.set_default_allow_rotate(False)
         settings.hydrate_from_params()
         panel2 = SquatchCutTaskPanel()
-        assert not panel2.job_allow_rotation_check.isChecked()
+        assert not panel2.nesting_widget.job_allow_rotation_check.isChecked()
     finally:
         _restore_prefs(prefs, snap)
 
@@ -102,10 +102,10 @@ def test_no_defaults_shows_empty_fields_and_no_preset():
         assert panel_settings.sheet_height_edit.text() == sc_units.format_length(2440.0, "metric")
 
         panel_main = SquatchCutTaskPanel()
-        assert panel_main.sheet_width_edit.text() == sc_units.format_length(1220.0, "metric")
-        assert panel_main.sheet_height_edit.text() == sc_units.format_length(2440.0, "metric")
-        assert panel_main.preset_combo.currentIndex() == 0
-        assert panel_main._preset_state.current_id is None
+        assert panel_main.sheet_widget.sheet_width_edit.text() == sc_units.format_length(1220.0, "metric")
+        assert panel_main.sheet_widget.sheet_height_edit.text() == sc_units.format_length(2440.0, "metric")
+        assert panel_main.sheet_widget.preset_combo.currentIndex() == 0
+        assert panel_main.sheet_widget._preset_state.current_id is None
     finally:
         _restore_prefs(prefs, snap)
 
@@ -123,15 +123,10 @@ def test_main_taskpanel_no_longer_has_gui_test_button():
 def test_taskpanel_sections_groupboxes():
     settings.hydrate_from_params()
     panel = SquatchCutTaskPanel()
-    widgets = panel._section_widgets
-    assert "input_group_box" in widgets
-    assert "sheet_group_box" in widgets
-    assert "nesting_group_box" in widgets
-    assert "output_group_box" in widgets
-    assert widgets["input_group_box"] is panel._section_widgets["input_group_box"]
-    assert widgets["sheet_group_box"] is panel._section_widgets["sheet_group_box"]
-    assert widgets["nesting_group_box"] is panel._section_widgets["nesting_group_box"]
-    assert widgets["output_group_box"] is panel._section_widgets["output_group_box"]
+    # Updated to verify sub-widgets exist directly instead of via _section_widgets map
+    assert panel.input_widget is not None
+    assert panel.sheet_widget is not None
+    assert panel.nesting_widget is not None
 
 
 def test_taskpanel_job_rotation_toggle_does_not_change_defaults():
@@ -141,10 +136,15 @@ def test_taskpanel_job_rotation_toggle_does_not_change_defaults():
         prefs.set_default_allow_rotate(False)
         settings.hydrate_from_params()
         panel = SquatchCutTaskPanel()
-        panel._on_job_rotation_toggled(True)
+        # Simulate toggle via nesting widget
+        panel.nesting_widget.job_allow_rotation_check.setChecked(True)
+        panel.nesting_widget._on_settings_changed()
+        # Check signal propagation or direct session state update
         assert session_state.get_job_allow_rotate() is True
         assert session_state.get_allowed_rotations_deg() == (0, 90)
-        panel._on_job_rotation_toggled(False)
+
+        panel.nesting_widget.job_allow_rotation_check.setChecked(False)
+        panel.nesting_widget._on_settings_changed()
         assert session_state.get_job_allow_rotate() is False
         assert session_state.get_allowed_rotations_deg() == (0,)
         assert prefs.get_default_allow_rotate() is False
