@@ -50,9 +50,9 @@ def test_main_taskpanel_hydration_order():
         assert panel.measurement_system == "imperial"
         expected_width_text = sc_units.format_length(sc_units.inches_to_mm(64.0), "imperial")
         expected_height_text = sc_units.format_length(sc_units.inches_to_mm(96.0), "imperial")
-        assert panel.sheet_width_edit.text() == expected_width_text
-        assert panel.sheet_height_edit.text() == expected_height_text
-        assert panel.margin_edit.text() == sc_units.format_length(3.0, "imperial")
+        assert panel.sheet_widget.sheet_width_edit.text() == expected_width_text
+        assert panel.sheet_widget.sheet_height_edit.text() == expected_height_text
+        assert panel.sheet_widget.margin_edit.text() == sc_units.format_length(3.0, "imperial")
         assert panel._initial_state["measurement_system"] == "imperial"
         current = _snapshot_prefs(prefs)
         assert current["measurement_system"] == "imperial"
@@ -101,7 +101,7 @@ def test_settings_panel_hydration_and_persistence():
         main_panel = SquatchCutTaskPanel()
         assert math.isclose(main_panel._initial_state["sheet_width_mm"], 1500.0, rel_tol=1e-6)
         assert math.isclose(main_panel._initial_state["sheet_height_mm"], 3100.0, rel_tol=1e-6)
-        assert main_panel.job_allow_rotation_check.isChecked() is False
+        assert main_panel.nesting_widget.job_allow_rotation_check.isChecked() is False
     finally:
         _restore_prefs(prefs, snap)
 

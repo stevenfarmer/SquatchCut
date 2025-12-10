@@ -278,7 +278,7 @@ class SquatchCutTaskPanel:
             "margin_mm": margin_mm,
             "kerf_width_mm": session_state.get_kerf_width_mm(),
             "cut_mode": session_state.get_optimize_for_cut_path(),
-            "job_allow_rotate": session_state.get_job_allow_rotate(),
+            "job_allow_rotate": session_state.get_job_allow_rotate() if session_state.get_job_allow_rotate() is not None else session_state.get_default_allow_rotate(),
             "mode": session_state.get_optimization_mode(),
             "csv_units": self._prefs.get_csv_units(measurement_system),
             "include_labels": self._prefs.get_export_include_labels(),

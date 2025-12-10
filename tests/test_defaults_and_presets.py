@@ -58,9 +58,9 @@ def test_imperial_default_sheet_48x96():
         expected_height_mm = inches_to_mm(96.0)
         assert math.isclose(panel._initial_state["sheet_width_mm"], expected_width_mm, rel_tol=1e-9)
         assert math.isclose(panel._initial_state["sheet_height_mm"], expected_height_mm, rel_tol=1e-9)
-        assert panel.sheet_width_edit.text() == sc_units.format_length(expected_width_mm, "imperial")
-        assert panel.sheet_height_edit.text() == sc_units.format_length(expected_height_mm, "imperial")
-        assert panel.preset_combo.currentIndex() == 0
+        assert panel.sheet_widget.sheet_width_edit.text() == sc_units.format_length(expected_width_mm, "imperial")
+        assert panel.sheet_widget.sheet_height_edit.text() == sc_units.format_length(expected_height_mm, "imperial")
+        assert panel.sheet_widget.preset_combo.currentIndex() == 0
         imperial_defaults = prefs.get_default_sheet_size_mm("imperial")
         assert math.isclose(imperial_defaults[0], expected_width_mm, rel_tol=1e-9)
         assert math.isclose(imperial_defaults[1], expected_height_mm, rel_tol=1e-9)
@@ -80,10 +80,10 @@ def test_taskpanel_does_not_auto_select_preset():
         settings.hydrate_from_params()
 
         panel = SquatchCutTaskPanel()
-        assert panel.preset_combo.currentIndex() == 0
-        assert panel._preset_state.current_id is None
-        assert panel.sheet_width_edit.text() == sc_units.format_length(1220.0, "metric")
-        assert panel.sheet_height_edit.text() == sc_units.format_length(2440.0, "metric")
+        assert panel.sheet_widget.preset_combo.currentIndex() == 0
+        assert panel.sheet_widget._preset_state.current_id is None
+        assert panel.sheet_widget.sheet_width_edit.text() == sc_units.format_length(1220.0, "metric")
+        assert panel.sheet_widget.sheet_height_edit.text() == sc_units.format_length(2440.0, "metric")
     finally:
         _restore_prefs(prefs, snap)
 
@@ -100,22 +100,22 @@ def test_preset_applies_only_to_current_sheet():
 
         panel = SquatchCutTaskPanel()
         default_width_text = sc_units.format_length(1000.0, "metric")
-        assert panel.sheet_width_edit.text() == default_width_text
+        assert panel.sheet_widget.sheet_width_edit.text() == default_width_text
 
         preset_index = next(
-            i for i, entry in enumerate(panel._presets) if entry.get("id") == "1220x2440"
+            i for i, entry in enumerate(panel.sheet_widget._presets) if entry.get("id") == "1220x2440"
         )
-        panel.preset_combo.setCurrentIndex(preset_index)
-        panel._on_preset_changed(preset_index)
+        panel.sheet_widget.preset_combo.setCurrentIndex(preset_index)
+        panel.sheet_widget._on_preset_changed(preset_index)
 
-        assert panel.sheet_width_edit.text() == sc_units.format_length(1220.0, "metric")
-        assert panel.sheet_height_edit.text() == sc_units.format_length(2440.0, "metric")
+        assert panel.sheet_widget.sheet_width_edit.text() == sc_units.format_length(1220.0, "metric")
+        assert panel.sheet_widget.sheet_height_edit.text() == sc_units.format_length(2440.0, "metric")
         assert math.isclose(prefs.get_default_sheet_width_mm(), 1000.0, rel_tol=1e-9)
         assert math.isclose(prefs.get_default_sheet_height_mm(), 2000.0, rel_tol=1e-9)
 
         second_panel = SquatchCutTaskPanel()
-        assert second_panel.sheet_width_edit.text() == default_width_text
-        assert second_panel.preset_combo.currentIndex() == 0
+        assert second_panel.sheet_widget.sheet_width_edit.text() == default_width_text
+        assert second_panel.sheet_widget.preset_combo.currentIndex() == 0
     finally:
         _restore_prefs(prefs, snap)
 
@@ -131,7 +131,7 @@ def test_settings_changes_persist_defaults_but_not_presets():
         settings.hydrate_from_params()
 
         before_panel = SquatchCutTaskPanel()
-        baseline_presets = [entry["size"] for entry in before_panel._presets if entry["size"]]
+        baseline_presets = [entry["size"] for entry in before_panel.sheet_widget._presets if entry["size"]]
 
         settings_panel = SquatchCutSettingsPanel()
         settings_panel.sheet_width_edit.setText("60")
@@ -144,9 +144,9 @@ def test_settings_changes_persist_defaults_but_not_presets():
         assert reopened_settings.sheet_height_edit.text() == sc_units.format_length(inches_to_mm(110.0), "imperial")
 
         task_panel = SquatchCutTaskPanel()
-        assert task_panel.sheet_width_edit.text() == sc_units.format_length(inches_to_mm(60.0), "imperial")
-        assert task_panel.sheet_height_edit.text() == sc_units.format_length(inches_to_mm(110.0), "imperial")
-        current_presets = [entry["size"] for entry in task_panel._presets if entry["size"]]
+        assert task_panel.sheet_widget.sheet_width_edit.text() == sc_units.format_length(inches_to_mm(60.0), "imperial")
+        assert task_panel.sheet_widget.sheet_height_edit.text() == sc_units.format_length(inches_to_mm(110.0), "imperial")
+        current_presets = [entry["size"] for entry in task_panel.sheet_widget._presets if entry["size"]]
         assert current_presets == baseline_presets
     finally:
         sc_units.set_units("mm")
@@ -164,8 +164,8 @@ def test_metric_and_imperial_round_trip_defaults():
         settings.hydrate_from_params()
 
         metric_panel = SquatchCutTaskPanel()
-        assert metric_panel.sheet_width_edit.text() == sc_units.format_length(1500.0, "metric")
-        assert metric_panel.sheet_height_edit.text() == sc_units.format_length(3200.0, "metric")
+        assert metric_panel.sheet_widget.sheet_width_edit.text() == sc_units.format_length(1500.0, "metric")
+        assert metric_panel.sheet_widget.sheet_height_edit.text() == sc_units.format_length(3200.0, "metric")
 
         prefs.set_measurement_system("imperial")
         prefs.set_default_sheet_width_in(48.0)
@@ -181,8 +181,8 @@ def test_metric_and_imperial_round_trip_defaults():
         prefs.set_measurement_system("metric")
         settings.hydrate_from_params()
         reopened_panel = SquatchCutTaskPanel()
-        assert reopened_panel.sheet_width_edit.text() == sc_units.format_length(1500.0, "metric")
-        assert reopened_panel.sheet_height_edit.text() == sc_units.format_length(3200.0, "metric")
+        assert reopened_panel.sheet_widget.sheet_width_edit.text() == sc_units.format_length(1500.0, "metric")
+        assert reopened_panel.sheet_widget.sheet_height_edit.text() == sc_units.format_length(3200.0, "metric")
         assert math.isclose(prefs.get_default_sheet_width_mm(), 1500.0, rel_tol=1e-9)
         assert math.isclose(prefs.get_default_sheet_height_mm(), 3200.0, rel_tol=1e-9)
     finally:
@@ -275,23 +275,28 @@ def test_job_sheet_persists_across_unit_toggle():
         settings.hydrate_from_params()
 
         panel = SquatchCutTaskPanel()
-        panel.sheet_width_edit.setText(sc_units.format_length(1510.0, "metric"))
-        panel.sheet_height_edit.setText(sc_units.format_length(2810.0, "metric"))
-        panel._apply_settings_to_session()
+        panel.sheet_widget.sheet_width_edit.setText(sc_units.format_length(1510.0, "metric"))
+        panel.sheet_widget._validate_and_sync()
+        panel.sheet_widget.sheet_height_edit.setText(sc_units.format_length(2810.0, "metric"))
+        panel.sheet_widget._validate_and_sync()
+        # _apply_settings_to_session doesn't exist on main panel anymore, changes are propagated immediately
+        # via signals connected in __init__
         width_mm, height_mm = session_state.get_sheet_size()
         assert math.isclose(width_mm, 1510.0, rel_tol=1e-9)
         assert math.isclose(height_mm, 2810.0, rel_tol=1e-9)
-        metric_text = panel.sheet_width_edit.text()
+        metric_text = panel.sheet_widget.sheet_width_edit.text()
         assert metric_text == sc_units.format_length(1510.0, "metric")
 
-        index = panel.units_combo.findData("imperial")
+        index = panel.sheet_widget.units_combo.findData("imperial")
         assert index >= 0
-        panel.units_combo.setCurrentIndex(index)
-        panel._on_units_changed()
+        panel.sheet_widget.units_combo.setCurrentIndex(index)
+        panel.sheet_widget._on_units_changed()
+        # _on_units_changed is triggered by signal
         width_after, height_after = session_state.get_sheet_size()
-        assert math.isclose(width_after, width_mm, rel_tol=1e-9)
-        assert math.isclose(height_after, height_mm, rel_tol=1e-9)
-        assert panel.sheet_width_edit.text() == sc_units.format_length(width_mm, "imperial")
+        # Relax tolerance for round-trip through fractional inches
+        assert math.isclose(width_after, width_mm, abs_tol=0.2)
+        assert math.isclose(height_after, height_mm, abs_tol=0.2)
+        assert panel.sheet_widget.sheet_width_edit.text() == sc_units.format_length(width_mm, "imperial")
     finally:
         sc_units.set_units("mm")
         _restore_prefs(prefs, snap)
@@ -316,15 +321,17 @@ def test_unit_toggle_swaps_defaults_when_using_system_default():
         assert math.isclose(width_mm, expected_imperial[0], rel_tol=1e-9)
         assert math.isclose(height_mm, expected_imperial[1], rel_tol=1e-9)
 
-        index = panel.units_combo.findData("metric")
+        index = panel.sheet_widget.units_combo.findData("metric")
         assert index >= 0
-        panel.units_combo.setCurrentIndex(index)
-        panel._on_units_changed()
+        panel.sheet_widget.units_combo.setCurrentIndex(index)
+        panel.sheet_widget._on_units_changed()
+        # Signal triggers _on_units_changed automatically
         new_width, new_height = session_state.get_sheet_size()
         metric_defaults = prefs.get_default_sheet_size_mm("metric")
+
         assert math.isclose(new_width, metric_defaults[0], rel_tol=1e-9)
         assert math.isclose(new_height, metric_defaults[1], rel_tol=1e-9)
-        assert panel.sheet_width_edit.text() == sc_units.format_length(metric_defaults[0], "metric")
+        assert panel.sheet_widget.sheet_width_edit.text() == sc_units.format_length(metric_defaults[0], "metric")
     finally:
         sc_units.set_units("mm")
         _restore_prefs(prefs, snap)

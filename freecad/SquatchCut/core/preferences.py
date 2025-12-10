@@ -35,6 +35,7 @@ class SquatchCutPreferences:
     METRIC_DEFAULT_SPACING_MM = 0.0
     IMPERIAL_DEFAULT_SPACING_IN = 0.0
     SEPARATE_DEFAULTS_MIGRATED_KEY = "SeparateDefaultsMigrated"
+    KERF_DEFAULTS_MIGRATED_KEY = "KerfDefaultsMigrated"
 
     def __init__(self):
         self._grp = App.ParamGet(self.PARAM_GROUP) if App else None
@@ -67,19 +68,26 @@ class SquatchCutPreferences:
             self._mark_sheet_defaults("imperial")
 
     def _migrate_legacy_defaults(self) -> None:
-        if self._bool(self.SEPARATE_DEFAULTS_MIGRATED_KEY, False):
-            return
-        metric_exists = self._metric_defaults_exist()
-        imperial_exists = self._imperial_defaults_exist()
-        if metric_exists and not imperial_exists:
-            width_mm = self._float(self.METRIC_WIDTH_KEY, self.METRIC_DEFAULT_WIDTH_MM)
-            height_mm = self._float(self.METRIC_HEIGHT_KEY, self.METRIC_DEFAULT_HEIGHT_MM)
-            self._set_imperial_defaults(mm_to_inches(width_mm), mm_to_inches(height_mm), mark=False)
-        elif imperial_exists and not metric_exists:
-            width_in = self._float(self.IMPERIAL_WIDTH_KEY, self.IMPERIAL_DEFAULT_WIDTH_IN)
-            height_in = self._float(self.IMPERIAL_HEIGHT_KEY, self.IMPERIAL_DEFAULT_HEIGHT_IN)
-            self._set_metric_defaults(inches_to_mm(width_in), inches_to_mm(height_in), mark=False)
-        self._set_bool(self.SEPARATE_DEFAULTS_MIGRATED_KEY, True)
+        if not self._bool(self.SEPARATE_DEFAULTS_MIGRATED_KEY, False):
+            metric_exists = self._metric_defaults_exist()
+            imperial_exists = self._imperial_defaults_exist()
+            if metric_exists and not imperial_exists:
+                width_mm = self._float(self.METRIC_WIDTH_KEY, self.METRIC_DEFAULT_WIDTH_MM)
+                height_mm = self._float(self.METRIC_HEIGHT_KEY, self.METRIC_DEFAULT_HEIGHT_MM)
+                self._set_imperial_defaults(mm_to_inches(width_mm), mm_to_inches(height_mm), mark=False)
+            elif imperial_exists and not metric_exists:
+                width_in = self._float(self.IMPERIAL_WIDTH_KEY, self.IMPERIAL_DEFAULT_WIDTH_IN)
+                height_in = self._float(self.IMPERIAL_HEIGHT_KEY, self.IMPERIAL_DEFAULT_HEIGHT_IN)
+                self._set_metric_defaults(inches_to_mm(width_in), inches_to_mm(height_in), mark=False)
+            self._set_bool(self.SEPARATE_DEFAULTS_MIGRATED_KEY, True)
+
+        if not self._bool(self.KERF_DEFAULTS_MIGRATED_KEY, False):
+            legacy_kerf_key = "DefaultKerfMM"
+            has_legacy_kerf, legacy_kerf_val = self._get_float_entry(legacy_kerf_key)
+            if has_legacy_kerf:
+                self._set_float(self.METRIC_KERF_KEY, legacy_kerf_val)
+                self._set_float(self.IMPERIAL_KERF_KEY, mm_to_inches(legacy_kerf_val))
+            self._set_bool(self.KERF_DEFAULTS_MIGRATED_KEY, True)
 
     def _ensure_default_storage(self) -> None:
         metric_exists = self._metric_defaults_exist()
