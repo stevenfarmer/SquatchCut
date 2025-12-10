@@ -2,19 +2,19 @@
 
 from __future__ import annotations
 
-"""@codex
-Command: Export PDF/CSV nesting reports.
-Interactions: Should use SC_ExportReportDialog and call core report_generator outputs.
-Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
-"""
+import os
 
+from SquatchCut.core import session_state
+from SquatchCut.core.report_generator import ReportGenerator
 from SquatchCut.freecad_integration import App, Gui
+from SquatchCut.gui.dialogs.dlg_export_report import SC_ExportReportDialog
 from SquatchCut.gui.icons import get_icon
 from SquatchCut.gui.qt_compat import QtWidgets
 
-from ...core import session_state
-from ...core.report_generator import ReportGenerator
-from ..dialogs.dlg_export_report import SC_ExportReportDialog
+# @codex
+# Command: Export PDF/CSV nesting reports.
+# Interactions: Should use SC_ExportReportDialog and call core report_generator outputs.
+# Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 
 
 class SC_ExportReportCommand:

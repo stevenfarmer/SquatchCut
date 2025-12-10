@@ -1,10 +1,11 @@
-import sys
 import os
+import sys
 
 # Add freecad directory to sys.path
 sys.path.append(os.path.join(os.getcwd(), 'freecad'))
 
-from SquatchCut.core.preferences import SquatchCutPreferences
+from SquatchCut.core.preferences import SquatchCutPreferences  # noqa: E402
+
 
 def reproduce():
     prefs = SquatchCutPreferences()

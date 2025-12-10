@@ -81,7 +81,8 @@ class NestingGroupWidget(QtWidgets.QGroupBox):
 
     def apply_state(self, state: dict) -> None:
         mode_idx = self.mode_combo.findData(state.get("mode", "material"))
-        if mode_idx < 0: mode_idx = 0
+        if mode_idx < 0:
+            mode_idx = 0
         self.mode_combo.setCurrentIndex(mode_idx)
 
         nesting_mode = session_state.get_nesting_mode()

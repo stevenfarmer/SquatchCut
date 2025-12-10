@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-"""@codex
-Command: Trigger the Select Shapes dialog to collect panels from the active document.
-Interactions: Should open SC_SelectShapesDialog and forward selections to core shape_extractor logic.
-Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
-"""
-
 from SquatchCut.core import session_state
+
+# @codex
+# Command: Trigger the Select Shapes dialog to collect panels from the active document.
+# Interactions: Should open SC_SelectShapesDialog and forward selections to core shape_extractor logic.
+# Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 from SquatchCut.freecad_integration import App, Gui, Part
 from SquatchCut.gui.icons import get_icon
 from SquatchCut.gui.qt_compat import QtWidgets

@@ -395,7 +395,8 @@ class SquatchCutTaskPanel:
         return doc
 
     def _cleanup_preview_geometry(self, doc) -> None:
-        if doc is None: return
+        if doc is None:
+            return
         try:
             view_controller.clear_squatchcut_groups(doc)
         except Exception as exc:
@@ -403,13 +404,15 @@ class SquatchCutTaskPanel:
 
     def on_preview_clicked(self):
         doc = self._ensure_document()
-        if not doc: return
+        if not doc:
+            return
         self._cleanup_preview_geometry(doc)
         self._run_nesting(apply_to_doc=False, doc=doc)
 
     def on_apply_clicked(self):
         doc = self._ensure_document()
-        if not doc: return
+        if not doc:
+            return
         self._cleanup_preview_geometry(doc)
         self._run_nesting(apply_to_doc=True, doc=doc)
 
@@ -471,7 +474,8 @@ class SquatchCutTaskPanel:
         # ... logic similar to before, simplified ...
         initial_path = exporter.suggest_export_path(self._ensure_document(), "." + fmt.split("_")[-1] if "_" in fmt else "." + fmt)
         file_path, _ = QtWidgets.QFileDialog.getSaveFileName(None, "Export", initial_path, "All files (*.*)")
-        if not file_path: return
+        if not file_path:
+            return
 
         try:
             if fmt == "cutlist_script":
@@ -522,13 +526,17 @@ class SquatchCutTaskPanel:
         return QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel
 
     def accept(self):
-        try: Gui.Control.closeDialog()
-        except: pass
+        try:
+            Gui.Control.closeDialog()
+        except Exception:
+            pass
         self._notify_close()
 
     def reject(self):
-        try: Gui.Control.closeDialog()
-        except: pass
+        try:
+            Gui.Control.closeDialog()
+        except Exception:
+            pass
         self._notify_close()
 
 # Factory

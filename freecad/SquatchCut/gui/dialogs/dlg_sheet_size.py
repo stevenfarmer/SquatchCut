@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-"""@codex
-Dialog: Configure sheet width, height, and kerf/spacing.
-get_data fields: width (float), height (float), spacing (float).
-Note: UI only; do not implement business logic here.
-"""
-
 # Qt bindings (FreeCAD ships PySide / PySide2, not PySide6)
 from SquatchCut.core import units as sc_units
+
+# @codex
+# Dialog: Configure sheet width, height, and kerf/spacing.
+# get_data fields: width (float), height (float), spacing (float).
+# Note: UI only; do not implement business logic here.
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.gui.qt_compat import QtWidgets
 

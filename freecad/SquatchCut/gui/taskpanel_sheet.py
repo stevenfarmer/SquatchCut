@@ -96,7 +96,6 @@ class SheetConfigWidget(QtWidgets.QGroupBox):
             header.setSectionResizeMode(3, header_cls.ResizeToContents)
 
         # Wire up table events manually
-        item_view_cls = getattr(QtWidgets, "QAbstractItemView", None)
         # Assuming typical triggers...
 
         table_container_layout.addWidget(self.sheet_table)
@@ -218,7 +217,7 @@ class SheetConfigWidget(QtWidgets.QGroupBox):
         # 2. Kerf Swapping logic
         # If kerf matches previous default, swap to new default
         # E.g., 3mm -> 1/8" (3.175mm) instead of 3mm -> 0.118"
-        prev_kerf_def = self._prefs.get_default_kerf_mm(system=prev_system) # Note: accessing specific system defaults might need care
+        # prev_kerf_def = self._prefs.get_default_kerf_mm(system=prev_system) # Note: accessing specific system defaults might need care
         # Actually prefs.get_default_kerf_mm only returns the stored value, which is single source of truth?
         # Wait, get_default_kerf_mm() reads "DefaultKerfMM".
         # But we have different defaults per system in memory/logic: 3mm vs 1/8" (3.175mm)
@@ -380,8 +379,10 @@ class SheetConfigWidget(QtWidgets.QGroupBox):
         return sc_units.format_length(val, session_state.get_measurement_system())
 
     def _set_length_text(self, widget, val):
-        if val is None: widget.clear()
-        else: widget.setText(self._format_length(val))
+        if val is None:
+            widget.clear()
+        else:
+            widget.setText(self._format_length(val))
 
     def _parse_length(self, text):
         return sc_units.parse_length(text, session_state.get_measurement_system())
@@ -411,7 +412,8 @@ class SheetConfigWidget(QtWidgets.QGroupBox):
 
     def _ensure_job_sheets_seeded(self):
         sheets = session_state.get_job_sheets()
-        if sheets: return
+        if sheets:
+            return
         w, h = session_state.get_sheet_size()
         if w is None or h is None:
             w, h = self._prefs.get_default_sheet_size_mm(session_state.get_measurement_system())
@@ -440,7 +442,8 @@ class SheetConfigWidget(QtWidgets.QGroupBox):
 
     def _on_add_sheet_clicked(self):
         w, h = session_state.get_sheet_size()
-        if w is None: w, h = self._prefs.get_default_sheet_size_mm(session_state.get_measurement_system())
+        if w is None:
+            w, h = self._prefs.get_default_sheet_size_mm(session_state.get_measurement_system())
         session_state.add_job_sheet(w, h, 1, f"Sheet {len(session_state.get_job_sheets())+1}")
         self._populate_sheet_table()
         self.config_changed.emit()
@@ -457,17 +460,22 @@ class SheetConfigWidget(QtWidgets.QGroupBox):
             self.config_changed.emit()
 
     def _on_sheet_table_item_changed(self, item):
-        if self._suppress_sheet_table_events: return
+        if self._suppress_sheet_table_events:
+            return
         row = item.row()
         col = item.column()
         text = item.text().strip()
         try:
-            if col == 0: session_state.update_job_sheet(row, label=text or None)
-            elif col == 1: session_state.update_job_sheet(row, width_mm=self._parse_length(text))
-            elif col == 2: session_state.update_job_sheet(row, height_mm=self._parse_length(text))
-            elif col == 3: session_state.update_job_sheet(row, quantity=int(text))
+            if col == 0:
+                session_state.update_job_sheet(row, label=text or None)
+            elif col == 1:
+                session_state.update_job_sheet(row, width_mm=self._parse_length(text))
+            elif col == 2:
+                session_state.update_job_sheet(row, height_mm=self._parse_length(text))
+            elif col == 3:
+                session_state.update_job_sheet(row, quantity=int(text))
         except Exception:
-            pass # Ignore invalid input
+            pass  # Ignore invalid input
         self.config_changed.emit()
 
     def _on_sheet_table_selection_changed(self, selected, deselected):

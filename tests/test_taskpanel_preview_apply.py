@@ -128,6 +128,7 @@ def _create_panel(monkeypatch):
     panel._refresh_summary = lambda: None
     panel.update_run_button_state = lambda: None
     panel.set_status = lambda _msg: None
+    panel._validate_readiness = lambda: None
     panel._set_run_buttons_enabled = lambda _flag: None
     panel.status_label = types.SimpleNamespace(setText=lambda _text: None, setStyleSheet=lambda _style: None)
     return panel, doc, app_stub
@@ -155,12 +156,12 @@ def _snapshot(doc):
 
 def _run_preview(panel, app_stub):
     app_stub.ActiveDocument = panel.doc
-    assert panel._run_preview_nesting()
+    panel.on_preview_clicked()
 
 
 def _run_apply(panel, app_stub):
     app_stub.ActiveDocument = panel.doc
-    assert panel._run_apply_nesting()
+    panel.on_apply_clicked()
 
 
 def test_preview_run_builds_canonical_groups(monkeypatch):

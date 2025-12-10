@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-"""@codex
-Dialog: Select detected shapes from the document.
-get_data fields: selected_shapes (list of identifiers or labels).
-Note: UI only; do not implement business logic here.
-"""
-
 # Qt bindings (FreeCAD ships PySide / PySide2, not PySide6)
 from SquatchCut.gui.qt_compat import QtCore, QtWidgets
+
+# @codex
+# Dialog: Select detected shapes from the document.
+# get_data fields: selected_shapes (list of identifiers or labels).
+# Note: UI only; do not implement business logic here.
 
 
 class SC_SelectShapesDialog(QtWidgets.QDialog):

@@ -1,6 +1,7 @@
-import pytest
 from unittest.mock import MagicMock, patch
+
 from SquatchCut.core import geometry_sync
+
 
 def test_sync_source_panels_handles_stale_object_gracefully():
     # Setup mocks
