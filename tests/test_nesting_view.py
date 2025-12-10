@@ -2,9 +2,8 @@ import pytest
 
 pytest.importorskip("FreeCAD")
 import FreeCAD  # type: ignore
-
 from SquatchCut.core.nesting import PlacedPart
-from SquatchCut.gui.nesting_view import rebuild_nested_geometry, NESTED_GROUP_NAME
+from SquatchCut.gui.nesting_view import NESTED_GROUP_NAME, rebuild_nested_geometry
 
 
 def _new_doc(name):

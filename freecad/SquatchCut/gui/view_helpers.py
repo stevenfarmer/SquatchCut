@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from SquatchCut.freecad_integration import App, Gui
+from SquatchCut.freecad_integration import App
 from SquatchCut.gui.view_utils import zoom_to_objects
 
 logger = logging.getLogger("SquatchCut.view_helpers")

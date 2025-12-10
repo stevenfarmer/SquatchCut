@@ -8,11 +8,10 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from SquatchCut.freecad_integration import App, Gui  # noqa: F401
-from SquatchCut.core import session_state
-from SquatchCut.core import sheet_presets
+from SquatchCut.core import session_state, sheet_presets
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.core.sheet_model import clear_sheet_boundaries
+from SquatchCut.freecad_integration import App, Gui  # noqa: F401
 
 SHEET_OBJECT_NAME = "SquatchCut_Sheet"
 SOURCE_GROUP_NAME = "SquatchCut_SourceParts"
@@ -239,8 +238,8 @@ def detect_document_measurement_system(doc) -> str | None:
 def update_sheet_size_from_doc(doc):
     """Read sheet size from document properties into session_state."""
     try:
-        w = float(getattr(doc, "SquatchCutSheetWidth"))
-        h = float(getattr(doc, "SquatchCutSheetHeight"))
+        w = float(doc.SquatchCutSheetWidth)
+        h = float(doc.SquatchCutSheetHeight)
         session_state.set_sheet_size(w, h)
     except Exception:
         pass
@@ -249,15 +248,15 @@ def update_sheet_size_from_doc(doc):
 def update_kerf_gap_from_doc(doc):
     """Read kerf/gap from document properties into session_state."""
     try:
-        session_state.set_kerf_mm(float(getattr(doc, "SquatchCutKerfMM")))
+        session_state.set_kerf_mm(float(doc.SquatchCutKerfMM))
     except Exception:
         pass
     try:
-        session_state.set_gap_mm(float(getattr(doc, "SquatchCutGapMM")))
+        session_state.set_gap_mm(float(doc.SquatchCutGapMM))
     except Exception:
         pass
     try:
-        session_state.set_default_allow_rotate(bool(getattr(doc, "SquatchCutDefaultAllowRotate")))
+        session_state.set_default_allow_rotate(bool(doc.SquatchCutDefaultAllowRotate))
     except Exception:
         pass
 

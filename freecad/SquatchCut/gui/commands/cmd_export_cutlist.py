@@ -1,8 +1,8 @@
 """FreeCAD command to export a simple CSV cutlist from the current nesting."""
 
-from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.core import logger
 from SquatchCut.core.cutlist import export_cutops_to_csv, generate_cutops_from_session
+from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.gui.qt_compat import QtWidgets
 
 

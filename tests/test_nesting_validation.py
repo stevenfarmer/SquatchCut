@@ -1,11 +1,10 @@
 import pytest
-
 from SquatchCut.core.nesting import (
     NestingValidationError,
+    Part,
     get_usable_sheet_area,
     part_fits_sheet,
     validate_parts_fit_sheet,
-    Part,
 )
 
 

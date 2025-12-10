@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from SquatchCut.freecad_integration import App, Gui, Part
 from SquatchCut.core import logger
-from SquatchCut.core.nesting import resolve_sheet_dimensions
-from SquatchCut.core.sheet_model import get_or_create_group, clear_group_children
+from SquatchCut.core.sheet_model import clear_group_children, get_or_create_group
+from SquatchCut.freecad_integration import App, Part
 
 NESTED_GROUP_NAME = "SquatchCut_NestedParts"
 

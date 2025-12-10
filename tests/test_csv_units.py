@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from SquatchCut.core.csv_loader import load_csv, in_to_mm
+from SquatchCut.core.csv_loader import in_to_mm, load_csv
 
 
 def _load(path, units):

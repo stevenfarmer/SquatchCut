@@ -1,7 +1,7 @@
 """Tests for guillotine-style cut optimization nesting."""
 
-from SquatchCut.core.nesting import Part, NestingConfig, nest_parts
 from SquatchCut.core.cut_optimization import guillotine_nest_parts
+from SquatchCut.core.nesting import NestingConfig, Part, nest_parts
 
 
 def _rects_overlap(a, b):
@@ -50,7 +50,7 @@ def test_guillotine_respects_rotation_constraints():
     cfg_no_rotate = NestingConfig(optimize_for_cut_path=True, allowed_rotations_deg=(0,))
     try:
         guillotine_nest_parts(parts, sheet, cfg_no_rotate)
-        assert False, "Expected ValueError when rotation is disallowed for fitting part"
+        raise AssertionError("Expected ValueError when rotation is disallowed for fitting part")
     except ValueError:
         pass
 

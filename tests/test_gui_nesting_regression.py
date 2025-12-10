@@ -1,11 +1,9 @@
 import csv
-import os
 
 import pytest
 
 pytest.importorskip("FreeCAD")
 import FreeCAD  # type: ignore
-
 from SquatchCut.core import session_state
 from SquatchCut.gui.commands.cmd_import_csv import run_csv_import
 from SquatchCut.gui.commands.cmd_run_nesting import RunNestingCommand

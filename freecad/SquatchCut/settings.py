@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.core import session_state
 from SquatchCut.core import sheet_presets as sc_sheet_presets
 from SquatchCut.core import units as sc_units
+from SquatchCut.core.preferences import SquatchCutPreferences
 
 
 def hydrate_from_params(measurement_override: str | None = None) -> None:

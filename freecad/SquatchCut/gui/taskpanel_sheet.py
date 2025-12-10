@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from typing import List
-
-from SquatchCut.gui.qt_compat import QtWidgets, QtCore
-from SquatchCut.core import session_state, logger, units as sc_units, sheet_presets as sc_sheet_presets, session
-from SquatchCut.ui.messages import show_error
+from SquatchCut.core import session_state
+from SquatchCut.core import sheet_presets as sc_sheet_presets
+from SquatchCut.core import units as sc_units
+from SquatchCut.gui.qt_compat import QtCore, QtWidgets
 
 
 class SheetConfigWidget(QtWidgets.QGroupBox):

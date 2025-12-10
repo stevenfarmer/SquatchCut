@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from SquatchCut.core.units import inches_to_mm
 
-
 DEFAULT_MATCH_TOLERANCE_MM = 1e-3
 
 

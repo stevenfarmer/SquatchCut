@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import csv
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
 
 try:
     from SquatchCut.core import session_state
@@ -17,19 +16,19 @@ REQUIRED_COLUMNS = {"id", "width", "height"}
 
 @dataclass
 class CsvValidationError:
-    row: Optional[int]
+    row: int | None
     message: str
 
 
-def validate_csv_file(path: str, csv_units: str = "metric") -> Tuple[List[dict], List[CsvValidationError]]:
+def validate_csv_file(path: str, csv_units: str = "metric") -> tuple[list[dict], list[CsvValidationError]]:
     """
     Parse and validate the CSV at `path`.
 
     Returns a tuple (parts, errors). If any validation errors occur, `parts`
     will be empty and `errors` will contain details to show to the user.
     """
-    errors: List[CsvValidationError] = []
-    parts: List[dict] = []
+    errors: list[CsvValidationError] = []
+    parts: list[dict] = []
     normalized_units = _normalize_units(csv_units)
 
     try:
@@ -101,7 +100,7 @@ def _is_empty_row(normalized: dict) -> bool:
     return all(not value for value in normalized.values())
 
 
-def _validate_panel_row(row: dict, row_number: int, units: str) -> Tuple[Optional[dict], Optional[CsvValidationError]]:
+def _validate_panel_row(row: dict, row_number: int, units: str) -> tuple[dict | None, CsvValidationError | None]:
     missing = [field for field in REQUIRED_COLUMNS if not row.get(field)]
     if missing:
         return None, CsvValidationError(row_number, f"Missing required fields: {', '.join(missing)}.")
@@ -141,7 +140,7 @@ def _validate_panel_row(row: dict, row_number: int, units: str) -> Tuple[Optiona
     return panel, None
 
 
-def _parse_positive_float(value: str, row_number: int, label: str) -> Tuple[Optional[float], Optional[CsvValidationError]]:
+def _parse_positive_float(value: str, row_number: int, label: str) -> tuple[float | None, CsvValidationError | None]:
     text = (value or "").strip()
     if not text:
         return None, CsvValidationError(row_number, f"{label} is missing.")
@@ -154,7 +153,7 @@ def _parse_positive_float(value: str, row_number: int, label: str) -> Tuple[Opti
     return number, None
 
 
-def _parse_positive_int(value: str, row_number: int, label: str) -> Tuple[int, Optional[CsvValidationError]]:
+def _parse_positive_int(value: str, row_number: int, label: str) -> tuple[int, CsvValidationError | None]:
     text = (value or "").strip()
     if not text:
         return 1, None

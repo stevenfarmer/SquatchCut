@@ -1,12 +1,12 @@
 import math
 
 from SquatchCut import settings
-from SquatchCut.core import units as sc_units
 from SquatchCut.core import session_state
+from SquatchCut.core import units as sc_units
 from SquatchCut.core.preferences import SquatchCutPreferences
+from SquatchCut.core.units import inches_to_mm
 from SquatchCut.gui.taskpanel_main import SquatchCutTaskPanel
 from SquatchCut.gui.taskpanel_settings import SquatchCutSettingsPanel
-from SquatchCut.core.units import inches_to_mm
 
 
 def _snapshot_prefs(prefs: SquatchCutPreferences) -> dict:

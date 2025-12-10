@@ -2,20 +2,19 @@
 
 from __future__ import annotations
 
-from typing import Iterable, List
-
-from SquatchCut.freecad_integration import App, Gui
+from collections.abc import Iterable
 
 from SquatchCut.core import logger, session, session_state
 from SquatchCut.core.nesting import derive_sheet_sizes_for_layout
 from SquatchCut.core.sheet_model import (
     SHEET_OBJECT_NAME,
-    ensure_sheet_object,
-    get_or_create_group,
     clear_group_children,
     clear_sheet_boundaries,
     compute_sheet_spacing,
+    ensure_sheet_object,
+    get_or_create_group,
 )
+from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.gui.nesting_view import rebuild_nested_geometry
 from SquatchCut.gui.source_view import rebuild_source_preview
 from SquatchCut.gui.view_utils import zoom_to_objects
@@ -123,7 +122,7 @@ def _collect_group_objects(group):
     return [obj for obj in iterable if obj is not None]
 
 
-def _unique_objects(objs: Iterable[object]) -> List[object]:
+def _unique_objects(objs: Iterable[object]) -> list[object]:
     seen = set()
     unique = []
     for obj in objs:

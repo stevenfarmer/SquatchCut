@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from SquatchCut.freecad_integration import Gui
 from SquatchCut.core import logger
+from SquatchCut.freecad_integration import Gui
 
 
 def zoom_to_objects(objects):

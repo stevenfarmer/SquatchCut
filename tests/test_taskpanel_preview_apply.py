@@ -4,7 +4,6 @@ import copy
 import types
 
 import pytest
-
 from SquatchCut.core import session, session_state
 from SquatchCut.gui import taskpanel_main as taskpanel_module
 from SquatchCut.gui.commands import cmd_run_nesting

@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-from SquatchCut.gui.qt_compat import QtWidgets, QtCore
-from SquatchCut.core import session_state, units as sc_units
+from SquatchCut.core import session_state
+from SquatchCut.core import units as sc_units
+from SquatchCut.gui.qt_compat import QtCore, QtWidgets
+
 
 class NestingGroupWidget(QtWidgets.QGroupBox):
     """

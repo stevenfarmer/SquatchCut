@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from SquatchCut.freecad_integration import App
 from SquatchCut.core.preferences import SquatchCutPreferences
+from SquatchCut.freecad_integration import App
 
 
 class LogLevel:

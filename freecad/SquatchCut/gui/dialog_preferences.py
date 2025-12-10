@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from SquatchCut.gui.qt_compat import QtWidgets
-
-from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.core import units as sc_units
+from SquatchCut.core.preferences import SquatchCutPreferences
+from SquatchCut.gui.qt_compat import QtWidgets
 
 
 class SquatchCutPreferencesDialog(QtWidgets.QDialog):

@@ -2,7 +2,6 @@ import os
 from types import SimpleNamespace
 
 import pytest
-
 from SquatchCut.gui.commands import cmd_settings
 
 

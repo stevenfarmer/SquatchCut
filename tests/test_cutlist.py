@@ -1,8 +1,8 @@
 from pathlib import Path
 
+from SquatchCut.core import exporter
 from SquatchCut.core.cutlist import generate_cutlist
 from SquatchCut.core.nesting import PlacedPart
-from SquatchCut.core import exporter
 
 
 def test_generate_cutlist_basic():

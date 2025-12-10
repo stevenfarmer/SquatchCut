@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.core import logger, session, session_state, view_controller
 from SquatchCut.core.sheet_model import ensure_sheet_object
+from SquatchCut.freecad_integration import App, Gui
+
 
 def sync_source_panels_to_document():
     """Create/refresh source panel geometry in the active document and update the view."""
@@ -46,8 +47,7 @@ def sync_source_panels_to_document():
 
     try:
         view_controller.show_source_view(doc)
-    except ReferenceError as exc:
-        import traceback
+    except ReferenceError:
 
         logger.error("ReferenceError during show_source_view()", exc_info=True)
         raise

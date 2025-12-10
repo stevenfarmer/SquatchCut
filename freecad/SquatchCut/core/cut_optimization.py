@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable, List, Tuple
 
 from SquatchCut.core import nesting as nesting_mod
 from SquatchCut.core.nesting import get_effective_spacing
@@ -24,14 +24,14 @@ def _get_sheet_dims(sheet) -> tuple[float, float]:
     return float(getattr(sheet, "width", 0.0)), float(getattr(sheet, "height", 0.0))
 
 
-def _orientations_for_part(part, allowed_rotations: Tuple[int, ...]) -> Iterable[tuple[float, float, int]]:
+def _orientations_for_part(part, allowed_rotations: tuple[int, ...]) -> Iterable[tuple[float, float, int]]:
     """Yield (width, height, rotation_deg) respecting part.can_rotate and allowed_rotations."""
     yield part.width, part.height, 0
     if getattr(part, "can_rotate", False) and 90 in allowed_rotations and part.width != part.height:
         yield part.height, part.width, 90
 
 
-def guillotine_nest_parts(parts, sheet, config, sheet_sizes: List[Tuple[float, float]] | None = None) -> List:
+def guillotine_nest_parts(parts, sheet, config, sheet_sizes: list[tuple[float, float]] | None = None) -> list:
     """
     Guillotine-style nesting: place parts in free rectangles, splitting space after each placement.
 

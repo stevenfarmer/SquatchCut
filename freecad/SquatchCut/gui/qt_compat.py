@@ -6,10 +6,10 @@ PySide/PySide2 (or FreeCAD) may not be installed by providing minimal stubs.
 """
 
 try:
-    from PySide import QtWidgets, QtCore, QtGui  # type: ignore
+    from PySide import QtCore, QtGui, QtWidgets  # type: ignore
 except ImportError:
     try:
-        from PySide2 import QtWidgets, QtCore, QtGui  # type: ignore
+        from PySide2 import QtCore, QtGui, QtWidgets  # type: ignore
     except ImportError:
         class _Signal:
             def __init__(self, *args, **kwargs):

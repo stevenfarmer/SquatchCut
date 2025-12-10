@@ -72,7 +72,7 @@ def create_multi_sheet_stress_doc():
     offset_x = 0
     offset_y = 0
     row_height = 0
-    for idx, (label, width, height) in enumerate(sizes):
+    for _idx, (label, width, height) in enumerate(sizes):
         rect = makeRectangle(length=width, height=height)
         rect.Label = label
         rect.Placement.Base = App.Vector(offset_x, offset_y, 0)

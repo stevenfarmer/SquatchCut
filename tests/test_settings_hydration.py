@@ -1,7 +1,7 @@
 from SquatchCut import settings
 from SquatchCut.core import session_state
-from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.core import units as sc_units
+from SquatchCut.core.preferences import SquatchCutPreferences
 
 
 def test_hydrate_from_params_syncs_session_state():

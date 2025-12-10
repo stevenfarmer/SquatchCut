@@ -1,22 +1,20 @@
 import os
 
-from SquatchCut.freecad_integration import App as FreeCAD, Gui as FreeCADGui
-
-from SquatchCut.gui.qt_compat import QtWidgets
 from SquatchCut import settings
-
-from SquatchCut.core import session, session_state
-from SquatchCut.core.preferences import SquatchCutPreferences
-from SquatchCut.core import logger
+from SquatchCut.core import logger, session, session_state
 from SquatchCut.core import units as sc_units
+from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.core.units import (
     format_length,
     parse_length,
     unit_label_for_system,
 )
-from SquatchCut.ui.messages import show_error
+from SquatchCut.freecad_integration import App as FreeCAD
+from SquatchCut.freecad_integration import Gui as FreeCADGui
+from SquatchCut.gui.commands import cmd_run_nesting
 from SquatchCut.gui.commands.cmd_import_csv import run_csv_import
-from SquatchCut.gui.commands import cmd_run_gui_tests, cmd_run_nesting
+from SquatchCut.gui.qt_compat import QtWidgets
+from SquatchCut.ui.messages import show_error
 
 
 class SquatchCutControlPanel:

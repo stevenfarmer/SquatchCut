@@ -9,7 +9,6 @@ from __future__ import annotations
 import inspect
 import os
 from pathlib import Path
-from typing import Any
 
 try:  # FreeCAD core
     import FreeCAD as App  # type: ignore
@@ -129,16 +128,16 @@ def register_commands() -> None:
         return
 
     from SquatchCut.gui.commands import (
-        cmd_main_ui,
-        cmd_import_csv,
         cmd_add_shapes,
-        cmd_settings,
-        cmd_set_sheet_size,
-        cmd_run_nesting,
         cmd_export_report,
+        cmd_import_csv,
+        cmd_main_ui,
         cmd_preferences,
         cmd_reset_view,
         cmd_run_gui_tests,
+        cmd_run_nesting,
+        cmd_set_sheet_size,
+        cmd_settings,
     )
 
     try:

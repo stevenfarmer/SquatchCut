@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import math
 
-from SquatchCut.freecad_integration import App
 from SquatchCut.core.units import inches_to_mm, mm_to_inches
+from SquatchCut.freecad_integration import App
 
 
 class SquatchCutPreferences:
