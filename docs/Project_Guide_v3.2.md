@@ -159,6 +159,11 @@ Always millimeters.
 ### 6.3 UI Reformatting Rules
 Switching measurement system requires full reformatting of all numeric UI fields.
 
+### 6.5 Split Defaults (New)
+To prevent drift from rounding errors:
+- User-configurable defaults (Sheet size, Kerf, Gap) must be stored separately for Metric and Imperial.
+- Switching systems in Settings swaps the loaded default, it does not convert/overwrite the existing one.
+
 ### 6.4 Fraction Logic
 Must support:
 - whole  
@@ -195,10 +200,11 @@ Exactly **48 × 96 inches**.
 - Must call hydrate_from_params() before building widgets  
 
 ### 8.2 Main TaskPanel
-- Must reflect hydrated defaults  
-- Must not override defaults  
-- Must not infer presets  
-- Must not open multiple instances  
+- Acts as a Controller for sub-widgets (`Input`, `Sheet`, `Nesting`).
+- Must reflect hydrated defaults.
+- Must not override defaults.
+- Must not infer presets.
+- Must not open multiple instances.
 
 ### 8.3 Sheet/Source/Nesting View Rules
 - Clear groups before redraw  

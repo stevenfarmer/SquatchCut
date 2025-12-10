@@ -19,10 +19,21 @@ class SquatchCutPreferences:
     METRIC_HEIGHT_KEY = "DefaultSheetHeightMM"
     IMPERIAL_WIDTH_KEY = "DefaultSheetWidthIn"
     IMPERIAL_HEIGHT_KEY = "DefaultSheetHeightIn"
+
+    METRIC_KERF_KEY = "MetricKerfMM"
+    IMPERIAL_KERF_KEY = "ImperialKerfIn"
+    METRIC_SPACING_KEY = "MetricSpacingMM"
+    IMPERIAL_SPACING_KEY = "ImperialSpacingIn"
+
     IMPERIAL_DEFAULT_WIDTH_IN = 48.0
     IMPERIAL_DEFAULT_HEIGHT_IN = 96.0
     METRIC_DEFAULT_WIDTH_MM = 1220.0
     METRIC_DEFAULT_HEIGHT_MM = 2440.0
+
+    METRIC_DEFAULT_KERF_MM = 3.0
+    IMPERIAL_DEFAULT_KERF_IN = 0.125  # 1/8"
+    METRIC_DEFAULT_SPACING_MM = 0.0
+    IMPERIAL_DEFAULT_SPACING_IN = 0.0
     SEPARATE_DEFAULTS_MIGRATED_KEY = "SeparateDefaultsMigrated"
 
     def __init__(self):
@@ -247,11 +258,27 @@ class SquatchCutPreferences:
         height_mm = self.get_default_sheet_height_mm()
         return mm_to_inches(width_mm), mm_to_inches(height_mm)
 
-    def get_default_spacing_mm(self, fallback: float = 0.0) -> float:
-        return self._float("DefaultSpacingMM", fallback)
+    def get_default_spacing_mm(self, fallback: float = 0.0, system: str | None = None) -> float:
+        """
+        Return default spacing in mm.
+        If system is None, uses the current preferred measurement system.
+        """
+        sys = system or self.get_measurement_system()
+        if sys == "imperial":
+             val_in = self._float(self.IMPERIAL_SPACING_KEY, self.IMPERIAL_DEFAULT_SPACING_IN)
+             return inches_to_mm(val_in)
+        return self._float(self.METRIC_SPACING_KEY, fallback or self.METRIC_DEFAULT_SPACING_MM)
 
-    def set_default_spacing_mm(self, value: float) -> None:
-        self._set_float("DefaultSpacingMM", value)
+    def set_default_spacing_mm(self, value: float, system: str | None = None) -> None:
+        """
+        Set default spacing from mm input.
+        If system is Imperial, converts mm -> inches and stores in Imperial key.
+        """
+        sys = system or self.get_measurement_system()
+        if sys == "imperial":
+            self._set_float(self.IMPERIAL_SPACING_KEY, mm_to_inches(value))
+        else:
+            self._set_float(self.METRIC_SPACING_KEY, value)
 
     def get_default_kerf_mm(self, fallback: float = 3.0) -> float:
         return self._float("DefaultKerfMM", fallback)
