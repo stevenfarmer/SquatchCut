@@ -57,6 +57,12 @@ class SquatchCutTaskPanel:
         self.measurement_system = self._initial_state["measurement_system"]
         self._apply_initial_state(self._initial_state)
 
+        # Force unit update if mismatch (fixes initialization default)
+        if self.sheet_widget.units_combo.currentData() != self.measurement_system:
+             idx = self.sheet_widget.units_combo.findData(self.measurement_system)
+             if idx >= 0:
+                 self.sheet_widget.units_combo.setCurrentIndex(idx)
+
     def set_close_callback(self, callback: Callable[[], None]) -> None:
         self._close_callback = callback
 
