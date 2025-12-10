@@ -1,12 +1,11 @@
 """FreeCAD command to import panel definitions from CSV."""
 
-"""@codex
-Command: Open the CSV import dialog to load panels.
-Interactions: Should invoke SC_CSVImportDialog and hand validated rows to core csv_import.
-Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
-"""
-
 from SquatchCut.core import logger, session, session_state
+
+# @codex
+# Command: Open the CSV import dialog to load panels.
+# Interactions: Should invoke SC_CSVImportDialog and hand validated rows to core csv_import.
+# Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 from SquatchCut.core.csv_import import validate_csv_file
 from SquatchCut.core.geometry_sync import sync_source_panels_to_document
 from SquatchCut.freecad_integration import App, Gui

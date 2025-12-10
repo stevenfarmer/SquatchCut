@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-"""@codex
-Dialog: Configure CSV import and preview rows.
-get_data fields: path (string), preview_rows (list placeholder).
-Note: UI only; do not implement business logic here.
-"""
-
 # Qt bindings (FreeCAD ships PySide / PySide2, not PySide6)
 from SquatchCut.gui.qt_compat import QtWidgets
+
+# @codex
+# Dialog: Configure CSV import and preview rows.
+# get_data fields: path (string), preview_rows (list placeholder).
+# Note: UI only; do not implement business logic here.
 
 
 class SC_CSVImportDialog(QtWidgets.QDialog):

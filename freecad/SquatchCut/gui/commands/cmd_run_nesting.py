@@ -25,8 +25,6 @@ from SquatchCut.core.nesting import (
 from SquatchCut.core.overlap_check import detect_overlaps
 from SquatchCut.core.session_state import (
     get_allowed_rotations_deg,
-    get_export_include_dimensions,
-    get_export_include_labels,
     get_gap_mm,
     get_kerf_mm,
     get_kerf_width_mm,
@@ -176,8 +174,6 @@ class RunNestingCommand:
             cut_mode = get_optimize_for_cut_path()
             kerf_width = get_kerf_width_mm()
             allowed_rotations = get_allowed_rotations_deg()
-            export_labels = get_export_include_labels()
-            export_dims = get_export_include_dimensions()
             nesting_mode = session_state.get_nesting_mode()
 
             # Manage SourcePanels group: keep originals, hide them

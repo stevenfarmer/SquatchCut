@@ -2,16 +2,17 @@
 
 from __future__ import annotations
 
-"""@codex
-Command: Open the Sheet Size dialog for configuring sheet dimensions and spacing.
-Interactions: Should use SC_SheetSizeDialog and update core preferences defaults.
-Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
-"""
-
+from SquatchCut.core import units as sc_units
 from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.gui.icons import get_icon
 from SquatchCut.gui.qt_compat import QtWidgets
 from SquatchCut.gui.view_helpers import fit_view_to_sheet_and_nested, show_sheet_only
+from SquatchCut.ui.messages import show_error
+
+# @codex
+# Command: Open the Sheet Size dialog for configuring sheet dimensions and spacing.
+# Interactions: Should use SC_SheetSizeDialog and update core preferences defaults.
+# Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 
 try:
     from SquatchCut.core import session, session_state  # type: ignore
@@ -22,8 +23,6 @@ except Exception:
     import SquatchCut.core.session_state as session_state  # type: ignore
     from SquatchCut.core.sheet_model import ensure_sheet_object  # type: ignore
     from SquatchCut.gui.dialogs.dlg_sheet_size import SC_SheetSizeDialog  # type: ignore
-from SquatchCut.core import units as sc_units
-from SquatchCut.ui.messages import show_error
 
 
 class SC_SetSheetSizeCommand:

@@ -31,7 +31,7 @@ def sync_source_panels_to_document():
         return
 
     sheet_w, sheet_h = session_state.get_sheet_size()
-    sheet_obj = ensure_sheet_object(sheet_w, sheet_h, doc)
+    ensure_sheet_object(sheet_w, sheet_h, doc)
 
     logger.info(">>> [SquatchCut] Rebuilding source preview via view controller...")
 

@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-"""@codex
-Dialog: Confirm running nesting with a summary.
-get_data fields: confirmed (bool).
-Note: UI only; do not implement business logic here.
-"""
-
 # Qt bindings (FreeCAD ships PySide / PySide2, not PySide6)
 from SquatchCut.gui.qt_compat import QtWidgets
+
+# @codex
+# Dialog: Confirm running nesting with a summary.
+# get_data fields: confirmed (bool).
+# Note: UI only; do not implement business logic here.
 
 
 class SC_RunNestingDialog(QtWidgets.QDialog):

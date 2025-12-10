@@ -6,12 +6,11 @@ This module intentionally does NOT import FreeCAD so that:
 - Integration with FreeCAD happens inside session.py instead.
 """
 
-"""@codex
-Pure in-memory session state for SquatchCut (no FreeCAD deps).
-Tracks sheet size, kerf/gap, default rotation flag, last layout, and panel data.
-"""
-
 from copy import deepcopy
+
+# @codex
+# Pure in-memory session state for SquatchCut (no FreeCAD deps).
+# Tracks sheet size, kerf/gap, default rotation flag, last layout, and panel data.
 
 # Sheet size
 _sheet_width = None

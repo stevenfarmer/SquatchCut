@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-"""@codex
-Command: Open SquatchCut preferences.
-Interactions: Should display preferences UI and read/write via core preferences.
-Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
-"""
-
 from SquatchCut.freecad_integration import App, Gui
+
+# @codex
+# Command: Open SquatchCut preferences.
+# Interactions: Should display preferences UI and read/write via core preferences.
+# Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 from SquatchCut.gui.dialog_preferences import SquatchCutPreferencesDialog
 from SquatchCut.gui.icons import get_icon
 
