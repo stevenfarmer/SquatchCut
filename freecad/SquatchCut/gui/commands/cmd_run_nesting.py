@@ -203,8 +203,8 @@ class RunNestingCommand:
                     if obj not in source_group.Group:
                         source_group.addObject(obj)
                     valid_panel_objs.append(obj)
-                except Exception:
-                    logger.warning("Skipping invalid panel object during nesting addObject.")
+                except Exception as e:
+                    logger.warning(f"Skipping invalid panel object during nesting addObject: {e}")
                     continue
             if not valid_panel_objs:
                 show_warning("No valid panel objects available for nesting.")
