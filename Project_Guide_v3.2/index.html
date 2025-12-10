@@ -1284,6 +1284,10 @@
 </ul>
 <h3 id="63-ui-reformatting-rules">6.3 UI Reformatting Rules<a class="headerlink" href="#63-ui-reformatting-rules" title="Permanent link">&para;</a></h3>
 <p>Switching measurement system requires full reformatting of all numeric UI fields.</p>
+<h3 id="65-split-defaults-new">6.5 Split Defaults (New)<a class="headerlink" href="#65-split-defaults-new" title="Permanent link">&para;</a></h3>
+<p>To prevent drift from rounding errors:
+- User-configurable defaults (Sheet size, Kerf, Gap) must be stored separately for Metric and Imperial.
+- Switching systems in Settings swaps the loaded default, it does not convert/overwrite the existing one.</p>
 <h3 id="64-fraction-logic">6.4 Fraction Logic<a class="headerlink" href="#64-fraction-logic" title="Permanent link">&para;</a></h3>
 <p>Must support:
 - whole<br />
@@ -1318,10 +1322,11 @@ Must round-trip without drift.</p>
 </ul>
 <h3 id="82-main-taskpanel">8.2 Main TaskPanel<a class="headerlink" href="#82-main-taskpanel" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Must reflect hydrated defaults  </li>
-<li>Must not override defaults  </li>
-<li>Must not infer presets  </li>
-<li>Must not open multiple instances  </li>
+<li>Acts as a Controller for sub-widgets (<code>Input</code>, <code>Sheet</code>, <code>Nesting</code>).</li>
+<li>Must reflect hydrated defaults.</li>
+<li>Must not override defaults.</li>
+<li>Must not infer presets.</li>
+<li>Must not open multiple instances.</li>
 </ul>
 <h3 id="83-sheetsourcenesting-view-rules">8.3 Sheet/Source/Nesting View Rules<a class="headerlink" href="#83-sheetsourcenesting-view-rules" title="Permanent link">&para;</a></h3>
 <ul>
