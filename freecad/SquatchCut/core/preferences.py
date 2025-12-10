@@ -288,7 +288,7 @@ class SquatchCutPreferences:
         else:
             self._set_float(self.METRIC_SPACING_KEY, value)
 
-    def get_default_kerf_mm(self, fallback: float = 3.0, system: str | None = None) -> float:
+    def get_default_kerf_mm(self, fallback: float = 3.0, system: str = None) -> float:
         """
         Return default kerf in mm.
         If system is None, uses the current preferred measurement system.
@@ -304,7 +304,7 @@ class SquatchCutPreferences:
             return val
         return self._float("DefaultKerfMM", fallback or self.METRIC_DEFAULT_KERF_MM)
 
-    def set_default_kerf_mm(self, value: float, system: str | None = None) -> None:
+    def set_default_kerf_mm(self, value: float, system: str = None) -> None:
         """
         Set default kerf from mm input.
         If system is Imperial, converts mm -> inches and stores in Imperial key.
