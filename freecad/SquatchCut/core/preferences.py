@@ -333,7 +333,7 @@ class SquatchCutPreferences:
                 pass
         self._local["DefaultAllowRotate"] = bool(value)
 
-    def get_measurement_system(self, fallback: str = "metric") -> str:
+    def get_measurement_system(self, fallback: str = "imperial") -> str:
         val = fallback
         if self._grp:
             try:
@@ -347,7 +347,7 @@ class SquatchCutPreferences:
 
     def set_measurement_system(self, system: str) -> None:
         if system not in ("metric", "imperial"):
-            system = "metric"
+            system = "imperial"
         if self._grp:
             try:
                 self._grp.SetString("MeasurementSystem", system)
@@ -361,7 +361,7 @@ class SquatchCutPreferences:
     def is_imperial(self) -> bool:
         return self.get_measurement_system() == "imperial"
 
-    def get_csv_units(self, fallback: str = "metric") -> str:
+    def get_csv_units(self, fallback: str = "imperial") -> str:
         val = fallback
         if self._grp:
             try:
@@ -375,7 +375,7 @@ class SquatchCutPreferences:
 
     def set_csv_units(self, units: str) -> None:
         if units not in ("metric", "imperial"):
-            units = "metric"
+            units = "imperial"
         if self._grp:
             try:
                 self._grp.SetString("CsvUnits", units)
