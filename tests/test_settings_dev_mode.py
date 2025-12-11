@@ -1,7 +1,7 @@
+import os
+import sys
 import unittest
 from unittest.mock import MagicMock, patch
-import sys
-import os
 
 # Ensure we can import SquatchCut
 sys.path.append(os.getcwd())
@@ -12,11 +12,9 @@ with patch.dict(sys.modules, {
     "FreeCADGui": MagicMock(),
 }):
     # Import relevant SquatchCut modules
-    from SquatchCut.gui import qt_compat
-    from SquatchCut.gui.taskpanel_settings import SquatchCutSettingsPanel
     import SquatchCut.core.preferences as sc_prefs
     from SquatchCut.core.preferences import SquatchCutPreferences
-    from SquatchCut import settings
+    from SquatchCut.gui.taskpanel_settings import SquatchCutSettingsPanel
 
 class TestSettingsDevMode(unittest.TestCase):
 

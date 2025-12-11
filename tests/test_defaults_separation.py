@@ -1,9 +1,10 @@
 import math
+
 import pytest
+from SquatchCut.core import units as sc_units
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.gui.taskpanel_settings import SquatchCutSettingsPanel
-from SquatchCut.core import units as sc_units
-from SquatchCut import settings
+
 
 # Helper to isolate tests
 @pytest.fixture
