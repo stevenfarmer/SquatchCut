@@ -6,6 +6,8 @@ from SquatchCut.core import logger
 from SquatchCut.core.sheet_model import clear_group_children, get_or_create_group
 from SquatchCut.freecad_integration import App, Part
 
+NESTED_Z_OFFSET = 0.1
+
 NESTED_GROUP_NAME = "SquatchCut_NestedParts"
 
 
@@ -96,7 +98,7 @@ def rebuild_nested_geometry(
             idx = 0
         base_x = sheet_offsets[idx] + x
         base_y = y
-        placement.Base = App.Vector(base_x, base_y, 0.0)
+        placement.Base = App.Vector(base_x, base_y, NESTED_Z_OFFSET)
         try:
             placement.Rotation = App.Rotation(App.Vector(0, 0, 1), float(getattr(pp, "rotation_deg", 0)))
         except Exception:

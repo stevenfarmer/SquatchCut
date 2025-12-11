@@ -41,3 +41,8 @@ def hydrate_from_params(measurement_override: str | None = None) -> None:
     # Export defaults
     session_state.set_export_include_labels(prefs.get_export_include_labels())
     session_state.set_export_include_dimensions(prefs.get_export_include_dimensions())
+
+    try:
+        prefs._local.pop("_first_run_default_system", None)
+    except Exception:
+        pass

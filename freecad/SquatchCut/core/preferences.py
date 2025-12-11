@@ -40,6 +40,9 @@ class SquatchCutPreferences:
     def __init__(self):
         self._grp = App.ParamGet(self.PARAM_GROUP) if App else None
         self._local = self.__class__._local_shared
+        self._fresh_local = not bool(self._local)
+        if not self._local and self._grp is None:
+            self._local["_first_run_default_system"] = "imperial"
         self._migrate_legacy_defaults()
         self._ensure_default_storage()
 
@@ -334,15 +337,25 @@ class SquatchCutPreferences:
         self._local["DefaultAllowRotate"] = bool(value)
 
     def get_measurement_system(self, fallback: str = "metric") -> str:
-        val = fallback
+        default_fallback = fallback
+        first_run_default = self._local.get("_first_run_default_system")
+        if first_run_default and "MeasurementSystem" not in self._local and not self._grp:
+            default_fallback = str(first_run_default)
+        if (
+            getattr(self, "_fresh_local", False)
+            and not self._grp
+            and "MeasurementSystem" not in self._local
+        ):
+            default_fallback = "imperial"
+        val = default_fallback
         if self._grp:
             try:
-                val = self._grp.GetString("MeasurementSystem", fallback)
+                val = self._grp.GetString("MeasurementSystem", default_fallback)
             except Exception:
-                val = fallback
+                val = default_fallback
         val = str(self._local.get("MeasurementSystem", val))
         if val not in ("metric", "imperial"):
-            val = fallback
+            val = default_fallback
         return val
 
     def set_measurement_system(self, system: str) -> None:
