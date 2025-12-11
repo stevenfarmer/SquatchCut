@@ -24,8 +24,10 @@ Thanks for helping improve SquatchCut! This is an active beta project—please o
 
 ## AI Agents & Detailed Architecture
 If you are an AI Agent or need detailed architectural/behavioral rules, please refer to:
-- `AGENTS.md` (in the root directory) for strict behavioral guidelines.
+- `AGENTS.md` (in the root directory) for strict behavioral guidelines and the AI Worker Protocol.
 - `docs/Project_Guide_v3.2.md` for the comprehensive project guide and architecture.
+
+The workflow involves multiple AI roles (Architect, Jules, Codex); all tasks must originate from Architect specs.
 
 ## Adding a New Optimization Strategy (High Level)
 1. Implement a pure-Python strategy in `freecad/SquatchCut/core/nesting.py`.

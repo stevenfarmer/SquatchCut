@@ -244,6 +244,8 @@ If you are participating in user testing:
 
 ## Development & Testing
 
+**Workflow:** This project uses a multi-AI system (Architect → Jules → Codex). See `docs/Project_Guide_v3.2.md` and `AGENTS.md` for the full AI Worker Protocol.
+
 For developers:
 
 - Project structure (high level):

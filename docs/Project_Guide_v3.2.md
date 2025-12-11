@@ -51,17 +51,19 @@ SquatchCut is a FreeCAD add-on that takes CSV part lists and generates optimized
 
 ## **Architect (AI/Human)**
 - Writes requirements  
-- Produces Agent instruction blocks
+- Produces Agent instruction blocks; all AI tasks must originate here
 - Ensures patterns and rules never drift  
 - Maintains documentation  
 
-## **AI Agent (Engineering Automaton)**
-- Writes code  
-- Must obey patterns  
-- Must obey reasoning levels  
-- Must never “guess”  
-- Must build tests with every core change  
-- **Must follow rules in `AGENTS.md`**
+## **Jules (Lead Developer & PM)**
+- Plans implementation from Architect specs
+- Manages high-level decisions and branch strategy (`jules/<feature>`)
+
+## **Codex (Developer)**
+- Implements code changes based on Jules' plan (`codex/<feature>`)
+- Must obey patterns and reasoning levels
+- Must build tests with every core change
+- **See `AGENTS.md` → AI Worker Protocol for full details**
 
 ---
 
