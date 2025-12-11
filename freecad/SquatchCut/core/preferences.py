@@ -182,9 +182,6 @@ class SquatchCutPreferences:
         has_value, value = self._get_float_entry(self.IMPERIAL_WIDTH_KEY)
         if has_value:
             return value
-        has_metric, mm_value = self._get_float_entry(self.METRIC_WIDTH_KEY)
-        if has_metric:
-            return mm_to_inches(mm_value)
         return fallback
 
     def set_default_sheet_width_in(self, value: float) -> None:
@@ -197,9 +194,6 @@ class SquatchCutPreferences:
         has_value, value = self._get_float_entry(self.IMPERIAL_HEIGHT_KEY)
         if has_value:
             return value
-        has_metric, mm_value = self._get_float_entry(self.METRIC_HEIGHT_KEY)
-        if has_metric:
-            return mm_to_inches(mm_value)
         return fallback
 
     def set_default_sheet_height_in(self, value: float) -> None:

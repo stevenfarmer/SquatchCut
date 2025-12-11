@@ -155,8 +155,8 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
             "measurement_system": measurement_system,
             "sheet_width_mm": width_mm,
             "sheet_height_mm": height_mm,
-            "kerf_mm": self._prefs.get_default_kerf_mm(),
-            "gap_mm": self._prefs.get_default_spacing_mm(),
+            "kerf_mm": self._prefs.get_default_kerf_mm(system=measurement_system),
+            "gap_mm": self._prefs.get_default_spacing_mm(system=measurement_system),
             "allow_rotate": self._prefs.get_default_allow_rotate(),
         }
 
