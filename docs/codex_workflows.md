@@ -1,5 +1,7 @@
 # Codex Automation Workflows
 
+**Note:** Codex operates as the implementation agent under the direction of Jules (Lead Developer) and Architect (Spec Owner). See `AGENTS.md` for the full protocol.
+
 ## Overview
 - This repository uses @codex headers in each module to guide incremental development.
 - Each module documents its own responsibility, boundaries, and expectations to keep changes targeted.
