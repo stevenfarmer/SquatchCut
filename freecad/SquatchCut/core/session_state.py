@@ -29,7 +29,7 @@ _job_allow_rotate = None
 _optimize_for_cut_path = False
 _kerf_width_mm = 3.0
 _allowed_rotations_deg = (0, 90)
-_measurement_system = "metric"
+_measurement_system = "imperial"
 
 # Last nesting layout: list of PlacedPart objects
 _last_layout = None
@@ -292,13 +292,13 @@ def get_allowed_rotations_deg():
 def set_measurement_system(system: str) -> None:
     """Store measurement system preference ('metric' or 'imperial')."""
     global _measurement_system
-    system = system if system in ("metric", "imperial") else "metric"
+    system = system if system in ("metric", "imperial") else "imperial"
     _measurement_system = system
 
 
 def get_measurement_system() -> str:
     """Return the current measurement system."""
-    return _measurement_system or "metric"
+    return _measurement_system or "imperial"
 
 
 # --------------------------

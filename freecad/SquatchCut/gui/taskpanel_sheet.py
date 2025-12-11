@@ -179,6 +179,7 @@ class SheetConfigWidget(QtWidgets.QGroupBox):
         prev_system = "imperial" if system == "metric" else "metric"
 
         self._prefs.set_measurement_system(system)
+        self._prefs.set_csv_units(system)
         session_state.set_measurement_system(system)
         sc_units.set_units("in" if system == "imperial" else "mm")
 
