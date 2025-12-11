@@ -4,6 +4,20 @@ from SquatchCut.core import units as sc_units
 from SquatchCut.core.preferences import SquatchCutPreferences
 
 
+def test_first_run_defaults_to_imperial():
+    backup = dict(SquatchCutPreferences._local_shared)
+    try:
+        SquatchCutPreferences._local_shared.clear()
+        fresh = SquatchCutPreferences()
+        assert fresh.get_measurement_system() == "imperial"
+        settings.hydrate_from_params()
+        assert session_state.get_measurement_system() == "imperial"
+    finally:
+        SquatchCutPreferences._local_shared.clear()
+        SquatchCutPreferences._local_shared.update(backup)
+        settings.hydrate_from_params()
+
+
 def test_hydrate_from_params_syncs_session_state():
     prefs = SquatchCutPreferences()
 
