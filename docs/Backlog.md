@@ -1,4 +1,88 @@
-# SquatchCut Backlog (v3.3)
+# SquatchCut Backlog (v3.3 – Addon Manager Readiness)
+
+This backlog targets “ready for FreeCAD Addon Manager” status and aligns with Project_Guide_v3.3.md and SQUATCHCUT_SYNC_REPORT_V4.
+
+**Tag legend:** `[AI]` = AI-worker-friendly, `[HUMAN]` = human-only, `[MIXED]` = AI-assisted with human judgment.
+
+## 1. High Priority – Required for Addon Manager
+
+### Core engine & multi-sheet behavior
+- [MIXED] Keep nesting pipeline deterministic across multi-sheet jobs and cut-friendly heuristics; avoid drift in sheet_index ordering.
+
+### Units, sheets, and measurement systems
+- [AI] Ensure measurement-system defaults remain split per system during hydration/settings flows; prevent hidden unit drift.
+
+### TaskPanels & UI/UX
+- [MIXED] Reflow TaskPanel controls for narrow docks (~300–350 px) and ensure warning banner coexists without clipping.
+
+### Preview/apply lifecycle
+- [MIXED] Implement non-destructive preview path with deterministic cleanup of `SquatchCut_*` groups before/after preview/apply.
+
+### Sheet exhaustion & utilization
+- [MIXED] Detect sheet exhaustion during nesting, surface user-visible feedback (logs/UI), and prevent silent truncation.
+
+### Export (cutlist/report/DXF)
+- [MIXED] Wire cutlist/export commands end-to-end with deterministic outputs from ExportJob; remove stub paths and confirm UI triggers succeed.
+
+### Logging & Developer Mode
+- [MIXED] Ensure developer-mode/logging controls are available without impacting UAT flows; keep logging consistent across commands.
+
+### Integration tests & GUI tests
+- [AI] Add integration coverage for preview→apply sequencing and multi-sheet exhaustion edge cases (qt_compat where possible).
+
+### Docs, UAT & packaging
+- [MIXED] Validate packaging/addon ZIP and command registration for Addon Manager; confirm package.xml/egg-info/Makefile output installs cleanly.
+
+## 2. Medium Priority – Should Have Soon
+
+### Core engine & multi-sheet behavior
+- [AI] Add per-sheet utilization metrics and log/UI summaries after nesting.
+
+### Units, sheets, and measurement systems
+- [AI] Strengthen fractional-inch and measurement toggle tests to guard against formatting drift during edits/hydration.
+
+### TaskPanels & UI/UX
+- [AI] Add warning/banner lifecycle tests and polish interactions when nesting mode, job sheets, or units change.
+
+### Preview/apply lifecycle
+- [AI] Expand integration tests around preview→apply flows to ensure preview is non-destructive once implemented.
+
+### Sheet exhaustion & utilization
+- [MIXED] Provide basic utilization/exhaustion summaries in the TaskPanel/logs once detection is in place.
+
+### Export (cutlist/report/DXF)
+- [AI] Document export formats (CSV/SVG/cutlist) with sample outputs for metric/imperial; keep DXF deferred but scoped.
+
+### Logging & Developer Mode
+- [MIXED] Test and refine logging/dev-mode persistence and UX so toggles are discoverable yet unobtrusive.
+
+### Integration tests & GUI tests
+- [AI] Broaden GUI smoke tests for TaskPanel layout at narrow widths and warning banner states.
+
+### Docs, UAT & packaging
+- [AI] Refresh UAT checklist/prep docs and sample CSVs to match v3.3 preview/apply and multi-sheet behavior.
+
+## 3. Low Priority – Nice to Have / v3.4+
+
+### Core engine & multi-sheet behavior
+- [MIXED] Polish multi-sheet visualization (labels, spacing) and eliminate ghost objects after reruns.
+
+### Export (cutlist/report/DXF)
+- [AI] Implement DXF export via ExportJob once CSV/SVG are locked.
+
+### Logging & Developer Mode
+- [AI] Add enhanced developer diagnostics (utilization summaries, optional verbose logging) controllable from settings.
+
+### Docs, UAT & packaging
+- [AI] Provide additional AI-worker job card templates and contributor guidance for AI-assisted development.
+
+---
+
+# Legacy Backlog (v3.2 archive)
+
+The content below preserves the previous backlog for historical reference and for any checks that still target v3.2-era milestones.
+
+## SquatchCut Backlog (v3.3)
 
 This backlog reflects the current architecture (multi-sheet jobs, per-job measurement system, settings/dev-mode, logging controls) and supports a multi-AI workflow.
 
