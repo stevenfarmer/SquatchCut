@@ -24,9 +24,22 @@ except ImportError:
         class _Widget:
             def __init__(self, *args, **kwargs):
                 self._signals_blocked = False
+                self._visible = True
 
             def blockSignals(self, value: bool):
                 self._signals_blocked = bool(value)
+
+            def setVisible(self, visible: bool):
+                self._visible = bool(visible)
+
+            def isVisible(self):
+                return self._visible
+
+            def show(self):
+                self.setVisible(True)
+
+            def hide(self):
+                self.setVisible(False)
 
         class _DummyQtEnum:
             Checked = 2

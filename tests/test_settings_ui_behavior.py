@@ -110,9 +110,10 @@ def test_no_defaults_shows_empty_fields_and_no_preset():
         _restore_prefs(prefs, snap)
 
 
-def test_developer_mode_controls_absent():
+def test_developer_mode_controls_present():
     panel = SquatchCutSettingsPanel()
-    assert not hasattr(panel, "dev_mode_check")
+    assert hasattr(panel, "developer_mode_check")
+    assert hasattr(panel, "developer_group_box")
 
 
 def test_main_taskpanel_no_longer_has_gui_test_button():
