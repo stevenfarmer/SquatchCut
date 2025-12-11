@@ -219,8 +219,8 @@ If your parts look the wrong size:
 
 Additional docs live in the `docs/` folder:
 
-- `docs/Project_Guide_v3.2.md`  
-  Canonical project guide (v3.2 – Codex-Fortified Edition) covering Codex behavior, UI rules, and testing requirements.
+- `docs/Project_Guide_v3.3.md`  
+  Canonical project guide (v3.3 – AI worker edition) covering AI worker behavior, UI rules, and testing requirements. v3.2 remains available for historical reference.
 
 - `docs/user_guide.md`  
   Full user guide, with explanations and troubleshooting.
@@ -244,7 +244,7 @@ If you are participating in user testing:
 
 ## Development & Testing
 
-**Workflow:** This project uses a multi-AI system (Architect → Jules → Codex). See `docs/Project_Guide_v3.2.md` and `AGENTS.md` for the full AI Worker Protocol.
+**Workflow:** This project uses a multi-AI system (Architect + AI workers such as Codex, Jules, or other assistants). See `docs/Project_Guide_v3.3.md` and `AGENTS.md` for the full AI worker protocol.
 
 For developers:
 

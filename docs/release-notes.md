@@ -23,7 +23,7 @@
 - Nesting backend handles panel extraction, CSV loading, multi-sheet rectangular nesting (Skyline/Guillotine hybrid), geometry generation, and report exports.
 - TypeScript CSV validation/preprocessing CLI (`npx squatchcut-csv`) for sanitizing panel lists before import.
 - End-to-end coverage: FreeCAD CSV and geometry flows, plus Node-based CLI smoke tests with shared fixtures.
-- Documentation and automation: MVP scope, architecture overview, testing guide, and Codex workflow playbooks published to the MkDocs site.
+- Documentation and automation: MVP scope, architecture overview, testing guide, and AI worker workflow playbooks published to the MkDocs site.
 
 ### Notes & known gaps
 - Prototype focuses on rectangular panels; curved/grain-aware nesting and richer previews are future work.

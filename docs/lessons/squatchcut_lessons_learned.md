@@ -93,7 +93,7 @@ The SquatchCut workflow naturally evolved into a three-layer structure that scal
    - Maintains consistency across modules and features.  
    - Specifies what the coding agent may and may not change.
 
-3. **Coding Agent (Codex or similar)**  
+3. **Coding Agent (AI worker such as Codex/Jules/others)**  
    - Writes and edits the actual code.  
    - Implements the instructions verbatim.  
    - Does not redesign architecture or introduce new patterns on its own.
@@ -127,7 +127,7 @@ The SquatchCut project uses a dedicated guide to codify:
 - measurement architecture and unit rules  
 - UI lifecycle and panel behavior  
 - testing expectations for logic changes  
-- Codex instruction formatting and reasoning levels  
+- AI worker instruction formatting and reasoning levels  
 - FreeCAD object naming and grouping standards  
 
 By centralizing these rules, every subsequent AI interaction can reference them, reducing the risk of regressions or architectural fragmentation.

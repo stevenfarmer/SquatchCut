@@ -1,4 +1,38 @@
-# SquatchCut Backlog
+# SquatchCut Backlog (v3.3)
+
+This backlog reflects the current architecture (multi-sheet jobs, per-job measurement system, settings/dev-mode, logging controls) and supports a multi-AI workflow.
+
+**Tag legend:** `[AI]` = AI-worker-friendly, `[HUMAN]` = human-only, `[MIXED]` = AI-assisted with human judgment.
+
+## Core engine & nesting
+- [MIXED] Preview determinism & cleanup – Separate preview from apply, keep `SquatchCut_Sheet_*`, `SquatchCut_SourceParts_*`, and `SquatchCut_NestedParts_*` synchronized/cleared across Preview/Apply runs, and leave the document clean between runs.
+- [MIXED] Sheet exhaustion metrics & feedback – Detect exhausted sheet stacks, log/flag usage stats per sheet, and surface user-visible hints instead of silent truncation.
+- [AI] ExportJob determinism verification – Expand coverage for `build_export_job_from_current_nesting` to lock raw mm geometry vs formatted strings for metric/imperial jobs.
+- [MIXED] Cut-friendly multi-sheet heuristics – Stabilize lane/guillotine ordering and spacing for advanced sheet stacks while honoring `sheet_index` fidelity.
+
+## Units, sheets, and measurement systems
+- [AI] Fractional-inch stability – Strengthen formatting/parsing tests to prevent drift across hydration, sheet edits, and CSV import/export.
+- [AI] Per-job measurement system persistence – Verify that measurement toggles and defaults travel through hydration/TaskPanel flows without mutating stored defaults.
+- [MIXED] Sheet presets & imperial defaults review – Validate imperial defaults (48 × 96) and preset selection rules under multi-sheet jobs without auto-selection.
+
+## GUI & UX
+- [MIXED] TaskPanel overflow & ergonomics – Reflow dense button/checkbox rows so narrow docks (~300–350 px) do not clip controls or warning banners.
+- [MIXED] Multi-sheet visualization polish – Improve per-sheet labeling, spacing, and navigation; ensure ghost objects never linger after reruns.
+- [AI] Warning banner lifecycle tests – Cover `_sheet_warning_active` state changes across nesting modes, job sheet edits, and unit-system toggles.
+- [MIXED] Dev-mode & logging controls – Keep developer tools/logging toggles discoverable without impacting normal UAT flows.
+
+## AI workflow & tooling
+- [HUMAN] Branch governance for multiple AI workers – Define branch naming/assignment norms so parallel AI tasks avoid overlapping core files.
+- [AI] Task spec/job card templates – Publish examples for Architect-written specs consumable by any AI worker (local editor or hosted agent).
+- [AI] CI and lint reliability – Keep lint/test workflows tool-agnostic; document any AI-specific pre-flight checks when running locally.
+
+## Docs & onboarding
+- [AI] v3.3 documentation sweep – Align user/dev docs, MkDocs nav, and samples with v3.3 behavior (multi-sheet jobs, measurement handling, preview/apply flow).
+- [AI] Sample data refresh – Ship metric and imperial CSV samples with expected outputs for Preview/Apply and exports.
+- [MIXED] UAT collateral – Update prep/checklist docs to reflect current UI labels, warning banner expectations, and developer mode/logging guidance.
+
+## Archive / Legacy backlog (pre-v3.3)
+The sections below preserve the v3.2 backlog for historical reference and validation.
 
 ## Completed Since v3.2
 - **Settings Panel Behavior** – Settings TaskPanel opens reliably, hydrates before widgets, and only persists defaults on explicit save (`freecad/SquatchCut/gui/taskpanel_settings.py`, hydration helpers).

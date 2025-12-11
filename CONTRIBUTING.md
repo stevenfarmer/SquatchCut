@@ -25,12 +25,12 @@ Thanks for helping improve SquatchCut! This is an active beta project—please o
 ## Ruff Linting & Autofix
 Ruff (`ruff check .`) runs in CI and will fail any PR that introduces lint violations. If CI reports Ruff errors, you can trigger the **Ruff autofix** workflow from the GitHub Actions tab for the affected branch. The workflow runs `ruff check . --fix`, commits any changes with `chore: apply ruff autofix`, and pushes them back to the branch. After it finishes, re-run CI to confirm the lint errors are resolved or address any remaining issues manually.
 
-## AI Agents & Detailed Architecture
-If you are an AI Agent or need detailed architectural/behavioral rules, please refer to:
-- `AGENTS.md` (in the root directory) for strict behavioral guidelines and the AI Worker Protocol.
-- `docs/Project_Guide_v3.2.md` for the comprehensive project guide and architecture.
+## AI Workers & Detailed Architecture
+If you are an AI worker or need detailed architectural/behavioral rules, please refer to:
+- `AGENTS.md` (in the root directory) for strict behavioral guidelines and the AI worker protocol.
+- `docs/Project_Guide_v3.3.md` for the comprehensive project guide and architecture (v3.2 retained for history).
 
-The workflow involves multiple AI roles (Architect, Jules, Codex); all tasks must originate from Architect specs.
+The workflow involves multiple AI roles (Architect + AI assistants such as Codex, Jules, or future tools); all tasks must originate from Architect specs.
 
 ## Adding a New Optimization Strategy (High Level)
 1. Implement a pure-Python strategy in `freecad/SquatchCut/core/nesting.py`.

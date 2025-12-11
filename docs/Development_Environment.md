@@ -1,6 +1,6 @@
 # Development Environment
 
-This document defines the canonical SquatchCut development workflow so that local AI tooling (ChatGPT Mac app “Work With Code”, VS Code + Codex, etc.) can discover and operate on the same workspace as the developer.
+This document defines the canonical SquatchCut development workflow so that local AI tooling (ChatGPT-based assistants, VS Code AI extensions, etc.) can discover and operate on the same workspace as the developer.
 
 ## AI-Forward Development Environment
 
@@ -16,7 +16,7 @@ This document defines the canonical SquatchCut development workflow so that loca
 
 ### C. AI Toolchain Compatibility
 - ChatGPT Mac app “Work With Code” lists the project automatically when the host workspace (squatchcut.code-workspace) is open.
-- VS Code extensions (Codex, Copilot, etc.) running either locally or inside the container see the same files because the container bind-mounts the host repo.
+- VS Code AI extensions (Codex, Copilot, etc.) running either locally or inside the container see the same files because the container bind-mounts the host repo.
 - Avoid workflows where the “real” code exists only inside opaque Docker volumes or remote filesystems that macOS cannot access.
 
 Following this process guarantees that human developers and AI assistants operate on the same SquatchCut workspace, keeping the experience predictable and productive.

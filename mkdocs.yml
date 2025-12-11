@@ -16,7 +16,8 @@ theme:
 nav:
   - Home: index.md
   - Release Notes: release-notes.md
-  - Project Guide v3.2: Project_Guide_v3.2.md
+  - Project Guide v3.3: Project_Guide_v3.3.md
+  - Project Guide v3.2 (Historical): Project_Guide_v3.2.md
   - Getting Started:
       - Installation: getting-started/installation.md
       - Basic Workflow: getting-started/workflow.md
@@ -26,7 +27,7 @@ nav:
   - Developer Guide:
       - Architecture Overview: architecture.md
       - MVP Scope: mvp.md
-      - Codex Workflows: codex_workflows.md
+      - AI Worker Workflows (Codex-style): codex_workflows.md
   - Blog:
       - "Teaching a FreeCAD Plugin to Behave": blog/squatchcut_lessons_from_the_machine_seo.md
   - SquatchCut:

@@ -1,12 +1,12 @@
 # SquatchCut – AI Agent Guide
 
-This guide defines how AI Agents (e.g., you) must behave when editing the SquatchCut repository. It complements the main project guide at `docs/Project_Guide_v3.2.md` and is binding for all work.
+This guide defines how AI Agents (e.g., you) must behave when editing the SquatchCut repository. It complements the main project guide at `docs/Project_Guide_v3.3.md` (v3.2 retained for history) and is binding for all work.
 
 ## Role
 
 - Acts as the engineering implementation layer for SquatchCut.
 - Follows requirements from the user and architectural guidelines.
-- Adheres to architecture, patterns, and behaviors defined in `docs/Project_Guide_v3.2.md`.
+- Adheres to architecture, patterns, and behaviors defined in `docs/Project_Guide_v3.3.md`.
 - Avoids “improving” or refactoring architecture without explicit instruction.
 - Produces small, targeted changes unless told otherwise.
 - Does not decide product direction or UX, and does not change defaults or preset behavior without explicit instruction.
@@ -39,71 +39,52 @@ Agents must respect this layout and must not move files between these areas unle
 - **Testing:**
 **SYSTEM INSTRUCTION: READ THIS FILE FIRST.**
 
-## AI Worker Protocol (Jules + Codex + Architect)
+## AI Worker Protocol (Architect + AI workers)
 
-This protocol defines the collaboration model between the Architect (ChatGPT), Jules (Gemini), and Codex.
+This protocol defines how the Architect (planner/reviewer) collaborates with AI workers (coding/documentation agents).
 
 ### Roles & Responsibilities
 
-*   **Architect (ChatGPT):**
+*   **Architect (Planner/Reviewer):**
     *   Acts as the Technical Lead and Project Manager.
-    *   Defines tasks, sets guardrails, and writes specifications.
-    *   Creates "Job Cards" for Jules and "Codex Blocks" for Codex.
+    *   Defines tasks, sets guardrails, and writes specifications (job cards/task specs).
     *   Reviews code and merges changes.
 
-*   **Jules (Gemini):**
-    *   Acts as the Senior Developer.
-    *   Handles multi-step, cross-file, or feature-level tasks.
-    *   Uses full repository context, `AGENTS.md`, and documentation to implement solutions.
-    *   Expected to read between the lines, ask clarifying questions (per Interaction Protocol), and handle ambiguity.
-
-*   **Codex:**
-    *   Acts as the Focused Implementer.
-    *   Operates **only** on explicit fenced instruction blocks provided by the Architect.
-    *   Suited for focused refactors, specific test implementations, or single-file logic changes.
-    *   Does not infer intent beyond the provided instruction block.
+*   **AI workers (Implementation agents):**
+    *   Execute the work described in Architect-written specs.
+    *   May be local editor assistants, hosted GitHub agents, or other tools (e.g., Codex, Jules, or future workers).
+    *   Stay within scope and follow the Interaction Protocol when ambiguity exists.
 
 ### Branch & Ownership Rules
 
-*   **One AI per Branch:**
-    *   Jules works on branches named `jules/<feature-name>`.
-    *   Codex works on branches named `codex/<feature-name>`.
-*   **Isolation:**
-    *   AIs must not work on overlapping code regions simultaneously unless tasks are strictly sequenced.
-*   **Collaboration:**
-    *   If Jules needs Codex to handle a sub-task, the Architect must mediate (merge Jules' work, then assign Codex).
+*   **One AI per branch:** Each AI worker uses a dedicated branch (e.g., `ai/<worker-name>/<feature>` or a tool-specific equivalent).
+*   **Isolation:** AI workers must not work on overlapping code regions simultaneously unless tasks are strictly sequenced by the Architect.
+*   **Collaboration:** If one AI worker needs another to handle a sub-task, the Architect mediates (merge and reassign rather than concurrent edits).
 
 ### Task Specifications
 
-#### For Jules: "Job Card"
-The Architect provides a Job Card containing:
-1.  **Context:** High-level goal (e.g., "Implement Feature X").
-2.  **Requirements:** Bulleted list of functional requirements.
-3.  **Constraints:** Specific "Do nots" or architectural boundaries.
-4.  **Verification:** How to test the change.
-
-#### For Codex: "Codex Block"
-The Architect provides a specific instruction block:
-1.  **Input:** Targeted file(s) or code region.
-2.  **Instruction:** Explicit logic description (pseudocode or precise steps).
-3.  **Output:** Expected code structure or test case.
+*   The Architect provides a Job Card / Task Spec containing:
+    1.  **Context:** High-level goal (e.g., "Implement Feature X").
+    2.  **Requirements:** Bulleted list of functional requirements.
+    3.  **Constraints:** Specific "Do nots" or architectural boundaries.
+    4.  **Verification:** How to test or validate the change.
+*   All AI workers consume the same spec style regardless of tool.
 
 ### Workflow Summary
-1.  **Architect** defines the task and selects the agent (Jules for features, Codex for tasks).
-2.  **AI Worker** (Jules or Codex) creates a branch (`jules/...` or `codex/...`).
-3.  **AI Worker** implements changes and verifies with tests.
-4.  **AI Worker** submits a Pull Request/Commit with a descriptive message.
-5.  **Human/Architect** reviews and merges.
+1.  **Architect** defines the task and assigns an AI worker.
+2.  **AI worker** creates a branch per naming guidance.
+3.  **AI worker** implements changes, runs applicable tests/checks, and prepares the PR/commit description.
+4.  **Architect/Human reviewer** reviews and merges.
 
 ### Guardrails
 *   **No Freelancing:** Work only on the assigned task.
 *   **Architecture:** Do NOT introduce new architectural patterns without permission.
 *   **Unit Logic:** Do NOT touch core nesting or unit logic unless explicitly specified.
-*   **Tests:** behavioral changes require new or updated tests.
+*   **Tests:** Behavioral changes require new or updated tests.
 
 ## 1. Interaction Protocol (CRITICAL)
 **The User is a Non-Technical Stakeholder.**
-You (Jules) act as the **Lead Developer & Product Manager**.
+You (the AI worker) act as the **Lead Developer & Product Manager** for day-to-day interactions.
 * **DO NOT** expect detailed technical specifications from the user.
 * **DO** extract requirements through conversation.
 * **DO NOT** guess on implementation details if the request is vague.
@@ -118,7 +99,7 @@ If the user's request is high-level (e.g., "Add a login page"), you must:
 * **Name:** SquatchCut
 * **Goal:** A FreeCAD add-on for laying out (nesting) rectangular parts on sheet goods (like plywood). It reads a CSV cut list, defines sheet size, and generates a nested layout.
 * **Tech Stack:** Python 3.8+, FreeCAD API, Qt (PySide), Pytest.
-* **Key Documentation:** `docs/Project_Guide_v3.2.md` is the canonical project guide covering architecture, behavior, and UI rules.
+* **Key Documentation:** `docs/Project_Guide_v3.3.md` is the canonical project guide covering architecture, behavior, and UI rules.
 
 ## 3. Coding Laws (The Safety Rails)
 Since the user is not reviewing code line-by-line, you must be self-reliant on quality.
@@ -157,11 +138,11 @@ Since the user is not reviewing code line-by-line, you must be self-reliant on q
 - Core focus areas: mm/inch conversions and fractions, CSV parsing, hydration and default initialization, preset behavior.
 - Do not remove tests without explicit instructions.
 
-## Interaction with Project_Guide_v3.2.md
+## Interaction with Project_Guide_v3.3.md
 
-- `docs/Project_Guide_v3.2.md` is the primary project-wide technical and process specification.
+- `docs/Project_Guide_v3.3.md` is the primary project-wide technical and process specification (v3.2 preserved as a historical snapshot).
 - `AGENTS.md` is the behavioral guide.
-- When in doubt, defer to `Project_Guide_v3.2.md` for architecture/behavior rules and to `AGENTS.md` for how to act on instructions.
+- When in doubt, defer to `Project_Guide_v3.3.md` for architecture/behavior rules and to `AGENTS.md` for how to act on instructions.
 
 ## Export Rules (binding)
 

@@ -30,7 +30,7 @@ The `core/` package is the heart of the nesting logic and keeps FreeCAD dependen
   - `session_state.py`: in-memory defaults, job sheets, panels, measurement system, and export flags used by all UI wiring.
   - `session.py`: mirrors `session_state` into the active FreeCAD document, tracks FreeCAD objects, and clears/chases Group nodes.
   - `preferences.py` & `presets.py`: wrap FreeCAD preferences, expose defaults per measurement system, and manage preset metadata used by the TaskPanel.
-  - `settings.py`: hydrates defaults, exposes the configuration API, and guards persistence rules described in `docs/Project_Guide_v3.2.md`.
+  - `settings.py`: hydrates defaults, exposes the configuration API, and guards persistence rules described in `docs/Project_Guide_v3.3.md`.
 
 - **Unit conversion & logging**
   - `units.py` + `text_helpers.py`: convert between millimeters and fractional inches, format preset labels, and share helper text strings.
@@ -100,7 +100,7 @@ The `core` package intentionally minimizes FreeCAD API surface, enabling the pyt
 
 ## 5. Supporting Documentation & Tools
 
-- Docs: `docs/Project_Guide_v3.2.md`, `docs/Backlog.md`, `docs/TESTING.md`, `docs/Development_Environment.md`, `docs/user_guide.md`, and the root `AGENTS.md` describe policies every change must obey.
+- Docs: `docs/Project_Guide_v3.3.md` (v3.2 preserved historically), `docs/Backlog.md`, `docs/TESTING.md`, `docs/Development_Environment.md`, `docs/user_guide.md`, and the root `AGENTS.md` describe policies every change must obey.
 - Testing: `docs/TESTING.md` and the Docker/devcontainer instructions explain how to run `pytest` (pure Python and FreeCAD-aware) plus `FreeCADCmd` GUI flows.
 - Developer tooling: `gui/taskpanel_settings.py` and `core/gui_tests.py` surface the GUI test launcher, while `docs/TESTING.md` explains the Docker workflow for matching CI.
 - Markdown assets (roadmap/backlog) live under `docs/`; they are validated by `tests/test_docs_backlog_structure.py` so future edits stay aligned with stated priorities.
