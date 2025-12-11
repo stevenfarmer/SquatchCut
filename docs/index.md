@@ -8,7 +8,7 @@ SquatchCut is a cryptid-powered nesting workbench for FreeCAD that extracts pane
 - Multi-sheet rectangular nesting with kerf/gap controls and per-part 0°/90° rotation
 - Units preference (metric/imperial) and CSV units selector; sheet size fields reflect the chosen units
 - Geometry generation, PDF/CSV reporting, and cutlist CSV export from nested layouts
-- Embedded Codex workflows for guided development
+- Embedded AI Worker workflows for guided development
 
 ## Workflow Notes
 - CSV import shows source panel rectangles in the XY plane and fits the view automatically.

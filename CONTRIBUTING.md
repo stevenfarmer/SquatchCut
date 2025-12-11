@@ -1,46 +1,24 @@
 # Contributing to SquatchCut
 
-Thanks for helping improve SquatchCut! This is an active beta project—please open an issue to discuss significant changes before submitting a PR.
+Thank you for your interest in contributing to SquatchCut!
 
-## Getting Started
-1. Create a virtualenv and install dev deps:
-   ```bash
-   python3 -m venv .venv
-   .venv/bin/pip install -r requirements-dev.txt
-   ```
-2. Run the core tests:
-   ```bash
-   PYTHONPATH=freecad .venv/bin/pytest --cov=SquatchCut.core.nesting --cov=SquatchCut.core.session_state --cov-report=term-missing --cov-fail-under=80
-   ```
-   **Note**: `PYTHONPATH=freecad` is required because the codebase imports modules as `from SquatchCut...` rather than `from freecad.SquatchCut...`. This ensures compatibility with both the FreeCAD internal module loader and external test runners.
+## Workflow
 
-3. Optional: run FreeCAD E2E scripts inside FreeCAD (see `freecad/testing/`).
+We use a structured workflow involving an **Architect** (who plans the work) and **AI Workers** (who implement the work).
 
-## Style & Expectations
-- Keep modules focused: core logic stays headless; GUI code lives under `gui/`.
-- Prefer small, well-documented helpers over large inline blocks.
-- Add or update docstrings for public functions/classes; note beta/heuristic behavior where relevant.
-- Maintain existing commands for compatibility; new UI goes through `SquatchCut_ShowTaskPanel`.
+### For Human Contributors
+1.  **Open an Issue:** Describe the bug or feature.
+2.  **Wait for Architecture:** If the change is significant, we will generate a "Task Spec" (Job Card).
+3.  **Implement:** You (or an AI agent) can pick up the task.
+4.  **Submit PR:** Follow the PR template.
 
-## Ruff Linting & Autofix
-Ruff (`ruff check .`) runs in CI and will fail any PR that introduces lint violations. If CI reports Ruff errors, you can trigger the **Ruff autofix** workflow from the GitHub Actions tab for the affected branch. The workflow runs `ruff check . --fix`, commits any changes with `chore: apply ruff autofix`, and pushes them back to the branch. After it finishes, re-run CI to confirm the lint errors are resolved or address any remaining issues manually.
+### For AI Workers
+If you are an AI agent (Codex, Jules, etc.):
+1.  Read `AGENTS.md` in the root.
+2.  Follow the **AI Worker Protocol**.
+3.  Look for `@worker` blocks in issues or task files.
 
-## AI Agents & Detailed Architecture
-If you are an AI Agent or need detailed architectural/behavioral rules, please refer to:
-- `AGENTS.md` (in the root directory) for strict behavioral guidelines and the AI Worker Protocol.
-- `docs/Project_Guide_v3.2.md` for the comprehensive project guide and architecture.
-
-The workflow involves multiple AI roles (Architect, Jules, Codex); all tasks must originate from Architect specs.
-
-## Adding a New Optimization Strategy (High Level)
-1. Implement a pure-Python strategy in `freecad/SquatchCut/core/nesting.py`.
-2. Provide summary helpers if needed (utilization, cut counts, etc.).
-3. Expose selection in session state/UI via `set_optimization_mode` and the Task panel.
-4. Add unit tests covering overlaps, rotation handling, and basic metrics.
-
-## Reporting Issues
-Please include:
-- FreeCAD version and OS
-- Steps to reproduce
-- Sample CSV or document if applicable
-- Expected vs actual behavior
+## Guidelines
+- **Tests:** All logic changes must have tests.
+- **Style:** We use `ruff` for linting.
+- **Architecture:** Do not break the Core vs. GUI separation. See `docs/Project_Guide_v3.3.md`.

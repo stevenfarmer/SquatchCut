@@ -1,4 +1,4 @@
-# SquatchCut Backlog
+# SquatchCut Backlog (Archive v3.2)
 
 ## Completed Since v3.2
 - **Settings Panel Behavior** – Settings TaskPanel opens reliably, hydrates before widgets, and only persists defaults on explicit save (`freecad/SquatchCut/gui/taskpanel_settings.py`, hydration helpers).
