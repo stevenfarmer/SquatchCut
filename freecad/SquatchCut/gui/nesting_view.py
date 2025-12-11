@@ -96,7 +96,8 @@ def rebuild_nested_geometry(
             idx = 0
         base_x = sheet_offsets[idx] + x
         base_y = y
-        placement.Base = App.Vector(base_x, base_y, 0.0)
+        # Offset +0.1 in Z so parts appear strictly "on top" of the sheet
+        placement.Base = App.Vector(base_x, base_y, 0.1)
         try:
             placement.Rotation = App.Rotation(App.Vector(0, 0, 1), float(getattr(pp, "rotation_deg", 0)))
         except Exception:
