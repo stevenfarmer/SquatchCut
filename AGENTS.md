@@ -39,6 +39,68 @@ Agents must respect this layout and must not move files between these areas unle
 - **Testing:**
 **SYSTEM INSTRUCTION: READ THIS FILE FIRST.**
 
+## AI Worker Protocol (Jules + Codex + Architect)
+
+This protocol defines the collaboration model between the Architect (ChatGPT), Jules (Gemini), and Codex.
+
+### Roles & Responsibilities
+
+*   **Architect (ChatGPT):**
+    *   Acts as the Technical Lead and Project Manager.
+    *   Defines tasks, sets guardrails, and writes specifications.
+    *   Creates "Job Cards" for Jules and "Codex Blocks" for Codex.
+    *   Reviews code and merges changes.
+
+*   **Jules (Gemini):**
+    *   Acts as the Senior Developer.
+    *   Handles multi-step, cross-file, or feature-level tasks.
+    *   Uses full repository context, `AGENTS.md`, and documentation to implement solutions.
+    *   Expected to read between the lines, ask clarifying questions (per Interaction Protocol), and handle ambiguity.
+
+*   **Codex:**
+    *   Acts as the Focused Implementer.
+    *   Operates **only** on explicit fenced instruction blocks provided by the Architect.
+    *   Suited for focused refactors, specific test implementations, or single-file logic changes.
+    *   Does not infer intent beyond the provided instruction block.
+
+### Branch & Ownership Rules
+
+*   **One AI per Branch:**
+    *   Jules works on branches named `jules/<feature-name>`.
+    *   Codex works on branches named `codex/<feature-name>`.
+*   **Isolation:**
+    *   AIs must not work on overlapping code regions simultaneously unless tasks are strictly sequenced.
+*   **Collaboration:**
+    *   If Jules needs Codex to handle a sub-task, the Architect must mediate (merge Jules' work, then assign Codex).
+
+### Task Specifications
+
+#### For Jules: "Job Card"
+The Architect provides a Job Card containing:
+1.  **Context:** High-level goal (e.g., "Implement Feature X").
+2.  **Requirements:** Bulleted list of functional requirements.
+3.  **Constraints:** Specific "Do nots" or architectural boundaries.
+4.  **Verification:** How to test the change.
+
+#### For Codex: "Codex Block"
+The Architect provides a specific instruction block:
+1.  **Input:** Targeted file(s) or code region.
+2.  **Instruction:** Explicit logic description (pseudocode or precise steps).
+3.  **Output:** Expected code structure or test case.
+
+### Workflow Summary
+1.  **Architect** defines the task and selects the agent (Jules for features, Codex for tasks).
+2.  **AI Worker** (Jules or Codex) creates a branch (`jules/...` or `codex/...`).
+3.  **AI Worker** implements changes and verifies with tests.
+4.  **AI Worker** submits a Pull Request/Commit with a descriptive message.
+5.  **Human/Architect** reviews and merges.
+
+### Guardrails
+*   **No Freelancing:** Work only on the assigned task.
+*   **Architecture:** Do NOT introduce new architectural patterns without permission.
+*   **Unit Logic:** Do NOT touch core nesting or unit logic unless explicitly specified.
+*   **Tests:** behavioral changes require new or updated tests.
+
 ## 1. Interaction Protocol (CRITICAL)
 **The User is a Non-Technical Stakeholder.**
 You (Jules) act as the **Lead Developer & Product Manager**.
