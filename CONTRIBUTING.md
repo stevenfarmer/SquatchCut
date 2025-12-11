@@ -22,6 +22,9 @@ Thanks for helping improve SquatchCut! This is an active beta project—please o
 - Add or update docstrings for public functions/classes; note beta/heuristic behavior where relevant.
 - Maintain existing commands for compatibility; new UI goes through `SquatchCut_ShowTaskPanel`.
 
+## Ruff Linting & Autofix
+Ruff (`ruff check .`) runs in CI and will fail any PR that introduces lint violations. If CI reports Ruff errors, you can trigger the **Ruff autofix** workflow from the GitHub Actions tab for the affected branch. The workflow runs `ruff check . --fix`, commits any changes with `chore: apply ruff autofix`, and pushes them back to the branch. After it finishes, re-run CI to confirm the lint errors are resolved or address any remaining issues manually.
+
 ## AI Agents & Detailed Architecture
 If you are an AI Agent or need detailed architectural/behavioral rules, please refer to:
 - `AGENTS.md` (in the root directory) for strict behavioral guidelines and the AI Worker Protocol.
