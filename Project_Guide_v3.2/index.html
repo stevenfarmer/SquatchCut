@@ -1186,18 +1186,21 @@
 <h2 id="architect-aihuman"><strong>Architect (AI/Human)</strong><a class="headerlink" href="#architect-aihuman" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Writes requirements  </li>
-<li>Produces Agent instruction blocks</li>
+<li>Produces Agent instruction blocks; all AI tasks must originate here</li>
 <li>Ensures patterns and rules never drift  </li>
 <li>Maintains documentation  </li>
 </ul>
-<h2 id="ai-agent-engineering-automaton"><strong>AI Agent (Engineering Automaton)</strong><a class="headerlink" href="#ai-agent-engineering-automaton" title="Permanent link">&para;</a></h2>
+<h2 id="jules-lead-developer-pm"><strong>Jules (Lead Developer &amp; PM)</strong><a class="headerlink" href="#jules-lead-developer-pm" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Writes code  </li>
-<li>Must obey patterns  </li>
-<li>Must obey reasoning levels  </li>
-<li>Must never “guess”  </li>
-<li>Must build tests with every core change  </li>
-<li><strong>Must follow rules in <code>AGENTS.md</code></strong></li>
+<li>Plans implementation from Architect specs</li>
+<li>Manages high-level decisions and branch strategy (<code>jules/&lt;feature&gt;</code>)</li>
+</ul>
+<h2 id="codex-developer"><strong>Codex (Developer)</strong><a class="headerlink" href="#codex-developer" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Implements code changes based on Jules' plan (<code>codex/&lt;feature&gt;</code>)</li>
+<li>Must obey patterns and reasoning levels</li>
+<li>Must build tests with every core change</li>
+<li><strong>See <code>AGENTS.md</code> → AI Worker Protocol for full details</strong></li>
 </ul>
 <hr />
 <h1 id="3-core-principles">3. Core Principles<a class="headerlink" href="#3-core-principles" title="Permanent link">&para;</a></h1>
