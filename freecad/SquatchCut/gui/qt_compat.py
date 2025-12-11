@@ -25,6 +25,7 @@ except ImportError:
             def __init__(self, *args, **kwargs):
                 self._signals_blocked = False
                 self._visible = True
+                self._tool_tip = ""
 
             def blockSignals(self, value: bool):
                 self._signals_blocked = bool(value)
@@ -40,6 +41,12 @@ except ImportError:
 
             def hide(self):
                 self.setVisible(False)
+
+            def setToolTip(self, text: str):
+                self._tool_tip = str(text)
+
+            def toolTip(self):
+                return self._tool_tip
 
         class _DummyQtEnum:
             Checked = 2
@@ -78,9 +85,6 @@ except ImportError:
 
             def clear(self):
                 self._text = ""
-
-            def setToolTip(self, *_):
-                return None
 
             def setStyleSheet(self, *_):
                 return None
@@ -125,9 +129,6 @@ except ImportError:
                 except ValueError:
                     return -1
 
-            def setToolTip(self, *_):
-                return None
-
         class _CheckBox(_Widget):
             stateChanged = _Signal()
             toggled = _Signal()
@@ -143,9 +144,6 @@ except ImportError:
             def isChecked(self):
                 return self._checked
 
-            def setToolTip(self, *_):
-                return None
-
         class _PushButton(_Widget):
             clicked = _Signal()
 
@@ -159,9 +157,6 @@ except ImportError:
 
             def text(self):
                 return self._text
-
-            def setToolTip(self, *_):
-                return None
 
             def setFlat(self, *_):
                 return None
@@ -220,8 +215,19 @@ except ImportError:
             def setFlags(self, *_):
                 return None
 
+            def row(self):
+                return 0
+
+            def column(self):
+                return 0
+
+            def text(self):
+                return self._text
+
         class _Header:
             def setStretchLastSection(self, *_):
+                return None
+            def setSectionResizeMode(self, *_):
                 return None
 
         class _TableWidget(_Widget):
@@ -258,10 +264,21 @@ except ImportError:
             def resizeColumnsToContents(self):
                 return None
 
+            def setSizePolicy(self, *_):
+                return None
+
         class _DummyAbstractItemView:
             NoEditTriggers = 0
             SelectRows = 1
             SingleSelection = 2
+
+        class _DummySizePolicy:
+            Expanding = 1
+            Preferred = 2
+
+        class _DummyQHeaderView:
+            Stretch = 1
+            ResizeToContents = 2
 
         class _DummyQtModule:
             Qt = _DummyQtEnum
@@ -287,6 +304,8 @@ except ImportError:
             QTableWidget = _TableWidget
             QTableWidgetItem = _TableWidgetItem
             Signal = _Signal
+            QSizePolicy = _DummySizePolicy
+            QHeaderView = _DummyQHeaderView
 
             def __getattr__(self, name):
                 return _Widget
