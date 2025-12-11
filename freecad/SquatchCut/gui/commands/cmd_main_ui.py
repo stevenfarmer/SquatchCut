@@ -44,7 +44,7 @@ class SquatchCutMainUICommand:
         if _main_panel_instance is not None:
             try:
                 Gui.Control.showDialog(_main_panel_instance)
-                logger.info("[SquatchCut] Reusing existing main task panel.")
+                logger.info("Reusing existing main task panel.")
             except Exception:
                 pass
             return
@@ -56,12 +56,12 @@ class SquatchCutMainUICommand:
         panel.set_close_callback(_clear_main_panel)
         _main_panel_instance = panel
         try:
-            logger.info("[SquatchCut] Opening main task panel.")
+            logger.info("Opening main task panel.")
         except Exception:
             pass
         Gui.Control.showDialog(panel)
         try:
-            logger.info("[SquatchCut] Task panel opened.")
+            logger.info("Task panel opened.")
         except Exception:
             pass
 
