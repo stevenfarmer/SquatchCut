@@ -62,7 +62,16 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         layout.addWidget(self._build_sheet_defaults_group())
         layout.addWidget(self._build_cut_defaults_group())
         layout.addWidget(self._build_rotation_group())
-        layout.addWidget(self._build_developer_group())
+
+        # Developer Mode Checkbox (always visible)
+        self.developer_mode_check = QtWidgets.QCheckBox("Enable Developer Mode")
+        self.developer_mode_check.setToolTip("Show advanced logging and developer tools.")
+        self.developer_mode_check.toggled.connect(self._on_developer_mode_toggled)
+        layout.addWidget(self.developer_mode_check)
+
+        # Developer Tools Group (gated by checkbox)
+        self.developer_group_box = self._build_developer_group()
+        layout.addWidget(self.developer_group_box)
 
         layout.addStretch(1)
 
@@ -117,6 +126,25 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
     def _build_developer_group(self) -> QtWidgets.QGroupBox:
         group = QtWidgets.QGroupBox("Developer tools")
         layout = QtWidgets.QVBoxLayout(group)
+
+        # Logging Controls
+        log_form = QtWidgets.QFormLayout()
+
+        self.log_level_report_combo = QtWidgets.QComboBox()
+        self.log_level_report_combo.addItem("None", "none")
+        self.log_level_report_combo.addItem("Normal", "normal")
+        self.log_level_report_combo.addItem("Verbose", "verbose")
+        log_form.addRow("Report View Log Level:", self.log_level_report_combo)
+
+        self.log_level_console_combo = QtWidgets.QComboBox()
+        self.log_level_console_combo.addItem("None", "none")
+        self.log_level_console_combo.addItem("Normal", "normal")
+        self.log_level_console_combo.addItem("Verbose", "verbose")
+        log_form.addRow("Python Console Log Level:", self.log_level_console_combo)
+
+        layout.addLayout(log_form)
+
+        # GUI Test Suite
         helper = QtWidgets.QLabel("Run the SquatchCut GUI test suite inside FreeCAD.")
         if hasattr(helper, "setWordWrap"):
             helper.setWordWrap(True)
@@ -131,8 +159,12 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         self.dev_tools_status_label.setStyleSheet("color: gray;")
         self._set_dev_tools_status("Ready")
         layout.addWidget(self.dev_tools_status_label)
-        layout.addStretch(1)
+
         return group
+
+    def _on_developer_mode_toggled(self) -> None:
+        is_dev = self.developer_mode_check.isChecked()
+        self.developer_group_box.setVisible(is_dev)
 
     def _determine_measurement_system(self, preferred: str | None = None) -> str:
         if preferred in ("metric", "imperial"):
@@ -158,6 +190,9 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
             "kerf_mm": self._prefs.get_default_kerf_mm(),
             "gap_mm": self._prefs.get_default_spacing_mm(),
             "allow_rotate": self._prefs.get_default_allow_rotate(),
+            "developer_mode": self._prefs.get_developer_mode(),
+            "log_level_report": self._prefs.get_report_view_log_level(),
+            "log_level_console": self._prefs.get_python_console_log_level(),
         }
 
     def _apply_initial_state(self, state: dict) -> None:
@@ -182,6 +217,21 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         else:
             self.gap_edit.setText(str(gap_value))
         self.allow_rotation_check.setChecked(bool(state.get("allow_rotate")))
+
+        # Developer Mode & Logging
+        dev_mode = bool(state.get("developer_mode", False))
+        self.developer_mode_check.setChecked(dev_mode)
+        self._on_developer_mode_toggled()  # Sync visibility
+
+        report_level = state.get("log_level_report", "normal")
+        idx_r = self.log_level_report_combo.findData(report_level)
+        if idx_r >= 0:
+            self.log_level_report_combo.setCurrentIndex(idx_r)
+
+        console_level = state.get("log_level_console", "none")
+        idx_c = self.log_level_console_combo.findData(console_level)
+        if idx_c >= 0:
+            self.log_level_console_combo.setCurrentIndex(idx_c)
 
     def _set_length_text(self, widget: QtWidgets.QLineEdit, value_mm: float | None) -> None:
         if value_mm is None:
@@ -233,6 +283,18 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         if gap is not None:
             self._prefs.set_default_spacing_mm(gap)
         self._prefs.set_default_allow_rotate(self.allow_rotation_check.isChecked())
+
+        # Save Developer Mode
+        self._prefs.set_developer_mode(self.developer_mode_check.isChecked())
+
+        # Save Log Levels
+        report_level = self.log_level_report_combo.currentData()
+        if report_level:
+            self._prefs.set_report_view_log_level(report_level)
+
+        console_level = self.log_level_console_combo.currentData()
+        if console_level:
+            self._prefs.set_python_console_log_level(console_level)
 
         return True
 
