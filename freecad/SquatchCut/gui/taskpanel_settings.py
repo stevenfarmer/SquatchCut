@@ -96,7 +96,9 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         form = QtWidgets.QFormLayout(group)
 
         self.sheet_width_edit = QtWidgets.QLineEdit()
+        self.sheet_width_edit.setToolTip("Default width for new sheets.")
         self.sheet_height_edit = QtWidgets.QLineEdit()
+        self.sheet_height_edit.setToolTip("Default height for new sheets.")
 
         self.sheet_width_label = QtWidgets.QLabel()
         self.sheet_height_label = QtWidgets.QLabel()
@@ -111,10 +113,12 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         form = QtWidgets.QFormLayout(group)
 
         self.kerf_edit = QtWidgets.QLineEdit()
+        self.kerf_edit.setToolTip("Default cut width (kerf) to subtract from parts.")
         self.gap_edit = QtWidgets.QLineEdit()
+        self.gap_edit.setToolTip("Default safety margin around sheet edges.")
 
         self.kerf_label = QtWidgets.QLabel("Default kerf:")
-        self.gap_label = QtWidgets.QLabel("Default gap (mm):")
+        self.gap_label = QtWidgets.QLabel("Default edge margin (mm):")
 
         form.addRow(self.kerf_label, self.kerf_edit)
         form.addRow(self.gap_label, self.gap_edit)
@@ -450,7 +454,7 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         self.sheet_width_label.setText(f"Default sheet width ({unit_label}):")
         self.sheet_height_label.setText(f"Default sheet height ({unit_label}):")
         self.kerf_label.setText(f"Default kerf ({unit_label}):")
-        self.gap_label.setText("Default gap (mm):")
+        self.gap_label.setText("Default edge margin (mm):")
 
     def _set_dev_tools_status(self, message: str) -> None:
         if hasattr(self, "dev_tools_status_label"):
