@@ -1,19 +1,17 @@
 """Tests for enhanced woodshop-friendly cutlist export functionality."""
 
-import pytest
-import csv
-from pathlib import Path
-from unittest.mock import patch
 from datetime import datetime
+from unittest.mock import patch
 
+import pytest
 from SquatchCut.core.exporter import (
     ExportJob,
-    ExportSheet,
     ExportPartPlacement,
-    export_cutlist,
-    _generate_cut_instructions,
+    ExportSheet,
     _format_sheet_size_for_export,
+    _generate_cut_instructions,
     _get_current_timestamp,
+    export_cutlist,
 )
 
 
@@ -45,7 +43,7 @@ class TestEnhancedCutlistExport:
 
         assert output_path.exists()
 
-        with open(output_path, "r", newline="", encoding="utf-8") as f:
+        with open(output_path, newline="", encoding="utf-8") as f:
             content = f.read()
 
         # Should have project header information
@@ -74,7 +72,7 @@ class TestEnhancedCutlistExport:
         export_cutlist(sample_export_job, str(output_path))
 
         # Read the CSV data (skip header comments)
-        with open(output_path, "r", newline="", encoding="utf-8") as f:
+        with open(output_path, newline="", encoding="utf-8") as f:
             lines = f.readlines()
 
         # Find the data rows (after headers and comments)
@@ -161,7 +159,7 @@ class TestEnhancedCutlistExport:
         output_path = tmp_path / "metric_cutlist.csv"
         export_cutlist(metric_job, str(output_path))
 
-        with open(output_path, "r", newline="", encoding="utf-8") as f:
+        with open(output_path, newline="", encoding="utf-8") as f:
             content = f.read()
 
         # Should indicate metric system
@@ -193,7 +191,7 @@ class TestEnhancedCutlistExport:
         output_path = tmp_path / "multi_sheet_cutlist.csv"
         export_cutlist(multi_job, str(output_path))
 
-        with open(output_path, "r", newline="", encoding="utf-8") as f:
+        with open(output_path, newline="", encoding="utf-8") as f:
             content = f.read()
 
         # Should indicate total sheets
@@ -222,7 +220,7 @@ class TestEnhancedCutlistExport:
 
         export_cutlist(sample_export_job, str(output_path))
 
-        with open(output_path, "r", newline="", encoding="utf-8") as f:
+        with open(output_path, newline="", encoding="utf-8") as f:
             content = f.read()
 
         # Should use clear, actionable language

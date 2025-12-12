@@ -1,11 +1,11 @@
 """Tests for cabinet-sized imperial CSV files to ensure multi-sheet nesting works correctly."""
 
-import pytest
 from pathlib import Path
 
+import pytest
 from SquatchCut.core.csv_import import validate_csv_file
 from SquatchCut.core.nesting import Part, nest_parts
-from SquatchCut.core.units import inches_to_mm, parse_imperial_inches
+from SquatchCut.core.units import inches_to_mm
 
 
 def csv_to_parts(csv_path: str, measurement_system: str = "metric") -> list[Part]:
