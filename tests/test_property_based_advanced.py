@@ -1,54 +1,50 @@
 """Property-based tests for SquatchCut advanced features using Hypothesis."""
 
-import pytest
-from hypothesis import given, strategies as st, assume, settings, example
-from unittest.mock import Mock, patch
-import tempfile
 import threading
-import time
 
+import pytest
+from hypothesis import assume, given, settings
+from hypothesis import strategies as st
+from SquatchCut.core.cut_sequence import (
+    CutDirection,
+    CutType,
+    plan_optimal_cutting_sequence,
+)
+from SquatchCut.core.exporter import (
+    ExportJob,
+    ExportPartPlacement,
+    ExportSheet,
+    _calculate_cut_lines,
+    _calculate_waste_areas,
+)
 from SquatchCut.core.genetic_nesting import (
-    GeneticNestingOptimizer,
     GeneticConfig,
+    GeneticNestingOptimizer,
     Individual,
     genetic_nest_parts,
 )
 from SquatchCut.core.grain_direction import (
-    GrainDirection,
     GrainAwarePart,
     GrainConstraints,
-    infer_grain_direction_from_dimensions,
-    parse_grain_direction,
-    is_grain_compatible,
+    GrainDirection,
     calculate_grain_penalty,
+    infer_grain_direction_from_dimensions,
+    is_grain_compatible,
     optimize_rotation_for_grain,
+    parse_grain_direction,
 )
-from SquatchCut.core.cut_sequence import (
-    CutSequencePlanner,
-    CutDirection,
-    CutType,
-    plan_optimal_cutting_sequence,
+from SquatchCut.core.nesting import Part, PlacedPart
+from SquatchCut.core.performance_utils import (
+    MemoryOptimizer,
+    NestingCache,
+    cached_nesting,
+    clear_nesting_cache,
 )
 from SquatchCut.core.quality_assurance import (
     QualityAssuranceChecker,
     QualityIssueType,
     QualitySeverity,
     check_nesting_quality,
-)
-from SquatchCut.core.performance_utils import (
-    NestingCache,
-    cached_nesting,
-    ParallelNestingProcessor,
-    MemoryOptimizer,
-    clear_nesting_cache,
-)
-from SquatchCut.core.nesting import Part, PlacedPart
-from SquatchCut.core.exporter import (
-    ExportJob,
-    ExportSheet,
-    ExportPartPlacement,
-    _calculate_cut_lines,
-    _calculate_waste_areas,
 )
 
 

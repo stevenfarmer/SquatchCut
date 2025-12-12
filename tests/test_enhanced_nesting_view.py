@@ -1,8 +1,6 @@
 """Tests for enhanced nesting view with colors, labels, and sheet boundaries."""
 
 import pytest
-
-from SquatchCut.core.nesting import PlacedPart
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.gui.nesting_colors import (
     COLOR_SCHEMES,

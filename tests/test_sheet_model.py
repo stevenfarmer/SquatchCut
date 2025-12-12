@@ -1,8 +1,9 @@
 import pytest
 
 pytest.importorskip("FreeCAD")
-import FreeCAD  # type: ignore
 from SquatchCut.core.sheet_model import SHEET_OBJECT_NAME, ensure_sheet_object
+
+import FreeCAD  # type: ignore
 
 
 def _new_doc(name):

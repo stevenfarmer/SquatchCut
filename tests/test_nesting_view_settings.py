@@ -1,7 +1,6 @@
 """Tests for nesting view settings in preferences and TaskPanel."""
 
 import pytest
-
 from SquatchCut.core.preferences import SquatchCutPreferences
 
 

@@ -1,9 +1,8 @@
-from hypothesis import given, settings, strategies as st
-
+from hypothesis import given, settings
+from hypothesis import strategies as st
 from SquatchCut.core.nesting import NestingConfig, Part, nest_parts
 from SquatchCut.core.nesting_engine import NestingEngine
 from SquatchCut.core.overlap_check import detect_overlaps
-
 
 dimension_strategy = st.floats(
     min_value=200.0,

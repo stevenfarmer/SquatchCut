@@ -1,19 +1,17 @@
 """Tests for quality assurance functionality."""
 
-import pytest
 from unittest.mock import Mock, patch
-import datetime
 
-from SquatchCut.core.quality_assurance import (
-    QualityIssueType,
-    QualitySeverity,
-    QualityIssue,
-    QualityReport,
-    QualityAssuranceChecker,
-    generate_quality_report_text,
-    check_nesting_quality,
-)
 from SquatchCut.core.nesting import PlacedPart
+from SquatchCut.core.quality_assurance import (
+    QualityAssuranceChecker,
+    QualityIssue,
+    QualityIssueType,
+    QualityReport,
+    QualitySeverity,
+    check_nesting_quality,
+    generate_quality_report_text,
+)
 
 
 class TestQualityEnums:

@@ -7,12 +7,13 @@ import pytest
 pytest.importorskip("FreeCAD")
 pytest.importorskip("FreeCADGui")
 
-import FreeCAD  # type: ignore
 from SquatchCut import settings
 from SquatchCut.core import session, session_state
 from SquatchCut.core.cutlist import generate_cutops_from_session
 from SquatchCut.gui.commands.cmd_import_csv import run_csv_import
 from SquatchCut.gui.commands.cmd_run_nesting import RunNestingCommand
+
+import FreeCAD  # type: ignore
 
 
 def _csv_path(name: str) -> str:

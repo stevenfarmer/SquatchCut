@@ -1,9 +1,8 @@
 """Tests for UI interactions and user workflows."""
 
-import pytest
-from unittest.mock import MagicMock, patch, Mock
+from unittest.mock import MagicMock, Mock, patch
 
-from SquatchCut.gui.qt_compat import QtCore, QtWidgets
+from SquatchCut.gui.qt_compat import QtWidgets
 
 
 class TestProgressIndicators:
@@ -102,7 +101,7 @@ class TestErrorHandling:
     @patch("SquatchCut.ui.error_handling.show_error_dialog")
     def test_handle_command_error(self, mock_show_error):
         """Test command error handling."""
-        from SquatchCut.ui.error_handling import handle_command_error, ValidationError
+        from SquatchCut.ui.error_handling import ValidationError, handle_command_error
 
         # Test with SquatchCutError
         error = ValidationError(
@@ -210,8 +209,8 @@ class TestAccessibility:
         """Test that dialog titles are descriptive for screen readers."""
         from SquatchCut.ui.error_handling import (
             show_error_dialog,
-            show_warning_dialog,
             show_info_dialog,
+            show_warning_dialog,
         )
 
         with patch("SquatchCut.ui.error_handling.QtWidgets.QMessageBox") as mock_msgbox:

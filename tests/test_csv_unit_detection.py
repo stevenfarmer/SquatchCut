@@ -1,10 +1,7 @@
 """Tests for CSV unit auto-detection functionality."""
 
-import tempfile
 import os
-from unittest.mock import patch
-
-import pytest
+import tempfile
 
 from SquatchCut.core.csv_loader import detect_csv_units
 

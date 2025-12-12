@@ -1,9 +1,9 @@
 """Tests for accessibility features and keyboard navigation."""
 
-import pytest
-from unittest.mock import MagicMock, patch, Mock
+from unittest.mock import MagicMock, patch
 
-from SquatchCut.gui.qt_compat import QtCore, QtWidgets
+import pytest
+from SquatchCut.gui.qt_compat import QtWidgets
 
 
 class TestKeyboardNavigation:
@@ -61,9 +61,9 @@ class TestScreenReaderSupport:
 
     def test_button_text_is_descriptive(self):
         """Test that button text is descriptive for screen readers."""
+        from SquatchCut.gui.commands.cmd_export_cutlist import ExportCutlistCommand
         from SquatchCut.gui.commands.cmd_import_csv import ImportCSVCommand
         from SquatchCut.gui.commands.cmd_run_nesting import RunNestingCommand
-        from SquatchCut.gui.commands.cmd_export_cutlist import ExportCutlistCommand
 
         # Test command resources have descriptive text
         import_cmd = ImportCSVCommand()

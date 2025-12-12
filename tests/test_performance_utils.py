@@ -1,17 +1,17 @@
 """Tests for performance utilities."""
 
-import pytest
 import time
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
+import pytest
 from SquatchCut.core.performance_utils import (
-    performance_monitor,
-    batch_process,
-    validate_large_dataset_limits,
-    estimate_memory_usage,
-    check_system_resources,
     ProgressTracker,
+    batch_process,
+    check_system_resources,
+    estimate_memory_usage,
     optimize_for_large_datasets,
+    performance_monitor,
+    validate_large_dataset_limits,
 )
 
 

@@ -1,44 +1,39 @@
 """Property-based tests for SquatchCut core functionality using Hypothesis."""
 
-import pytest
-from hypothesis import given, strategies as st, assume, settings, example
-from hypothesis.stateful import RuleBasedStateMachine, rule, invariant
-from unittest.mock import Mock, patch
-import math
 
-from SquatchCut.core.nesting import (
-    Part,
-    PlacedPart,
-    nest_parts,
-    NestingConfig,
-    part_fits_sheet,
-    validate_parts_fit_sheet,
-    compute_utilization,
-    get_usable_sheet_area,
-)
-from SquatchCut.core.units import (
-    mm_to_inches,
-    inches_to_mm,
-    format_metric_length,
-    inches_to_fraction_str,
-    parse_imperial_inches,
-)
+import pytest
+from hypothesis import assume, given, settings
+from hypothesis import strategies as st
+from hypothesis.stateful import RuleBasedStateMachine, invariant, rule
 from SquatchCut.core.genetic_nesting import (
-    GeneticNestingOptimizer,
     GeneticConfig,
     genetic_nest_parts,
 )
 from SquatchCut.core.grain_direction import (
-    GrainDirection,
     GrainAwarePart,
-    infer_grain_direction_from_dimensions,
-    parse_grain_direction,
-    is_grain_compatible,
     GrainConstraints,
+    GrainDirection,
+    infer_grain_direction_from_dimensions,
+    is_grain_compatible,
+    parse_grain_direction,
+)
+from SquatchCut.core.nesting import (
+    Part,
+    PlacedPart,
+    compute_utilization,
+    get_usable_sheet_area,
+    nest_parts,
+    part_fits_sheet,
+    validate_parts_fit_sheet,
 )
 from SquatchCut.core.quality_assurance import (
-    QualityAssuranceChecker,
     check_nesting_quality,
+)
+from SquatchCut.core.units import (
+    format_metric_length,
+    inches_to_fraction_str,
+    inches_to_mm,
+    mm_to_inches,
 )
 
 

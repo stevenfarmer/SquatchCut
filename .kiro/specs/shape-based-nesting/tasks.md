@@ -155,13 +155,13 @@ This implementation plan converts the shape-based nesting design into a series o
   - Implement kerf-compensated geometry in export formats
   - _Requirements: 2.5, 8.4_
 
-- [ ] 6.1 Update SVG export for complex geometries
+- [x] 6.1 Update SVG export for complex geometries
   - Modify export_nesting_to_svg to handle ComplexGeometry objects
   - Add accurate contour path generation for complex shapes
   - Implement kerf-compensated outline export
   - _Requirements: 2.5, 8.4_
 
-- [ ] 6.2 Enhance DXF export capabilities
+- [x] 6.2 Enhance DXF export capabilities
   - Update DXF export to support complex shape contours
   - Add layer separation for kerf-compensated vs original geometry
   - Implement precision control for complex shape export
@@ -171,7 +171,7 @@ This implementation plan converts the shape-based nesting design into a series o
   - **Property 6: Export Accuracy**
   - **Validates: Requirements 2.5, 8.4**
 
-- [ ] 6.4 Update cutlist export for shape-based workflows
+- [x] 6.4 Update cutlist export for shape-based workflows
   - Modify cutlist generation to include shape complexity information
   - Add geometry type indicators in exported cut lists
   - Implement area calculations based on actual shape geometry

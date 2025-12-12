@@ -4,9 +4,10 @@ import pytest
 
 pytest.importorskip("FreeCAD")
 pytest.importorskip("Part")
-import FreeCAD  # type: ignore
 from SquatchCut.core import session, session_state, view_controller
 from SquatchCut.core.sheet_model import ensure_sheet_object
+
+import FreeCAD  # type: ignore
 
 
 class _DummyPlacement:

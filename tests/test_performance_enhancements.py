@@ -1,24 +1,23 @@
 """Tests for performance enhancement features."""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
 import tempfile
 import threading
 import time
 from pathlib import Path
+from unittest.mock import patch
 
-from SquatchCut.core.performance_utils import (
-    NestingCache,
-    cached_nesting,
-    ParallelNestingProcessor,
-    parallel_nesting,
-    MemoryOptimizer,
-    memory_optimized,
-    clear_nesting_cache,
-    get_cache_stats,
-    configure_cache,
-)
 from SquatchCut.core.nesting import Part, PlacedPart
+from SquatchCut.core.performance_utils import (
+    MemoryOptimizer,
+    NestingCache,
+    ParallelNestingProcessor,
+    cached_nesting,
+    clear_nesting_cache,
+    configure_cache,
+    get_cache_stats,
+    memory_optimized,
+    parallel_nesting,
+)
 
 
 class TestNestingCache:

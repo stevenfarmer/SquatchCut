@@ -6,20 +6,18 @@ This module contains property-based tests that validate the correctness of
 shape detection, extraction, and nesting algorithms for complex geometries.
 """
 
-import pytest
-from hypothesis import given, strategies as st, assume, settings, example, HealthCheck
-from unittest.mock import Mock, patch
 import math
+from unittest.mock import Mock
 
+import pytest
+from hypothesis import HealthCheck, assume, given, settings
+from hypothesis import strategies as st
 from SquatchCut.core.complex_geometry import (
     ComplexGeometry,
-    GeometryType,
     ComplexityLevel,
-    ExtractionMethod,
+    GeometryType,
     assess_geometry_complexity,
     create_rectangular_geometry,
-    Point2D,
-    BoundingBox,
 )
 from SquatchCut.core.shape_extractor import ShapeExtractor
 
@@ -354,7 +352,7 @@ class TestComplexGeometryProperties:
             # Number of contour points should be preserved
             assert len(rotated.contour_points) == len(geometry.contour_points)
 
-        except ValueError as e:
+        except ValueError:
             # Rotation not allowed - this is expected behavior
             assert not geometry.rotation_allowed
 
@@ -564,8 +562,8 @@ class TestGeometryNestingEngine:
         """
         from SquatchCut.core.geometry_nesting_engine import (
             GeometryNestingEngine,
-            SheetGeometry,
             NestingMode,
+            SheetGeometry,
         )
 
         # Create a reasonably sized sheet
@@ -633,8 +631,8 @@ class TestGeometryNestingEngine:
         """Test that utilization calculations are accurate for complex geometries."""
         from SquatchCut.core.geometry_nesting_engine import (
             GeometryNestingEngine,
-            SheetGeometry,
             NestingMode,
+            SheetGeometry,
         )
 
         # Create sheet and nest geometries

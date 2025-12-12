@@ -16,7 +16,7 @@ class TestPreviewNestingCommand:
 
     def test_command_is_active_with_document(self):
         """Test that command is active when document exists."""
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import MagicMock, patch
 
         cmd = PreviewNestingCommand()
 

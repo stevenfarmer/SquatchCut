@@ -5,12 +5,10 @@
 This module tests the integration between shape selection and the main SquatchCut workflow.
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 from SquatchCut.gui.taskpanel_input import InputGroupWidget
 from SquatchCut.gui.taskpanel_main import SquatchCutTaskPanel
-from SquatchCut.core.preferences import SquatchCutPreferences
 
 
 class TestShapeBasedIntegration:
@@ -120,8 +118,8 @@ class TestShapeBasedIntegration:
     @patch("SquatchCut.gui.commands.cmd_run_nesting.GeometryNestingEngine")
     def test_geometric_nesting_integration(self, mock_engine_class):
         """Test that geometric nesting is called for shape-based data."""
-        from SquatchCut.gui.commands.cmd_run_nesting import RunNestingCommand
         from SquatchCut.core.nesting import Part
+        from SquatchCut.gui.commands.cmd_run_nesting import RunNestingCommand
 
         # Setup mock engine
         mock_engine = Mock()

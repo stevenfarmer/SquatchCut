@@ -1,20 +1,18 @@
 """Tests for grain direction support in nesting."""
 
-import pytest
-from unittest.mock import Mock
 
 from SquatchCut.core.grain_direction import (
-    GrainDirection,
-    GrainConstraints,
     GrainAwarePart,
-    infer_grain_direction_from_dimensions,
-    parse_grain_direction,
-    is_grain_compatible,
-    calculate_grain_penalty,
-    optimize_rotation_for_grain,
+    GrainConstraints,
+    GrainDirection,
     add_grain_info_to_parts,
-    validate_grain_constraints,
+    calculate_grain_penalty,
     create_grain_report,
+    infer_grain_direction_from_dimensions,
+    is_grain_compatible,
+    optimize_rotation_for_grain,
+    parse_grain_direction,
+    validate_grain_constraints,
 )
 from SquatchCut.core.nesting import Part, PlacedPart
 

@@ -31,6 +31,12 @@ from SquatchCut.core.nesting import (
 )
 from SquatchCut.freecad_integration import App, Part
 
+# Import for complex geometry support
+try:
+    from SquatchCut.core.complex_geometry import ComplexGeometry
+except ImportError:
+    ComplexGeometry = None
+
 try:
     from SquatchCut.core.text_helpers import create_export_shape_text
 except ImportError:  # pragma: no cover - fallback for stripped installs
@@ -60,6 +66,10 @@ class ExportPartPlacement:
     width_mm: float
     height_mm: float
     rotation_deg: int = 0
+    # Enhanced fields for complex geometry support
+    complex_geometry: ComplexGeometry | None = None
+    kerf_compensation: float | None = None
+    geometry_type: str = "rectangular"  # "rectangular", "curved", "complex"
 
 
 @dataclass
@@ -488,8 +498,26 @@ def _generate_cut_instructions(
     pos_left = format_dimension_for_export(part.x_mm, export_job)
     pos_bottom = format_dimension_for_export(part.y_mm, export_job)
 
-    # Create clear, actionable instruction
-    instruction = f"Cut {width_display} x {height_display}{rotation_note}"
+    # Create clear, actionable instruction based on geometry type
+    geometry_type = _get_geometry_type_display(part)
+
+    if geometry_type == "Rectangle":
+        instruction = f"Cut {width_display} x {height_display}{rotation_note}"
+    else:
+        instruction = f"Cut {geometry_type} - {width_display} x {height_display} bounding box{rotation_note}"
+
+        # Add shape-specific cutting advice
+        if hasattr(part, "complex_geometry") and part.complex_geometry is not None:
+            if (
+                hasattr(part.complex_geometry, "kerf_compensation")
+                and part.complex_geometry.kerf_compensation
+            ):
+                instruction += " (kerf compensated)"
+
+            # Add complexity warning for complex shapes
+            complexity = _get_complexity_display(part)
+            if complexity in ["Complex", "Very Complex"]:
+                instruction += f" - {complexity} shape: use template or CNC"
 
     # Add position guidance for precision work
     if export_job.measurement_system == "imperial":
@@ -527,6 +555,47 @@ def _part_font_size(
     return max(base, min_sheet_dim / 50.0, 6.0)
 
 
+def _complex_geometry_to_svg_path(
+    geometry: ComplexGeometry, offset_x: float = 0.0, offset_y: float = 0.0
+) -> str:
+    """Convert ComplexGeometry contour points to SVG path data.
+
+    Args:
+        geometry: ComplexGeometry object with contour points
+        offset_x: X offset to apply to all points
+        offset_y: Y offset to apply to all points
+
+    Returns:
+        SVG path data string, or empty string if conversion fails
+    """
+    if not geometry or not geometry.contour_points or len(geometry.contour_points) < 3:
+        return ""
+
+    try:
+        path_parts = []
+
+        # Start with move to first point
+        first_point = geometry.contour_points[0]
+        start_x = first_point[0] + offset_x
+        start_y = first_point[1] + offset_y
+        path_parts.append(f"M {_fmt_float(start_x)} {_fmt_float(start_y)}")
+
+        # Add line segments to subsequent points
+        for point in geometry.contour_points[1:]:
+            x = point[0] + offset_x
+            y = point[1] + offset_y
+            path_parts.append(f"L {_fmt_float(x)} {_fmt_float(y)}")
+
+        # Close the path
+        path_parts.append("Z")
+
+        return " ".join(path_parts)
+
+    except Exception as e:
+        logger.warning(f"Failed to convert ComplexGeometry to SVG path: {e}")
+        return ""
+
+
 def _render_sheet_svg(
     sheet_number: int,
     total_sheets: int,
@@ -555,6 +624,7 @@ def _render_sheet_svg(
         ".sheet-header{fill:#000;font-family:sans-serif;text-anchor:middle;}"
         ".cut-line{stroke:#ff0000;stroke-width:0.3;stroke-dasharray:2,2;}"
         ".waste-area{fill:#ffcccc;fill-opacity:0.3;stroke:none;}"
+        ".kerf-line{fill:none;stroke:#0066cc;stroke-width:0.3;stroke-dasharray:1,1;}"
         "</style>"
     )
 
@@ -609,10 +679,47 @@ def _render_sheet_svg(
         if w <= 0 or h <= 0:
             continue
 
-        body.append(
-            f'<rect class="part-rect" x="{_fmt_float(x)}" y="{_fmt_float(y)}" '
-            f'width="{_fmt_float(w)}" height="{_fmt_float(h)}" />'
-        )
+        # Render shape based on geometry type
+        if hasattr(part, "complex_geometry") and part.complex_geometry is not None:
+            # Render complex geometry as SVG path
+            geometry = part.complex_geometry
+
+            # Render original geometry
+            path_data = _complex_geometry_to_svg_path(geometry, x, y)
+            if path_data:
+                body.append(f'<path class="part-rect" d="{path_data}" />')
+
+                # Render kerf-compensated geometry if available and different
+                if (
+                    hasattr(part, "kerf_compensation")
+                    and part.kerf_compensation is not None
+                    and abs(part.kerf_compensation) > 0.001
+                ):
+                    try:
+                        kerf_geometry = geometry.apply_kerf(part.kerf_compensation)
+                        kerf_path_data = _complex_geometry_to_svg_path(
+                            kerf_geometry, x, y
+                        )
+                        if kerf_path_data:
+                            body.append(
+                                f'<path class="kerf-line" d="{kerf_path_data}" />'
+                            )
+                    except Exception as e:
+                        logger.warning(
+                            f"Failed to render kerf compensation for {part.part_id}: {e}"
+                        )
+            else:
+                # Fallback to rectangle if path generation fails
+                body.append(
+                    f'<rect class="part-rect" x="{_fmt_float(x)}" y="{_fmt_float(y)}" '
+                    f'width="{_fmt_float(w)}" height="{_fmt_float(h)}" />'
+                )
+        else:
+            # Render as rectangle (default behavior)
+            body.append(
+                f'<rect class="part-rect" x="{_fmt_float(x)}" y="{_fmt_float(y)}" '
+                f'width="{_fmt_float(w)}" height="{_fmt_float(h)}" />'
+            )
 
         if not include_labels:
             continue
@@ -694,6 +801,26 @@ def build_export_job_from_current_nesting(doc=None) -> ExportJob | None:
                 rotation = int(getattr(placement, "rotation_deg", 0) or 0)
             except Exception:
                 continue
+            # Try to get complex geometry information from the placement
+            complex_geom = None
+            kerf_comp = None
+            geom_type = "rectangular"
+
+            # Check if placement has complex geometry information
+            if (
+                hasattr(placement, "complex_geometry")
+                and placement.complex_geometry is not None
+            ):
+                complex_geom = placement.complex_geometry
+                geom_type = (
+                    complex_geom.geometry_type.value
+                    if hasattr(complex_geom.geometry_type, "value")
+                    else str(complex_geom.geometry_type)
+                )
+                kerf_comp = complex_geom.kerf_compensation
+            elif hasattr(placement, "geometry_type"):
+                geom_type = str(placement.geometry_type)
+
             export_parts.append(
                 ExportPartPlacement(
                     part_id=part_id,
@@ -703,6 +830,9 @@ def build_export_job_from_current_nesting(doc=None) -> ExportJob | None:
                     width_mm=width,
                     height_mm=height,
                     rotation_deg=rotation,
+                    complex_geometry=complex_geom,
+                    kerf_compensation=kerf_comp,
+                    geometry_type=geom_type,
                 )
             )
         total_parts += len(export_parts)
@@ -745,11 +875,78 @@ def _resolve_job_name(doc) -> str:
     return "SquatchCut Job"
 
 
+def _calculate_part_actual_area(
+    part: ExportPartPlacement, export_job: ExportJob
+) -> str:
+    """Calculate and format the actual area of a part based on its geometry."""
+    try:
+        if hasattr(part, "complex_geometry") and part.complex_geometry is not None:
+            # Use actual geometry area
+            area_mm2 = part.complex_geometry.area
+        else:
+            # Use bounding box area
+            area_mm2 = part.width_mm * part.height_mm
+
+        # Format area based on measurement system
+        if export_job.measurement_system == "imperial":
+            area_in2 = area_mm2 / (25.4 * 25.4)
+            return f"{area_in2:.2f} in²"
+        else:
+            return f"{area_mm2:.0f} mm²"
+    except Exception:
+        return "N/A"
+
+
+def _get_geometry_type_display(part: ExportPartPlacement) -> str:
+    """Get a user-friendly display of the geometry type."""
+    if hasattr(part, "geometry_type") and part.geometry_type:
+        type_map = {
+            "rectangular": "Rectangle",
+            "curved": "Curved",
+            "complex": "Complex Shape",
+        }
+        return type_map.get(part.geometry_type.lower(), part.geometry_type.title())
+    return "Rectangle"
+
+
+def _get_complexity_display(part: ExportPartPlacement) -> str:
+    """Get a user-friendly display of the shape complexity."""
+    try:
+        if hasattr(part, "complex_geometry") and part.complex_geometry is not None:
+            complexity = part.complex_geometry.complexity_level
+            if hasattr(complexity, "value"):
+                complexity_str = complexity.value
+            else:
+                complexity_str = str(complexity)
+
+            # Map complexity levels to user-friendly terms
+            complexity_map = {
+                "low": "Simple",
+                "medium": "Moderate",
+                "high": "Complex",
+                "extreme": "Very Complex",
+            }
+            return complexity_map.get(complexity_str.lower(), complexity_str.title())
+        return "Simple"
+    except Exception:
+        return "Simple"
+
+
 def export_cutlist(
-    export_job: ExportJob, target_path: str, *, as_text: bool = False
+    export_job: ExportJob,
+    target_path: str,
+    *,
+    as_text: bool = False,
+    enhanced_format: bool = False,
 ) -> None:
     """
     Export a cutlist for the provided ExportJob.
+
+    Args:
+        export_job: The export job to process
+        target_path: Path to write the cutlist file
+        as_text: If True, export as human-readable text instead of CSV
+        enhanced_format: If True, use enhanced woodshop-friendly CSV format with headers and instructions
 
     CSV path writes rows directly from ExportJob. Text path reuses legacy helpers.
     """
@@ -769,25 +966,88 @@ def export_cutlist(
         logger.warning("[SquatchCut] No sheets available; cutlist export skipped.")
         return
 
-    # Enhanced header with woodshop-friendly column names
+    path = Path(target_path)
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+
+    if enhanced_format:
+        _export_enhanced_cutlist_csv(export_job, path)
+    else:
+        _export_simple_cutlist_csv(export_job, path)
+
+
+def _export_simple_cutlist_csv(export_job: ExportJob, path: Path) -> None:
+    """Export cutlist in simple CSV format for backward compatibility."""
+    # Simple header matching original format
+    header = [
+        "sheet_index",
+        "sheet_width_mm",
+        "sheet_height_mm",
+        "part_id",
+        "x_mm",
+        "y_mm",
+        "width_mm",
+        "height_mm",
+        "rotation_deg",
+        "width_display",
+        "height_display",
+    ]
+
+    try:
+        with path.open("w", newline="", encoding="utf-8") as fh:
+            writer = csv.writer(fh)
+            writer.writerow(header)
+
+            for sheet in sorted(export_job.sheets, key=lambda s: s.sheet_index):
+                for part in sheet.parts:
+                    width_display = format_dimension_for_export(
+                        part.width_mm, export_job
+                    )
+                    height_display = format_dimension_for_export(
+                        part.height_mm, export_job
+                    )
+
+                    writer.writerow(
+                        [
+                            sheet.sheet_index,
+                            sheet.width_mm,
+                            sheet.height_mm,
+                            part.part_id,
+                            part.x_mm,
+                            part.y_mm,
+                            part.width_mm,
+                            part.height_mm,
+                            part.rotation_deg,
+                            width_display,
+                            height_display,
+                        ]
+                    )
+
+    except OSError as exc:
+        logger.warning(f"[SquatchCut] CSV export failed for '{path}': {exc}")
+        raise
+
+
+def _export_enhanced_cutlist_csv(export_job: ExportJob, path: Path) -> None:
+    """Export cutlist in enhanced woodshop-friendly format."""
+    # Enhanced header with woodshop-friendly column names and shape-based info
     header = [
         "Sheet",
         "Sheet_Size",
         "Part_Name",
         "Width",
         "Height",
+        "Actual_Area",
+        "Geometry_Type",
+        "Complexity",
         "Qty",
         "Rotated",
         "Position_From_Left",
         "Position_From_Bottom",
         "Cut_Instructions",
     ]
-
-    path = Path(target_path)
-    try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-    except Exception:
-        pass
 
     try:
         with path.open("w", newline="", encoding="utf-8") as fh:
@@ -829,6 +1089,11 @@ def export_cutlist(
                     pos_left = format_dimension_for_export(part.x_mm, export_job)
                     pos_bottom = format_dimension_for_export(part.y_mm, export_job)
 
+                    # Calculate actual area and complexity information
+                    actual_area = _calculate_part_actual_area(part, export_job)
+                    geometry_type = _get_geometry_type_display(part)
+                    complexity_info = _get_complexity_display(part)
+
                     writer.writerow(
                         [
                             f"Sheet {sheet.sheet_index + 1}",
@@ -836,6 +1101,9 @@ def export_cutlist(
                             part.part_id,
                             width_display,
                             height_display,
+                            actual_area,
+                            geometry_type,
+                            complexity_info,
                             1,  # Individual parts (qty handled during import)
                             "Yes" if part.rotation_deg != 0 else "No",
                             pos_left,
@@ -859,9 +1127,8 @@ def export_cutlist(
             writer.writerow(["# 4. Account for saw kerf in your measurements"])
 
     except OSError as exc:
-        logger.warning(f"[SquatchCut] CSV export failed for '{target_path}': {exc}")
+        logger.warning(f"[SquatchCut] CSV export failed for '{path}': {exc}")
         raise
-    return
 
 
 def export_nesting_to_svg(
@@ -920,10 +1187,109 @@ def export_nesting_to_svg(
     return generated_paths
 
 
-def export_nesting_to_dxf(export_job: ExportJob, base_path: str) -> None:
-    """Placeholder DXF exporter for ExportJob inputs."""
-    logger.warning("[SquatchCut] DXF export via gateway is not implemented yet.")
-    raise NotImplementedError("DXF export via ExportJob is not available yet.")
+def export_nesting_to_dxf(
+    export_job: ExportJob,
+    base_path: str,
+    *,
+    include_labels: bool = True,
+    include_dimensions: bool = False,
+    separate_kerf_layer: bool = True,
+    precision_decimals: int = 3,
+) -> list[Path]:
+    """
+    Export nesting layouts to DXF format with support for complex shapes.
+
+    Args:
+        export_job: The nesting job to export
+        base_path: Base path for output files
+        include_labels: Whether to include part labels
+        include_dimensions: Whether to include dimension annotations
+        separate_kerf_layer: Whether to put kerf-compensated geometry on separate layer
+        precision_decimals: Number of decimal places for coordinates
+
+    Returns:
+        List of generated DXF file paths
+
+    Raises:
+        RuntimeError: If DXF export is not available
+        OSError: If file writing fails
+    """
+    if export_job is None or not export_job.sheets:
+        logger.warning("[SquatchCut] DXF export skipped: job has no sheets.")
+        return []
+
+    try:
+        import importDXF  # type: ignore
+    except Exception as exc:
+        raise RuntimeError(f"DXF export not available: {exc}") from exc
+
+    # Ensure we have a valid FreeCAD document for temporary objects
+    if App is None:
+        raise RuntimeError("FreeCAD App module not available for DXF export")
+
+    doc = App.newDocument("SquatchCut_DXF_Export")
+    if doc is None:
+        raise RuntimeError("Failed to create temporary FreeCAD document")
+
+    try:
+        base_target = Path(base_path)
+        if base_target.suffix.lower() != ".dxf":
+            base_target = base_target.with_suffix(".dxf")
+
+        base_target.parent.mkdir(parents=True, exist_ok=True)
+
+        generated_paths: list[Path] = []
+
+        for idx, sheet in enumerate(
+            sorted(export_job.sheets, key=lambda s: s.sheet_index)
+        ):
+            # Create DXF objects for this sheet
+            objs = _build_dxf_objects_for_sheet(
+                doc=doc,
+                sheet=sheet,
+                sheet_number=idx + 1,
+                export_job=export_job,
+                include_labels=include_labels,
+                include_dimensions=include_dimensions,
+                separate_kerf_layer=separate_kerf_layer,
+                precision_decimals=precision_decimals,
+            )
+
+            # Generate sheet-specific file path
+            target_path = _sheet_specific_path(base_target, idx + 1)
+            target_path = target_path.with_suffix(".dxf")
+
+            try:
+                # Export to DXF
+                importDXF.export(objs, str(target_path))
+                generated_paths.append(target_path)
+                logger.info(
+                    f"[SquatchCut] DXF sheet {idx + 1} exported to {target_path}"
+                )
+            except OSError as exc:
+                logger.warning(
+                    f"[SquatchCut] DXF export failed for '{target_path}': {exc}"
+                )
+                raise
+            finally:
+                # Clean up temporary objects for this sheet
+                for obj in objs:
+                    try:
+                        doc.removeObject(obj.Name)
+                    except Exception:
+                        pass
+
+        logger.info(
+            f"[SquatchCut] DXF export complete: {len(generated_paths)} file(s) generated"
+        )
+        return generated_paths
+
+    finally:
+        # Clean up temporary document
+        try:
+            App.closeDocument(doc.Name)
+        except Exception:
+            pass
 
 
 def _job_primary_sheet_size(export_job: ExportJob) -> tuple[float, float]:
@@ -1085,3 +1451,381 @@ def _calculate_waste_areas(
                     )
 
     return waste_areas
+
+
+def _build_dxf_objects_for_sheet(
+    doc,
+    sheet: ExportSheet,
+    sheet_number: int,
+    export_job: ExportJob,
+    include_labels: bool,
+    include_dimensions: bool,
+    separate_kerf_layer: bool,
+    precision_decimals: int,
+) -> list:
+    """
+    Create FreeCAD objects for DXF export of a single sheet.
+
+    Handles both rectangular and complex geometry parts with layer separation.
+    """
+    if Part is None:
+        logger.warning("[SquatchCut] Part module not available for DXF export")
+        return []
+
+    objs = []
+
+    # Create sheet boundary
+    try:
+        sheet_boundary = Part.makePlane(sheet.width_mm, sheet.height_mm)
+        boundary_obj = doc.addObject("Part::Feature", f"Sheet_{sheet_number}_Boundary")
+        boundary_obj.Shape = sheet_boundary
+        boundary_obj.Label = f"Sheet {sheet_number} Boundary"
+        objs.append(boundary_obj)
+    except Exception as e:
+        logger.warning(f"Failed to create sheet boundary: {e}")
+
+    # Process each part
+    for part_idx, part in enumerate(sheet.parts):
+        try:
+            part_objs = _create_dxf_objects_for_part(
+                doc=doc,
+                part=part,
+                part_index=part_idx,
+                sheet_number=sheet_number,
+                export_job=export_job,
+                include_labels=include_labels,
+                include_dimensions=include_dimensions,
+                separate_kerf_layer=separate_kerf_layer,
+                precision_decimals=precision_decimals,
+            )
+            objs.extend(part_objs)
+        except Exception as e:
+            logger.warning(f"Failed to create DXF objects for part {part.part_id}: {e}")
+            # Continue with other parts even if one fails
+
+    return objs
+
+
+def _create_dxf_objects_for_part(
+    doc,
+    part: ExportPartPlacement,
+    part_index: int,
+    sheet_number: int,
+    export_job: ExportJob,
+    include_labels: bool,
+    include_dimensions: bool,
+    separate_kerf_layer: bool,
+    precision_decimals: int,
+) -> list:
+    """Create FreeCAD objects for a single part in DXF export."""
+    objs = []
+
+    # Determine if this is a complex geometry part
+    has_complex_geometry = (
+        hasattr(part, "complex_geometry")
+        and part.complex_geometry is not None
+        and part.complex_geometry.contour_points
+        and len(part.complex_geometry.contour_points) >= 3
+    )
+
+    if has_complex_geometry:
+        # Create complex geometry objects
+        part_objs = _create_complex_geometry_dxf_objects(
+            doc=doc,
+            part=part,
+            part_index=part_index,
+            sheet_number=sheet_number,
+            separate_kerf_layer=separate_kerf_layer,
+            precision_decimals=precision_decimals,
+        )
+        objs.extend(part_objs)
+    else:
+        # Create rectangular geometry objects
+        part_objs = _create_rectangular_dxf_objects(
+            doc=doc,
+            part=part,
+            part_index=part_index,
+            sheet_number=sheet_number,
+            precision_decimals=precision_decimals,
+        )
+        objs.extend(part_objs)
+
+    # Add labels if requested
+    if include_labels:
+        label_objs = _create_part_label_objects(
+            doc=doc,
+            part=part,
+            part_index=part_index,
+            sheet_number=sheet_number,
+            export_job=export_job,
+        )
+        objs.extend(label_objs)
+
+    # Add dimensions if requested
+    if include_dimensions:
+        dimension_objs = _create_part_dimension_objects(
+            doc=doc,
+            part=part,
+            part_index=part_index,
+            sheet_number=sheet_number,
+            export_job=export_job,
+        )
+        objs.extend(dimension_objs)
+
+    return objs
+
+
+def _create_complex_geometry_dxf_objects(
+    doc,
+    part: ExportPartPlacement,
+    part_index: int,
+    sheet_number: int,
+    separate_kerf_layer: bool,
+    precision_decimals: int,
+) -> list:
+    """Create DXF objects for complex geometry parts."""
+    objs = []
+
+    try:
+        geometry = part.complex_geometry
+
+        # Round coordinates to specified precision
+        def round_coord(coord):
+            return round(coord, precision_decimals)
+
+        # Create wire from contour points
+        points = []
+        for point in geometry.contour_points:
+            # Apply part position offset
+            x = round_coord(point[0] + part.x_mm)
+            y = round_coord(point[1] + part.y_mm)
+            points.append(App.Vector(x, y, 0.0))
+
+        # Close the contour if not already closed
+        if len(points) > 2 and points[0] != points[-1]:
+            points.append(points[0])
+
+        # Create edges from points
+        edges = []
+        for i in range(len(points) - 1):
+            try:
+                edge = Part.makeLine(points[i], points[i + 1])
+                edges.append(edge)
+            except Exception as e:
+                logger.warning(
+                    f"Failed to create edge {i} for part {part.part_id}: {e}"
+                )
+
+        if edges:
+            # Create wire from edges
+            try:
+                wire = Part.Wire(edges)
+
+                # Create main geometry object
+                main_obj = doc.addObject(
+                    "Part::Feature", f"Part_{sheet_number}_{part_index}_Main"
+                )
+                main_obj.Shape = wire
+                main_obj.Label = f"{part.part_id}_Main"
+                objs.append(main_obj)
+
+                # Create kerf-compensated geometry if available and requested
+                if (
+                    separate_kerf_layer
+                    and hasattr(part, "kerf_compensation")
+                    and part.kerf_compensation is not None
+                    and abs(part.kerf_compensation) > 0.001
+                ):
+                    try:
+                        kerf_geometry = geometry.apply_kerf(part.kerf_compensation)
+                        if kerf_geometry and kerf_geometry.contour_points:
+                            # Create kerf-compensated wire
+                            kerf_points = []
+                            for point in kerf_geometry.contour_points:
+                                x = round_coord(point[0] + part.x_mm)
+                                y = round_coord(point[1] + part.y_mm)
+                                kerf_points.append(App.Vector(x, y, 0.0))
+
+                            if (
+                                len(kerf_points) > 2
+                                and kerf_points[0] != kerf_points[-1]
+                            ):
+                                kerf_points.append(kerf_points[0])
+
+                            kerf_edges = []
+                            for i in range(len(kerf_points) - 1):
+                                try:
+                                    edge = Part.makeLine(
+                                        kerf_points[i], kerf_points[i + 1]
+                                    )
+                                    kerf_edges.append(edge)
+                                except Exception:
+                                    pass
+
+                            if kerf_edges:
+                                kerf_wire = Part.Wire(kerf_edges)
+                                kerf_obj = doc.addObject(
+                                    "Part::Feature",
+                                    f"Part_{sheet_number}_{part_index}_Kerf",
+                                )
+                                kerf_obj.Shape = kerf_wire
+                                kerf_obj.Label = f"{part.part_id}_Kerf"
+                                objs.append(kerf_obj)
+
+                    except Exception as e:
+                        logger.warning(
+                            f"Failed to create kerf geometry for part {part.part_id}: {e}"
+                        )
+
+            except Exception as e:
+                logger.warning(f"Failed to create wire for part {part.part_id}: {e}")
+                # Fallback to rectangular representation
+                fallback_objs = _create_rectangular_dxf_objects(
+                    doc, part, part_index, sheet_number, precision_decimals
+                )
+                objs.extend(fallback_objs)
+
+    except Exception as e:
+        logger.warning(
+            f"Failed to process complex geometry for part {part.part_id}: {e}"
+        )
+        # Fallback to rectangular representation
+        fallback_objs = _create_rectangular_dxf_objects(
+            doc, part, part_index, sheet_number, precision_decimals
+        )
+        objs.extend(fallback_objs)
+
+    return objs
+
+
+def _create_rectangular_dxf_objects(
+    doc,
+    part: ExportPartPlacement,
+    part_index: int,
+    sheet_number: int,
+    precision_decimals: int,
+) -> list:
+    """Create DXF objects for rectangular parts."""
+    objs = []
+
+    try:
+        # Round coordinates to specified precision
+        x = round(part.x_mm, precision_decimals)
+        y = round(part.y_mm, precision_decimals)
+        w = round(part.width_mm, precision_decimals)
+        h = round(part.height_mm, precision_decimals)
+
+        # Create rectangular plane
+        plane = Part.makePlane(w, h)
+        obj = doc.addObject("Part::Feature", f"Part_{sheet_number}_{part_index}")
+        obj.Shape = plane
+        obj.Label = part.part_id or f"Part_{part_index}"
+
+        # Apply position and rotation
+        placement = obj.Placement
+        placement.Base.x = x
+        placement.Base.y = y
+        placement.Base.z = 0.0
+
+        # Apply rotation if specified
+        if part.rotation_deg != 0 and App:
+            try:
+                placement.Rotation = App.Rotation(
+                    App.Vector(0, 0, 1), part.rotation_deg
+                )
+            except Exception as e:
+                logger.warning(f"Failed to apply rotation to part {part.part_id}: {e}")
+
+        obj.Placement = placement
+        objs.append(obj)
+
+    except Exception as e:
+        logger.warning(
+            f"Failed to create rectangular DXF object for part {part.part_id}: {e}"
+        )
+
+    return objs
+
+
+def _create_part_label_objects(
+    doc,
+    part: ExportPartPlacement,
+    part_index: int,
+    sheet_number: int,
+    export_job: ExportJob,
+) -> list:
+    """Create text label objects for parts in DXF export."""
+    objs = []
+
+    try:
+        # Calculate label position (center of part)
+        center_x = part.x_mm + part.width_mm / 2.0
+        center_y = part.y_mm + part.height_mm / 2.0
+
+        # Determine appropriate text size
+        min_dim = min(part.width_mm, part.height_mm)
+        text_size = max(min_dim * 0.1, 2.0)  # At least 2mm high
+
+        # Create label text
+        label_text = part.part_id or f"Part_{part_index}"
+
+        # Use text helper if available
+        text_obj = create_export_shape_text(
+            doc, label_text, center_x, center_y, 0.0, size=text_size
+        )
+
+        if text_obj is not None:
+            text_obj.Label = f"{part.part_id}_Label"
+            objs.append(text_obj)
+
+    except Exception as e:
+        logger.warning(f"Failed to create label for part {part.part_id}: {e}")
+
+    return objs
+
+
+def _create_part_dimension_objects(
+    doc,
+    part: ExportPartPlacement,
+    part_index: int,
+    sheet_number: int,
+    export_job: ExportJob,
+) -> list:
+    """Create dimension annotation objects for parts in DXF export."""
+    objs = []
+
+    try:
+        # Calculate dimension positions
+        margin = 3.0  # 3mm margin from part edge
+        text_size = 1.5  # 1.5mm text height
+
+        # Width dimension (below part)
+        width_text = format_dimension_for_export(part.width_mm, export_job)
+        width_x = part.x_mm + part.width_mm / 2.0
+        width_y = part.y_mm - margin
+
+        width_obj = create_export_shape_text(
+            doc, f"W: {width_text}", width_x, width_y, 0.0, size=text_size
+        )
+
+        if width_obj is not None:
+            width_obj.Label = f"{part.part_id}_Width"
+            objs.append(width_obj)
+
+        # Height dimension (right of part)
+        height_text = format_dimension_for_export(part.height_mm, export_job)
+        height_x = part.x_mm + part.width_mm + margin
+        height_y = part.y_mm + part.height_mm / 2.0
+
+        height_obj = create_export_shape_text(
+            doc, f"H: {height_text}", height_x, height_y, 0.0, size=text_size
+        )
+
+        if height_obj is not None:
+            height_obj.Label = f"{part.part_id}_Height"
+            objs.append(height_obj)
+
+    except Exception as e:
+        logger.warning(f"Failed to create dimensions for part {part.part_id}: {e}")
+
+    return objs

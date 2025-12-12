@@ -1,11 +1,10 @@
 """Test that SquatchCut defaults to imperial units on fresh installations."""
 
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
+from SquatchCut.core import session_state, units
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.settings import hydrate_from_params
-from SquatchCut.core import session_state, units
 
 
 class TestImperialDefaultOnFreshInstall:

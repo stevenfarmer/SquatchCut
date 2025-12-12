@@ -1,14 +1,13 @@
 """Tests for cut sequence planning functionality."""
 
-import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 from SquatchCut.core.cut_sequence import (
     CutDirection,
-    CutType,
     CutOperation,
     CutSequence,
     CutSequencePlanner,
+    CutType,
     plan_optimal_cutting_sequence,
 )
 from SquatchCut.core.nesting import PlacedPart

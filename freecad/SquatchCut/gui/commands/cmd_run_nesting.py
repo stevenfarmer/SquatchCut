@@ -794,6 +794,13 @@ class RunNestingCommand:
                         "height": placed.geometry.get_height(),
                         "rotation": placed.rotation,
                         "sheet_index": placed.sheet_index,
+                        # Include complex geometry information for export
+                        "complex_geometry": placed.geometry,
+                        "geometry_type": (
+                            placed.geometry.geometry_type.value
+                            if hasattr(placed.geometry.geometry_type, "value")
+                            else str(placed.geometry.geometry_type)
+                        ),
                     }
                     layout_result["placements"].append(placement)
 

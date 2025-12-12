@@ -1,6 +1,5 @@
 """Integration tests for sheet exhaustion detection during nesting."""
 
-import pytest
 
 from SquatchCut.core.nesting import (
     Part,

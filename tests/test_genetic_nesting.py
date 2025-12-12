@@ -1,11 +1,10 @@
 """Tests for genetic algorithm nesting optimization."""
 
-import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 from SquatchCut.core.genetic_nesting import (
-    GeneticNestingOptimizer,
     GeneticConfig,
+    GeneticNestingOptimizer,
     Individual,
     genetic_nest_parts,
 )

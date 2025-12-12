@@ -1,13 +1,12 @@
-from hypothesis import assume, given, strategies as st
 import pytest
-
+from hypothesis import assume, given
+from hypothesis import strategies as st
 from SquatchCut.core.units import (
     format_imperial_length,
     inches_to_mm,
     mm_to_inches,
     parse_imperial_inches,
 )
-
 
 finite_mm_values = st.floats(
     min_value=0.1,

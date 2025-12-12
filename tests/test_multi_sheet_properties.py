@@ -1,7 +1,6 @@
-from hypothesis import given, settings, strategies as st
-
+from hypothesis import given, settings
+from hypothesis import strategies as st
 from SquatchCut.core.multi_sheet_optimizer import MultiSheetOptimizer
-
 
 sheet_dimension = st.floats(
     min_value=300.0,

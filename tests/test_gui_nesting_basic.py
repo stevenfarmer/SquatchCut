@@ -6,15 +6,13 @@ This module tests the basic GUI components and their initialization
 for the standard CSV-based nesting workflow.
 """
 
-import pytest
 from unittest.mock import Mock, patch
 
-from SquatchCut.core.preferences import SquatchCutPreferences
-from SquatchCut.gui.taskpanel_main import SquatchCutTaskPanel
+from SquatchCut.gui.commands.cmd_run_nesting import RunNestingCommand
 from SquatchCut.gui.taskpanel_input import InputGroupWidget
+from SquatchCut.gui.taskpanel_main import SquatchCutTaskPanel
 from SquatchCut.gui.taskpanel_nesting import NestingGroupWidget
 from SquatchCut.gui.taskpanel_sheet import SheetConfigWidget
-from SquatchCut.gui.commands.cmd_run_nesting import RunNestingCommand
 
 
 class TestGUIComponentInitialization:
