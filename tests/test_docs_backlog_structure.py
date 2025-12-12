@@ -3,8 +3,9 @@ from __future__ import annotations
 import pathlib
 
 DOCS_DIR = pathlib.Path(__file__).resolve().parents[1] / "docs"
+ROOT_DIR = pathlib.Path(__file__).resolve().parents[1]
 PROJECT_GUIDE = DOCS_DIR / "Project_Guide_v3.2.md"
-BACKLOG_DOC = DOCS_DIR / "Backlog.md"
+BACKLOG_DOC = ROOT_DIR / "backlog.md"
 
 
 def read_file(path: pathlib.Path) -> str:
@@ -35,26 +36,27 @@ def test_project_guide_does_not_reference_old_backlog_alignment_label():
 def test_backlog_file_has_required_sections():
     backlog = read_file(BACKLOG_DOC)
     required_headers = [
-        "Completed Since v3.2",
-        "Active Backlog (High Priority)",
-        "Future / Longer-Term Items",
+        "Core Engine & Nesting",
+        "Units, Sheets, & Measurement Systems",
+        "GUI & UX",
+        "Exports (CSV/SVG/DXF)",
     ]
     for header in required_headers:
         assert (
             header in backlog
-        ), f"Missing backlog section header '{header}' in docs/Backlog.md."
+        ), f"Missing backlog section header '{header}' in backlog.md."
 
 
 def test_backlog_active_section_contains_key_items():
     backlog = read_file(BACKLOG_DOC)
     key_phrases = [
-        "Preview Determinism & Cleanup",
-        "TaskPanel Overflow & Ergonomics",
-        "Multi-Sheet Visualization Polish",
-        "Test Suite Expansion (Hydration, Units, Preview)",
+        "Multi-Sheet Heuristics",
+        "Guillotine Optimization",
+        "Imperial Formatting Drift",
+        "Sheet Exhaustion Metrics",
+        "Preview vs. Apply Separation",
+        "TaskPanel Overflow",
         "CSV Export & Cutlist Determinism",
-        "Warning Banner Lifecycle Tests",
-        "Sheet Exhaustion Metrics & Feedback",
     ]
     missing = [phrase for phrase in key_phrases if phrase not in backlog]
     assert not missing, f"Missing expected active backlog items: {missing}"
@@ -63,9 +65,9 @@ def test_backlog_active_section_contains_key_items():
 def test_backlog_future_section_contains_future_items():
     backlog = read_file(BACKLOG_DOC)
     future_phrases = [
-        "cut-order visualization",
-        "Multi-Sheet Presets",
         "Kerf Simulation",
+        "DXF Export (Deferred)",
+        "Test Suite Expansion",
     ]
     missing = [phrase for phrase in future_phrases if phrase not in backlog]
     assert not missing, f"Missing expected future backlog items: {missing}"
