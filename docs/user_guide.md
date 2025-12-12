@@ -1,6 +1,6 @@
 # SquatchCut User Guide
 
-Version: v0.1 (UAT Build)
+Version: v3.4+ (Shape-Based Nesting)
 Applies to: FreeCAD 1.0+ and the SquatchCut add-on
 Refer to [`docs/Project_Guide_v3.3.md`](Project_Guide_v3.3.md) for the authoritative AI worker, UI, and hydration principles (v3.2 retained for history).
 
@@ -23,6 +23,63 @@ It’s designed for:
 - Anyone who hates wasting plywood
 
 You do **not** need to know how to code or use GitHub to use SquatchCut.
+
+---
+
+## 1.1 Shape-Based Nesting (NEW in v3.4+)
+
+SquatchCut now supports **shape-based nesting** - a revolutionary approach that considers the actual geometry of your parts rather than just rectangular approximations.
+
+### Key Benefits
+
+**Maximum Material Utilization:**
+- Nest curved, angled, and complex shapes efficiently
+- Account for actual part areas, not just bounding boxes
+- Achieve 10-20% better material usage for complex parts
+
+**True Geometric Accuracy:**
+- Precise overlap detection between actual shape contours
+- Accurate kerf compensation for non-rectangular geometry
+- Export files with exact cutting paths
+
+**FreeCAD Integration:**
+- Design parts directly in FreeCAD Part Design workbench
+- Automatic shape detection and classification
+- Seamless workflow from design to cutting layout
+
+### When to Use Shape-Based Nesting
+
+**Ideal for:**
+- Raised panel cabinet doors
+- Curved furniture components
+- Parts with cutouts or complex profiles
+- Expensive materials where waste matters
+- Custom one-off projects
+
+**Traditional CSV Still Best for:**
+- Simple rectangular parts
+- Large production runs
+- Standard cabinet components
+- When speed is more important than optimization
+
+### Getting Started with Shape-Based Nesting
+
+1. **Design Your Parts in FreeCAD**
+   - Use Part Design workbench to create solid bodies
+   - Give parts descriptive names
+   - Ensure consistent thickness for similar parts
+
+2. **Select Shapes in SquatchCut**
+   - Click "Select Shapes" instead of "Load CSV"
+   - Review detected shapes and their complexity
+   - Choose which parts to include in nesting
+
+3. **Configure and Nest**
+   - Set sheet size and cutting parameters
+   - SquatchCut automatically chooses optimal nesting mode
+   - Review results and export cutting guides
+
+For detailed instructions, see the [Cabinet Maker Workflow Guide](user/cabinet-maker-workflow.md).
 
 ---
 
@@ -261,6 +318,106 @@ Recommended workflow:
 - Use **File → Export** to create:
   - DXF for CAD/CAM
   - SVG or PDF for printing and shop drawings
+
+---
+
+## 7B. Shape-Based Nesting Workflow (Complex Parts)
+
+**Best for:** Curved parts, raised panels, complex shapes, maximum material utilization
+
+### Step 1 – Design Parts in FreeCAD
+
+1. **Create Your Parts**
+   - Use FreeCAD's Part Design workbench
+   - Create solid bodies (not sketches)
+   - Give parts descriptive names
+   - Ensure consistent thickness for similar parts
+
+2. **Design Considerations**
+   - Consider grain direction and cutting access
+   - Design with your cutting tools in mind
+   - Group related parts in the same document
+
+### Step 2 – Open SquatchCut and Select Shapes
+
+1. **Launch SquatchCut**
+   - Click the **SquatchCut** button in the toolbar
+   - The main Task Panel opens
+
+2. **Select Shapes**
+   - In the Input section, click **"Select Shapes"**
+   - SquatchCut scans your document for valid shapes
+   - Review the Shape Selection Dialog
+
+### Step 3 – Review and Select Parts
+
+1. **Shape Classification**
+   - **Rectangular - Low Complexity**: Fast processing
+   - **Complex Geometry - Medium/High**: Geometric nesting
+   - Review dimensions and complexity levels
+
+2. **Make Your Selection**
+   - Use checkboxes to select parts for nesting
+   - Start with 5-10 parts for your first attempt
+   - Click "OK" to proceed
+
+### Step 4 – Configure Nesting Parameters
+
+1. **Sheet Settings**
+   - Set sheet width and height for your material
+   - SquatchCut uses your document's measurement system
+
+2. **Cutting Parameters**
+   - **Kerf Width**: Your saw blade thickness
+   - **Margin**: Minimum spacing between parts
+   - Consider your cutting method and tool access
+
+### Step 5 – Run Shape-Based Nesting
+
+1. **Automatic Mode Selection**
+   - SquatchCut automatically chooses the best nesting mode:
+     - **Rectangular Mode**: For simple shapes (fastest)
+     - **Geometric Mode**: For complex shapes (most accurate)
+     - **Hybrid Mode**: Mixed complexity (balanced)
+
+2. **Processing**
+   - Complex shapes take longer to process
+   - Progress feedback shows current operation
+   - Processing time varies with part complexity
+
+### Step 6 – Review Results
+
+1. **Layout Validation**
+   - Check for overlapping parts (should be none)
+   - Verify all parts fit within sheet boundaries
+   - Review material utilization percentage
+
+2. **Quality Metrics**
+   - **Utilization**: Target 70-85% for complex shapes
+   - **Parts Placed**: How many parts fit
+   - **Processing Time**: Performance indicator
+
+### Step 7 – Export for Production
+
+1. **Choose Export Format**
+   - **SVG**: Visual cutting templates with accurate shapes
+   - **DXF**: CAD-compatible for CNC cutting
+   - **Enhanced Cutlist**: Production documentation
+
+2. **Export Settings**
+   - Include kerf compensation for accurate cutting
+   - Add part labels and dimensions
+   - Choose appropriate precision for your tools
+
+### Troubleshooting Shape-Based Nesting
+
+**Common Issues:**
+
+- **Parts not detected**: Ensure objects are solid bodies, not sketches
+- **Slow processing**: Try simplified nesting mode or reduce part complexity
+- **Poor utilization**: Adjust margins, try different sheet sizes, or group similar parts
+
+For detailed guidance, see the [Cabinet Maker Workflow Guide](user/cabinet-maker-workflow.md) and [Technical Reference](user/shape-based-nesting-reference.md).
 
 ---
 

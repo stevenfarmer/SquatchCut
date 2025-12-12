@@ -3,11 +3,24 @@
 SquatchCut is a cryptid-powered nesting workbench for FreeCAD that extracts panels, nests them, and exports reports.
 
 ## Key Features
+
+### Traditional CSV Workflow
 - FreeCAD workbench with panel extraction and nesting
 - CSV import (optional per-part rotation) and TypeScript validation tools
 - Multi-sheet rectangular nesting with kerf/gap controls and per-part 0°/90° rotation
+- Fast processing for production runs and standard rectangular parts
+
+### Shape-Based Nesting (NEW in v3.4+)
+- **True Geometric Nesting**: Design complex parts directly in FreeCAD
+- **Maximum Material Utilization**: Nest curved, angled, and detailed shapes efficiently
+- **Accurate Shape Processing**: Considers actual part geometry, not just bounding boxes
+- **Intelligent Mode Selection**: Automatically chooses optimal nesting algorithm
+- **Advanced Export Options**: DXF with complex shapes, enhanced cutlists
+
+### Common Features
 - Units preference (metric/imperial) and CSV units selector; sheet size fields reflect the chosen units
 - Geometry generation, PDF/CSV reporting, and cutlist CSV export from nested layouts
+- Performance optimization with automatic simplification for complex shapes
 - Embedded AI worker workflows (Codex-style prompts) for guided development
 
 ## Workflow Notes
@@ -17,6 +30,24 @@ SquatchCut is a cryptid-powered nesting workbench for FreeCAD that extracts pane
 - Cutlist export derives rip/crosscut lines from the nested layout and now merges near-duplicate edges while ignoring cuts that don’t cross any panel, keeping the cutlist shop-friendly.
 
 ## Explore
-- [Getting Started](getting-started/installation.md)
-- [User Guide](user/commands.md)
+
+### Getting Started
+- [Installation Guide](getting-started/installation.md)
+- [Basic Workflow](getting-started/workflow.md)
+- [Quick Start Guide](quickstart.md)
+
+### User Documentation
+- [Complete User Guide](user_guide.md) - Traditional CSV and shape-based workflows
+- [Cabinet Maker Workflow Guide](user/cabinet-maker-workflow.md) - Shape-based nesting for furniture makers
+- [Technical Reference](user/shape-based-nesting-reference.md) - Advanced configuration and API documentation
+- [Commands Reference](user/commands.md)
+
+### Examples and Samples
+- [Cabinet Projects](examples/cabinet-projects/) - Complete workflow examples
+- [CSV Examples](examples/csv-examples/) - Traditional workflow samples
+- [Performance Benchmarks](examples/performance-benchmarks/) - Testing and optimization
+
+### Developer Resources
 - [Developer Guide](architecture.md)
+- [Project Guide v3.3](Project_Guide_v3.3.md)
+- [AI Workflows](ai_workflows.md)

@@ -29,35 +29,54 @@ You should now see a **SquatchCut** toolbar with:
 
 ---
 
-## 3. Basic Workflow
+## 3. Basic Workflows
 
-1. **Open the panel**  
+SquatchCut supports two main workflows:
+
+### 3A. Traditional CSV Workflow (Rectangular Parts)
+
+1. **Open the panel**
    - Click **SquatchCut**.
 
 2. **Import parts from CSV**
-   - In the **CSV Import** section:
+   - In the **Input** section:
      - Set **CSV Units** to **Metric** or **Imperial**.
-     - Pick your CSV file.
+     - Click **Load CSV** and pick your CSV file.
      - Click **Import Parts**.
    - Check that a **Source Parts** group appears in the model tree.
 
-3. **Set sheet size**
+3. **Set sheet size and run nesting**
    - Confirm sheet width/height fields match your panel.
-   - Optionally choose a preset:
-     - `None / Custom`
-     - `4′ x 8′`
-     - `2′ x 4′`
-     - `5′ x 10′`
-   - Editing width/height manually should switch preset to `None / Custom`.
-
-4. **Run nesting**
    - Click **Run Nesting**.
    - A **Nested Parts** group appears, containing the layout.
 
-5. **Review and export**
+4. **Review and export**
    - Inspect the layout in the 3D view.
    - Save your file (**File → Save**).
    - Export as needed (**File → Export**, DXF/SVG/PDF).
+
+### 3B. Shape-Based Nesting (Complex Parts) - NEW!
+
+1. **Design parts in FreeCAD**
+   - Use Part Design workbench to create solid bodies.
+   - Give parts descriptive names.
+
+2. **Select shapes**
+   - Click **SquatchCut** to open the panel.
+   - In the **Input** section, click **Select Shapes**.
+   - Choose which parts to nest from the dialog.
+
+3. **Configure and nest**
+   - Set sheet size and cutting parameters.
+   - Click **Run Nesting**.
+   - SquatchCut automatically uses the best nesting mode.
+
+4. **Export for production**
+   - Export SVG for cutting templates.
+   - Export DXF for CNC cutting.
+   - Export enhanced cutlist for production planning.
+
+**For detailed shape-based workflows, see the [Cabinet Maker Guide](user/cabinet-maker-workflow.md).**
 
 ---
 
