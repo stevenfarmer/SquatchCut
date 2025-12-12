@@ -4,6 +4,9 @@ __pycache__/
 *.pyo
 *.pyd
 
+# Hypothesis testing cache
+.hypothesis/
+
 # FreeCAD temp/cache
 *.FCStd1
 *.FCBak
