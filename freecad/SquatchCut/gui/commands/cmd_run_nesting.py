@@ -659,16 +659,52 @@ class RunNestingCommand:
         self.validation_error = exc
 
     def _should_use_geometric_nesting(self, panels_data) -> bool:
-        """Determine if geometric nesting should be used based on panel data."""
+        """Determine if geometric nesting should be used based on panel data and complexity."""
         if not panels_data:
             return False
 
-        # Check if any panels have shape-based source
+        # Check if any panels have shape-based source or complex geometry
+        has_freecad_shapes = False
+        complex_shape_count = 0
+
         for panel in panels_data:
             if panel.get("source") == "freecad_shape":
-                return True
+                has_freecad_shapes = True
 
-        return False
+                # Check if the FreeCAD object has complex geometry
+                freecad_obj = panel.get("freecad_object")
+                if freecad_obj and hasattr(freecad_obj, "Shape"):
+                    try:
+                        from SquatchCut.core.shape_extractor import ShapeExtractor
+
+                        extractor = ShapeExtractor()
+                        complexity_level = extractor.validate_shape_complexity(
+                            freecad_obj
+                        )
+
+                        # Count shapes that would benefit from geometric nesting
+                        from SquatchCut.core.complex_geometry import ComplexityLevel
+
+                        if complexity_level in [
+                            ComplexityLevel.MEDIUM,
+                            ComplexityLevel.HIGH,
+                        ]:
+                            complex_shape_count += 1
+                    except Exception:
+                        # If complexity assessment fails, assume it's worth geometric nesting
+                        complex_shape_count += 1
+
+        # Use geometric nesting if:
+        # 1. We have FreeCAD shapes AND
+        # 2. At least one shape has medium or higher complexity OR
+        # 3. We have multiple FreeCAD shapes (better packing potential)
+        freecad_shape_count = sum(
+            1 for p in panels_data if p.get("source") == "freecad_shape"
+        )
+
+        return has_freecad_shapes and (
+            complex_shape_count > 0 or freecad_shape_count > 3
+        )
 
     def _run_geometric_nesting(self, parts, panels_data, sheet_w, sheet_h, gap_mm):
         """Run geometric nesting for complex shapes."""
@@ -677,11 +713,35 @@ class RunNestingCommand:
             complex_shapes = []
             for i, panel in enumerate(panels_data):
                 if panel.get("source") == "freecad_shape":
-                    # For FreeCAD shapes, create rectangular geometry for now
-                    # In the future, this could extract actual contours
+                    # For FreeCAD shapes, try to extract actual geometry
+                    freecad_obj = panel.get("freecad_object")
+                    shape_id = panel.get("id", f"shape_{i}")
+
+                    if freecad_obj and hasattr(freecad_obj, "Shape"):
+                        try:
+                            # Try to extract complex geometry
+                            from SquatchCut.core.shape_extractor import ShapeExtractor
+
+                            extractor = ShapeExtractor()
+                            complex_geom = extractor.extract_complex_geometry(
+                                freecad_obj
+                            )
+
+                            if complex_geom:
+                                complex_geom.rotation_allowed = panel.get(
+                                    "allow_rotate", True
+                                )
+                                complex_shapes.append(complex_geom)
+                                logger.info(f"Using complex geometry for {shape_id}")
+                                continue
+                        except Exception as e:
+                            logger.warning(
+                                f"Failed to extract complex geometry for {shape_id}: {e}"
+                            )
+
+                    # Fallback to rectangular geometry
                     width_mm = float(panel.get("width", 0))
                     height_mm = float(panel.get("height", 0))
-                    shape_id = panel.get("id", f"shape_{i}")
 
                     if width_mm > 0 and height_mm > 0:
                         complex_geom = create_rectangular_geometry(
@@ -689,6 +749,7 @@ class RunNestingCommand:
                         )
                         complex_geom.rotation_allowed = panel.get("allow_rotate", True)
                         complex_shapes.append(complex_geom)
+                        logger.info(f"Using rectangular approximation for {shape_id}")
                 else:
                     # For CSV data, create rectangular geometry
                     if i < len(parts):

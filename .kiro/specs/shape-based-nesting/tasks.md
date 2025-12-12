@@ -48,13 +48,13 @@ This implementation plan converts the shape-based nesting design into a series o
   - Add selection validation and user feedback
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [-] 2.1 Create EnhancedShapeSelectionDialog class
+- [x] 2.1 Create EnhancedShapeSelectionDialog class
   - Implement dialog layout with shape list, previews, and controls
   - Add populate_shape_list method for detected shapes
   - Implement selection state management and validation
   - _Requirements: 3.1, 3.3, 3.4_
 
-- [ ] 2.2 Implement shape preview generation
+- [x] 2.2 Implement shape preview generation
   - Add generate_shape_previews method for visual feedback
   - Create preview widgets showing shape thumbnails or descriptions
   - Implement dimension display for each detected shape
@@ -68,7 +68,7 @@ This implementation plan converts the shape-based nesting design into a series o
   - **Property 7: Selection UI Completeness**
   - **Validates: Requirements 3.2**
 
-- [ ] 2.5 Add selection validation and error handling
+- [x] 2.5 Add selection validation and error handling
   - Implement validate_selection method for empty selections
   - Add appropriate error messages for invalid selections
   - Handle edge cases like no detected shapes
@@ -84,7 +84,7 @@ This implementation plan converts the shape-based nesting design into a series o
   - Add support for rotation of complex shapes
   - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
-- [ ] 3.1 Create GeometryNestingEngine class
+- [x] 3.1 Create GeometryNestingEngine class
   - Implement nest_complex_shapes method for geometric nesting
   - Add detect_geometry_overlaps for accurate collision detection
   - Create calculate_actual_utilization for true area calculations
@@ -94,7 +94,7 @@ This implementation plan converts the shape-based nesting design into a series o
   - **Property 4: Overlap Prevention**
   - **Validates: Requirements 2.2, 8.2**
 
-- [ ] 3.3 Implement complex shape rotation support
+- [x] 3.3 Implement complex shape rotation support
   - Add rotation methods that preserve geometric accuracy
   - Implement rotation validation for complex geometries
   - Ensure kerf and margin settings are preserved during rotation
@@ -104,7 +104,7 @@ This implementation plan converts the shape-based nesting design into a series o
   - **Property 5: Rotation Preservation**
   - **Validates: Requirements 2.3, 8.3**
 
-- [ ] 3.5 Add kerf compensation for complex geometries
+- [x] 3.5 Add kerf compensation for complex geometries
   - Implement apply_kerf_to_geometry for non-rectangular shapes
   - Add margin handling between complex shape contours
   - Implement boundary validation with kerf-adjusted shapes
@@ -123,13 +123,13 @@ This implementation plan converts the shape-based nesting design into a series o
   - Implement seamless transition from selection to nesting
   - _Requirements: 1.4, 1.5_
 
-- [ ] 5.1 Update TaskPanel input handling
+- [x] 5.1 Update TaskPanel input handling
   - Modify InputGroupWidget to support FreeCAD shape input
   - Add "Select Shapes" button alongside CSV import
   - Implement shape data integration with existing panel workflow
   - _Requirements: 1.4, 1.5_
 
-- [ ] 5.2 Connect selection dialog to nesting pipeline
+- [x] 5.2 Connect selection dialog to nesting pipeline
   - Integrate EnhancedShapeSelectionDialog with main UI
   - Implement data flow from selected shapes to nesting engine
   - Add progress feedback for shape processing operations
@@ -139,7 +139,7 @@ This implementation plan converts the shape-based nesting design into a series o
   - **Property 9: Progress Feedback**
   - **Validates: Requirements 7.2**
 
-- [ ] 5.4 Update nesting commands for shape-based input
+- [x] 5.4 Update nesting commands for shape-based input
   - Modify RunNestingCommand to handle ComplexGeometry objects
   - Add support for geometric nesting mode selection
   - Implement automatic mode selection based on shape complexity

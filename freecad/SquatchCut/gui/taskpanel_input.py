@@ -253,8 +253,34 @@ class InputGroupWidget(QtWidgets.QGroupBox):
             detected_shapes = []
 
             # Get all objects with Shape properties
-            for obj in doc.Objects:
-                if hasattr(obj, "Shape") and obj.Shape is not None:
+            shape_objects = [
+                obj
+                for obj in doc.Objects
+                if hasattr(obj, "Shape") and obj.Shape is not None
+            ]
+
+            if not shape_objects:
+                show_error(
+                    "No valid shapes found in the current document.", title="SquatchCut"
+                )
+                return
+
+            # Create progress dialog for shape processing
+            from SquatchCut.ui.progress import SimpleProgressContext
+
+            with SimpleProgressContext(
+                title="Processing Shapes", parent=self
+            ) as progress:
+                progress.set_range(0, len(shape_objects))
+                progress.set_text("Extracting shape geometries...")
+
+                for i, obj in enumerate(shape_objects):
+                    progress.set_value(i)
+                    progress.set_text(f"Processing {obj.Label}...")
+
+                    # Allow UI updates
+                    QtWidgets.QApplication.processEvents()
+
                     try:
                         # Use fallback extraction for robust shape processing
                         geometry, extraction_method, notification = (
@@ -290,9 +316,12 @@ class InputGroupWidget(QtWidgets.QGroupBox):
                         logger.warning(f"Failed to process object {obj.Label}: {e}")
                         continue
 
+                progress.set_value(len(shape_objects))
+                progress.set_text("Shape processing complete")
+
             if not detected_shapes:
                 show_error(
-                    "No valid shapes found in the current document.", title="SquatchCut"
+                    "No shapes could be processed successfully.", title="SquatchCut"
                 )
                 return
 
@@ -305,19 +334,52 @@ class InputGroupWidget(QtWidgets.QGroupBox):
                 if selected_shapes:
                     # Convert selected shapes to panel format for session_state
                     panels = []
-                    for shape_info in selected_shapes:
-                        width_mm, height_mm, _ = shape_info.dimensions
-                        panel = {
-                            "id": shape_info.label,
-                            "label": shape_info.label,
-                            "width": width_mm,
-                            "height": height_mm,
-                            "qty": 1,
-                            "allow_rotate": True,  # Default to allowing rotation
-                            "source": "freecad_shape",
-                            "freecad_object": shape_info.freecad_object,
-                        }
-                        panels.append(panel)
+
+                    # Show progress for shape conversion if there are many shapes
+                    if len(selected_shapes) > 5:
+                        from SquatchCut.ui.progress import SimpleProgressContext
+
+                        with SimpleProgressContext(
+                            title="Converting Shapes", parent=self
+                        ) as progress:
+                            progress.set_range(0, len(selected_shapes))
+                            progress.set_text("Converting shapes to panels...")
+
+                            for i, shape_info in enumerate(selected_shapes):
+                                progress.set_value(i)
+                                progress.set_text(f"Converting {shape_info.label}...")
+                                QtWidgets.QApplication.processEvents()
+
+                                width_mm, height_mm, _ = shape_info.dimensions
+                                panel = {
+                                    "id": shape_info.label,
+                                    "label": shape_info.label,
+                                    "width": width_mm,
+                                    "height": height_mm,
+                                    "qty": 1,
+                                    "allow_rotate": True,  # Default to allowing rotation
+                                    "source": "freecad_shape",
+                                    "freecad_object": shape_info.freecad_object,
+                                }
+                                panels.append(panel)
+
+                            progress.set_value(len(selected_shapes))
+                            progress.set_text("Conversion complete")
+                    else:
+                        # For small numbers of shapes, convert without progress dialog
+                        for shape_info in selected_shapes:
+                            width_mm, height_mm, _ = shape_info.dimensions
+                            panel = {
+                                "id": shape_info.label,
+                                "label": shape_info.label,
+                                "width": width_mm,
+                                "height": height_mm,
+                                "qty": 1,
+                                "allow_rotate": True,  # Default to allowing rotation
+                                "source": "freecad_shape",
+                                "freecad_object": shape_info.freecad_object,
+                            }
+                            panels.append(panel)
 
                     # Update session state with selected shapes
                     session_state.set_panels(panels)
