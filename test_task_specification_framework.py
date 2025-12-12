@@ -7,9 +7,11 @@ reasoning level, file paths, constraints, and acceptance criteria
 **Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5**
 """
 
+
 import pytest
-from hypothesis import given, strategies as st, assume, settings, example
-from typing import Dict, Any, List
+from hypothesis import assume, example, given, settings
+from hypothesis import strategies as st
+
 from constraint_validation_tools import TaskSpecificationValidator
 
 

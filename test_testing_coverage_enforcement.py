@@ -7,12 +7,11 @@ according to the specified testing patterns
 **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5**
 """
 
+from typing import Any
+
 import pytest
-from hypothesis import given, strategies as st, assume, settings, example
-from typing import Dict, Any, List, Set
-import os
-import tempfile
-from pathlib import Path
+from hypothesis import example, given, settings
+from hypothesis import strategies as st
 
 
 # Strategies for generating test data
@@ -137,7 +136,7 @@ class TestingCoverageEnforcer:
             ],
         }
 
-    def analyze_change_requirements(self, modification: Dict[str, Any]) -> Set[str]:
+    def analyze_change_requirements(self, modification: dict[str, Any]) -> set[str]:
         """Analyze what tests are required for a code change."""
         required_tests = set()
 
@@ -171,8 +170,8 @@ class TestingCoverageEnforcer:
         return required_tests
 
     def validate_test_coverage(
-        self, required_tests: Set[str], actual_tests: Set[str]
-    ) -> Dict[str, Any]:
+        self, required_tests: set[str], actual_tests: set[str]
+    ) -> dict[str, Any]:
         """Validate that test coverage meets requirements."""
         missing_tests = required_tests - actual_tests
         extra_tests = actual_tests - required_tests
@@ -188,7 +187,7 @@ class TestingCoverageEnforcer:
             ),
         }
 
-    def generate_test_recommendations(self, missing_tests: Set[str]) -> List[str]:
+    def generate_test_recommendations(self, missing_tests: set[str]) -> list[str]:
         """Generate recommendations for missing test coverage."""
         recommendations = []
 

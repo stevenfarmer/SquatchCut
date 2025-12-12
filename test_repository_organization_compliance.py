@@ -7,11 +7,12 @@ and architectural boundaries should be respected
 **Validates: Requirements 7.1, 7.2, 7.3, 7.4, 7.5**
 """
 
-import pytest
-from hypothesis import given, strategies as st, assume, settings, example
-from typing import Dict, Any, List, Set
 from pathlib import Path
-import os
+from typing import Any
+
+import pytest
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 
 class RepositoryOrganizationValidator:
@@ -61,7 +62,7 @@ class RepositoryOrganizationValidator:
             },
         }
 
-    def validate_file_placement(self, file_path: str) -> Dict[str, Any]:
+    def validate_file_placement(self, file_path: str) -> dict[str, Any]:
         """Validate that a file is placed in the correct directory."""
         issues = []
 

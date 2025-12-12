@@ -6,11 +6,11 @@ in SquatchCut code changes and AI agent tasks.
 """
 
 import ast
-import re
 import os
-from typing import List, Dict, Any, Optional, Tuple
-from pathlib import Path
-from constraint_framework import constraint_framework, Severity, ConstraintArea
+import re
+from typing import Any
+
+from constraint_framework import ConstraintArea, constraint_framework
 
 
 class CodeAnalyzer:
@@ -19,7 +19,7 @@ class CodeAnalyzer:
     def __init__(self):
         self.framework = constraint_framework
 
-    def analyze_file(self, file_path: str) -> Dict[str, Any]:
+    def analyze_file(self, file_path: str) -> dict[str, Any]:
         """
         Analyze a Python file for constraint violations.
 
@@ -33,7 +33,7 @@ class CodeAnalyzer:
             return {"error": f"File not found: {file_path}"}
 
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             # Parse the AST
@@ -73,7 +73,7 @@ class CodeAnalyzer:
 
     def _check_python_compatibility(
         self, content: str, tree: ast.AST
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Check for Python version compatibility issues."""
         violations = []
 
@@ -102,7 +102,7 @@ class CodeAnalyzer:
 
         return violations
 
-    def _check_import_patterns(self, tree: ast.AST) -> List[Dict[str, Any]]:
+    def _check_import_patterns(self, tree: ast.AST) -> list[dict[str, Any]]:
         """Check for relative import violations."""
         violations = []
 
@@ -121,7 +121,7 @@ class CodeAnalyzer:
 
     def _check_hydration_patterns(
         self, content: str, tree: ast.AST
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Check for hydration order violations in GUI files."""
         violations = []
 
@@ -156,7 +156,7 @@ class CodeAnalyzer:
 
     def _check_method_hydration_order(
         self, method: ast.FunctionDef, content: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Check hydration order within a method."""
         violations = []
 
@@ -205,7 +205,7 @@ class CodeAnalyzer:
 
         return violations
 
-    def _check_measurement_patterns(self, content: str) -> List[Dict[str, Any]]:
+    def _check_measurement_patterns(self, content: str) -> list[dict[str, Any]]:
         """Check for measurement system violations."""
         violations = []
 
@@ -235,7 +235,7 @@ class CodeAnalyzer:
 
         return violations
 
-    def _check_export_patterns(self, content: str) -> List[Dict[str, Any]]:
+    def _check_export_patterns(self, content: str) -> list[dict[str, Any]]:
         """Check for export architecture violations."""
         violations = []
 
@@ -294,7 +294,7 @@ class TaskSpecificationValidator:
     def __init__(self):
         self.framework = constraint_framework
 
-    def validate_task_specification(self, task_spec: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_task_specification(self, task_spec: dict[str, Any]) -> dict[str, Any]:
         """
         Validate a task specification for completeness and constraint awareness.
 
@@ -366,7 +366,7 @@ class TaskSpecificationValidator:
             "constraint_compliance_score": self._calculate_compliance_score(task_spec),
         }
 
-    def _get_relevant_constraints(self, file_paths: List[str]) -> List:
+    def _get_relevant_constraints(self, file_paths: list[str]) -> list:
         """Get constraints relevant to the specified file paths."""
         relevant_areas = set()
 
@@ -392,7 +392,7 @@ class TaskSpecificationValidator:
         return relevant_constraints
 
     def _check_constraint_mentions(
-        self, task_spec: Dict[str, Any], constraints: List
+        self, task_spec: dict[str, Any], constraints: list
     ) -> bool:
         """Check if task specification mentions relevant constraints."""
         text_fields = ["context", "requirements", "acceptance_criteria"]
@@ -414,7 +414,7 @@ class TaskSpecificationValidator:
 
         return any(keyword in combined_text for keyword in constraint_keywords)
 
-    def _assess_acceptance_criteria(self, criteria: Any) -> Dict[str, List[str]]:
+    def _assess_acceptance_criteria(self, criteria: Any) -> dict[str, list[str]]:
         """Assess the quality of acceptance criteria."""
         warnings = []
         recommendations = []
@@ -445,7 +445,7 @@ class TaskSpecificationValidator:
 
         return {"warnings": warnings, "recommendations": recommendations}
 
-    def _calculate_compliance_score(self, task_spec: Dict[str, Any]) -> float:
+    def _calculate_compliance_score(self, task_spec: dict[str, Any]) -> float:
         """Calculate a compliance score (0-100) for the task specification."""
         score = 100.0
 
@@ -497,7 +497,7 @@ class ConstraintChecker:
         self.analyzer = CodeAnalyzer()
         self.validator = TaskSpecificationValidator()
 
-    def check_project_compliance(self, project_root: str) -> Dict[str, Any]:
+    def check_project_compliance(self, project_root: str) -> dict[str, Any]:
         """
         Check constraint compliance across an entire project.
 
@@ -545,7 +545,7 @@ class ConstraintChecker:
             "top_violations": self._get_top_violations(file_results),
         }
 
-    def _calculate_project_score(self, file_results: List[Dict[str, Any]]) -> float:
+    def _calculate_project_score(self, file_results: list[dict[str, Any]]) -> float:
         """Calculate overall project compliance score."""
         if not file_results:
             return 100.0
@@ -570,8 +570,8 @@ class ConstraintChecker:
         return max(0.0, score)
 
     def _get_top_violations(
-        self, file_results: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        self, file_results: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         """Get the most common violations across the project."""
         violation_counts = {}
 
@@ -599,21 +599,21 @@ class ConstraintChecker:
 
 
 # Utility functions for easy access
-def check_file_compliance(file_path: str) -> Dict[str, Any]:
+def check_file_compliance(file_path: str) -> dict[str, Any]:
     """Quick function to check a single file's compliance."""
     analyzer = CodeAnalyzer()
     return analyzer.analyze_file(file_path)
 
 
-def validate_task_spec(task_spec: Dict[str, Any]) -> Dict[str, Any]:
+def validate_task_spec(task_spec: dict[str, Any]) -> dict[str, Any]:
     """Quick function to validate a task specification."""
     validator = TaskSpecificationValidator()
     return validator.validate_task_specification(task_spec)
 
 
 def generate_constraint_checklist(
-    task_type: str, file_paths: List[str] = None
-) -> List[str]:
+    task_type: str, file_paths: list[str] = None
+) -> list[str]:
     """Quick function to generate a constraint checklist."""
     return constraint_framework.generate_constraint_checklist(task_type, file_paths)
 

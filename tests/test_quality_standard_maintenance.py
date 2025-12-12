@@ -6,8 +6,8 @@ Property-based tests for quality and performance standards.
 **Validates: Requirements 9.1, 9.2, 9.3, 9.4, 9.5**
 """
 
-import pytest
-from hypothesis import given, strategies as st, settings
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 # Requirement 9.3: Retry Limits
 MAX_RETRIES = 3
