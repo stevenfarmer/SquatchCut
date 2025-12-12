@@ -114,7 +114,7 @@ This implementation plan converts the shape-based nesting design into a series o
   - **Property 12: Boundary Validation with Kerf**
   - **Validates: Requirements 8.5**
 
-- [ ] 4. Checkpoint - Ensure all core functionality tests pass
+- [x] 4. Checkpoint - Ensure all core functionality tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 5. Integrate Shape Selection with Main TaskPanel

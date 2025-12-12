@@ -626,7 +626,11 @@ class TestGeometryNestingEngine:
             assert kerf_geometry.area == geometry.area
 
     @given(st.lists(valid_complex_geometry(), min_size=2, max_size=4))
-    @settings(max_examples=15, deadline=8000)
+    @settings(
+        max_examples=15,
+        deadline=8000,
+        suppress_health_check=[HealthCheck.filter_too_much],
+    )
     def test_utilization_calculation_accuracy(self, geometries):
         """Test that utilization calculations are accurate for complex geometries."""
         from SquatchCut.core.geometry_nesting_engine import (

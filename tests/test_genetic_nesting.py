@@ -131,6 +131,10 @@ class TestGeneticNestingOptimizer:
 
     def test_find_position(self):
         """Test position finding algorithm."""
+        # Set sheet dimensions for the optimizer
+        self.optimizer.sheet_width = self.sheet_width
+        self.optimizer.sheet_height = self.sheet_height
+
         occupied = [(0, 0, 100, 50), (100, 0, 80, 60)]
 
         # Should find a valid position

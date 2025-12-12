@@ -11,6 +11,7 @@ except ImportError:
     try:
         from PySide2 import QtCore, QtGui, QtWidgets  # type: ignore
     except ImportError:
+
         class _Signal:
             def __init__(self, *args, **kwargs):
                 pass
@@ -22,6 +23,10 @@ except ImportError:
                 pass
 
         class _Widget:
+            # QDialog constants
+            Accepted = 1
+            Rejected = 0
+
             def __init__(self, *args, **kwargs):
                 self._signals_blocked = False
                 self._visible = True
@@ -47,6 +52,32 @@ except ImportError:
 
             def toolTip(self):
                 return self._tool_tip
+
+            def setWindowTitle(self, title: str):
+                self._window_title = str(title)
+
+            def windowTitle(self):
+                return getattr(self, "_window_title", "")
+
+            @staticmethod
+            def information(*args, **kwargs):
+                return None
+
+            @staticmethod
+            def getItem(*args, **kwargs):
+                return ("", True)
+
+            def setLabelText(self, text: str):
+                self._label_text = str(text)
+
+            def labelText(self):
+                return getattr(self, "_label_text", "")
+
+            def setIcon(self, icon):
+                self._icon = icon
+
+            def icon(self):
+                return getattr(self, "_icon", None)
 
         class _DummyQtEnum:
             Checked = 2
@@ -227,6 +258,7 @@ except ImportError:
         class _Header:
             def setStretchLastSection(self, *_):
                 return None
+
             def setSectionResizeMode(self, *_):
                 return None
 
@@ -280,12 +312,37 @@ except ImportError:
             Stretch = 1
             ResizeToContents = 2
 
+        class _FileDialog(_Widget):
+            @staticmethod
+            def getOpenFileName(*args, **kwargs):
+                return ("", "")
+
+            @staticmethod
+            def getSaveFileName(*args, **kwargs):
+                return ("", "")
+
+        class _MessageBox(_Widget):
+            @staticmethod
+            def information(*args, **kwargs):
+                return None
+
+            @staticmethod
+            def warning(*args, **kwargs):
+                return None
+
+            @staticmethod
+            def critical(*args, **kwargs):
+                return None
+
+            def setIcon(self, icon):
+                self._icon = icon
+
         class _DummyQtModule:
             Qt = _DummyQtEnum
             QDialog = _Widget
             QWidget = _Widget
-            QMessageBox = _Widget
-            QFileDialog = _Widget
+            QMessageBox = _MessageBox
+            QFileDialog = _FileDialog
             QDialogButtonBox = _Widget
             QVBoxLayout = _Layout
             QHBoxLayout = _Layout

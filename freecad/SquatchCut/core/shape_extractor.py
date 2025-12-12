@@ -264,6 +264,14 @@ class ShapeExtractor:
             tuple: (ComplexGeometry, extraction_method_used, user_notification)
             or ComplexGeometry if called without expecting tuple unpacking.
         """
+        # Basic validation for objects that should have Shape
+        if hasattr(shape_or_obj, "Label"):
+            # For objects with Label, check if Shape is None or missing
+            shape = getattr(shape_or_obj, "Shape", None)
+            if shape is None:
+                label = getattr(shape_or_obj, "Label", "Unknown")
+                raise ValueError(f"Object {label} has no valid Shape")
+
         try:
             # Assess complexity first
             complexity = self._assess_complexity(shape_or_obj)
@@ -279,30 +287,54 @@ class ShapeExtractor:
 
             # Get basic bounding box information for fallback
             bbox = self.extract_bounding_box(shape_or_obj)
-            if not bbox:
-                return None, "failed", "Could not extract bounding box"
+            if bbox:
+                width, height = bbox
+                if width > 0 and height > 0:
+                    label = getattr(shape_or_obj, "Label", None) or getattr(
+                        shape_or_obj, "Name", "shape"
+                    )
 
-            width, height = bbox
-            if width <= 0 or height <= 0:
-                return None, "failed", "Invalid dimensions"
+                    # Create rectangular ComplexGeometry as fallback
+                    geometry = ComplexGeometry.from_rectangle(
+                        id=str(label), width=width, height=height, rotation_allowed=True
+                    )
 
-            label = getattr(shape_or_obj, "Label", None) or getattr(
-                shape_or_obj, "Name", "shape"
-            )
+                    notification = None
+                    if complexity > complexity_threshold:
+                        notification = (
+                            f"Shape '{label}' is complex (score: {complexity:.1f}). "
+                            f"Using simplified rectangular approximation for better performance."
+                        )
 
-            # Create rectangular ComplexGeometry as fallback
-            geometry = ComplexGeometry.from_rectangle(
-                id=str(label), width=width, height=height, rotation_allowed=True
-            )
+                    return geometry, "bounding_box_fallback", notification
 
-            notification = None
-            if complexity > complexity_threshold:
-                notification = (
-                    f"Shape '{label}' is complex (score: {complexity:.1f}). "
-                    f"Using simplified rectangular approximation for better performance."
-                )
+            # Fallback 2: Try to get dimensions from object properties
+            try:
+                width = getattr(shape_or_obj, "Width", None)
+                height = getattr(shape_or_obj, "Height", None)
 
-            return geometry, "bounding_box_fallback", notification
+                if width is not None and height is not None:
+                    label = getattr(shape_or_obj, "Label", None) or getattr(
+                        shape_or_obj, "Name", "shape"
+                    )
+
+                    geometry = ComplexGeometry.from_rectangle(
+                        id=str(label),
+                        width=float(width),
+                        height=float(height),
+                        rotation_allowed=True,
+                    )
+
+                    notification = (
+                        f"Shape '{label}' could not be processed geometrically. "
+                        f"Using object dimensions ({width}mm x {height}mm)."
+                    )
+
+                    return geometry, "property_fallback", notification
+            except Exception:
+                pass
+
+            return None, "failed", "Could not extract bounding box or object dimensions"
 
         except Exception as e:
             return None, "failed", f"Extraction failed: {str(e)}"

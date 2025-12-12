@@ -440,11 +440,11 @@ class TestMemoryOptimizer:
 
         MemoryOptimizer.cleanup_intermediate_data(data_structures)
 
-        # Lists and dicts should be cleared
+        # Lists, dicts, and sets should be cleared
         assert len(test_list) == 0
         assert len(test_dict) == 0
-        # Set doesn't have clear method, so it should be unchanged
-        assert len(test_set) == 3
+        # Sets also have clear method, so they should be cleared too
+        assert len(test_set) == 0
 
 
 class TestMemoryOptimizedDecorator:

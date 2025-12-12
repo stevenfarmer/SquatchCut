@@ -157,7 +157,12 @@ def optimize_rotation_for_grain(
     if not preferred_rotations and constraints.allow_cross_grain:
         preferred_rotations = possible_rotations
 
-    return preferred_rotations or [0]  # Always return at least one rotation
+    # If no grain constraints are enforced, always return at least one rotation
+    if not constraints.enforce_part_grain:
+        return preferred_rotations or [0]
+
+    # With grain constraints, return empty list if no compatible rotations
+    return preferred_rotations
 
 
 def add_grain_info_to_parts(
