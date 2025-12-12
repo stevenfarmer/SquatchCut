@@ -62,18 +62,37 @@
 
 ## 4. Exports (CSV/SVG/DXF)
 
+- `[AI]` **CRITICAL: Export Measurement System Issues**
+  - SVG and CSV exports default to metric even when project is in imperial
+  - CSV export ignores project measurement system setting
+  - *Goal:* All exports respect project measurement system consistently
+
+- `[AI]` **CRITICAL: SVG Export Label Issues**
+  - Labels appear all over shapes instead of centered/organized
+  - Text sizing is inconsistent (some huge, some tiny)
+  - Label positioning overlaps with shape geometry
+  - *Goal:* Clean, readable SVG exports with proper label placement
+
+- `[AI]` **Cutlist Script Export Format**
+  - Currently exports as .script file instead of .txt
+  - Instructions are too technical and difficult for humans to follow
+  - *Goal:* Export as .txt with human-friendly cutting instructions
+
 - `[AI]` **CSV Export & Cutlist Determinism**
   - Finalize the `export_cutlist` function to produce stable, readable CSVs.
   - *Goal:* Production-ready cutlists.
 
-- `[AI]` **SVG Export Polish**
-  - Ensure SVG output is consistent with `ExportJob` model.
-  - *Goal:* Reliable 2D output.
-
 - `[MIXED]` **DXF Export (Deferred)**
   - Future work. Not blocking v3.3.
 
-## 5. Documentation & AI Workflow
+## 5. CI/CD & Infrastructure
+
+- `[AI]` **CRITICAL: Fix Ruff GitHub Action**
+  - Current ruff fix action is misconfigured for this project
+  - Fails with every commit, breaking CI pipeline
+  - *Goal:* Working automated code formatting in CI
+
+## 6. Documentation & AI Workflow
 
 - `[HUMAN]` **User Guide Update**
   - Update for v3.3 features (Preview behavior, multi-sheet).

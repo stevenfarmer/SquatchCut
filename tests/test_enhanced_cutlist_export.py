@@ -1,7 +1,5 @@
 """Tests for enhanced woodshop-friendly cutlist export functionality."""
 
-from datetime import datetime
-from unittest.mock import MagicMock, patch
 
 import pytest
 from SquatchCut.core.exporter import (

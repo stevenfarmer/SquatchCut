@@ -1,11 +1,8 @@
 """Tests for DXF export functionality."""
 
-import tempfile
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from SquatchCut.core.exporter import (
     ExportJob,
     ExportPartPlacement,

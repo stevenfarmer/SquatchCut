@@ -9,7 +9,6 @@ and progress feedback systems for shape-based nesting operations.
 import time
 from unittest.mock import Mock, patch
 
-import pytest
 from SquatchCut.core.complex_geometry import (
     ComplexGeometry,
     ComplexityLevel,
