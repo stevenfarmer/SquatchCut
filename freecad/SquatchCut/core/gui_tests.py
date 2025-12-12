@@ -139,9 +139,11 @@ def test_import_small_metric_csv():
 
         cmd = cmd_import_csv.ImportCsvCommand()
         if hasattr(cmd, "import_from_path"):
-            cmd.import_from_path(csv_path)
+            cmd.import_from_path(csv_path, units="mm")
         else:
-            raise RuntimeError("ImportCsvCommand.import_from_path not available for GUI tests.")
+            raise RuntimeError(
+                "ImportCsvCommand.import_from_path not available for GUI tests."
+            )
 
         sync_source_panels_to_document()
 
@@ -180,9 +182,11 @@ def test_nesting_preview_basic():
 
         cmd = cmd_import_csv.ImportCsvCommand()
         if hasattr(cmd, "import_from_path"):
-            cmd.import_from_path(csv_path)
+            cmd.import_from_path(csv_path, units="mm")
         else:
-            raise RuntimeError("ImportCsvCommand.import_from_path not available for GUI tests.")
+            raise RuntimeError(
+                "ImportCsvCommand.import_from_path not available for GUI tests."
+            )
 
         sync_source_panels_to_document()
 
@@ -191,7 +195,9 @@ def test_nesting_preview_basic():
 
         nested_group = doc.getObject("SquatchCut_NestedParts")
         if nested_group is None or not getattr(nested_group, "Group", []):
-            raise RuntimeError("No sheets or nested panels found after nesting preview.")
+            raise RuntimeError(
+                "No sheets or nested panels found after nesting preview."
+            )
 
         if not session.get_source_panel_objects():
             raise RuntimeError("Session lost source panel objects after nesting.")
@@ -265,12 +271,16 @@ def test_units_toggle_updates_pref():
         if hasattr(panel, "_on_units_changed"):
             panel._on_units_changed()
         if sc_units.get_units() != "in":
-            raise AssertionError("Units pref did not update to 'in' after selecting imperial.")
+            raise AssertionError(
+                "Units pref did not update to 'in' after selecting imperial."
+            )
         panel.rbUnitsMetric.setChecked(True)
         if hasattr(panel, "_on_units_changed"):
             panel._on_units_changed()
         if sc_units.get_units() != "mm":
-            raise AssertionError("Units pref did not update to 'mm' after selecting metric.")
+            raise AssertionError(
+                "Units pref did not update to 'mm' after selecting metric."
+            )
         result.set_pass()
     except Exception as exc:
         result.set_fail(exc)
@@ -292,11 +302,17 @@ def test_sheet_size_suffix_tracks_units():
         panel_mm = taskpanel_main.create_main_panel_for_tests()
         # Labels are now in the sheet_widget sub-component
         sheet_widget = getattr(panel_mm, "sheet_widget", None)
-        lbl_w_mm = getattr(sheet_widget, "sheet_width_label", None) if sheet_widget else None
-        lbl_h_mm = getattr(sheet_widget, "sheet_height_label", None) if sheet_widget else None
+        lbl_w_mm = (
+            getattr(sheet_widget, "sheet_width_label", None) if sheet_widget else None
+        )
+        lbl_h_mm = (
+            getattr(sheet_widget, "sheet_height_label", None) if sheet_widget else None
+        )
 
         if lbl_w_mm is None or lbl_h_mm is None:
-            raise RuntimeError("Main panel missing sheet_width_label/sheet_height_label.")
+            raise RuntimeError(
+                "Main panel missing sheet_width_label/sheet_height_label."
+            )
         if "mm" not in lbl_w_mm.text() or "mm" not in lbl_h_mm.text():
             raise AssertionError(
                 f"Expected 'mm' in labels; got '{lbl_w_mm.text()}', '{lbl_h_mm.text()}'."
@@ -308,11 +324,17 @@ def test_sheet_size_suffix_tracks_units():
         settings.hydrate_from_params()
         panel_in = taskpanel_main.create_main_panel_for_tests()
         sheet_widget = getattr(panel_in, "sheet_widget", None)
-        lbl_w_in = getattr(sheet_widget, "sheet_width_label", None) if sheet_widget else None
-        lbl_h_in = getattr(sheet_widget, "sheet_height_label", None) if sheet_widget else None
+        lbl_w_in = (
+            getattr(sheet_widget, "sheet_width_label", None) if sheet_widget else None
+        )
+        lbl_h_in = (
+            getattr(sheet_widget, "sheet_height_label", None) if sheet_widget else None
+        )
 
         if lbl_w_in is None or lbl_h_in is None:
-            raise RuntimeError("Main panel missing sheet_width_label/sheet_height_label.")
+            raise RuntimeError(
+                "Main panel missing sheet_width_label/sheet_height_label."
+            )
         if "in" not in lbl_w_in.text() or "in" not in lbl_h_in.text():
             raise AssertionError(
                 f"Expected 'in' in labels; got '{lbl_w_in.text()}', '{lbl_h_in.text()}'."
@@ -392,6 +414,7 @@ def test_cutlist_generated_after_nesting():
         cmd_i.import_from_path(csv_path, units="mm")
 
         from SquatchCut.core.geometry_sync import sync_source_panels_to_document
+
         sync_source_panels_to_document()
 
         run_cmd = cmd_run_nesting.RunNestingCommand()
@@ -402,7 +425,9 @@ def test_cutlist_generated_after_nesting():
             raise RuntimeError("Cutlist generator returned no cuts.")
         orientations = {c.orientation for c in cuts}
         if "vertical" not in orientations or "horizontal" not in orientations:
-            raise AssertionError(f"Expected both vertical and horizontal cuts; got {orientations!r}")
+            raise AssertionError(
+                f"Expected both vertical and horizontal cuts; got {orientations!r}"
+            )
 
         result.set_pass()
     except Exception as exc:
