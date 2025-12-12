@@ -8,22 +8,28 @@ The goal is to give woodworkers, cabinet shops, and makers a fast way to get fro
 
 ## Features
 
-- **CSV-driven workflow**  
+- **CSV-driven workflow**
   - Import a simple CSV with `width`, `height`, and `id` (plus optional `quantity` and `label`).
   - Supports metric (mm) and imperial (inches) CSV units.
 
-- **Sheet & presets**  
+- **Shape-based nesting** *(v3.4+ - In Development)*
+  - Design cabinet parts directly in FreeCAD
+  - Automatic detection and selection of FreeCAD objects
+  - Non-rectangular nesting with true geometric accuracy
+  - Complete cabinet maker workflow from design to cutting layout
+
+- **Sheet & presets**
   - Configure default sheet size in a Settings panel.
   - Use common presets (4′×8′, 2′×4′, 5′×10′) as shortcuts.
   - Manual edits are treated as “custom” sheet sizes.
 
-- **Clean document structure**  
+- **Clean document structure**
   - One sheet object representing the panel.
-  - One group for **source parts** (from CSV).
+  - One group for **source parts** (from CSV or FreeCAD shapes).
   - One group for **nested parts** (layout results).
   - Re-importing and re-running nesting clears and rebuilds these groups instead of leaving junk geometry.
 
-- **FreeCAD-native geometry**  
+- **FreeCAD-native geometry**
   - Uses ordinary FreeCAD objects, so you can:
     - Save the file as usual.
     - Export layouts to DXF/SVG/PDF using FreeCAD’s export tools.
@@ -32,8 +38,8 @@ The goal is to give woodworkers, cabinet shops, and makers a fast way to get fro
 
 ## Requirements
 
-- **FreeCAD**: version 1.0+  
-- **OS**: Windows, macOS, or Linux  
+- **FreeCAD**: version 1.0+
+- **OS**: Windows, macOS, or Linux
 - **Input data**: CSV file with at least:
   - `width`
   - `height`
@@ -219,19 +225,19 @@ If your parts look the wrong size:
 
 Additional docs live in the `docs/` folder:
 
-- `docs/Project_Guide_v3.3.md`  
+- `docs/Project_Guide_v3.3.md`
   Canonical project guide (v3.3 – AI worker edition) covering AI worker behavior, UI rules, and testing requirements. v3.2 remains available for historical reference.
 
-- `docs/user_guide.md`  
+- `docs/user_guide.md`
   Full user guide, with explanations and troubleshooting.
 
-- `docs/quickstart.md`  
+- `docs/quickstart.md`
   One-page “Import → Sheet → Nest → Export” overview.
 
-- `docs/UAT_Prep_Instructions.md`  
+- `docs/UAT_Prep_Instructions.md`
   Instructions for volunteer testers (how to install and run the script).
 
-- `docs/UAT_Checklist.md`  
+- `docs/UAT_Checklist.md`
   Step-by-step test script with Pass/Fail tracking.
 
 If you are participating in user testing:
@@ -250,19 +256,19 @@ For developers:
 
 - Project structure (high level):
 
-  - `core/`  
+  - `core/`
     Nesting engine, units/conversions, session state, sheet model, presets, etc.
 
-  - `gui/`  
+  - `gui/`
     Task panels, FreeCAD commands, view utilities.
 
-  - `resources/`  
+  - `resources/`
     Icons and other assets.
 
-  - `docs/`  
+  - `docs/`
     User and UAT documentation.
 
-  - `tests/`  
+  - `tests/`
     pytest-based tests for core logic and selected behaviors.
 
 - Typical dev loop:

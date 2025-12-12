@@ -1,7 +1,20 @@
-# SquatchCut Backlog (v3.3)
+# SquatchCut Backlog (v3.4+)
 
-**Status:** v3.3 - Preparation for FreeCAD Add-On Manager
-**Focus:** Stability, Determinism, Documentation, and AI-Agnostic Workflow.
+**Status:** v3.3 Complete - Moving to v3.4 Shape-Based Nesting
+**Focus:** Enhanced FreeCAD Integration, Non-Rectangular Nesting, and Cabinet Maker Workflows.
+
+---
+
+## Major Feature Development
+
+### Shape-Based Nesting (v3.4) - **IN DEVELOPMENT**
+- `[SPEC COMPLETE]` **Comprehensive Shape-Based Nesting System**
+  - Full specification created in `.kiro/specs/shape-based-nesting/`
+  - 8 user stories, 40 acceptance criteria, 44 implementation tasks
+  - Enhanced FreeCAD object detection and selection workflows
+  - Non-rectangular nesting with true geometric accuracy
+  - Cabinet maker workflow from FreeCAD design to cutting layouts
+  - *Status:* Ready for implementation - see tasks.md for execution plan
 
 ---
 
