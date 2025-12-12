@@ -17,6 +17,17 @@ from SquatchCut.core.complex_geometry import (
     ComplexityLevel,
     GeometryType,
 )
+from SquatchCut.core.performance_monitor import (
+    PerformanceMode as PerfMode,
+)
+from SquatchCut.core.performance_monitor import (
+    get_performance_monitor,
+)
+from SquatchCut.core.progress_feedback import (
+    ProgressStage,
+    ProgressTracker,
+    get_progress_manager,
+)
 
 
 class NestingMode(Enum):
@@ -27,12 +38,8 @@ class NestingMode(Enum):
     HYBRID = "hybrid"  # Automatic selection based on complexity
 
 
-class PerformanceMode(Enum):
-    """Performance vs accuracy trade-off settings."""
-
-    FAST = "fast"  # Prioritize speed over accuracy
-    BALANCED = "balanced"  # Balance speed and accuracy
-    PRECISE = "precise"  # Prioritize accuracy over speed
+# Re-export PerformanceMode from performance_monitor for backward compatibility
+PerformanceMode = PerfMode
 
 
 @dataclass
@@ -113,12 +120,18 @@ class GeometryNestingEngine:
         self.complexity_threshold = self._get_complexity_threshold()
         self.max_rotation_attempts = self._get_max_rotation_attempts()
         self.placement_tolerance = 0.1  # mm
+        self.performance_monitor = get_performance_monitor()
+        self.progress_manager = get_progress_manager()
+        self._current_operation_id: str | None = None
+        self._current_progress_tracker: ProgressTracker | None = None
 
     def nest_complex_shapes(
         self,
         shapes: list[ComplexGeometry],
         sheet: SheetGeometry,
         nesting_mode: NestingMode = NestingMode.HYBRID,
+        progress_callback: Any | None = None,
+        cancellation_check: Any | None = None,
     ) -> NestingResult:
         """Nest complex shapes on a sheet using geometric algorithms.
 
@@ -126,10 +139,49 @@ class GeometryNestingEngine:
             shapes: List of ComplexGeometry objects to nest.
             sheet: SheetGeometry defining the available sheet space.
             nesting_mode: Algorithm mode (rectangular, geometric, or hybrid).
+            progress_callback: Optional callback for progress updates.
+            cancellation_check: Optional function to check for cancellation.
 
         Returns:
             NestingResult with placed and unplaced geometries.
         """
+        # Start performance monitoring
+        complexity_score = self.performance_monitor.assess_geometry_complexity(shapes)
+        self._current_operation_id = self.performance_monitor.start_operation(
+            "complex_shape_nesting",
+            shapes_count=len(shapes),
+            estimated_complexity=complexity_score,
+        )
+
+        # Check if we should recommend a different performance mode
+        recommended_mode = self.performance_monitor.recommend_performance_mode(shapes)
+        if recommended_mode != self.performance_mode:
+            self.performance_monitor.add_warning(
+                self._current_operation_id,
+                f"Recommended mode: {recommended_mode.value}, using: {self.performance_mode.value}",
+            )
+
+        # Start progress tracking
+        progress_operation_id = self.progress_manager.start_operation(
+            "shape_nesting",
+            total_items=len(shapes),
+            progress_callback=progress_callback,
+            cancellation_check=cancellation_check,
+        )
+        self._current_progress_tracker = self.progress_manager.get_tracker(
+            progress_operation_id
+        )
+
+        if self._current_progress_tracker:
+            self._current_progress_tracker.set_stage(
+                ProgressStage.ANALYZING_SHAPES,
+                f"Analyzing {len(shapes)} shapes for nesting",
+            )
+            if recommended_mode != self.performance_mode:
+                self._current_progress_tracker.add_warning(
+                    f"Using {self.performance_mode.value} mode instead of recommended {recommended_mode.value}"
+                )
+
         import time
 
         start_time = time.time()
@@ -145,7 +197,35 @@ class GeometryNestingEngine:
         # Track occupied regions on the sheet
         occupied_regions = []
 
-        for shape in sorted_shapes:
+        # Update progress to placing shapes stage
+        if self._current_progress_tracker:
+            self._current_progress_tracker.set_stage(
+                ProgressStage.PLACING_SHAPES,
+                f"Placing {len(sorted_shapes)} shapes on sheet",
+            )
+
+        for i, shape in enumerate(sorted_shapes):
+            # Update progress for current shape
+            if self._current_progress_tracker:
+                if not self._current_progress_tracker.update_progress(
+                    current_item=i,
+                    description=f"Placing shape '{shape.id}' ({i+1}/{len(sorted_shapes)})",
+                ):
+                    # Operation was cancelled
+                    unplaced_geometries.extend(sorted_shapes[i:])
+                    break
+
+            # Check for performance timeout periodically
+            if i % 5 == 0 and self.performance_monitor.should_trigger_fallback(
+                self._current_operation_id
+            ):
+                # Switch to faster mode for remaining shapes
+                self.performance_mode = PerformanceMode.FAST
+                self.performance_monitor.add_warning(
+                    self._current_operation_id,
+                    f"Performance timeout - switching to FAST mode for remaining {len(sorted_shapes) - i} shapes",
+                )
+
             # Determine nesting approach based on mode and complexity
             use_geometric = self._should_use_geometric_nesting(shape, nesting_mode)
 
@@ -173,6 +253,12 @@ class GeometryNestingEngine:
                         f"Complex shape '{shape.id}' could not be placed - consider simplification"
                     )
 
+        # Update progress to calculation stage
+        if self._current_progress_tracker:
+            self._current_progress_tracker.set_stage(
+                ProgressStage.CALCULATING_RESULTS, "Calculating utilization statistics"
+            )
+
         # Calculate utilization statistics
         total_area_used = sum(p.geometry.area for p in placed_geometries)
         utilization_percent = (
@@ -181,7 +267,8 @@ class GeometryNestingEngine:
 
         processing_time = time.time() - start_time
 
-        return NestingResult(
+        # Finish performance monitoring
+        result = NestingResult(
             placed_geometries=placed_geometries,
             unplaced_geometries=unplaced_geometries,
             sheets_used=1,  # Single sheet for now
@@ -192,6 +279,35 @@ class GeometryNestingEngine:
             complexity_warnings=complexity_warnings,
             fallback_count=fallback_count,
         )
+
+        # Record performance metrics
+        success = len(placed_geometries) > 0 or len(shapes) == 0
+        metrics = self.performance_monitor.finish_operation(
+            self._current_operation_id,
+            success=success,
+            additional_metrics={
+                "utilization_percent": utilization_percent,
+                "fallback_count": fallback_count,
+                "placed_count": len(placed_geometries),
+                "unplaced_count": len(unplaced_geometries),
+            },
+        )
+
+        # Add performance warnings to result
+        if metrics.warnings:
+            result.complexity_warnings.extend(
+                [f"Performance: {w}" for w in metrics.warnings]
+            )
+
+        # Finish progress tracking
+        if self._current_progress_tracker:
+            self.progress_manager.finish_operation(
+                progress_operation_id, success=success, result_data=result
+            )
+            self._current_progress_tracker = None
+
+        self._current_operation_id = None
+        return result
 
     def detect_geometry_overlaps(
         self, shape1: ComplexGeometry, shape2: ComplexGeometry, tolerance: float = 0.1
