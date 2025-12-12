@@ -11,6 +11,7 @@ from SquatchCut.core.nesting import (
     NestingConfig,
     NestingValidationError,
     Part,
+    analyze_sheet_exhaustion,
     compute_utilization_for_sheets,
     derive_sheet_sizes_for_layout,
     estimate_cut_counts_for_sheets,
@@ -429,6 +430,19 @@ class RunNestingCommand:
                     if placed_parts
                     else 0
                 )
+
+                # Analyze sheet exhaustion
+                exhaustion = analyze_sheet_exhaustion(placed_parts, sheet_sizes)
+                if exhaustion.get("sheets_exhausted", False):
+                    logger.warning(
+                        f">>> [SquatchCut] Sheet exhaustion detected: used {exhaustion.get('max_sheet_index', 0) + 1} sheets "
+                        f"but only {exhaustion.get('sheets_available', 0)} available. Some parts may be on duplicate sheet types."
+                    )
+                elif exhaustion.get("sheets_available", 0) > 0:
+                    logger.info(
+                        f">>> [SquatchCut] Sheet usage: {exhaustion.get('sheets_used', 0)} of {exhaustion.get('sheets_available', 0)} available sheets used."
+                    )
+
                 summary_msg = (
                     f"Nesting complete: {len(placed_parts)} parts, "
                     f"sheets used={util.get('sheets_used', 0)}, "

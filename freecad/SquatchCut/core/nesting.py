@@ -12,7 +12,7 @@ Pure logic module: no FreeCAD or GUI dependencies.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Optional, Union
 
 __all__ = [
     "run_shelf_nesting",
@@ -27,6 +27,7 @@ __all__ = [
     "get_effective_spacing",
     "estimate_cut_counts",
     "compute_utilization",
+    "analyze_sheet_exhaustion",
     "Part",
     "PlacedPart",
     "NestingValidationError",
@@ -40,7 +41,7 @@ __all__ = [
 @dataclass
 class Part:
     id: str
-    width: float   # mm
+    width: float  # mm
     height: float  # mm
     can_rotate: bool = False  # whether this part is allowed to rotate 90°
 
@@ -92,7 +93,12 @@ class NestingValidationError(Exception):
     Raised when one or more parts cannot fit inside the usable sheet area.
     """
 
-    def __init__(self, usable_width: float, usable_height: float, offending_parts: tuple[NestingOffendingPart, ...]):
+    def __init__(
+        self,
+        usable_width: float,
+        usable_height: float,
+        offending_parts: tuple[NestingOffendingPart, ...],
+    ):
         self.usable_width = usable_width
         self.usable_height = usable_height
         self.offending_parts = offending_parts
@@ -102,7 +108,9 @@ class NestingValidationError(Exception):
         )
 
 
-def get_usable_sheet_area(sheet_width: float, sheet_height: float, margin_mm: float = 0.0) -> tuple[float, float]:
+def get_usable_sheet_area(
+    sheet_width: float, sheet_height: float, margin_mm: float = 0.0
+) -> tuple[float, float]:
     """
     Return the usable width and height after subtracting edge margins.
     """
@@ -244,12 +252,13 @@ def resolve_sheet_dimensions(
         if width > 0 and height > 0:
             return width, height
         if len(sheet_sizes) > 1:
-            for w, h in reversed(sheet_sizes[:idx + 1]):
+            for w, h in reversed(sheet_sizes[: idx + 1]):
                 if w > 0 and h > 0:
                     return w, h
     if fallback_width > 0 and fallback_height > 0:
         return fallback_width, fallback_height
     return fallback_width, fallback_height
+
 
 def part_fits_sheet(
     part_width: float,
@@ -278,7 +287,9 @@ def validate_parts_fit_sheet(
     """
     offending: list[NestingOffendingPart] = []
     for part in parts or []:
-        if not part_fits_sheet(part.width, part.height, usable_width, usable_height, part.can_rotate):
+        if not part_fits_sheet(
+            part.width, part.height, usable_width, usable_height, part.can_rotate
+        ):
             offending.append(
                 NestingOffendingPart(
                     part_id=part.id,
@@ -308,8 +319,8 @@ def _nest_rectangular_default(
     parts: list[Part],
     sheet_width: float,
     sheet_height: float,
-    config: NestingConfig | None = None,
-    sheet_sizes: list[tuple[float, float]] | None = None,
+    config: Optional[NestingConfig] = None,
+    sheet_sizes: Optional[list[tuple[float, float]]] = None,
 ) -> list[PlacedPart]:
     """
     Shelf-based rectangle packing across multiple sheets with optional 90° rotation.
@@ -364,7 +375,9 @@ def _nest_rectangular_default(
     sheets.append([])  # first sheet with no rows yet
 
     def _sheet_dimensions(index: int) -> tuple[float, float]:
-        return resolve_sheet_dimensions(sheet_sizes or [], index, sheet_width, sheet_height)
+        return resolve_sheet_dimensions(
+            sheet_sizes or [], index, sheet_width, sheet_height
+        )
 
     def orientations_for_part(p: Part):
         """Yield (w, h, rot_deg) options, preferring 0° then 90°."""
@@ -459,6 +472,26 @@ def _nest_rectangular_default(
 
         # 3) Could not place on any existing sheet → create a new sheet
         new_sheet_index = len(sheets)
+
+        # Check if we're exceeding available sheet quantities
+        if sheet_sizes and new_sheet_index >= len(sheet_sizes):
+            try:
+                from SquatchCut.core import logger
+
+                available_sheets = len(sheet_sizes)
+                logger.warning(
+                    f">>> [SquatchCut] Sheet exhaustion: trying to use sheet {new_sheet_index + 1} "
+                    f"but only {available_sheets} sheet(s) available. Using last available sheet type."
+                )
+            except Exception:
+                # Fallback if logger import fails
+                import warnings
+
+                warnings.warn(
+                    f"Sheet exhaustion: trying to use sheet {new_sheet_index + 1} "
+                    f"but only {len(sheet_sizes)} sheet(s) available."
+                )
+
         new_rows: list[dict] = []
         sheets.append(new_rows)
 
@@ -526,7 +559,7 @@ def nest_cut_optimized(
     sheet_height: float,
     kerf: float = 0.0,
     margin: float = 0.0,
-    sheet_sizes: list[tuple[float, float]] | None = None,
+    sheet_sizes: Optional[list[tuple[float, float]]] = None,
 ) -> list[PlacedPart]:
     """
     Row/column oriented heuristic intended to reduce distinct cut lines.
@@ -578,7 +611,9 @@ def nest_cut_optimized(
     current_sheet_width, current_sheet_height = _sheet_dimensions(sheet_index)
     if current_sheet_width <= 0 or current_sheet_height <= 0:
         return []
-    usable_width, usable_height = _usable_dims(current_sheet_width, current_sheet_height)
+    usable_width, usable_height = _usable_dims(
+        current_sheet_width, current_sheet_height
+    )
 
     remaining: list[Part] = sorted(
         parts,
@@ -610,7 +645,10 @@ def nest_cut_optimized(
                         continue
                     if current_x + w + spacing > current_sheet_width - margin + 1e-6:
                         continue
-                    if current_y + max(row_height, h) + spacing > current_sheet_height - margin + 1e-6:
+                    if (
+                        current_y + max(row_height, h) + spacing
+                        > current_sheet_height - margin + 1e-6
+                    ):
                         continue
                     candidate_idx = idx
                     candidate_orient = (w, h, rot)
@@ -645,7 +683,9 @@ def nest_cut_optimized(
             # No part fit in this row; start a new sheet.
             sheet_index += 1
             current_sheet_width, current_sheet_height = _sheet_dimensions(sheet_index)
-            usable_width, usable_height = _usable_dims(current_sheet_width, current_sheet_height)
+            usable_width, usable_height = _usable_dims(
+                current_sheet_width, current_sheet_height
+            )
             current_y = margin
             continue
 
@@ -655,7 +695,9 @@ def nest_cut_optimized(
             # Start a new sheet
             sheet_index += 1
             current_sheet_width, current_sheet_height = _sheet_dimensions(sheet_index)
-            usable_width, usable_height = _usable_dims(current_sheet_width, current_sheet_height)
+            usable_width, usable_height = _usable_dims(
+                current_sheet_width, current_sheet_height
+            )
             current_y = margin
 
     return placements
@@ -665,8 +707,8 @@ def _nest_cut_friendly(
     parts: list[Part],
     sheet_width: float,
     sheet_height: float,
-    config: NestingConfig | None = None,
-    sheet_sizes: list[tuple[float, float]] | None = None,
+    config: Optional[NestingConfig] = None,
+    sheet_sizes: Optional[list[tuple[float, float]]] = None,
 ) -> list[PlacedPart]:
     """
     Lane-based heuristic aimed at woodshop-style rips/crosscuts.
@@ -733,7 +775,10 @@ def _nest_cut_friendly(
             lane_parts.append(p)
 
         # Sort lane parts by height descending for stacking
-        lane_parts.sort(key=lambda p: max(p.height, p.width if p.can_rotate else p.height), reverse=True)
+        lane_parts.sort(
+            key=lambda p: max(p.height, p.width if p.can_rotate else p.height),
+            reverse=True,
+        )
 
         current_y = margin
         lane_used_height = 0.0
@@ -790,8 +835,8 @@ def nest_parts(
     parts: list[Part],
     sheet_width: float,
     sheet_height: float,
-    config: NestingConfig | None = None,
-    sheet_sizes: list[tuple[float, float]] | None = None,
+    config: Optional[NestingConfig] = None,
+    sheet_sizes: Optional[list[tuple[float, float]]] = None,
 ) -> list[PlacedPart]:
     """
     Strategy selector for nesting.
@@ -810,8 +855,12 @@ def nest_parts(
             sheet_sizes=sizes,
         )
     if getattr(cfg, "nesting_mode", "pack") == "cut_friendly":
-        return _nest_cut_friendly(parts, sheet_width, sheet_height, cfg, sheet_sizes=sizes)
-    return _nest_rectangular_default(parts, sheet_width, sheet_height, cfg, sheet_sizes=sizes if sizes else None)
+        return _nest_cut_friendly(
+            parts, sheet_width, sheet_height, cfg, sheet_sizes=sizes
+        )
+    return _nest_rectangular_default(
+        parts, sheet_width, sheet_height, cfg, sheet_sizes=sizes if sizes else None
+    )
 
 
 def estimate_cut_counts(
@@ -862,7 +911,9 @@ def estimate_cut_counts_for_sheets(
     horizontal = set()
     fallback_width, fallback_height = sheet_sizes[0]
     for pp in placements:
-        sw, sh = resolve_sheet_dimensions(sheet_sizes, pp.sheet_index, fallback_width, fallback_height)
+        sw, sh = resolve_sheet_dimensions(
+            sheet_sizes, pp.sheet_index, fallback_width, fallback_height
+        )
         vertical.add(0.0)
         vertical.add(float(sw))
         horizontal.add(0.0)
@@ -887,7 +938,12 @@ def compute_utilization(
     Returns: {"utilization_percent": float, "sheets_used": int, "placed_area": float, "sheet_area": float}
     """
     if not placements or sheet_width <= 0 or sheet_height <= 0:
-        return {"utilization_percent": 0.0, "sheets_used": 0, "placed_area": 0.0, "sheet_area": 0.0}
+        return {
+            "utilization_percent": 0.0,
+            "sheets_used": 0,
+            "placed_area": 0.0,
+            "sheet_area": 0.0,
+        }
 
     sheets_used = max(pp.sheet_index for pp in placements) + 1
     placed_area = sum(pp.width * pp.height for pp in placements)
@@ -907,20 +963,66 @@ def compute_utilization_for_sheets(
     sheet_sizes: list[tuple[float, float]],
 ) -> dict:
     if not placements or not sheet_sizes:
-        return {"utilization_percent": 0.0, "sheets_used": 0, "placed_area": 0.0, "sheet_area": 0.0}
+        return {
+            "utilization_percent": 0.0,
+            "sheets_used": 0,
+            "placed_area": 0.0,
+            "sheet_area": 0.0,
+        }
     fallback_width, fallback_height = sheet_sizes[0]
     used_sheet_indices = {pp.sheet_index for pp in placements}
     total_sheet_area = 0.0
     for sheet_index in used_sheet_indices:
-        sw, sh = resolve_sheet_dimensions(sheet_sizes, sheet_index, fallback_width, fallback_height)
+        sw, sh = resolve_sheet_dimensions(
+            sheet_sizes, sheet_index, fallback_width, fallback_height
+        )
         total_sheet_area += sw * sh
     placed_area = sum(pp.width * pp.height for pp in placements)
-    util_percent = (placed_area / total_sheet_area) * 100.0 if total_sheet_area > 0 else 0.0
+    util_percent = (
+        (placed_area / total_sheet_area) * 100.0 if total_sheet_area > 0 else 0.0
+    )
     return {
         "utilization_percent": util_percent,
         "sheets_used": len(used_sheet_indices),
         "placed_area": placed_area,
         "sheet_area": total_sheet_area,
+    }
+
+
+def analyze_sheet_exhaustion(
+    placements: list[PlacedPart], sheet_sizes: list[tuple[float, float]] | None = None
+) -> dict[str, int | bool]:
+    """
+    Analyze whether sheet quantities were exhausted during nesting.
+
+    Returns a dict with keys:
+    - 'sheets_available': total number of sheet instances available
+    - 'sheets_used': number of distinct sheets with at least one part
+    - 'sheets_exhausted': boolean indicating if all available sheets were used
+    - 'max_sheet_index': highest sheet index used (0-based)
+    """
+    if not placements:
+        return {
+            "sheets_available": len(sheet_sizes) if sheet_sizes else 0,
+            "sheets_used": 0,
+            "sheets_exhausted": False,
+            "max_sheet_index": -1,
+        }
+
+    used_sheet_indices = {pp.sheet_index for pp in placements}
+    sheets_used = len(used_sheet_indices)
+    max_sheet_index = max(used_sheet_indices) if used_sheet_indices else -1
+    sheets_available = len(sheet_sizes) if sheet_sizes else 0
+
+    # Exhaustion occurs when we use more sheets than are available
+    # (due to resolve_sheet_dimensions clamping to last available sheet)
+    sheets_exhausted = sheets_available > 0 and max_sheet_index >= sheets_available
+
+    return {
+        "sheets_available": sheets_available,
+        "sheets_used": sheets_used,
+        "sheets_exhausted": sheets_exhausted,
+        "max_sheet_index": max_sheet_index,
     }
 
 
