@@ -23,6 +23,10 @@ from SquatchCut.core.nesting import (
     nest_parts,
     validate_parts_fit_sheet,
 )  # type: ignore
+from SquatchCut.core.performance_utils import (
+    performance_monitor,
+    check_system_resources,
+)
 from SquatchCut.core.overlap_check import detect_overlaps
 from SquatchCut.core.session_state import (
     get_allowed_rotations_deg,
@@ -265,6 +269,9 @@ class RunNestingCommand:
                 logger.warning("RunNesting: no valid panel dimensions found")
                 return
 
+            # Check system resources for large datasets
+            check_system_resources(len(parts))
+
             usable_width, usable_height = get_usable_sheet_area(
                 sheet_w, sheet_h, margin_mm=gap_mm
             )
@@ -310,43 +317,50 @@ class RunNestingCommand:
                 with SimpleProgressContext(
                     "Running nesting algorithm...", "SquatchCut Nesting"
                 ):
-                    if cut_mode:
-                        cfg = NestingConfig(
-                            optimize_for_cut_path=True,
-                            kerf_width_mm=kerf_width or kerf_mm,
-                            allowed_rotations_deg=allowed_rotations,
-                            spacing_mm=gap_mm,
-                            nesting_mode="cut_friendly",
-                        )
-                        placed_parts = nest_parts(
-                            parts,
-                            sheet_w,
-                            sheet_h,
-                            cfg,
-                            sheet_sizes=sheet_sizes_override,
-                        )
-                    elif opt_mode == "cuts":
-                        placed_parts = nest_cut_optimized(
-                            parts,
-                            sheet_w,
-                            sheet_h,
-                            kerf=float(kerf_mm),
-                            margin=float(gap_mm),
-                            sheet_sizes=sheet_sizes_override,
-                        )
-                    else:
-                        cfg = NestingConfig(
-                            kerf_width_mm=kerf_mm,
-                            spacing_mm=gap_mm,
-                            nesting_mode=nesting_mode,
-                        )
-                        placed_parts = nest_on_multiple_sheets(
-                            parts,
-                            sheet_w,
-                            sheet_h,
-                            cfg,
-                            sheet_definitions=sheet_definitions,
-                        )
+                    # Apply performance monitoring to nesting operations
+                    @performance_monitor(
+                        f"Nesting {len(parts)} parts", threshold_seconds=2.0
+                    )
+                    def run_nesting_algorithm():
+                        if cut_mode:
+                            cfg = NestingConfig(
+                                optimize_for_cut_path=True,
+                                kerf_width_mm=kerf_width or kerf_mm,
+                                allowed_rotations_deg=allowed_rotations,
+                                spacing_mm=gap_mm,
+                                nesting_mode="cut_friendly",
+                            )
+                            return nest_parts(
+                                parts,
+                                sheet_w,
+                                sheet_h,
+                                cfg,
+                                sheet_sizes=sheet_sizes_override,
+                            )
+                        elif opt_mode == "cuts":
+                            return nest_cut_optimized(
+                                parts,
+                                sheet_w,
+                                sheet_h,
+                                kerf=float(kerf_mm),
+                                margin=float(gap_mm),
+                                sheet_sizes=sheet_sizes_override,
+                            )
+                        else:
+                            cfg = NestingConfig(
+                                kerf_width_mm=kerf_mm,
+                                spacing_mm=gap_mm,
+                                nesting_mode=nesting_mode,
+                            )
+                            return nest_on_multiple_sheets(
+                                parts,
+                                sheet_w,
+                                sheet_h,
+                                cfg,
+                                sheet_definitions=sheet_definitions,
+                            )
+
+                    placed_parts = run_nesting_algorithm()
             except ValueError as e:
                 show_error(
                     f"Nesting failed due to panel size constraints:\n\n{e}",

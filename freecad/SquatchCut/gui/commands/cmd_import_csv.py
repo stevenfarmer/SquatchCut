@@ -7,6 +7,7 @@ from SquatchCut.core import logger, session, session_state
 # Interactions: Should invoke SC_CSVImportDialog and hand validated rows to core csv_import.
 # Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 from SquatchCut.core.csv_import import validate_csv_file
+from SquatchCut.core.input_validation import validate_csv_file_path
 from SquatchCut.core.geometry_sync import sync_source_panels_to_document
 from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.gui.icons import get_icon
@@ -27,30 +28,33 @@ def run_csv_import(doc, csv_path: str, csv_units: str = "metric"):
     - csv_path: absolute path to the CSV to import.
     - csv_units: "metric" or "imperial" (imperial converted to mm).
     """
+    from SquatchCut.ui.progress import SimpleProgressContext
+
     logger.info(f"CSV selected: {csv_path}")
 
-    if doc is None:
-        doc = App.newDocument("SquatchCut")
-    session.sync_state_from_doc(doc)
+    with SimpleProgressContext("Importing CSV file...", "SquatchCut Import"):
+        if doc is None:
+            doc = App.newDocument("SquatchCut")
+        session.sync_state_from_doc(doc)
 
-    # Normalize units
-    units_val = str(csv_units or "mm").lower()
-    if units_val == "metric":
-        units_val = "mm"
-    if units_val == "imperial":
-        units_val = "in"
-    csv_units = units_val
+        # Normalize units
+        units_val = str(csv_units or "mm").lower()
+        if units_val == "metric":
+            units_val = "mm"
+        if units_val == "imperial":
+            units_val = "in"
+        csv_units = units_val
 
-    try:
-        valid_rows, errors = validate_csv_file(csv_path, csv_units=csv_units)
-    except FileNotFoundError:
-        show_error(f"CSV file not found:\n{csv_path}")
-        logger.error(f"CSV file not found: {csv_path}")
-        return
-    except ValueError as exc:
-        show_error(f"CSV import failed:\n{exc}")
-        logger.error(f"CSV read error: {exc}")
-        return
+        try:
+            valid_rows, errors = validate_csv_file(csv_path, csv_units=csv_units)
+        except FileNotFoundError:
+            show_error(f"CSV file not found:\n{csv_path}")
+            logger.error(f"CSV file not found: {csv_path}")
+            return
+        except ValueError as exc:
+            show_error(f"CSV import failed:\n{exc}")
+            logger.error(f"CSV read error: {exc}")
+            return
 
     if errors:
         show_error("CSV import failed. Check Report view for details.")
@@ -60,9 +64,7 @@ def run_csv_import(doc, csv_path: str, csv_units: str = "metric"):
             label = f"Row {error.row}" if error.row else "CSV"
             logger.error(f"{label}: {error.message}")
         if len(errors) > max_errors:
-            logger.error(
-                f"...and {len(errors) - max_errors} more validation error(s)."
-            )
+            logger.error(f"...and {len(errors) - max_errors} more validation error(s).")
         return
 
     # Store panels in pure session_state and push settings into doc if needed
@@ -107,7 +109,9 @@ class ImportCSVCommand:
         """
         if App is None or Gui is None:
             try:
-                logger.warning("ImportCSVCommand.Activated() called outside FreeCAD GUI environment.")
+                logger.warning(
+                    "ImportCSVCommand.Activated() called outside FreeCAD GUI environment."
+                )
             except Exception:
                 pass
             return
@@ -134,22 +138,30 @@ class ImportCSVCommand:
             )
 
             if file_path:
-                from SquatchCut.core.preferences import SquatchCutPreferences
+                try:
+                    # Validate file path
+                    validated_path = validate_csv_file_path(file_path)
 
-                prefs = SquatchCutPreferences()
-                default_units = prefs.get_csv_units(prefs.get_measurement_system())
-                units, ok = QtWidgets.QInputDialog.getItem(
-                    None,
-                    "CSV units",
-                    "Select units for this CSV:",
-                    ["metric", "imperial"],
-                    current=0 if default_units == "metric" else 1,
-                    editable=False,
-                )
-                if not ok:
-                    return
-                run_csv_import(doc, file_path, csv_units=units)
-                prefs.set_csv_units(units)
+                    from SquatchCut.core.preferences import SquatchCutPreferences
+
+                    prefs = SquatchCutPreferences()
+                    default_units = prefs.get_csv_units(prefs.get_measurement_system())
+                    units, ok = QtWidgets.QInputDialog.getItem(
+                        None,
+                        "CSV units",
+                        "Select units for this CSV:",
+                        ["metric", "imperial"],
+                        current=0 if default_units == "metric" else 1,
+                        editable=False,
+                    )
+                    if not ok:
+                        return
+                    run_csv_import(doc, validated_path, csv_units=units)
+                    prefs.set_csv_units(units)
+                except Exception as e:
+                    from SquatchCut.ui.error_handling import handle_command_error
+
+                    handle_command_error("Import CSV", e)
             else:
                 # User cancelled
                 logger.info("Import CSV dialog cancelled by user")
@@ -166,7 +178,9 @@ class ImportCSVCommand:
         return App is not None and Gui is not None
 
     # Programmatic import helper to bypass dialogs (used by GUI tests)
-    def import_from_path(self, csv_path: str, units: str | None = None, csv_units: str | None = None):
+    def import_from_path(
+        self, csv_path: str, units: str | None = None, csv_units: str | None = None
+    ):
         if App is None:
             raise RuntimeError("FreeCAD App module not available for import_from_path.")
         doc = App.ActiveDocument
