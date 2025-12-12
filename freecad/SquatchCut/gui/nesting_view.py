@@ -153,10 +153,21 @@ def create_sheet_label(
     if text_obj is None:
         return None
 
-    # Position at top-left corner of sheet
-    placement = text_obj.Placement
-    placement.Base = App.Vector(x_offset + 10, height - 20, NESTED_Z_OFFSET + 0.1)
-    text_obj.Placement = placement
+    # Position at top-left corner of sheet - handle different object types
+    try:
+        if hasattr(text_obj, "Placement"):
+            placement = text_obj.Placement
+            placement.Base = App.Vector(
+                x_offset + 10, height - 20, NESTED_Z_OFFSET + 0.1
+            )
+            text_obj.Placement = placement
+        elif hasattr(text_obj, "Position"):
+            # Some annotation objects use Position instead of Placement
+            text_obj.Position = App.Vector(
+                x_offset + 10, height - 20, NESTED_Z_OFFSET + 0.1
+            )
+    except Exception as e:
+        logger.warning(f"Could not set position for sheet label {name}: {e}")
 
     # Apply styling
     try:
@@ -224,12 +235,19 @@ def create_part_label(
     if text_obj is None:
         return None
 
-    # Position at center of part
-    placement = text_obj.Placement
+    # Position at center of part - handle different object types
     center_x = x + width / 2
     center_y = y + height / 2
-    placement.Base = App.Vector(center_x, center_y, NESTED_Z_OFFSET + 0.2)
-    text_obj.Placement = placement
+    try:
+        if hasattr(text_obj, "Placement"):
+            placement = text_obj.Placement
+            placement.Base = App.Vector(center_x, center_y, NESTED_Z_OFFSET + 0.2)
+            text_obj.Placement = placement
+        elif hasattr(text_obj, "Position"):
+            # Some annotation objects use Position instead of Placement
+            text_obj.Position = App.Vector(center_x, center_y, NESTED_Z_OFFSET + 0.2)
+    except Exception as e:
+        logger.warning(f"Could not set position for part label {name}: {e}")
 
     # Apply styling
     try:
