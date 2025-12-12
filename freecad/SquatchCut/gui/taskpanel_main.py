@@ -143,12 +143,21 @@ class SquatchCutTaskPanel:
             container.setObjectName("sheet_warning_banner")
         if hasattr(container, "setFrameShape"):
             container.setFrameShape(QtWidgets.QFrame.StyledPanel)
+
+        # Use tighter margins and spacing for narrow docks
         layout = QtWidgets.QVBoxLayout(container)
-        layout.setContentsMargins(8, 4, 8, 4)
+        layout.setContentsMargins(6, 3, 6, 3)
+        layout.setSpacing(2)
+
         self.sheet_warning_label = QtWidgets.QLabel("")
         if hasattr(self.sheet_warning_label, "setWordWrap"):
             self.sheet_warning_label.setWordWrap(True)
-        self.sheet_warning_label.setStyleSheet("color: #b26b00;")
+
+        # More compact styling for narrow layouts
+        self.sheet_warning_label.setStyleSheet(
+            "color: #b26b00; font-size: 11px; padding: 2px;"
+        )
+
         layout.addWidget(self.sheet_warning_label)
         if hasattr(container, "setVisible"):
             container.setVisible(False)
