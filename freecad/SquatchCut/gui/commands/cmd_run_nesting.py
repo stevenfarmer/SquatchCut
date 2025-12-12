@@ -703,7 +703,7 @@ class RunNestingCommand:
         )
 
         return has_freecad_shapes and (
-            complex_shape_count > 0 or freecad_shape_count > 3
+            complex_shape_count > 0 or freecad_shape_count >= 1
         )
 
     def _run_geometric_nesting(self, parts, panels_data, sheet_w, sheet_h, gap_mm):

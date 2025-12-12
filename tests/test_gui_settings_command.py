@@ -42,14 +42,16 @@ def test_settings_icon_path_points_to_squatchcut_resource():
     if hasattr(icon_path, "isNull"):
         assert icon_path.isNull() is False
     else:
-        assert icon_path.endswith("squatchcut-settings.svg")
+        assert icon_path.endswith("sasquatch_settings.svg")
         assert os.path.isfile(icon_path)
 
 
 def test_settings_command_reuses_panel(monkeypatch):
     dummy_control = _DummyControl()
     dummy_gui = _DummyGui(dummy_control)
-    dummy_app = SimpleNamespace(Console=SimpleNamespace(PrintError=lambda *args, **kwargs: None))
+    dummy_app = SimpleNamespace(
+        Console=SimpleNamespace(PrintError=lambda *args, **kwargs: None)
+    )
 
     monkeypatch.setattr(cmd_settings, "Gui", dummy_gui)
     monkeypatch.setattr(cmd_settings, "App", dummy_app)

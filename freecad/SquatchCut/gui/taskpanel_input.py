@@ -269,10 +269,8 @@ class InputGroupWidget(QtWidgets.QGroupBox):
             from SquatchCut.ui.progress import SimpleProgressContext
 
             with SimpleProgressContext(
-                title="Processing Shapes", parent=self
-            ) as progress:
-                progress.set_range(0, len(shape_objects))
-                progress.set_text("Extracting shape geometries...")
+                message="Extracting shape geometries...", title="Processing Shapes"
+            ):
 
                 for i, obj in enumerate(shape_objects):
                     progress.set_value(i)

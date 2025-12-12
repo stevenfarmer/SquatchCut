@@ -69,3 +69,32 @@ def get_transparency_for_display_mode(display_mode: str) -> float:
         "solid": 0.0,  # Opaque
     }
     return transparency_map.get(display_mode, 0.7)
+
+
+class ColorScheme:
+    """Represents a color scheme for nesting visualization."""
+
+    def __init__(self, colors: dict[str, ColorRGB]):
+        self.colors = colors
+
+    @property
+    def part_fill(self) -> ColorRGB:
+        return self.colors.get("part_default", (100, 149, 237))
+
+    @property
+    def part_edge(self) -> ColorRGB:
+        return self.colors.get("cut_lines", (128, 128, 128))
+
+    @property
+    def sheet_boundary(self) -> ColorRGB:
+        return self.colors.get("cut_lines", (128, 128, 128))
+
+
+class NestingColorScheme:
+    """Factory class for nesting color schemes."""
+
+    @staticmethod
+    def get_scheme(scheme_name: str) -> ColorScheme:
+        """Get a color scheme by name."""
+        colors = get_color_scheme(scheme_name)
+        return ColorScheme(colors)

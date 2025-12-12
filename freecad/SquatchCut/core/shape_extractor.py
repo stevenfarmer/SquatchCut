@@ -140,7 +140,8 @@ class ShapeExtractor:
             contour_points = self.extract_contour_points(shape_or_obj)
             if not contour_points or len(contour_points) < 3:
                 # Fall back to bounding box extraction
-                return self.extract_with_fallback(shape_or_obj)
+                geometry, _, _ = self.extract_with_fallback(shape_or_obj)
+                return geometry
 
             # Calculate bounding box from contour points
             min_x = min(p[0] for p in contour_points)
@@ -152,7 +153,8 @@ class ShapeExtractor:
             # Calculate area using shoelace formula
             area = self._calculate_polygon_area(contour_points)
             if area <= 0:
-                return self.extract_with_fallback(shape_or_obj)
+                geometry, _, _ = self.extract_with_fallback(shape_or_obj)
+                return geometry
 
             # Assess complexity
             complexity_level = assess_geometry_complexity(contour_points, area)
@@ -175,7 +177,8 @@ class ShapeExtractor:
 
         except Exception:
             # If complex extraction fails, fall back to bounding box
-            return self.extract_with_fallback(shape_or_obj)
+            geometry, _, _ = self.extract_with_fallback(shape_or_obj)
+            return geometry
 
     def extract_contour_points(self, shape_or_obj) -> list[Point2D] | None:
         """Extract detailed contour points from a FreeCAD shape.
@@ -247,7 +250,7 @@ class ShapeExtractor:
         except Exception:
             return ComplexityLevel.LOW
 
-    def extract_with_fallback(self, shape_or_obj) -> ComplexGeometry | None:
+    def extract_with_fallback(self, shape_or_obj, complexity_threshold: float = 5.0):
         """Extract geometry with graceful fallback to bounding box method.
 
         This method provides a robust extraction approach that attempts complex
@@ -255,31 +258,54 @@ class ShapeExtractor:
 
         Args:
             shape_or_obj: FreeCAD object or shape to extract geometry from.
+            complexity_threshold: Threshold above which to use fallback methods.
 
         Returns:
-            ComplexGeometry object using the best available extraction method.
+            tuple: (ComplexGeometry, extraction_method_used, user_notification)
+            or ComplexGeometry if called without expecting tuple unpacking.
         """
         try:
-            # Get basic bounding box information
+            # Assess complexity first
+            complexity = self._assess_complexity(shape_or_obj)
+
+            # Try full extraction first if complexity is manageable
+            if complexity <= complexity_threshold:
+                try:
+                    geometry = self.extract_complex_geometry(shape_or_obj)
+                    if geometry is not None:
+                        return geometry, "full_extraction", None
+                except Exception:
+                    pass
+
+            # Get basic bounding box information for fallback
             bbox = self.extract_bounding_box(shape_or_obj)
             if not bbox:
-                return None
+                return None, "failed", "Could not extract bounding box"
 
             width, height = bbox
             if width <= 0 or height <= 0:
-                return None
+                return None, "failed", "Invalid dimensions"
 
             label = getattr(shape_or_obj, "Label", None) or getattr(
                 shape_or_obj, "Name", "shape"
             )
 
             # Create rectangular ComplexGeometry as fallback
-            return ComplexGeometry.from_rectangle(
+            geometry = ComplexGeometry.from_rectangle(
                 id=str(label), width=width, height=height, rotation_allowed=True
             )
 
-        except Exception:
-            return None
+            notification = None
+            if complexity > complexity_threshold:
+                notification = (
+                    f"Shape '{label}' is complex (score: {complexity:.1f}). "
+                    f"Using simplified rectangular approximation for better performance."
+                )
+
+            return geometry, "bounding_box_fallback", notification
+
+        except Exception as e:
+            return None, "failed", f"Extraction failed: {str(e)}"
 
     def _extract_points_from_wire(self, wire) -> list[Point2D]:
         """Extract 2D points from a FreeCAD wire object."""

@@ -103,6 +103,15 @@ class ProgressTracker:
         self.last_report_time = self.start_time
         self.report_interval = 5.0  # Report every 5 seconds
 
+    def __enter__(self):
+        """Enter context manager."""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Exit context manager and report completion."""
+        self.finish()
+        return False
+
     def update(self, items_processed: int = 1) -> None:
         """Update progress and optionally report status."""
         self.processed_items += items_processed

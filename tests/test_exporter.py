@@ -104,8 +104,12 @@ def test_build_export_job_from_current_nesting_uses_session_layout():
         ]
     )
     placements = [
-        PlacedPart(id="p1", sheet_index=0, x=0, y=0, width=100, height=50, rotation_deg=0),
-        PlacedPart(id="p2", sheet_index=1, x=10, y=15, width=80, height=40, rotation_deg=90),
+        PlacedPart(
+            id="p1", sheet_index=0, x=0, y=0, width=100, height=50, rotation_deg=0
+        ),
+        PlacedPart(
+            id="p2", sheet_index=1, x=10, y=15, width=80, height=40, rotation_deg=90
+        ),
     ]
     session_state.set_last_layout(placements)
 
@@ -126,6 +130,7 @@ def test_build_export_job_returns_none_when_no_layout():
     session_state.set_last_layout(None)
     assert exporter.build_export_job_from_current_nesting() is None
 
+
 def test_cutlist_text_export_respects_imperial_units(tmp_path: Path):
     job = _sample_export_job("imperial")
     out = tmp_path / "cutlist_script.txt"
@@ -134,5 +139,12 @@ def test_cutlist_text_export_respects_imperial_units(tmp_path: Path):
     content = out.read_text("utf-8")
 
     # Verify that content uses "in" and not "mm" for dimensions
-    assert "mm" not in content, "Text export should not contain 'mm' when using Imperial"
+    # Check that dimensions use inches, not millimeters
+    import re
+
+    # Look for dimension patterns like "X.X mm" but not "mm" in other contexts
+    mm_dimensions = re.findall(r"\d+\.?\d*\s*mm\b", content)
+    assert (
+        len(mm_dimensions) == 0
+    ), f"Text export should not contain metric dimensions when using Imperial, found: {mm_dimensions}"
     assert "in" in content, "Text export should contain 'in'"

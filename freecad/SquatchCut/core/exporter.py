@@ -875,12 +875,15 @@ def build_export_job_from_current_nesting(doc=None) -> ExportJob | None:
         logger.info("[SquatchCut] ExportJob build skipped: no placements stored.")
         return None
 
-    # Detect measurement system from document, fallback to session state, then metric
-    measurement_system = (
-        detect_document_measurement_system(doc)
-        or session_state.get_measurement_system()
-        or "metric"
-    )
+    # Detect measurement system: prioritize session state when no document
+    if doc is None:
+        measurement_system = session_state.get_measurement_system() or "metric"
+    else:
+        measurement_system = (
+            detect_document_measurement_system(doc)
+            or session_state.get_measurement_system()
+            or "metric"
+        )
     sheet_mode = session_state.get_sheet_mode()
     job_sheets = session_state.get_job_sheets()
     default_sheet_w, default_sheet_h = session_state.get_sheet_size()

@@ -48,6 +48,9 @@ def run_csv_import(doc, csv_path: str, csv_units: str = "auto"):
 
             session_state.set_measurement_system(csv_units)
 
+        # Import session_state for use later in the function
+        from SquatchCut.core import session_state
+
         # Normalize units
         units_val = str(csv_units or "mm").lower()
         if units_val == "metric":
