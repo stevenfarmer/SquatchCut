@@ -59,7 +59,9 @@ class InputGroupWidget(QtWidgets.QGroupBox):
         if hasattr(self.csv_units_combo, "setEnabled"):
             self.csv_units_combo.setEnabled(False)
         if hasattr(self.csv_units_combo, "setToolTip"):
-            self.csv_units_combo.setToolTip("CSV units follow the Sheet units selection.")
+            self.csv_units_combo.setToolTip(
+                "CSV units follow the Sheet units selection."
+            )
         csv_units_form.addRow(csv_units_label, self.csv_units_combo)
         vbox.addLayout(csv_units_form)
 
@@ -76,7 +78,9 @@ class InputGroupWidget(QtWidgets.QGroupBox):
 
         size_policy_cls = getattr(QtWidgets, "QSizePolicy", None)
         if size_policy_cls is not None and hasattr(self.parts_table, "setSizePolicy"):
-            self.parts_table.setSizePolicy(size_policy_cls.Expanding, size_policy_cls.Expanding)
+            self.parts_table.setSizePolicy(
+                size_policy_cls.Expanding, size_policy_cls.Expanding
+            )
 
         self.parts_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.parts_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
@@ -122,12 +126,15 @@ class InputGroupWidget(QtWidgets.QGroupBox):
             return
 
         try:
-            # We assume settings are already applied to session state by the main controller/sheet widget
-            # But strictly CSV import depends on CSV units and file path.
-            csv_units = self.get_csv_units()
+            # Auto-detect units from CSV content
             logger.info(f">>> [SquatchCut] Importing CSV: {file_path}")
-            run_csv_import(doc, file_path, csv_units=csv_units)
-            self._prefs.set_csv_units(csv_units)
+            run_csv_import(doc, file_path, csv_units="auto")
+
+            # Update UI to reflect detected units
+            detected_system = session_state.get_measurement_system()
+            self._sync_csv_units_display(detected_system)
+            self._prefs.set_csv_units(detected_system)
+
             self._last_csv_path = file_path
             self._set_csv_label(file_path)
             self.refresh_table()
@@ -161,11 +168,19 @@ class InputGroupWidget(QtWidgets.QGroupBox):
             allow_rotate = panel.get("allow_rotate", False)
 
             try:
-                width_text = sc_units.format_length(float(width), measurement_system) if width not in (None, "") else ""
+                width_text = (
+                    sc_units.format_length(float(width), measurement_system)
+                    if width not in (None, "")
+                    else ""
+                )
             except Exception:
                 width_text = str(width)
             try:
-                height_text = sc_units.format_length(float(height), measurement_system) if height not in (None, "") else ""
+                height_text = (
+                    sc_units.format_length(float(height), measurement_system)
+                    if height not in (None, "")
+                    else ""
+                )
             except Exception:
                 height_text = str(height)
 
@@ -183,8 +198,8 @@ class InputGroupWidget(QtWidgets.QGroupBox):
                 # Simulating _qt_flag_mask logic
                 qt = getattr(QtCore, "Qt", None)
                 if qt:
-                     mask = qt.ItemIsSelectable | qt.ItemIsEnabled
-                     item.setFlags(mask)
+                    mask = qt.ItemIsSelectable | qt.ItemIsEnabled
+                    item.setFlags(mask)
                 self.parts_table.setItem(row, col, item)
 
         self.parts_table.resizeColumnsToContents()

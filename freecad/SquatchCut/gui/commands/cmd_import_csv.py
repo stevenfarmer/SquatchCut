@@ -20,15 +20,16 @@ from SquatchCut.ui.messages import show_error
 MM_PER_INCH = 25.4
 
 
-def run_csv_import(doc, csv_path: str, csv_units: str = "metric"):
+def run_csv_import(doc, csv_path: str, csv_units: str = "auto"):
     """
     Core CSV import logic for SquatchCut.
 
     - doc: FreeCAD document into which shapes should be added.
     - csv_path: absolute path to the CSV to import.
-    - csv_units: "metric" or "imperial" (imperial converted to mm).
+    - csv_units: "metric", "imperial", or "auto" (auto-detect from CSV content).
     """
     from SquatchCut.ui.progress import SimpleProgressContext
+    from SquatchCut.core.csv_loader import detect_csv_units
 
     logger.info(f"CSV selected: {csv_path}")
 
@@ -36,6 +37,16 @@ def run_csv_import(doc, csv_path: str, csv_units: str = "metric"):
         if doc is None:
             doc = App.newDocument("SquatchCut")
         session.sync_state_from_doc(doc)
+
+        # Auto-detect units if requested
+        if csv_units == "auto":
+            csv_units = detect_csv_units(csv_path)
+            logger.info(f"Auto-detected CSV units: {csv_units}")
+
+            # Update measurement system to match detected units
+            from SquatchCut.core import session_state
+
+            session_state.set_measurement_system(csv_units)
 
         # Normalize units
         units_val = str(csv_units or "mm").lower()
@@ -142,22 +153,33 @@ class ImportCSVCommand:
                     # Validate file path
                     validated_path = validate_csv_file_path(file_path)
 
+                    from SquatchCut.core.csv_loader import detect_csv_units
                     from SquatchCut.core.preferences import SquatchCutPreferences
 
+                    # Auto-detect units but allow user override
+                    detected_units = detect_csv_units(validated_path)
                     prefs = SquatchCutPreferences()
-                    default_units = prefs.get_csv_units(prefs.get_measurement_system())
+
                     units, ok = QtWidgets.QInputDialog.getItem(
                         None,
                         "CSV units",
-                        "Select units for this CSV:",
-                        ["metric", "imperial"],
-                        current=0 if default_units == "metric" else 1,
+                        f"Auto-detected: {detected_units}. Override if needed:",
+                        ["auto (recommended)", "metric", "imperial"],
+                        current=0,  # Default to auto
                         editable=False,
                     )
                     if not ok:
                         return
+
+                    # Convert selection to actual units
+                    if units == "auto (recommended)":
+                        units = "auto"
+
                     run_csv_import(doc, validated_path, csv_units=units)
-                    prefs.set_csv_units(units)
+
+                    # Save the final detected/selected units
+                    final_units = detected_units if units == "auto" else units
+                    prefs.set_csv_units(final_units)
                 except Exception as e:
                     from SquatchCut.ui.error_handling import handle_command_error
 

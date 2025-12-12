@@ -1,0 +1,27 @@
+id,width,height,qty,allow_rotate
+Cabinet_Side_L,23 1/4,35 1/4,1,0
+Cabinet_Side_R,23 1/4,35 1/4,1,0
+Cabinet_Back,22 1/2,35 1/4,1,1
+Cabinet_Top,22 1/2,23 1/4,1,1
+Cabinet_Bottom,22 1/2,23 1/4,1,1
+Fixed_Shelf,22 1/2,23 1/4,2,1
+Adjustable_Shelf,22 1/2,23 1/4,3,1
+Door_L,11 3/4,34 1/2,1,0
+Door_R,11 3/4,34 1/2,1,0
+Drawer_Front_Top,22,6,1,0
+Drawer_Front_Mid,22,8,1,0
+Drawer_Front_Bot,22,10,1,0
+Drawer_Side_Top,22,6,2,0
+Drawer_Side_Mid,22,8,2,0
+Drawer_Side_Bot,22,10,2,0
+Drawer_Back_Top,21 1/4,5 1/4,1,0
+Drawer_Back_Mid,21 1/4,7 1/4,1,0
+Drawer_Back_Bot,21 1/4,9 1/4,1,0
+Drawer_Bottom_Top,21 1/2,21 1/2,1,1
+Drawer_Bottom_Mid,21 1/2,21 1/2,1,1
+Drawer_Bottom_Bot,21 1/2,21 1/2,1,1
+Face_Frame_Stile_L,1 1/2,35 1/4,1,0
+Face_Frame_Stile_R,1 1/2,35 1/4,1,0
+Face_Frame_Rail_Top,21,2,1,0
+Face_Frame_Rail_Mid,21,2,2,0
+Face_Frame_Rail_Bot,21,2,1,0
