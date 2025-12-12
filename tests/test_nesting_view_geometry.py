@@ -132,8 +132,14 @@ def test_nested_parts_z_placement_mocked():
         PlacedPart(id="P1", sheet_index=0, x=10.0, y=10.0, width=50.0, height=50.0),
     ]
 
+    # Create mock preferences that disable part labels to match original test expectations
+    mock_prefs = MagicMock()
+    mock_prefs.get_nesting_show_part_labels.return_value = False
+    mock_prefs.get_nesting_color_scheme.return_value = "default"
+    mock_prefs.get_nesting_simplified_view.return_value = False
+
     group, objs = nesting_view.rebuild_nested_geometry(
-        mock_doc, placements, sheet_sizes=[(200.0, 100.0)], prefs=None
+        mock_doc, placements, sheet_sizes=[(200.0, 100.0)], prefs=mock_prefs
     )
 
     assert len(objs) == 1

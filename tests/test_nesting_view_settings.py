@@ -5,6 +5,16 @@ import pytest
 from SquatchCut.core.preferences import SquatchCutPreferences
 
 
+@pytest.fixture(autouse=True)
+def reset_preferences():
+    """Reset preferences to defaults before each test to ensure isolation."""
+    # Clear the shared local dictionary
+    SquatchCutPreferences._local_shared.clear()
+    yield
+    # Clean up after test
+    SquatchCutPreferences._local_shared.clear()
+
+
 def test_nesting_view_preferences_defaults():
     """Test that nesting view preferences have correct default values."""
     prefs = SquatchCutPreferences()
