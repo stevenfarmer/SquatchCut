@@ -434,7 +434,8 @@ def rebuild_nested_geometry(
                 part_label = create_part_label(doc, pp, base_x, base_y, w, h, prefs)
                 if part_label:
                     group.addObject(part_label)
-                    nested_objs.append(part_label)
+                    # Note: Don't add labels to nested_objs - they're visual only
+                    # nested_objs should only contain actual parts for cutlist generation
             except Exception as e:
                 logger.warning(f"Failed to create part label for {name}: {e}")
 
