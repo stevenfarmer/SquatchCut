@@ -1,7 +1,7 @@
 # SquatchCut User Guide
 
-Version: v0.1 (UAT Build)  
-Applies to: FreeCAD 1.0+ and the SquatchCut add-on  
+Version: v0.1 (UAT Build)
+Applies to: FreeCAD 1.0+ and the SquatchCut add-on
 Refer to [`docs/Project_Guide_v3.3.md`](Project_Guide_v3.3.md) for the authoritative AI worker, UI, and hydration principles (v3.2 retained for history).
 
 ---
@@ -61,16 +61,16 @@ If you do not see these, make sure the add-on is enabled in the Add-on Manager.
 
 There are three main things SquatchCut manages:
 
-1. **Sheet**  
-   - The panel or plywood sheet you are cutting from.  
+1. **Sheet**
+   - The panel or plywood sheet you are cutting from.
    - Example: 4′ × 8′ (1220 × 2440 mm).
 
-2. **Source Parts**  
-   - Rectangular parts defined in your CSV file.  
+2. **Source Parts**
+   - Rectangular parts defined in your CSV file.
    - These are the requested pieces you want to cut.
 
-3. **Nested Parts**  
-   - The placed parts on the sheet after you run nesting.  
+3. **Nested Parts**
+   - The placed parts on the sheet after you run nesting.
    - This is the layout you’ll actually cut.
 
 SquatchCut keeps these organized in the FreeCAD document as:
@@ -250,7 +250,7 @@ You can:
 
 SquatchCut uses ordinary FreeCAD geometry, so you can:
 
-- Save the entire FreeCAD document as usual:  
+- Save the entire FreeCAD document as usual:
   **File → Save**
 - Export to DXF/SVG/PDF using:
   **File → Export**
@@ -264,7 +264,72 @@ Recommended workflow:
 
 ---
 
-## 8. Troubleshooting
+## 8. New UI Features & Keyboard Shortcuts
+
+### Keyboard Shortcuts
+
+SquatchCut now includes keyboard shortcuts for faster workflow:
+
+- **Ctrl+I** - Import CSV file
+- **Ctrl+R** or **F5** - Run nesting algorithm
+- **Ctrl+E** - Export cutlist to CSV
+- **Ctrl+Shift+S** - Open SquatchCut settings
+- **Ctrl+T** - Toggle source panels visibility
+- **Ctrl+Shift+R** - Reset view to fit all objects
+
+To see all available shortcuts, use the **Help → Keyboard Shortcuts** menu in SquatchCut.
+
+### Progress Indicators
+
+Long-running operations now show progress indicators:
+
+- **CSV Import** - Shows progress while reading and validating large files
+- **Nesting Operations** - Displays progress during complex nesting calculations
+- **Shape Creation** - Progress bar when creating many panel shapes
+- **Export Operations** - Progress feedback during file exports
+
+These indicators help you understand when operations are working and provide estimated completion times for large datasets.
+
+### Enhanced Error Messages
+
+SquatchCut now provides clearer, more helpful error messages:
+
+- **Validation Errors** - Specific guidance on fixing input problems
+- **File Errors** - Clear explanations of file format or path issues
+- **Nesting Errors** - Detailed information about why nesting failed
+- **Recovery Actions** - Step-by-step instructions to resolve problems
+
+When errors occur, look for:
+- A clear description of what went wrong
+- Specific details about the problem
+- Actionable steps to fix the issue
+
+### Performance Improvements
+
+For large datasets (1000+ parts), SquatchCut now includes:
+
+- **Memory Optimization** - Efficient handling of large CSV files
+- **Performance Monitoring** - Automatic detection of slow operations
+- **Resource Warnings** - Alerts when working with very large datasets
+- **Batch Processing** - Improved handling of complex nesting jobs
+
+You'll see performance information in the FreeCAD Report View for operations that take longer than expected.
+
+### Enhanced Nesting View
+
+The nesting visualization has been improved with:
+
+- **Color Schemes** - Multiple color palettes including high-contrast options
+- **Display Options** - Choose between transparent, wireframe, or solid part display
+- **Sheet Layouts** - Options for side-by-side or stacked sheet arrangements
+- **Part Labels** - Optional display of part IDs and names on nested pieces
+- **Quick Toggles** - Easy controls for common view adjustments
+
+Access these options through the nesting view preferences in the Settings panel.
+
+---
+
+## 9. Troubleshooting
 
 ### I don’t see the SquatchCut toolbar
 
@@ -299,7 +364,7 @@ Recommended workflow:
 
 ---
 
-## 9. Getting Help / Reporting Issues
+## 10. Getting Help / Reporting Issues
 
 If you’re part of a UAT or volunteer test group:
 

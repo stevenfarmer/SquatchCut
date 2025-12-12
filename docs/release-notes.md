@@ -2,6 +2,41 @@
 
 ## Unreleased
 
+### UI/UX Enhancements & Performance Improvements
+
+#### New Features
+- **Keyboard Shortcuts**: Added comprehensive keyboard shortcuts for common operations (Ctrl+I for import, Ctrl+R/F5 for nesting, Ctrl+E for export, etc.)
+- **Progress Indicators**: Long-running operations now show progress dialogs with visual feedback and estimated completion times
+- **Enhanced Error Handling**: Standardized error messages with clear descriptions, technical details, and actionable recovery instructions
+- **Performance Monitoring**: Automatic detection and logging of slow operations with configurable thresholds
+- **Large Dataset Support**: Optimized handling of 1000+ parts with memory management and resource warnings
+
+#### Enhanced Nesting View
+- **Color Schemes**: Multiple color palettes including high-contrast accessibility options
+- **Display Modes**: Choose between transparent, wireframe, or solid part visualization
+- **Sheet Layouts**: Options for side-by-side or stacked sheet arrangements
+- **Part Labels**: Optional display of part IDs and names on nested pieces
+- **Quick Toggles**: Easy controls for common view adjustments
+
+#### Developer Improvements
+- **Input Validation Framework**: Comprehensive validation utilities for user inputs with proper error handling
+- **Performance Utils**: Decorators and utilities for monitoring performance and handling large datasets
+- **Batch Processing**: Memory-efficient processing utilities for large operations
+- **Progress Tracking**: Reusable progress tracking components with ETA calculations
+
+#### Bug Fixes
+- Fixed quantity validation edge case where 0 was treated as default value
+- Corrected imperial unit conversion in validation functions
+- Improved filename sanitization for export operations
+- Enhanced error propagation in panel validation
+
+#### Testing
+- Added 68 new tests covering UI interactions, performance utilities, and input validation
+- Comprehensive test coverage for error conditions and edge cases
+- Accessibility testing framework for keyboard navigation and screen reader support
+
+## Previous Release
+
 ### Highlights
 - Per-part 0°/90° rotation support driven by optional `allow_rotate` CSV column and `SquatchCutCanRotate` property; defaults to no rotation when missing.
 - Separate kerf (between adjacent parts) and gap/halo (around parts and sheet edges) controls passed into nesting.
