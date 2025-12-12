@@ -582,9 +582,8 @@ class TestPerformanceIntegration:
         assert len(result1) == len(result2)
         assert all(p1.id == p2.id for p1, p2 in zip(result1, result2))
 
-        # Second call should be much faster (cached)
-        # Note: On CI, timing can be flaky, so we use a generous threshold (50%)
-        # or rely on the call count verification in other tests.
+        # Second call should be faster (cached). On CI, timing can be flaky,
+        # so we allow a generous 50% threshold.
         assert second_call_time < first_call_time * 0.5
 
     def test_performance_monitoring_integration(self):
