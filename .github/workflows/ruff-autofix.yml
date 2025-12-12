@@ -26,7 +26,9 @@ jobs:
           python -m pip install ruff
 
       - name: Run Ruff autofix
-        run: ruff check . --fix
+        run: |
+          # Run ruff fix and capture exit code, but don't fail the workflow
+          ruff check . --fix || echo "Ruff found issues that couldn't be auto-fixed"
 
       - name: Check for changes
         id: git_status

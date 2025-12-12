@@ -147,20 +147,20 @@ class TestRunNestingCommand:
 
         # Test with regular CSV data (should return False)
         csv_panels = [{"id": "panel1", "width": 100, "height": 200}]
-        assert command._should_use_geometric_nesting(csv_panels) == False
+        assert not command._should_use_geometric_nesting(csv_panels)
 
         # Test with shape-based data (should return True)
         shape_panels = [
             {"id": "shape1", "width": 100, "height": 200, "source": "freecad_shape"}
         ]
-        assert command._should_use_geometric_nesting(shape_panels) == True
+        assert command._should_use_geometric_nesting(shape_panels)
 
         # Test with mixed data (should return True if any shape-based)
         mixed_panels = [
             {"id": "panel1", "width": 100, "height": 200},
             {"id": "shape1", "width": 150, "height": 250, "source": "freecad_shape"},
         ]
-        assert command._should_use_geometric_nesting(mixed_panels) == True
+        assert command._should_use_geometric_nesting(mixed_panels)
 
     def test_command_has_required_methods(self):
         """Test that command has all required methods."""
@@ -247,7 +247,7 @@ class TestGUIValidationState:
                         panel = SquatchCutTaskPanel()
 
                         # Should indicate no CSV data
-                        assert panel.has_csv_data == False
+                        assert not panel.has_csv_data
 
     def test_validation_state_with_csv_data(self):
         """Test validation state when CSV data is loaded."""
@@ -275,7 +275,7 @@ class TestGUIValidationState:
                         panel._on_data_changed()
 
                         # Should indicate CSV data is present
-                        assert panel.has_csv_data == True
+                        assert panel.has_csv_data
 
 
 class TestGUIWorkflowIntegration:

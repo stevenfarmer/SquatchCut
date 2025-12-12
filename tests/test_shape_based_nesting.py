@@ -411,7 +411,7 @@ class TestComplexGeometryProperties:
         )
 
         # Identical geometries at same position should overlap
-        assert geom1.check_overlap(identical_geom) == True
+        assert geom1.check_overlap(identical_geom)
 
         # Test symmetry: if A overlaps B, then B overlaps A
         overlap_ab = geom1.check_overlap(geom2)

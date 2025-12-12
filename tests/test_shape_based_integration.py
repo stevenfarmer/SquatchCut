@@ -90,7 +90,7 @@ class TestShapeBasedIntegration:
                         panel._on_shapes_selected()
 
                         # Should update status and validation
-                        assert panel.has_csv_data == True  # Treat shapes like CSV data
+                        assert panel.has_csv_data  # Treat shapes like CSV data
 
     def test_nesting_command_detects_shape_based_data(self):
         """Test that RunNestingCommand can detect shape-based data."""
@@ -100,20 +100,20 @@ class TestShapeBasedIntegration:
 
         # Test with CSV data (should return False)
         csv_panels = [{"id": "panel1", "width": 100, "height": 200}]
-        assert command._should_use_geometric_nesting(csv_panels) == False
+        assert not command._should_use_geometric_nesting(csv_panels)
 
         # Test with shape-based data (should return True)
         shape_panels = [
             {"id": "shape1", "width": 100, "height": 200, "source": "freecad_shape"}
         ]
-        assert command._should_use_geometric_nesting(shape_panels) == True
+        assert command._should_use_geometric_nesting(shape_panels)
 
         # Test with mixed data (should return True if any shape-based)
         mixed_panels = [
             {"id": "panel1", "width": 100, "height": 200},
             {"id": "shape1", "width": 150, "height": 250, "source": "freecad_shape"},
         ]
-        assert command._should_use_geometric_nesting(mixed_panels) == True
+        assert command._should_use_geometric_nesting(mixed_panels)
 
     @patch("SquatchCut.gui.commands.cmd_run_nesting.GeometryNestingEngine")
     def test_geometric_nesting_integration(self, mock_engine_class):

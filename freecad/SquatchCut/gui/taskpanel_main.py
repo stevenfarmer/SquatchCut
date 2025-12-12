@@ -273,7 +273,7 @@ class SquatchCutTaskPanel:
         self.export_format_combo.addItem("DXF", "dxf")
         self.export_format_combo.addItem("SVG", "svg")
         self.export_format_combo.addItem("Cut list CSV", "cutlist_csv")
-        self.export_format_combo.addItem("Cut list script (text)", "cutlist_script")
+        self.export_format_combo.addItem("Cut list instructions (text)", "cutlist_txt")
 
         self.export_button = QtWidgets.QPushButton("Export Layout")
         self.export_button.clicked.connect(self.on_export_clicked)
@@ -611,7 +611,7 @@ class SquatchCutTaskPanel:
             return
 
         try:
-            if fmt == "cutlist_script":
+            if fmt == "cutlist_txt":
                 exporter.export_cutlist(export_job, file_path, as_text=True)
             elif fmt == "cutlist_csv":
                 exporter.export_cutlist(export_job, file_path)

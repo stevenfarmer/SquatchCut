@@ -1,6 +1,5 @@
 """Tests for grain direction support in nesting."""
 
-
 from SquatchCut.core.grain_direction import (
     GrainAwarePart,
     GrainConstraints,
@@ -115,7 +114,7 @@ class TestGrainInference:
         assert grain == GrainDirection.ANY
 
         # Slightly rectangular but not extreme
-        grain = infection_from_dimensions(120, 100)
+        grain = infer_grain_direction_from_dimensions(120, 100)
         assert grain == GrainDirection.ANY
 
     def test_infer_edge_cases(self):
