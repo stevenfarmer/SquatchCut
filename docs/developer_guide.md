@@ -279,3 +279,197 @@ def test_validation_function():
     assert "expected error message" in str(exc_info.value.message)
     assert exc_info.value.user_action is not None
 ```
+
+## Property-Based Testing with Hypothesis
+
+SquatchCut uses property-based testing (PBT) with the Hypothesis framework to automatically generate test cases and find edge cases that traditional unit tests might miss.
+
+### What is Property-Based Testing?
+
+Instead of writing specific test cases with fixed inputs, property-based testing:
+
+1. **Defines properties** that should always be true
+2. **Generates random inputs** automatically
+3. **Finds counterexamples** when properties fail
+4. **Shrinks failures** to minimal failing cases
+
+### Running Property-Based Tests
+
+```bash
+# Run all property-based tests
+export PYTHONPATH=$PYTHONPATH:$(pwd)/freecad && pytest tests/test_property_based*.py -v
+
+# Run with more examples (slower but more thorough)
+export PYTHONPATH=$PYTHONPATH:$(pwd)/freecad && pytest tests/test_property_based*.py --hypothesis-show-statistics
+```
+
+### Core Property Tests (`tests/test_property_based.py`)
+
+#### Unit Conversion Properties
+
+```python
+@given(st.floats(min_value=0.001, max_value=10000.0))
+def test_mm_to_inches_roundtrip(self, mm_value):
+    """Property: Converting mm to inches and back should preserve the value."""
+    inches = mm_to_inches(mm_value)
+    back_to_mm = inches_to_mm(inches)
+    assert abs(mm_value - back_to_mm) < 0.001
+```
+
+#### Nesting Algorithm Properties
+
+```python
+@given(valid_parts(max_parts=20), valid_sheet_size())
+def test_nesting_no_overlaps(self, parts, sheet_size):
+    """Property: Nested parts should never overlap on the same sheet."""
+    # Automatically tests with thousands of random part configurations
+```
+
+#### Stateful Testing
+
+Uses `RuleBasedStateMachine` to test complex sequences of operations:
+
+```python
+class NestingStateMachine(RuleBasedStateMachine):
+    @rule(part_width=st.floats(min_value=10, max_value=200))
+    def add_part(self, part_width, part_height, can_rotate):
+        """Add a part to the collection."""
+
+    @rule()
+    def run_nesting(self):
+        """Run nesting on current parts."""
+
+    @invariant()
+    def no_overlaps_invariant(self):
+        """Invariant: Placed parts should never overlap."""
+```
+
+### Advanced Feature Properties (`tests/test_property_based_advanced.py`)
+
+#### Genetic Algorithm Properties
+
+```python
+@given(genetic_configs())
+def test_genetic_config_validity(self, config):
+    """Property: All genetic configurations should be valid."""
+    assert config.population_size > 0
+    assert 0.0 <= config.mutation_rate <= 1.0
+```
+
+#### Grain Direction Properties
+
+```python
+@given(st.floats(min_value=1.0, max_value=1000.0))
+def test_grain_inference_consistency(self, width, height):
+    """Property: Grain inference should be consistent and logical."""
+    grain = infer_grain_direction_from_dimensions(width, height)
+    # Verifies logical grain direction based on aspect ratio
+```
+
+#### Performance Enhancement Properties
+
+```python
+@given(valid_parts_list, sheet_dimensions)
+def test_caching_consistency(self, parts, sheet_width, sheet_height):
+    """Property: Caching should return identical results for identical inputs."""
+    # Tests that caching doesn't change functional behavior
+```
+
+### Writing New Property Tests
+
+#### 1. Define Custom Strategies
+
+```python
+@st.composite
+def valid_parts(draw, max_parts=50):
+    """Generate valid Part objects."""
+    num_parts = draw(st.integers(min_value=1, max_value=max_parts))
+    parts = []
+    for i in range(num_parts):
+        part = Part(
+            id=f"Part_{i}",
+            width=draw(st.floats(min_value=1.0, max_value=5000.0)),
+            height=draw(st.floats(min_value=1.0, max_value=5000.0)),
+            can_rotate=draw(st.booleans()),
+        )
+        parts.append(part)
+    return parts
+```
+
+#### 2. Write Property Tests
+
+```python
+@given(valid_parts(max_parts=10))
+@settings(max_examples=50, deadline=5000)  # Control test parameters
+def test_my_property(self, parts):
+    """Property: Description of what should always be true."""
+    assume(len(parts) > 0)  # Add assumptions to filter inputs
+
+    result = my_function(parts)
+
+    # Assert properties that should always hold
+    assert len(result) <= len(parts)
+    assert all(r.id in [p.id for p in parts] for r in result)
+```
+
+#### 3. Handle Edge Cases
+
+```python
+@given(st.floats(allow_nan=False, allow_infinity=False))
+def test_robust_function(self, value):
+    """Property: Function should handle all valid float inputs."""
+    assume(value > 0)  # Filter to valid domain
+
+    try:
+        result = my_function(value)
+        assert result >= 0  # Property that should hold
+    except ValueError:
+        # Some inputs may legitimately fail - that's OK
+        pass
+```
+
+### Property Test Guidelines
+
+#### Best Practices
+
+1. **Start simple** - Test basic properties first
+2. **Use assumptions** to filter inputs to valid domains
+3. **Allow legitimate failures** - Not all random inputs should succeed
+4. **Test invariants** - Properties that should always hold
+5. **Use appropriate timeouts** - Complex algorithms need longer deadlines
+
+#### Common Property Types
+
+1. **Roundtrip properties** - `f(g(x)) == x`
+2. **Invariant properties** - Something that never changes
+3. **Postcondition properties** - Output always satisfies conditions
+4. **Metamorphic properties** - Relationship between different inputs
+5. **Model-based properties** - Compare against simpler reference implementation
+
+#### Debugging Failed Properties
+
+When Hypothesis finds a failing case:
+
+1. **Look at the minimal example** - Hypothesis shrinks to simplest failure
+2. **Add logging** to understand what's happening
+3. **Use `@example` decorator** to add the failing case as a regression test
+4. **Fix the underlying issue** or adjust the property if it's too strict
+
+```python
+@given(st.integers())
+@example(42)  # Add specific failing case as regression test
+def test_my_property(self, value):
+    # Property test implementation
+```
+
+### Integration with CI/CD
+
+Property-based tests run automatically in the test suite and help catch:
+
+- **Edge cases** in unit conversions and measurements
+- **Algorithmic bugs** in nesting and optimization
+- **Performance regressions** with large datasets
+- **Data integrity issues** in export/import functions
+- **UI state inconsistencies** in complex workflows
+
+The comprehensive property test suite provides confidence that SquatchCut handles the wide variety of real-world inputs users will provide.
