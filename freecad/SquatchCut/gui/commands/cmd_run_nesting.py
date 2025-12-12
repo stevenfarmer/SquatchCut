@@ -697,11 +697,79 @@ class ExportNestingCSVCommand:
                 )
 
 
+class PreviewNestingCommand:
+    """
+    Non-destructive preview version of nesting that creates temporary geometry.
+    Unlike RunNestingCommand, this doesn't permanently modify session state.
+    """
+
+    def GetResources(self):
+        return {
+            "MenuText": "Preview Nesting",
+            "ToolTip": "Preview nesting layout without permanent changes.",
+            "Pixmap": "",
+        }
+
+    def IsActive(self):
+        return App is not None and Gui is not None and App.ActiveDocument is not None
+
+    def Activated(self):
+        """Run nesting calculations and create temporary preview geometry."""
+        if App is None or Gui is None:
+            return
+
+        try:
+            # Save current session state to restore later
+            saved_layout = session_state.get_last_layout()
+            saved_stats = session_state.get_nesting_stats()
+
+            # Run the same nesting logic as RunNestingCommand but don't save results permanently
+            cmd = RunNestingCommand()
+            cmd.Activated()
+
+            # Get the preview results
+            preview_layout = session_state.get_last_layout()
+            preview_stats = session_state.get_nesting_stats()
+
+            # Restore original session state (making this non-destructive)
+            session_state.set_last_layout(saved_layout)
+            session_state.set_nesting_stats(
+                saved_stats.get("sheets_used") if saved_stats else None,
+                saved_stats.get("cut_complexity") if saved_stats else None,
+                saved_stats.get("overlaps_count") if saved_stats else None,
+            )
+
+            # Mark the current geometry as preview by adding a property or different naming
+            doc = App.ActiveDocument
+            if doc:
+                # Add a custom property to nested parts to mark them as preview
+                nested_group = doc.getObject("SquatchCut_NestedParts")
+                if nested_group:
+                    try:
+                        # Add a custom property to mark this as preview geometry
+                        if not hasattr(nested_group, "IsPreview"):
+                            nested_group.addProperty(
+                                "App::PropertyBool",
+                                "IsPreview",
+                                "SquatchCut",
+                                "Marks this as preview geometry",
+                            )
+                        nested_group.IsPreview = True
+                    except Exception:
+                        pass
+
+            logger.info("[SquatchCut] Preview nesting complete (non-destructive)")
+
+        except Exception as e:
+            logger.error(f"Error in PreviewNestingCommand.Activated(): {e!r}")
+
+
 if Gui is not None:
     Gui.addCommand("SquatchCut_ToggleSourcePanels", ToggleSourcePanelsCommand())
     Gui.addCommand("SquatchCut_ExportNestingCSV", ExportNestingCSVCommand())
     Gui.addCommand("SquatchCut_RunNesting", RunNestingCommand())
     Gui.addCommand("SquatchCut_ApplyNesting", ApplyNestingCommand())
+    Gui.addCommand("SquatchCut_PreviewNesting", PreviewNestingCommand())
 
 # Exported command instance used by InitGui.py
 COMMAND = RunNestingCommand()

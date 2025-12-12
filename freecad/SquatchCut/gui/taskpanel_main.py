@@ -33,7 +33,11 @@ class SquatchCutTaskPanel:
         effective_doc = doc or (App.ActiveDocument if App is not None else None)
         test_override = self.__class__._test_force_measurement_system
         self.__class__._test_force_measurement_system = None
-        doc_units = test_override if test_override in ("metric", "imperial") else session.detect_document_measurement_system(effective_doc)
+        doc_units = (
+            test_override
+            if test_override in ("metric", "imperial")
+            else session.detect_document_measurement_system(effective_doc)
+        )
 
         self.doc = effective_doc
         self._close_callback: Callable[[], None] | None = None
@@ -54,9 +58,9 @@ class SquatchCutTaskPanel:
 
         # Force unit update if mismatch (fixes initialization default)
         if self.sheet_widget.units_combo.currentData() != self.measurement_system:
-             idx = self.sheet_widget.units_combo.findData(self.measurement_system)
-             if idx >= 0:
-                 self.sheet_widget.units_combo.setCurrentIndex(idx)
+            idx = self.sheet_widget.units_combo.findData(self.measurement_system)
+            if idx >= 0:
+                self.sheet_widget.units_combo.setCurrentIndex(idx)
 
     def set_close_callback(self, callback: Callable[[], None]) -> None:
         self._close_callback = callback
@@ -202,7 +206,9 @@ class SquatchCutTaskPanel:
         self.cutcount_label = QtWidgets.QLabel("Estimated cuts: –")
         self.unplaced_label = QtWidgets.QLabel("Unplaced parts: –")
         self.stats_sheets_label = QtWidgets.QLabel("Number of sheets used: –")
-        self.stats_complexity_label = QtWidgets.QLabel("Estimated cut path complexity: –")
+        self.stats_complexity_label = QtWidgets.QLabel(
+            "Estimated cut path complexity: –"
+        )
         self.overlaps_label = QtWidgets.QLabel("Overlaps: –")
 
         stats_layout.addRow("Mode:", self.mode_label)
@@ -236,7 +242,9 @@ class SquatchCutTaskPanel:
         self.include_labels_check = QtWidgets.QCheckBox("Include part labels")
         self.include_dimensions_check = QtWidgets.QCheckBox("Include dimensions")
         self.include_labels_check.stateChanged.connect(self._on_export_options_changed)
-        self.include_dimensions_check.stateChanged.connect(self._on_export_options_changed)
+        self.include_dimensions_check.stateChanged.connect(
+            self._on_export_options_changed
+        )
 
         export_layout.addWidget(QtWidgets.QLabel("Export format:"))
         export_layout.addWidget(self.export_format_combo)
@@ -251,8 +259,14 @@ class SquatchCutTaskPanel:
 
         return group
 
-    def _compute_initial_state(self, doc, doc_measurement_system: str | None = None) -> dict:
-        override = doc_measurement_system if doc_measurement_system in ("metric", "imperial") else None
+    def _compute_initial_state(
+        self, doc, doc_measurement_system: str | None = None
+    ) -> dict:
+        override = (
+            doc_measurement_system
+            if doc_measurement_system in ("metric", "imperial")
+            else None
+        )
         try:
             settings.hydrate_from_params(measurement_override=override)
         except Exception:
@@ -286,7 +300,11 @@ class SquatchCutTaskPanel:
             "margin_mm": margin_mm,
             "kerf_width_mm": session_state.get_kerf_width_mm(),
             "cut_mode": session_state.get_optimize_for_cut_path(),
-            "job_allow_rotate": session_state.get_job_allow_rotate() if session_state.get_job_allow_rotate() is not None else session_state.get_default_allow_rotate(),
+            "job_allow_rotate": (
+                session_state.get_job_allow_rotate()
+                if session_state.get_job_allow_rotate() is not None
+                else session_state.get_default_allow_rotate()
+            ),
             "mode": session_state.get_optimization_mode(),
             "csv_units": self._prefs.get_csv_units(measurement_system),
             "include_labels": self._prefs.get_export_include_labels(),
@@ -321,7 +339,7 @@ class SquatchCutTaskPanel:
         # Propagate to other widgets
         self.input_widget.on_units_changed()
         self.nesting_widget.update_unit_labels()
-        self._refresh_summary() # Update labels if needed?
+        self._refresh_summary()  # Update labels if needed?
 
         # Re-apply defaults if doc exists?
         # Logic from old taskpanel... simplified here.
@@ -338,7 +356,7 @@ class SquatchCutTaskPanel:
 
     def _on_nesting_settings_changed(self):
         self._update_cut_mode_sheet_warning()
-        self._refresh_summary() # Update labels (Mode)
+        self._refresh_summary()  # Update labels (Mode)
 
     def _update_cut_mode_sheet_warning(self) -> None:
         advanced = session_state.is_job_sheets_mode()
@@ -403,6 +421,7 @@ class SquatchCutTaskPanel:
         return doc
 
     def _cleanup_preview_geometry(self, doc) -> None:
+        """Clean up any existing preview or applied geometry."""
         if doc is None:
             return
         try:
@@ -410,18 +429,58 @@ class SquatchCutTaskPanel:
         except Exception as exc:
             logger.warning(f"Cleanup failed: {exc}")
 
+    def _cleanup_preview_artifacts(self, doc) -> None:
+        """Clean up preview-specific artifacts before applying."""
+        if doc is None:
+            return
+        try:
+            # Look for geometry marked as preview and clean it up
+            nested_group = doc.getObject("SquatchCut_NestedParts")
+            if (
+                nested_group
+                and hasattr(nested_group, "IsPreview")
+                and nested_group.IsPreview
+            ):
+                # Clear preview geometry before applying
+                view_controller.clear_squatchcut_groups(doc)
+                logger.info("[SquatchCut] Cleaned up preview artifacts before apply")
+        except Exception as exc:
+            logger.warning(f"Preview cleanup failed: {exc}")
+
     def on_preview_clicked(self):
+        """Run non-destructive preview that doesn't permanently change session state."""
         doc = self._ensure_document()
         if not doc:
             return
+
+        # Clean up any existing geometry
         self._cleanup_preview_geometry(doc)
-        self._run_nesting(apply_to_doc=False, doc=doc)
+
+        # Use the preview command instead of the regular nesting command
+        try:
+            from SquatchCut.gui.commands.cmd_run_nesting import PreviewNestingCommand
+
+            cmd = PreviewNestingCommand()
+            cmd.Activated()
+
+            # Update UI with preview results (but don't save to session permanently)
+            self._refresh_summary()
+            self._validate_readiness()
+
+        except Exception as exc:
+            show_error(f"Preview failed:\n{exc}", title="SquatchCut")
+            return
 
     def on_apply_clicked(self):
+        """Apply nesting permanently, cleaning up any preview artifacts first."""
         doc = self._ensure_document()
         if not doc:
             return
-        self._cleanup_preview_geometry(doc)
+
+        # Clean up preview artifacts before applying
+        self._cleanup_preview_artifacts(doc)
+
+        # Run the regular nesting command for permanent application
         self._run_nesting(apply_to_doc=True, doc=doc)
 
     def _run_nesting(self, apply_to_doc: bool = True, doc=None):
@@ -456,7 +515,9 @@ class SquatchCutTaskPanel:
         cuts = estimate_cut_counts(layout, float(sheet_w), float(sheet_h))
 
         self.sheets_label.setText(f"Sheets used: {util.get('sheets_used', 0)}")
-        self.utilization_label.setText(f"Utilization: {util.get('utilization_percent', 0.0):.1f}%")
+        self.utilization_label.setText(
+            f"Utilization: {util.get('utilization_percent', 0.0):.1f}%"
+        )
         self.cutcount_label.setText(f"Estimated cuts: {cuts.get('total', 0)}")
 
         stats = session_state.get_nesting_stats()
@@ -470,18 +531,27 @@ class SquatchCutTaskPanel:
 
     def _on_export_options_changed(self):
         self._prefs.set_export_include_labels(self.include_labels_check.isChecked())
-        self._prefs.set_export_include_dimensions(self.include_dimensions_check.isChecked())
+        self._prefs.set_export_include_dimensions(
+            self.include_dimensions_check.isChecked()
+        )
 
     def on_export_clicked(self):
-        export_job = exporter.build_export_job_from_current_nesting(self._ensure_document())
+        export_job = exporter.build_export_job_from_current_nesting(
+            self._ensure_document()
+        )
         if not export_job:
             self.set_status("No layout to export.")
             return
 
         fmt = self.export_format_combo.currentData()
         # ... logic similar to before, simplified ...
-        initial_path = exporter.suggest_export_path(self._ensure_document(), "." + fmt.split("_")[-1] if "_" in fmt else "." + fmt)
-        file_path, _ = QtWidgets.QFileDialog.getSaveFileName(None, "Export", initial_path, "All files (*.*)")
+        initial_path = exporter.suggest_export_path(
+            self._ensure_document(),
+            "." + fmt.split("_")[-1] if "_" in fmt else "." + fmt,
+        )
+        file_path, _ = QtWidgets.QFileDialog.getSaveFileName(
+            None, "Export", initial_path, "All files (*.*)"
+        )
         if not file_path:
             return
 
@@ -491,9 +561,12 @@ class SquatchCutTaskPanel:
             elif fmt == "cutlist_csv":
                 exporter.export_cutlist(export_job, file_path)
             elif fmt == "svg":
-                exporter.export_nesting_to_svg(export_job, file_path,
+                exporter.export_nesting_to_svg(
+                    export_job,
+                    file_path,
                     include_labels=self.include_labels_check.isChecked(),
-                    include_dimensions=self.include_dimensions_check.isChecked())
+                    include_dimensions=self.include_dimensions_check.isChecked(),
+                )
             elif fmt == "dxf":
                 exporter.export_nesting_to_dxf(export_job, file_path)
 
@@ -547,7 +620,10 @@ class SquatchCutTaskPanel:
             pass
         self._notify_close()
 
+
 # Factory
 def create_main_panel_for_tests():
-    SquatchCutTaskPanel._test_force_measurement_system = session_state.get_measurement_system()
+    SquatchCutTaskPanel._test_force_measurement_system = (
+        session_state.get_measurement_system()
+    )
     return SquatchCutTaskPanel()
