@@ -13,6 +13,10 @@
         <link rel="canonical" href="https://stevenfarmer.github.io/SquatchCut/TESTING/">
       
       
+        <link rel="prev" href="../developer_guide/">
+      
+      
+        <link rel="next" href="../quickstart/">
       
       
         
@@ -23,7 +27,7 @@
     
     
       
-        <title>SquatchCut Testing & QA Guide - SquatchCut</title>
+        <title>Testing Guide - SquatchCut</title>
       
     
     
@@ -110,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              SquatchCut Testing &amp; QA Guide
+              Testing Guide
             
           </span>
         </div>
@@ -330,7 +334,7 @@
   <span class="md-ellipsis">
     
   
-    Project Guide v3.2 (Archive)
+    Project Guide v3.2 (Historical)
   
 
     
@@ -517,6 +521,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../user_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../user/commands/" class="md-nav__link">
         
   
@@ -577,8 +609,10 @@
       
   
   
+    
   
   
+  
     
     
     
@@ -589,11 +623,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
         
           
           <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
@@ -614,7 +648,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
@@ -695,7 +729,421 @@
   <span class="md-ellipsis">
     
   
-    AI Workflows
+    AI Worker Workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Development_Environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development Environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developer_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing Guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-core-tests-no-freecad-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Core Tests (No FreeCAD Required)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Core Tests (No FreeCAD Required)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-setup-first-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1. Setup (first time)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-run-core-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2. Run core tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-freecad-integration-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. FreeCAD Integration Tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. FreeCAD Integration Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-ensure-pytest-is-installed-in-freecad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1. Ensure pytest is installed in FreeCAD
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-run-integration-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2. Run integration tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-running-gui-smoke-tests-from-freecad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3. Running GUI smoke tests from FreeCAD
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-manual-qa-checklist-in-freecad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Manual QA Checklist in FreeCAD
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Manual QA Checklist in FreeCAD">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-settings-panel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1. Settings panel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-csv-import-with-rotation-specified" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2. CSV import with rotation specified
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-csv-import-without-rotation-column-default-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3. CSV import without rotation column (default behavior)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-nesting-placement-no-overlaps-multiple-sheets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4. Nesting placement (no overlaps, multiple sheets)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-csv-export-of-nesting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5. CSV export of nesting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#36-error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6. Error handling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#37-ui-smoke-fast-pass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.7. UI Smoke (fast pass)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-running-tests-inside-the-dockerdevcontainer-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Running tests inside the Docker/devcontainer environment
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Running tests inside the Docker/devcontainer environment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-build-and-launch-the-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Build and launch the container
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-running-tests-in-the-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Running tests in the container
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-useful-pytest-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Useful pytest options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
   
 
     
@@ -870,6 +1318,177 @@
     
   
     Lessons Learned
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Management
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project Management
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../UAT_Checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UAT Checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../UAT_Prep_Instructions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UAT Prep Instructions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backlog_archive_v3.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backlog Archive v3.2
   
 
     
