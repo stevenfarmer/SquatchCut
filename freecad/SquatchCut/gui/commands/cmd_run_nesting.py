@@ -3,10 +3,16 @@ FreeCAD command to run the SquatchCut nesting engine and create geometry.
 Primary user entry is via SquatchCut_ShowTaskPanel; this command remains for advanced/legacy flows.
 """
 
-import traceback
-
 from SquatchCut.core import logger, session, session_state, view_controller
+from SquatchCut.core.complex_geometry import (
+    create_rectangular_geometry,
+)
 from SquatchCut.core.cut_optimization import estimate_cut_path_complexity
+from SquatchCut.core.geometry_nesting_engine import (
+    GeometryNestingEngine,
+    NestingMode,
+    SheetGeometry,
+)
 from SquatchCut.core.nesting import (
     NestingConfig,
     NestingValidationError,
@@ -23,19 +29,10 @@ from SquatchCut.core.nesting import (
     nest_parts,
     validate_parts_fit_sheet,
 )  # type: ignore
-from SquatchCut.core.performance_utils import (
-    performance_monitor,
-    check_system_resources,
-)
 from SquatchCut.core.overlap_check import detect_overlaps
-from SquatchCut.core.geometry_nesting_engine import (
-    GeometryNestingEngine,
-    SheetGeometry,
-    NestingMode,
-)
-from SquatchCut.core.complex_geometry import (
-    ComplexGeometry,
-    create_rectangular_geometry,
+from SquatchCut.core.performance_utils import (
+    check_system_resources,
+    performance_monitor,
 )
 from SquatchCut.core.session_state import (
     get_allowed_rotations_deg,
@@ -52,7 +49,6 @@ from SquatchCut.core.sheet_model import build_sheet_boundaries, compute_sheet_sp
 from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.gui.icons import get_icon
 from SquatchCut.gui.nesting_view import rebuild_nested_geometry
-from SquatchCut.gui.qt_compat import QtWidgets
 from SquatchCut.gui.view_helpers import (
     fit_view_to_sheet_and_nested,
     fit_view_to_source,
@@ -345,12 +341,11 @@ class RunNestingCommand:
 
                         if use_genetic:
                             from SquatchCut.core.genetic_nesting import (
-                                genetic_nest_parts,
                                 GeneticConfig,
+                                genetic_nest_parts,
                             )
                             from SquatchCut.core.grain_direction import (
                                 add_grain_info_to_parts,
-                                GrainConstraints,
                             )
 
                             # Convert parts to grain-aware parts
@@ -755,8 +750,9 @@ class RunNestingCommand:
             return None
 
         try:
-            show_source_and_sheet(doc)
-            fit_view_to_source(doc)
+            if App.ActiveDocument:
+                show_source_and_sheet(App.ActiveDocument)
+                fit_view_to_source(App.ActiveDocument)
         except Exception:
             pass
 
@@ -994,9 +990,9 @@ class PreviewNestingCommand:
             cmd = RunNestingCommand()
             cmd.Activated()
 
-            # Get the preview results
-            preview_layout = session_state.get_last_layout()
-            preview_stats = session_state.get_nesting_stats()
+            # Get the preview results (for potential future use)
+            # preview_layout = session_state.get_last_layout()
+            # preview_stats = session_state.get_nesting_stats()
 
             # Restore original session state (making this non-destructive)
             session_state.set_last_layout(saved_layout)

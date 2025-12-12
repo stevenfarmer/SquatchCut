@@ -8,17 +8,16 @@ shape information display.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Optional, Dict, Any, Tuple
+from typing import Any
+
+from SquatchCut.core import session_state
+from SquatchCut.core import units as sc_units
+from SquatchCut.core.complex_geometry import (
+    GeometryType,
+)
 
 # Qt bindings (FreeCAD ships PySide / PySide2, not PySide6)
 from SquatchCut.gui.qt_compat import QtCore, QtWidgets
-from SquatchCut.core.complex_geometry import (
-    ComplexGeometry,
-    GeometryType,
-    ComplexityLevel,
-)
-from SquatchCut.core import units as sc_units
-from SquatchCut.core import session_state
 
 
 @dataclass
@@ -27,12 +26,12 @@ class ShapeInfo:
 
     freecad_object: Any
     label: str
-    dimensions: Tuple[float, float, float]  # width, height, depth in mm
+    dimensions: tuple[float, float, float]  # width, height, depth in mm
     geometry_type: GeometryType
     complexity_score: float
-    preview_data: Optional[str] = None
+    preview_data: str | None = None
     extraction_method: str = "bounding_box"
-    area_mm2: Optional[float] = None
+    area_mm2: float | None = None
 
 
 class PreviewWidget(QtWidgets.QWidget):
@@ -107,7 +106,7 @@ class EnhancedShapeSelectionDialog(QtWidgets.QDialog):
     - Bulk selection controls
     """
 
-    def __init__(self, detected_shapes: Optional[List[ShapeInfo]] = None, parent=None):
+    def __init__(self, detected_shapes: list[ShapeInfo] | None = None, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Select Shapes for Nesting")
         self.setMinimumSize(600, 400)
@@ -212,13 +211,13 @@ class EnhancedShapeSelectionDialog(QtWidgets.QDialog):
         self.ok_button = button_box.button(QtWidgets.QDialogButtonBox.Ok)
         main_layout.addWidget(button_box)
 
-    def populate_shape_list(self, detected_shapes: List[ShapeInfo]) -> None:
+    def populate_shape_list(self, detected_shapes: list[ShapeInfo]) -> None:
         """Populate the shape list with detected shapes."""
         self.detected_shapes = detected_shapes
         self._populate_shape_list()
         self._update_selection_summary()
 
-    def generate_shape_previews(self, shapes: List[ShapeInfo]) -> List[PreviewWidget]:
+    def generate_shape_previews(self, shapes: list[ShapeInfo]) -> list[PreviewWidget]:
         """Generate preview widgets for the provided shapes."""
         previews = []
         for shape_info in shapes:
@@ -226,7 +225,7 @@ class EnhancedShapeSelectionDialog(QtWidgets.QDialog):
             previews.append(preview_widget)
         return previews
 
-    def validate_selection(self) -> Dict[str, Any]:
+    def validate_selection(self) -> dict[str, Any]:
         """Validate the current selection and return validation results."""
         selected_shapes = self.get_selected_shapes()
 
@@ -269,7 +268,7 @@ class EnhancedShapeSelectionDialog(QtWidgets.QDialog):
 
         return validation_result
 
-    def get_selected_shapes(self) -> List[ShapeInfo]:
+    def get_selected_shapes(self) -> list[ShapeInfo]:
         """Return list of currently selected shapes."""
         selected_shapes = []
         for idx in range(self.shapes_list.count()):
@@ -280,7 +279,7 @@ class EnhancedShapeSelectionDialog(QtWidgets.QDialog):
                     selected_shapes.append(shape_info)
         return selected_shapes
 
-    def get_data(self) -> Dict[str, Any]:
+    def get_data(self) -> dict[str, Any]:
         """Return selection data for processing."""
         selected_shapes = self.get_selected_shapes()
         return {

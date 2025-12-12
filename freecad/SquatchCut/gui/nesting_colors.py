@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Dict, Tuple
-
 # Color definitions as (R, G, B) tuples (0-255)
-ColorRGB = Tuple[int, int, int]
+ColorRGB = tuple[int, int, int]
 
 # Color scheme definitions
-COLOR_SCHEMES: Dict[str, Dict[str, ColorRGB]] = {
+COLOR_SCHEMES: dict[str, dict[str, ColorRGB]] = {
     "default": {
         # Soft blues and grays - works well with FreeCAD themes
         "sheet_outline": (70, 130, 180),  # Steel blue
@@ -45,18 +43,18 @@ COLOR_SCHEMES: Dict[str, Dict[str, ColorRGB]] = {
 }
 
 
-def get_color_scheme(scheme_name: str) -> Dict[str, ColorRGB]:
+def get_color_scheme(scheme_name: str) -> dict[str, ColorRGB]:
     """Get color scheme by name, falling back to default if not found."""
     return COLOR_SCHEMES.get(scheme_name, COLOR_SCHEMES["default"])
 
 
-def rgb_to_freecad_color(rgb: ColorRGB) -> Tuple[float, float, float]:
+def rgb_to_freecad_color(rgb: ColorRGB) -> tuple[float, float, float]:
     """Convert RGB (0-255) to FreeCAD color format (0.0-1.0)."""
     r, g, b = rgb
     return (r / 255.0, g / 255.0, b / 255.0)
 
 
-def get_freecad_color(scheme_name: str, color_key: str) -> Tuple[float, float, float]:
+def get_freecad_color(scheme_name: str, color_key: str) -> tuple[float, float, float]:
     """Get a FreeCAD-compatible color from a scheme."""
     scheme = get_color_scheme(scheme_name)
     rgb = scheme.get(color_key, (128, 128, 128))  # Default to gray

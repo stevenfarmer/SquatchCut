@@ -1,14 +1,14 @@
 """FreeCAD command to import panel definitions from CSV."""
 
-from SquatchCut.core import logger, session, session_state
+from SquatchCut.core import logger, session
 
 # @codex
 # Command: Open the CSV import dialog to load panels.
 # Interactions: Should invoke SC_CSVImportDialog and hand validated rows to core csv_import.
 # Note: Preserve FreeCAD command structure (GetResources, Activated, IsActive).
 from SquatchCut.core.csv_import import validate_csv_file
-from SquatchCut.core.input_validation import validate_csv_file_path
 from SquatchCut.core.geometry_sync import sync_source_panels_to_document
+from SquatchCut.core.input_validation import validate_csv_file_path
 from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.gui.icons import get_icon
 
@@ -28,8 +28,8 @@ def run_csv_import(doc, csv_path: str, csv_units: str = "auto"):
     - csv_path: absolute path to the CSV to import.
     - csv_units: "metric", "imperial", or "auto" (auto-detect from CSV content).
     """
-    from SquatchCut.ui.progress import SimpleProgressContext
     from SquatchCut.core.csv_loader import detect_csv_units
+    from SquatchCut.ui.progress import SimpleProgressContext
 
     logger.info(f"CSV selected: {csv_path}")
 

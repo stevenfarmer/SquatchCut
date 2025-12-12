@@ -2,13 +2,12 @@
 
 import random
 import time
-from typing import List, Tuple, Optional, Dict, Any
-from dataclasses import dataclass
 from copy import deepcopy
+from dataclasses import dataclass
 
-from SquatchCut.core.nesting import Part, PlacedPart
-from SquatchCut.core.performance_utils import performance_monitor, ProgressTracker
 from SquatchCut.core import logger
+from SquatchCut.core.nesting import Part, PlacedPart
+from SquatchCut.core.performance_utils import ProgressTracker, performance_monitor
 
 
 @dataclass
@@ -21,7 +20,7 @@ class GeneticConfig:
     crossover_rate: float = 0.8
     elite_size: int = 5
     tournament_size: int = 3
-    max_time_seconds: Optional[float] = 300  # 5 minutes max
+    max_time_seconds: float | None = 300  # 5 minutes max
     target_utilization: float = 0.95  # Stop if we reach 95% utilization
 
 
@@ -29,8 +28,8 @@ class GeneticConfig:
 class Individual:
     """Represents one solution in the genetic algorithm."""
 
-    parts_order: List[int]  # Order to place parts
-    rotations: List[bool]  # Whether each part is rotated
+    parts_order: list[int]  # Order to place parts
+    rotations: list[bool]  # Whether each part is rotated
     fitness: float = 0.0
     utilization: float = 0.0
     cut_complexity: float = 0.0
@@ -42,7 +41,7 @@ class GeneticNestingOptimizer:
 
     def __init__(self, config: GeneticConfig = None):
         self.config = config or GeneticConfig()
-        self.parts: List[Part] = []
+        self.parts: list[Part] = []
         self.sheet_width: float = 0
         self.sheet_height: float = 0
         self.kerf_mm: float = 0
@@ -50,12 +49,12 @@ class GeneticNestingOptimizer:
 
     def optimize(
         self,
-        parts: List[Part],
+        parts: list[Part],
         sheet_width: float,
         sheet_height: float,
         kerf_mm: float = 0,
         spacing_mm: float = 0,
-    ) -> List[PlacedPart]:
+    ) -> list[PlacedPart]:
         """Run genetic algorithm optimization."""
         self.parts = parts
         self.sheet_width = sheet_width
@@ -126,7 +125,7 @@ class GeneticNestingOptimizer:
             logger.warning("Genetic optimization failed to find valid solution")
             return []
 
-    def _initialize_population(self) -> List[Individual]:
+    def _initialize_population(self) -> list[Individual]:
         """Create initial population with diverse solutions."""
         population = []
 
@@ -150,7 +149,7 @@ class GeneticNestingOptimizer:
 
         return population[: self.config.population_size]
 
-    def _add_heuristic_individuals(self, population: List[Individual]) -> None:
+    def _add_heuristic_individuals(self, population: list[Individual]) -> None:
         """Add individuals based on common heuristics."""
         if len(population) >= self.config.population_size:
             return
@@ -179,7 +178,7 @@ class GeneticNestingOptimizer:
             individual = Individual(parts_order=heuristic_order, rotations=rotations)
             population.append(individual)
 
-    def _evaluate_population(self, population: List[Individual]) -> None:
+    def _evaluate_population(self, population: list[Individual]) -> None:
         """Evaluate fitness for all individuals in population."""
         for individual in population:
             if individual.fitness == 0.0:  # Not yet evaluated
@@ -223,7 +222,7 @@ class GeneticNestingOptimizer:
             individual.utilization = 0.0
             individual.placement_success = False
 
-    def _individual_to_placed_parts(self, individual: Individual) -> List[PlacedPart]:
+    def _individual_to_placed_parts(self, individual: Individual) -> list[PlacedPart]:
         """Convert individual to actual placed parts using simple bin packing."""
         placed_parts = []
 
@@ -278,8 +277,8 @@ class GeneticNestingOptimizer:
         self,
         width: float,
         height: float,
-        occupied_rects: List[Tuple[float, float, float, float]],
-    ) -> Optional[Tuple[float, float]]:
+        occupied_rects: list[tuple[float, float, float, float]],
+    ) -> tuple[float, float] | None:
         """Find a position for a rectangle using bottom-left fill."""
         # Try positions starting from bottom-left
         candidates = [(0, 0)]  # Start with origin
@@ -311,8 +310,8 @@ class GeneticNestingOptimizer:
 
     def _rectangles_overlap(
         self,
-        rect: Tuple[float, float, float, float],
-        rect_list: List[Tuple[float, float, float, float]],
+        rect: tuple[float, float, float, float],
+        rect_list: list[tuple[float, float, float, float]],
     ) -> bool:
         """Check if rectangle overlaps with any in the list."""
         x1, y1, w1, h1 = rect
@@ -324,7 +323,7 @@ class GeneticNestingOptimizer:
 
         return False
 
-    def _calculate_cut_complexity(self, placed_parts: List[PlacedPart]) -> float:
+    def _calculate_cut_complexity(self, placed_parts: list[PlacedPart]) -> float:
         """Calculate cut complexity score (lower is better)."""
         if not placed_parts:
             return 0.0
@@ -344,7 +343,7 @@ class GeneticNestingOptimizer:
 
     def _should_terminate(
         self,
-        best_individual: Optional[Individual],
+        best_individual: Individual | None,
         generation: int,
         start_time: float,
         generations_without_improvement: int,
@@ -370,7 +369,7 @@ class GeneticNestingOptimizer:
 
         return False
 
-    def _create_next_generation(self, population: List[Individual]) -> List[Individual]:
+    def _create_next_generation(self, population: list[Individual]) -> list[Individual]:
         """Create next generation using selection, crossover, and mutation."""
         # Sort by fitness
         population.sort(key=lambda x: x.fitness, reverse=True)
@@ -407,7 +406,7 @@ class GeneticNestingOptimizer:
 
         return next_generation[: self.config.population_size]
 
-    def _tournament_selection(self, population: List[Individual]) -> Individual:
+    def _tournament_selection(self, population: list[Individual]) -> Individual:
         """Select individual using tournament selection."""
         tournament = random.sample(
             population, min(self.config.tournament_size, len(population))
@@ -416,7 +415,7 @@ class GeneticNestingOptimizer:
 
     def _crossover(
         self, parent1: Individual, parent2: Individual
-    ) -> Tuple[Individual, Individual]:
+    ) -> tuple[Individual, Individual]:
         """Create offspring using order crossover for parts order and uniform crossover for rotations."""
         # Order crossover for parts order
         size = len(parent1.parts_order)
@@ -451,7 +450,7 @@ class GeneticNestingOptimizer:
         return child1, child2
 
     def _fill_remaining_order(
-        self, child_order: List[int], parent_order: List[int]
+        self, child_order: list[int], parent_order: list[int]
     ) -> None:
         """Fill remaining positions in child order from parent."""
         used = set(x for x in child_order if x != -1)
@@ -485,13 +484,13 @@ class GeneticNestingOptimizer:
 
 @performance_monitor("Genetic Algorithm Nesting", threshold_seconds=5.0)
 def genetic_nest_parts(
-    parts: List[Part],
+    parts: list[Part],
     sheet_width: float,
     sheet_height: float,
     kerf_mm: float = 0,
     spacing_mm: float = 0,
-    config: Optional[GeneticConfig] = None,
-) -> List[PlacedPart]:
+    config: GeneticConfig | None = None,
+) -> list[PlacedPart]:
     """High-level function to run genetic algorithm nesting."""
     optimizer = GeneticNestingOptimizer(config)
     return optimizer.optimize(parts, sheet_width, sheet_height, kerf_mm, spacing_mm)

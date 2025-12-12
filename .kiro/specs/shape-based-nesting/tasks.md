@@ -12,7 +12,7 @@ This implementation plan converts the shape-based nesting design into a series o
   - Add support for geometry complexity assessment
   - _Requirements: 1.1, 1.2, 1.3_
 
-- [ ] 1.1 Create ComplexGeometry data model
+- [x] 1.1 Create ComplexGeometry data model
   - Implement ComplexGeometry class with contour points, bounding box, and area calculations
   - Add rotation and kerf application methods
   - Implement overlap detection between complex geometries
@@ -22,7 +22,7 @@ This implementation plan converts the shape-based nesting design into a series o
   - **Property 1: Comprehensive Shape Detection**
   - **Validates: Requirements 1.1, 1.2, 1.3**
 
-- [ ] 1.3 Enhance ShapeExtractor with complex geometry support
+- [x] 1.3 Enhance ShapeExtractor with complex geometry support
   - Add extract_complex_geometry method for non-rectangular shapes
   - Implement extract_contour_points for detailed shape boundaries
   - Add validate_shape_complexity for performance assessment
@@ -32,7 +32,7 @@ This implementation plan converts the shape-based nesting design into a series o
   - **Property 3: Geometric Nesting Accuracy**
   - **Validates: Requirements 2.1, 2.4, 8.1**
 
-- [ ] 1.5 Implement fallback extraction mechanism
+- [x] 1.5 Implement fallback extraction mechanism
   - Add extract_with_fallback method for graceful degradation
   - Implement complexity thresholds and automatic fallback logic
   - Add user notification for fallback scenarios
@@ -48,7 +48,7 @@ This implementation plan converts the shape-based nesting design into a series o
   - Add selection validation and user feedback
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 2.1 Create EnhancedShapeSelectionDialog class
+- [-] 2.1 Create EnhancedShapeSelectionDialog class
   - Implement dialog layout with shape list, previews, and controls
   - Add populate_shape_list method for detected shapes
   - Implement selection state management and validation

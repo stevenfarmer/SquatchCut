@@ -1,15 +1,14 @@
 """Progress indicator utilities for SquatchCut operations."""
 
-from typing import Optional
 
-from SquatchCut.gui.qt_compat import QtCore, QtWidgets
+from SquatchCut.gui.qt_compat import QtWidgets
 
 
 class ProgressDialog:
     """Simple progress dialog for long-running operations."""
 
     def __init__(
-        self, title: str = "SquatchCut", parent: Optional[QtWidgets.QWidget] = None
+        self, title: str = "SquatchCut", parent: QtWidgets.QWidget | None = None
     ):
         self.dialog = QtWidgets.QProgressDialog(parent)
         self.dialog.setWindowTitle(title)

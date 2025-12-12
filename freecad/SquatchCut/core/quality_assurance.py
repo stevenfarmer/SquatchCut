@@ -1,11 +1,10 @@
 """Quality assurance and validation for nesting layouts."""
 
-from typing import List, Dict, Tuple, Optional, Set
 from dataclasses import dataclass
 from enum import Enum
 
-from SquatchCut.core.nesting import PlacedPart
 from SquatchCut.core import logger
+from SquatchCut.core.nesting import PlacedPart
 
 
 class QualityIssueType(Enum):
@@ -33,12 +32,12 @@ class QualityIssue:
 
     issue_type: QualityIssueType
     severity: QualitySeverity
-    part_ids: List[str]
+    part_ids: list[str]
     sheet_index: int
     description: str
     suggested_fix: str = ""
-    coordinates: Optional[Tuple[float, float]] = None
-    affected_area: Optional[Tuple[float, float, float, float]] = (
+    coordinates: tuple[float, float] | None = None
+    affected_area: tuple[float, float, float, float] | None = (
         None  # x, y, width, height
     )
 
@@ -51,10 +50,10 @@ class QualityReport:
     timestamp: str
     total_parts: int
     total_sheets: int
-    issues: List[QualityIssue]
-    metrics: Dict[str, float]
-    passed_checks: List[str]
-    failed_checks: List[str]
+    issues: list[QualityIssue]
+    metrics: dict[str, float]
+    passed_checks: list[str]
+    failed_checks: list[str]
     overall_score: float  # 0-100
 
 
@@ -73,9 +72,9 @@ class QualityAssuranceChecker:
 
     def check_layout_quality(
         self,
-        placed_parts: List[PlacedPart],
-        sheet_sizes: List[Tuple[float, float]],
-        original_parts: Optional[List] = None,
+        placed_parts: list[PlacedPart],
+        sheet_sizes: list[tuple[float, float]],
+        original_parts: list | None = None,
     ) -> QualityReport:
         """Perform comprehensive quality checks on the layout."""
         import datetime
@@ -156,7 +155,7 @@ class QualityAssuranceChecker:
             overall_score=overall_score,
         )
 
-    def _check_overlaps(self, placed_parts: List[PlacedPart]) -> List[QualityIssue]:
+    def _check_overlaps(self, placed_parts: list[PlacedPart]) -> list[QualityIssue]:
         """Check for overlapping parts."""
         issues = []
 
@@ -195,8 +194,8 @@ class QualityAssuranceChecker:
         return issues
 
     def _check_bounds_compliance(
-        self, placed_parts: List[PlacedPart], sheet_sizes: List[Tuple[float, float]]
-    ) -> List[QualityIssue]:
+        self, placed_parts: list[PlacedPart], sheet_sizes: list[tuple[float, float]]
+    ) -> list[QualityIssue]:
         """Check that all parts are within sheet boundaries."""
         issues = []
 
@@ -233,8 +232,8 @@ class QualityAssuranceChecker:
         return issues
 
     def _check_spacing_requirements(
-        self, placed_parts: List[PlacedPart]
-    ) -> List[QualityIssue]:
+        self, placed_parts: list[PlacedPart]
+    ) -> list[QualityIssue]:
         """Check minimum spacing between parts."""
         issues = []
 
@@ -276,8 +275,8 @@ class QualityAssuranceChecker:
         return issues
 
     def _check_rotation_consistency(
-        self, placed_parts: List[PlacedPart]
-    ) -> List[QualityIssue]:
+        self, placed_parts: list[PlacedPart]
+    ) -> list[QualityIssue]:
         """Check for invalid rotation angles."""
         issues = []
 
@@ -300,8 +299,8 @@ class QualityAssuranceChecker:
         return issues
 
     def _check_dimension_consistency(
-        self, placed_parts: List[PlacedPart], original_parts: List
-    ) -> List[QualityIssue]:
+        self, placed_parts: list[PlacedPart], original_parts: list
+    ) -> list[QualityIssue]:
         """Check that placed parts match original dimensions."""
         issues = []
 
@@ -349,16 +348,16 @@ class QualityAssuranceChecker:
         return issues
 
     def _check_grain_direction_compliance(
-        self, placed_parts: List[PlacedPart]
-    ) -> List[QualityIssue]:
+        self, placed_parts: list[PlacedPart]
+    ) -> list[QualityIssue]:
         """Check grain direction compliance (placeholder for future implementation)."""
         # This would integrate with the grain direction system
         return []
 
     def _rectangles_overlap(
         self,
-        rect1: Tuple[float, float, float, float],
-        rect2: Tuple[float, float, float, float],
+        rect1: tuple[float, float, float, float],
+        rect2: tuple[float, float, float, float],
     ) -> bool:
         """Check if two rectangles overlap."""
         x1, y1, w1, h1 = rect1
@@ -368,8 +367,8 @@ class QualityAssuranceChecker:
 
     def _calculate_overlap_area(
         self,
-        rect1: Tuple[float, float, float, float],
-        rect2: Tuple[float, float, float, float],
+        rect1: tuple[float, float, float, float],
+        rect2: tuple[float, float, float, float],
     ) -> float:
         """Calculate the area of overlap between two rectangles."""
         x1, y1, w1, h1 = rect1
@@ -387,9 +386,9 @@ class QualityAssuranceChecker:
 
     def _get_overlap_bounds(
         self,
-        rect1: Tuple[float, float, float, float],
-        rect2: Tuple[float, float, float, float],
-    ) -> Tuple[float, float, float, float]:
+        rect1: tuple[float, float, float, float],
+        rect2: tuple[float, float, float, float],
+    ) -> tuple[float, float, float, float]:
         """Get the bounding box of the overlap area."""
         x1, y1, w1, h1 = rect1
         x2, y2, w2, h2 = rect2
@@ -403,8 +402,8 @@ class QualityAssuranceChecker:
 
     def _calculate_min_distance(
         self,
-        rect1: Tuple[float, float, float, float],
-        rect2: Tuple[float, float, float, float],
+        rect1: tuple[float, float, float, float],
+        rect2: tuple[float, float, float, float],
     ) -> float:
         """Calculate minimum distance between two rectangles."""
         x1, y1, w1, h1 = rect1
@@ -423,10 +422,10 @@ class QualityAssuranceChecker:
 
     def _calculate_quality_metrics(
         self,
-        placed_parts: List[PlacedPart],
-        sheet_sizes: List[Tuple[float, float]],
-        issues: List[QualityIssue],
-    ) -> Dict[str, float]:
+        placed_parts: list[PlacedPart],
+        sheet_sizes: list[tuple[float, float]],
+        issues: list[QualityIssue],
+    ) -> dict[str, float]:
         """Calculate quality metrics for the layout."""
         metrics = {}
 
@@ -484,7 +483,7 @@ class QualityAssuranceChecker:
         return metrics
 
     def _calculate_overall_score(
-        self, issues: List[QualityIssue], passed_checks: int, failed_checks: int
+        self, issues: list[QualityIssue], passed_checks: int, failed_checks: int
     ) -> float:
         """Calculate overall quality score (0-100)."""
         base_score = 100.0
@@ -510,14 +509,14 @@ class QualityAssuranceChecker:
 def generate_quality_report_text(report: QualityReport) -> str:
     """Generate a human-readable quality report."""
     lines = []
-    lines.append(f"SquatchCut Quality Assurance Report")
-    lines.append(f"=" * 40)
+    lines.append("SquatchCut Quality Assurance Report")
+    lines.append("=" * 40)
     lines.append(f"Layout ID: {report.layout_id}")
     lines.append(f"Timestamp: {report.timestamp}")
     lines.append(f"Overall Score: {report.overall_score:.1f}/100")
     lines.append("")
 
-    lines.append(f"Layout Summary:")
+    lines.append("Layout Summary:")
     lines.append(f"  Total Parts: {report.total_parts}")
     lines.append(f"  Total Sheets: {report.total_sheets}")
     lines.append(
@@ -525,7 +524,7 @@ def generate_quality_report_text(report: QualityReport) -> str:
     )
     lines.append("")
 
-    lines.append(f"Quality Checks:")
+    lines.append("Quality Checks:")
     lines.append(f"  Passed: {len(report.passed_checks)}")
     lines.append(f"  Failed: {len(report.failed_checks)}")
     if report.passed_checks:
@@ -567,10 +566,10 @@ def generate_quality_report_text(report: QualityReport) -> str:
 
 
 def check_nesting_quality(
-    placed_parts: List[PlacedPart],
-    sheet_sizes: List[Tuple[float, float]],
+    placed_parts: list[PlacedPart],
+    sheet_sizes: list[tuple[float, float]],
     min_spacing: float = 3.0,
-    original_parts: Optional[List] = None,
+    original_parts: list | None = None,
 ) -> QualityReport:
     """High-level function to check nesting quality."""
     checker = QualityAssuranceChecker(min_spacing=min_spacing)

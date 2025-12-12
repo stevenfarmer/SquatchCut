@@ -1,11 +1,10 @@
 """Smart cut sequence planning for optimized cutting operations."""
 
-from typing import List, Dict, Tuple, Optional, Set
 from dataclasses import dataclass
 from enum import Enum
 
-from SquatchCut.core.nesting import PlacedPart
 from SquatchCut.core import logger
+from SquatchCut.core.nesting import PlacedPart
 
 
 class CutDirection(Enum):
@@ -34,8 +33,8 @@ class CutOperation:
     start: float  # Start position along the cut axis
     end: float  # End position along the cut axis
     depth: float  # Cut depth (sheet thickness)
-    parts_released: List[str]  # Part IDs released by this cut
-    parts_affected: List[str]  # Part IDs that are cut through
+    parts_released: list[str]  # Part IDs released by this cut
+    parts_affected: list[str]  # Part IDs that are cut through
     priority: int = 0  # Lower numbers = higher priority
     notes: str = ""
 
@@ -47,7 +46,7 @@ class CutSequence:
     sheet_index: int
     sheet_width: float
     sheet_height: float
-    operations: List[CutOperation]
+    operations: list[CutOperation]
     total_cut_length: float = 0.0
     estimated_time_minutes: float = 0.0
 
@@ -66,8 +65,8 @@ class CutSequencePlanner:
         self.setup_time = setup_time_per_cut
 
     def plan_cutting_sequence(
-        self, placed_parts: List[PlacedPart], sheet_sizes: List[Tuple[float, float]]
-    ) -> List[CutSequence]:
+        self, placed_parts: list[PlacedPart], sheet_sizes: list[tuple[float, float]]
+    ) -> list[CutSequence]:
         """Plan cutting sequences for all sheets."""
         sequences = []
 
@@ -97,7 +96,7 @@ class CutSequencePlanner:
 
     def _plan_sheet_sequence(
         self,
-        parts: List[PlacedPart],
+        parts: list[PlacedPart],
         sheet_width: float,
         sheet_height: float,
         sheet_index: int,
@@ -138,8 +137,8 @@ class CutSequencePlanner:
         )
 
     def _collect_vertical_cuts(
-        self, parts: List[PlacedPart], sheet_width: float, sheet_height: float
-    ) -> List[float]:
+        self, parts: list[PlacedPart], sheet_width: float, sheet_height: float
+    ) -> list[float]:
         """Collect all vertical cut positions."""
         cuts = set()
 
@@ -154,8 +153,8 @@ class CutSequencePlanner:
         return sorted(cuts)
 
     def _collect_horizontal_cuts(
-        self, parts: List[PlacedPart], sheet_width: float, sheet_height: float
-    ) -> List[float]:
+        self, parts: list[PlacedPart], sheet_width: float, sheet_height: float
+    ) -> list[float]:
         """Collect all horizontal cut positions."""
         cuts = set()
 
@@ -170,8 +169,8 @@ class CutSequencePlanner:
         return sorted(cuts)
 
     def _plan_rip_cuts(
-        self, cut_positions: List[float], parts: List[PlacedPart], sheet_height: float
-    ) -> List[CutOperation]:
+        self, cut_positions: list[float], parts: list[PlacedPart], sheet_height: float
+    ) -> list[CutOperation]:
         """Plan vertical rip cuts."""
         operations = []
 
@@ -229,8 +228,8 @@ class CutSequencePlanner:
         return operations
 
     def _plan_crosscuts(
-        self, cut_positions: List[float], parts: List[PlacedPart], sheet_width: float
-    ) -> List[CutOperation]:
+        self, cut_positions: list[float], parts: list[PlacedPart], sheet_width: float
+    ) -> list[CutOperation]:
         """Plan horizontal crosscuts."""
         operations = []
 
@@ -318,8 +317,8 @@ class CutSequencePlanner:
         )
 
     def _minimize_offcut_handling(
-        self, operations: List[CutOperation]
-    ) -> List[CutOperation]:
+        self, operations: list[CutOperation]
+    ) -> list[CutOperation]:
         """Reorder cuts to minimize handling of offcuts."""
         # Strategy: Complete all cuts that release parts before moving to next area
         rip_cuts = [op for op in operations if op.cut_type == CutType.RIP]
@@ -333,12 +332,12 @@ class CutSequencePlanner:
 
         return rip_cuts + crosscuts
 
-    def _group_similar_cuts(self, operations: List[CutOperation]) -> List[CutOperation]:
+    def _group_similar_cuts(self, operations: list[CutOperation]) -> list[CutOperation]:
         """Group similar cuts together to minimize setup changes."""
         # Already grouped by type in _minimize_offcut_handling
         return operations
 
-    def generate_cut_report(self, sequences: List[CutSequence]) -> Dict:
+    def generate_cut_report(self, sequences: list[CutSequence]) -> dict:
         """Generate a comprehensive cutting report."""
         total_cuts = sum(len(seq.operations) for seq in sequences)
         total_length = sum(seq.total_cut_length for seq in sequences)
@@ -374,10 +373,10 @@ class CutSequencePlanner:
 
 
 def plan_optimal_cutting_sequence(
-    placed_parts: List[PlacedPart],
-    sheet_sizes: List[Tuple[float, float]],
+    placed_parts: list[PlacedPart],
+    sheet_sizes: list[tuple[float, float]],
     kerf_width: float = 3.0,
-) -> List[CutSequence]:
+) -> list[CutSequence]:
     """High-level function to plan optimal cutting sequences."""
     planner = CutSequencePlanner(kerf_width=kerf_width)
     sequences = planner.plan_cutting_sequence(placed_parts, sheet_sizes)

@@ -68,7 +68,7 @@ class ExportCutlistCommand:
             )
 
         except Exception as e:
-            from SquatchCut.ui.error_handling import handle_command_error, ErrorMessages
+            from SquatchCut.ui.error_handling import ErrorMessages, handle_command_error
 
             handle_command_error(
                 "Export Cutlist",

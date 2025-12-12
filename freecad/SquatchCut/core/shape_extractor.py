@@ -8,19 +8,16 @@ Note: Update incrementally; do not overwrite this module when adding logic.
 
 from __future__ import annotations
 
-import math
-from typing import List, Optional, Tuple, Union
-
-from SquatchCut.freecad_integration import Gui
 from SquatchCut.core.complex_geometry import (
+    BoundingBox,
     ComplexGeometry,
-    GeometryType,
     ComplexityLevel,
     ExtractionMethod,
-    assess_geometry_complexity,
+    GeometryType,
     Point2D,
-    BoundingBox,
+    assess_geometry_complexity,
 )
+from SquatchCut.freecad_integration import Gui
 
 
 class ShapeExtractor:
@@ -121,7 +118,7 @@ class ShapeExtractor:
             "rotation_allowed": True,
         }
 
-    def extract_complex_geometry(self, shape_or_obj) -> Optional[ComplexGeometry]:
+    def extract_complex_geometry(self, shape_or_obj) -> ComplexGeometry | None:
         """Extract complex geometry from a FreeCAD object with full contour support.
 
         This method attempts to extract the actual geometric contour of the shape
@@ -180,7 +177,7 @@ class ShapeExtractor:
             # If complex extraction fails, fall back to bounding box
             return self.extract_with_fallback(shape_or_obj)
 
-    def extract_contour_points(self, shape_or_obj) -> Optional[List[Point2D]]:
+    def extract_contour_points(self, shape_or_obj) -> list[Point2D] | None:
         """Extract detailed contour points from a FreeCAD shape.
 
         This method attempts to extract the actual boundary points of the shape
@@ -250,7 +247,7 @@ class ShapeExtractor:
         except Exception:
             return ComplexityLevel.LOW
 
-    def extract_with_fallback(self, shape_or_obj) -> Optional[ComplexGeometry]:
+    def extract_with_fallback(self, shape_or_obj) -> ComplexGeometry | None:
         """Extract geometry with graceful fallback to bounding box method.
 
         This method provides a robust extraction approach that attempts complex
@@ -284,7 +281,7 @@ class ShapeExtractor:
         except Exception:
             return None
 
-    def _extract_points_from_wire(self, wire) -> List[Point2D]:
+    def _extract_points_from_wire(self, wire) -> list[Point2D]:
         """Extract 2D points from a FreeCAD wire object."""
         points = []
         try:
@@ -306,7 +303,7 @@ class ShapeExtractor:
 
         return points
 
-    def _extract_points_from_edges(self, edges) -> List[Point2D]:
+    def _extract_points_from_edges(self, edges) -> list[Point2D]:
         """Extract 2D points from a list of FreeCAD edge objects."""
         points = []
         try:
@@ -330,7 +327,7 @@ class ShapeExtractor:
 
         return points
 
-    def _create_rectangular_contour_from_bbox(self, shape) -> List[Point2D]:
+    def _create_rectangular_contour_from_bbox(self, shape) -> list[Point2D]:
         """Create a rectangular contour from a shape's bounding box."""
         try:
             if hasattr(shape, "BoundBox"):
@@ -352,7 +349,7 @@ class ShapeExtractor:
 
         return []
 
-    def _calculate_polygon_area(self, points: List[Point2D]) -> float:
+    def _calculate_polygon_area(self, points: list[Point2D]) -> float:
         """Calculate the area of a polygon using the shoelace formula."""
         if len(points) < 3:
             return 0.0
@@ -366,7 +363,7 @@ class ShapeExtractor:
         return abs(area) / 2.0
 
     def _classify_geometry_type(
-        self, contour_points: List[Point2D], bounding_box: BoundingBox, area: float
+        self, contour_points: list[Point2D], bounding_box: BoundingBox, area: float
     ) -> GeometryType:
         """Classify the geometry type based on contour analysis."""
         if len(contour_points) <= 5:  # Rectangle has 5 points (including closure)
@@ -383,7 +380,7 @@ class ShapeExtractor:
 
         return GeometryType.COMPLEX
 
-    def _has_curved_edges(self, contour_points: List[Point2D]) -> bool:
+    def _has_curved_edges(self, contour_points: list[Point2D]) -> bool:
         """Detect if the contour has curved edges based on point distribution."""
         if len(contour_points) < 10:
             return False
@@ -449,3 +446,87 @@ class ShapeExtractor:
 
         except Exception:
             return 1.0
+
+    def extract_with_fallback_advanced(
+        self, freecad_obj, complexity_threshold: float = 5.0
+    ):
+        """
+        Extract geometry with automatic fallback to simpler methods for complex shapes.
+
+        This method provides graceful degradation when dealing with very complex
+        geometries that might be too expensive to process with full accuracy.
+
+        Args:
+            freecad_obj: FreeCAD object to extract geometry from
+            complexity_threshold: Threshold above which to use fallback (default 5.0)
+
+        Returns:
+            tuple: (ComplexGeometry, extraction_method_used, user_notification)
+
+        Raises:
+            ValueError: If the object cannot be processed at all
+        """
+        if not hasattr(freecad_obj, "Shape") or freecad_obj.Shape is None:
+            raise ValueError(
+                f"Object {getattr(freecad_obj, 'Label', 'Unknown')} has no valid Shape"
+            )
+
+        # Assess complexity
+        complexity = self._assess_complexity(freecad_obj)
+
+        # Try full extraction first if complexity is manageable
+        if complexity <= complexity_threshold:
+            try:
+                geometry = self.extract_complex_geometry(freecad_obj)
+                return geometry, "full_extraction", None
+            except Exception:
+                # Fall through to fallback methods
+                pass
+
+        # Fallback 1: Use bounding box extraction
+        try:
+            bbox = self.extract_bounding_box(freecad_obj)
+            if bbox is not None:
+                width_mm, height_mm = bbox
+                from SquatchCut.core.complex_geometry import create_rectangular_geometry
+
+                geometry = create_rectangular_geometry(
+                    freecad_obj.Label, width_mm, height_mm
+                )
+
+                notification = (
+                    f"Shape '{freecad_obj.Label}' is complex (score: {complexity:.1f}). "
+                    f"Using simplified rectangular approximation for better performance."
+                )
+
+                return geometry, "bounding_box_fallback", notification
+        except Exception:
+            pass
+
+        # Fallback 2: Use default dimensions if available
+        try:
+            # Try to get dimensions from object properties
+            width = getattr(freecad_obj, "Width", None)
+            height = getattr(freecad_obj, "Height", None)
+
+            if width is not None and height is not None:
+                from SquatchCut.core.complex_geometry import create_rectangular_geometry
+
+                geometry = create_rectangular_geometry(
+                    freecad_obj.Label, float(width), float(height)
+                )
+
+                notification = (
+                    f"Shape '{freecad_obj.Label}' could not be processed geometrically. "
+                    f"Using object dimensions ({width}mm x {height}mm)."
+                )
+
+                return geometry, "property_fallback", notification
+        except Exception:
+            pass
+
+        # Final fallback: Use minimal default size
+        raise ValueError(
+            f"Cannot extract geometry from object '{freecad_obj.Label}'. "
+            f"The shape may be invalid or too complex to process."
+        )

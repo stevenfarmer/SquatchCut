@@ -1,6 +1,5 @@
 """Keyboard shortcuts for SquatchCut operations."""
 
-from typing import Dict, Optional
 
 from SquatchCut.freecad_integration import Gui
 from SquatchCut.gui.qt_compat import QtCore, QtWidgets
@@ -10,10 +9,10 @@ class SquatchCutShortcuts:
     """Manages keyboard shortcuts for SquatchCut commands."""
 
     def __init__(self):
-        self.shortcuts: Dict[str, QtWidgets.QShortcut] = {}
+        self.shortcuts: dict[str, QtWidgets.QShortcut] = {}
         self.main_window = None
 
-    def setup_shortcuts(self, parent: Optional[QtWidgets.QWidget] = None) -> None:
+    def setup_shortcuts(self, parent: QtWidgets.QWidget | None = None) -> None:
         """Set up keyboard shortcuts for SquatchCut commands."""
         if parent is None and Gui is not None:
             try:
@@ -89,7 +88,7 @@ class SquatchCutShortcuts:
 
 
 # Global instance
-_shortcuts_manager: Optional[SquatchCutShortcuts] = None
+_shortcuts_manager: SquatchCutShortcuts | None = None
 
 
 def get_shortcuts_manager() -> SquatchCutShortcuts:

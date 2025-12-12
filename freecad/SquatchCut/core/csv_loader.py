@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import csv
 import re
-from typing import Optional
 
 from SquatchCut.freecad_integration import App
 

@@ -7,17 +7,15 @@ utilization for complex parts like cabinet components.
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional, Tuple, Dict, Any, Union
+from typing import Any
 
 from SquatchCut.core.complex_geometry import (
-    ComplexGeometry,
-    GeometryType,
-    ComplexityLevel,
-    Point2D,
     BoundingBox,
+    ComplexGeometry,
+    ComplexityLevel,
+    GeometryType,
 )
 
 
@@ -44,7 +42,7 @@ class SheetGeometry:
     width: float
     height: float
     margin: float = 0.0
-    usable_area: Optional[float] = None
+    usable_area: float | None = None
 
     def __post_init__(self):
         if self.usable_area is None:
@@ -69,14 +67,14 @@ class PlacedGeometry:
 class NestingResult:
     """Results from a geometry-based nesting operation."""
 
-    placed_geometries: List[PlacedGeometry]
-    unplaced_geometries: List[ComplexGeometry]
+    placed_geometries: list[PlacedGeometry]
+    unplaced_geometries: list[ComplexGeometry]
     sheets_used: int
     total_area_used: float
     total_area_available: float
     utilization_percent: float
     processing_time: float
-    complexity_warnings: List[str]
+    complexity_warnings: list[str]
     fallback_count: int = 0
 
 
@@ -118,7 +116,7 @@ class GeometryNestingEngine:
 
     def nest_complex_shapes(
         self,
-        shapes: List[ComplexGeometry],
+        shapes: list[ComplexGeometry],
         sheet: SheetGeometry,
         nesting_mode: NestingMode = NestingMode.HYBRID,
     ) -> NestingResult:
@@ -225,7 +223,7 @@ class GeometryNestingEngine:
         """
         try:
             return geometry.apply_kerf(kerf_mm)
-        except ValueError as e:
+        except ValueError:
             # Kerf too large, return original geometry
             return geometry
 
@@ -296,8 +294,8 @@ class GeometryNestingEngine:
         self,
         shape: ComplexGeometry,
         sheet: SheetGeometry,
-        occupied_regions: List[Dict[str, Any]],
-    ) -> Optional[PlacedGeometry]:
+        occupied_regions: list[dict[str, Any]],
+    ) -> PlacedGeometry | None:
         """Place a shape using geometric nesting algorithms."""
         # Try different positions and rotations
         positions = self._generate_placement_positions(sheet, shape)
@@ -334,8 +332,8 @@ class GeometryNestingEngine:
         self,
         shape: ComplexGeometry,
         sheet: SheetGeometry,
-        occupied_regions: List[Dict[str, Any]],
-    ) -> Optional[PlacedGeometry]:
+        occupied_regions: list[dict[str, Any]],
+    ) -> PlacedGeometry | None:
         """Place a shape using rectangular (bounding box) nesting algorithms."""
         # Use bounding box for placement
         width = shape.get_width()
@@ -375,7 +373,7 @@ class GeometryNestingEngine:
 
     def _generate_placement_positions(
         self, sheet: SheetGeometry, shape: ComplexGeometry
-    ) -> List[Tuple[float, float]]:
+    ) -> list[tuple[float, float]]:
         """Generate candidate placement positions for a shape."""
         positions = []
 
@@ -400,7 +398,7 @@ class GeometryNestingEngine:
 
         return positions
 
-    def _generate_rotation_angles(self, shape: ComplexGeometry) -> List[float]:
+    def _generate_rotation_angles(self, shape: ComplexGeometry) -> list[float]:
         """Generate candidate rotation angles for a shape."""
         if not shape.rotation_allowed:
             return [0.0]
@@ -424,9 +422,9 @@ class GeometryNestingEngine:
     def _shape_fits_at_position(
         self,
         shape: ComplexGeometry,
-        position: Tuple[float, float],
+        position: tuple[float, float],
         sheet: SheetGeometry,
-        occupied_regions: List[Dict[str, Any]],
+        occupied_regions: list[dict[str, Any]],
     ) -> bool:
         """Check if a shape fits at a specific position without overlaps."""
         x, y = position
@@ -488,7 +486,7 @@ class GeometryNestingEngine:
         )
 
     def _geometry_overlaps_rectangle(
-        self, geometry: ComplexGeometry, rect_region: Dict[str, Any]
+        self, geometry: ComplexGeometry, rect_region: dict[str, Any]
     ) -> bool:
         """Check if a geometry overlaps with a rectangular region."""
         # Simple bounding box overlap check for now
@@ -519,7 +517,7 @@ class GeometryNestingEngine:
         )
 
     def _overlaps_with_regions(
-        self, region: Dict[str, Any], occupied_regions: List[Dict[str, Any]]
+        self, region: dict[str, Any], occupied_regions: list[dict[str, Any]]
     ) -> bool:
         """Check if a region overlaps with any occupied regions."""
         for occupied in occupied_regions:
@@ -529,7 +527,7 @@ class GeometryNestingEngine:
                     return True
         return False
 
-    def _rectangles_overlap(self, rect1: Dict[str, Any], rect2: Dict[str, Any]) -> bool:
+    def _rectangles_overlap(self, rect1: dict[str, Any], rect2: dict[str, Any]) -> bool:
         """Check if two rectangular regions overlap."""
         return not (
             rect1["x"] + rect1["width"] + self.placement_tolerance < rect2["x"]
@@ -538,7 +536,7 @@ class GeometryNestingEngine:
             or rect2["y"] + rect2["height"] + self.placement_tolerance < rect1["y"]
         )
 
-    def _get_occupied_region(self, placement: PlacedGeometry) -> Dict[str, Any]:
+    def _get_occupied_region(self, placement: PlacedGeometry) -> dict[str, Any]:
         """Get the occupied region for a placed geometry."""
         if placement.placement_method == "geometric":
             return {

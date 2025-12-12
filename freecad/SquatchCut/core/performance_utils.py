@@ -1,8 +1,9 @@
 """Performance utilities for SquatchCut operations."""
 
 import time
-from typing import Any, Callable, Optional, TypeVar
+from collections.abc import Callable
 from functools import wraps
+from typing import Any, TypeVar
 
 from SquatchCut.core import logger
 
@@ -37,7 +38,7 @@ def performance_monitor(operation_name: str, threshold_seconds: float = 1.0):
 def batch_process(
     items: list,
     batch_size: int = 100,
-    progress_callback: Optional[Callable[[int, int], None]] = None,
+    progress_callback: Callable[[int, int], None] | None = None,
 ):
     """Process items in batches to avoid memory issues with large datasets."""
     total = len(items)
@@ -158,20 +159,19 @@ def optimize_for_large_datasets(func: Callable[..., T]) -> Callable[..., T]:
 
 # Multi-threading and caching enhancements
 
-import threading
-import multiprocessing
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 import hashlib
+import multiprocessing
 import pickle
-from pathlib import Path
 import tempfile
-from typing import Dict, List, Union
+import threading
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from pathlib import Path
 
 
 class NestingCache:
     """Cache for nesting results to avoid recomputation."""
 
-    def __init__(self, cache_dir: Optional[str] = None, max_cache_size: int = 100):
+    def __init__(self, cache_dir: str | None = None, max_cache_size: int = 100):
         self.cache_dir = (
             Path(cache_dir)
             if cache_dir
@@ -179,11 +179,11 @@ class NestingCache:
         )
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.max_cache_size = max_cache_size
-        self._memory_cache: Dict[str, Any] = {}
+        self._memory_cache: dict[str, Any] = {}
         self._cache_lock = threading.Lock()
 
     def _generate_cache_key(
-        self, parts: List, sheet_width: float, sheet_height: float, config: Any = None
+        self, parts: list, sheet_width: float, sheet_height: float, config: Any = None
     ) -> str:
         """Generate a unique cache key for the nesting parameters."""
         # Create a hashable representation of the input
@@ -212,8 +212,8 @@ class NestingCache:
         return hashlib.md5(cache_str.encode()).hexdigest()
 
     def get(
-        self, parts: List, sheet_width: float, sheet_height: float, config: Any = None
-    ) -> Optional[Any]:
+        self, parts: list, sheet_width: float, sheet_height: float, config: Any = None
+    ) -> Any | None:
         """Get cached nesting result if available."""
         cache_key = self._generate_cache_key(parts, sheet_width, sheet_height, config)
 
@@ -242,7 +242,7 @@ class NestingCache:
 
     def put(
         self,
-        parts: List,
+        parts: list,
         sheet_width: float,
         sheet_height: float,
         result: Any,
@@ -282,7 +282,7 @@ class NestingCache:
                 except Exception as e:
                     logger.warning(f"Failed to delete cache file {cache_file}: {e}")
 
-    def get_cache_stats(self) -> Dict[str, Any]:
+    def get_cache_stats(self) -> dict[str, Any]:
         """Get cache statistics."""
         disk_files = list(self.cache_dir.glob("*.pkl"))
         total_size = sum(f.stat().st_size for f in disk_files)
@@ -331,13 +331,13 @@ def cached_nesting(func: Callable) -> Callable:
 class ParallelNestingProcessor:
     """Process nesting operations in parallel for improved performance."""
 
-    def __init__(self, max_workers: Optional[int] = None, use_processes: bool = False):
+    def __init__(self, max_workers: int | None = None, use_processes: bool = False):
         self.max_workers = max_workers or min(4, multiprocessing.cpu_count())
         self.use_processes = use_processes
 
     def process_multiple_sheets(
-        self, sheet_configs: List[Dict], nesting_func: Callable
-    ) -> List[Any]:
+        self, sheet_configs: list[dict], nesting_func: Callable
+    ) -> list[Any]:
         """Process multiple sheet configurations in parallel."""
         if len(sheet_configs) <= 1:
             # No benefit from parallelization
@@ -365,8 +365,8 @@ class ParallelNestingProcessor:
             return results
 
     def process_part_batches(
-        self, parts: List, batch_size: int, processing_func: Callable
-    ) -> List[Any]:
+        self, parts: list, batch_size: int, processing_func: Callable
+    ) -> list[Any]:
         """Process parts in parallel batches."""
         if len(parts) <= batch_size:
             return [processing_func(parts)]
@@ -399,7 +399,7 @@ class ParallelNestingProcessor:
             return [r for r in results if r is not None]
 
 
-def parallel_nesting(max_workers: Optional[int] = None, use_processes: bool = False):
+def parallel_nesting(max_workers: int | None = None, use_processes: bool = False):
     """Decorator to enable parallel processing for nesting operations."""
 
     def decorator(func: Callable) -> Callable:
@@ -445,7 +445,7 @@ class MemoryOptimizer:
     """Optimize memory usage for large nesting operations."""
 
     @staticmethod
-    def optimize_part_data(parts: List) -> List:
+    def optimize_part_data(parts: list) -> list:
         """Optimize part data structures to reduce memory usage."""
         optimized_parts = []
 
@@ -476,7 +476,7 @@ class MemoryOptimizer:
         return optimized_parts
 
     @staticmethod
-    def cleanup_intermediate_data(data_structures: List) -> None:
+    def cleanup_intermediate_data(data_structures: list) -> None:
         """Clean up intermediate data structures to free memory."""
         for ds in data_structures:
             if hasattr(ds, "clear"):
@@ -523,12 +523,12 @@ def clear_nesting_cache() -> None:
     logger.info("Nesting cache cleared")
 
 
-def get_cache_stats() -> Dict[str, Any]:
+def get_cache_stats() -> dict[str, Any]:
     """Get statistics about the nesting cache."""
     return _global_cache.get_cache_stats()
 
 
-def configure_cache(cache_dir: Optional[str] = None, max_cache_size: int = 100) -> None:
+def configure_cache(cache_dir: str | None = None, max_cache_size: int = 100) -> None:
     """Configure the global nesting cache."""
     global _global_cache
     _global_cache = NestingCache(cache_dir, max_cache_size)

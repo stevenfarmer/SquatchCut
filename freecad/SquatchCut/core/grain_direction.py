@@ -1,8 +1,8 @@
 """Grain direction support for wood nesting optimization."""
 
-from enum import Enum
-from typing import List, Optional, Dict, Any
 from dataclasses import dataclass
+from enum import Enum
+from typing import Any
 
 from SquatchCut.core.nesting import Part, PlacedPart
 
@@ -140,7 +140,7 @@ def calculate_grain_penalty(
 
 def optimize_rotation_for_grain(
     part: GrainAwarePart, sheet_grain: GrainDirection, constraints: GrainConstraints
-) -> List[int]:
+) -> list[int]:
     """Get preferred rotation angles for part considering grain direction."""
     if not constraints.enforce_part_grain or part.grain_direction == GrainDirection.ANY:
         # No grain constraints, return all possible rotations
@@ -161,8 +161,8 @@ def optimize_rotation_for_grain(
 
 
 def add_grain_info_to_parts(
-    parts: List[Part], grain_data: Optional[Dict[str, Any]] = None
-) -> List[GrainAwarePart]:
+    parts: list[Part], grain_data: dict[str, Any] | None = None
+) -> list[GrainAwarePart]:
     """Convert regular parts to grain-aware parts."""
     grain_aware_parts = []
 
@@ -187,8 +187,8 @@ def add_grain_info_to_parts(
 
 
 def validate_grain_constraints(
-    parts: List[GrainAwarePart], constraints: GrainConstraints
-) -> List[str]:
+    parts: list[GrainAwarePart], constraints: GrainConstraints
+) -> list[str]:
     """Validate that parts can be placed with given grain constraints."""
     warnings = []
 
@@ -218,10 +218,10 @@ def validate_grain_constraints(
 
 
 def create_grain_report(
-    placed_parts: List[PlacedPart],
-    parts: List[GrainAwarePart],
+    placed_parts: list[PlacedPart],
+    parts: list[GrainAwarePart],
     constraints: GrainConstraints,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create a report on grain direction compliance."""
     if not constraints.enforce_part_grain:
         return {

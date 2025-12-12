@@ -10,11 +10,10 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional, Tuple, Union
 
 # Type aliases for clarity
-Point2D = Tuple[float, float]
-BoundingBox = Tuple[float, float, float, float]  # (min_x, min_y, max_x, max_y)
+Point2D = tuple[float, float]
+BoundingBox = tuple[float, float, float, float]  # (min_x, min_y, max_x, max_y)
 
 
 class GeometryType(Enum):
@@ -52,12 +51,12 @@ class ComplexGeometry:
     """
 
     id: str
-    contour_points: List[Point2D]
+    contour_points: list[Point2D]
     bounding_box: BoundingBox
     area: float
     complexity_level: ComplexityLevel
     rotation_allowed: bool
-    kerf_compensation: Optional[float] = None
+    kerf_compensation: float | None = None
     geometry_type: GeometryType = GeometryType.COMPLEX
     extraction_method: ExtractionMethod = ExtractionMethod.CONTOUR
 
@@ -92,7 +91,7 @@ class ComplexGeometry:
         x_offset: float = 0.0,
         y_offset: float = 0.0,
         rotation_allowed: bool = True,
-    ) -> "ComplexGeometry":
+    ) -> ComplexGeometry:
         """Create ComplexGeometry from rectangular dimensions.
 
         This is a convenience method for creating ComplexGeometry objects
@@ -126,8 +125,8 @@ class ComplexGeometry:
         )
 
     def rotate(
-        self, angle_degrees: float, center: Optional[Point2D] = None
-    ) -> "ComplexGeometry":
+        self, angle_degrees: float, center: Point2D | None = None
+    ) -> ComplexGeometry:
         """Rotate the geometry by the specified angle around a center point.
 
         Args:
@@ -183,7 +182,7 @@ class ComplexGeometry:
             extraction_method=self.extraction_method,
         )
 
-    def apply_kerf(self, kerf_mm: float) -> "ComplexGeometry":
+    def apply_kerf(self, kerf_mm: float) -> ComplexGeometry:
         """Apply kerf compensation to the geometry.
 
         For complex geometries, this creates an offset contour that accounts
@@ -240,7 +239,7 @@ class ComplexGeometry:
             extraction_method=self.extraction_method,
         )
 
-    def check_overlap(self, other: "ComplexGeometry", tolerance: float = 0.001) -> bool:
+    def check_overlap(self, other: ComplexGeometry, tolerance: float = 0.001) -> bool:
         """Check if this geometry overlaps with another geometry.
 
         This uses a combination of bounding box pre-filtering and
@@ -317,7 +316,7 @@ class ComplexGeometry:
 
         return (cx, cy)
 
-    def _calculate_bounding_box(self, points: List[Point2D]) -> BoundingBox:
+    def _calculate_bounding_box(self, points: list[Point2D]) -> BoundingBox:
         """Calculate the axis-aligned bounding box for a set of points."""
         if not points:
             return (0.0, 0.0, 0.0, 0.0)
@@ -329,7 +328,7 @@ class ComplexGeometry:
 
         return (min_x, min_y, max_x, max_y)
 
-    def _calculate_polygon_area(self, points: List[Point2D]) -> float:
+    def _calculate_polygon_area(self, points: list[Point2D]) -> float:
         """Calculate the area of a polygon using the shoelace formula."""
         if len(points) < 3:
             return 0.0
@@ -343,8 +342,8 @@ class ComplexGeometry:
         return abs(area) / 2.0
 
     def _apply_uniform_offset(
-        self, points: List[Point2D], offset: float
-    ) -> List[Point2D]:
+        self, points: list[Point2D], offset: float
+    ) -> list[Point2D]:
         """Apply a uniform offset to polygon points.
 
         This is a simplified implementation. A production version would use
@@ -404,7 +403,7 @@ class ComplexGeometry:
 
         return offset_points
 
-    def _is_polygon_clockwise(self, points: List[Point2D]) -> bool:
+    def _is_polygon_clockwise(self, points: list[Point2D]) -> bool:
         """Determine if polygon vertices are ordered clockwise.
 
         Uses the shoelace formula to calculate signed area.
@@ -446,7 +445,7 @@ class ComplexGeometry:
         )
 
     def _polygons_intersect(
-        self, poly1: List[Point2D], poly2: List[Point2D], tolerance: float
+        self, poly1: list[Point2D], poly2: list[Point2D], tolerance: float
     ) -> bool:
         """Check if two polygons intersect using the Separating Axes Theorem (SAT).
 
@@ -467,7 +466,7 @@ class ComplexGeometry:
         # Check for edge intersections (simplified)
         return self._edges_intersect(poly1, poly2)
 
-    def _point_in_polygon(self, point: Point2D, polygon: List[Point2D]) -> bool:
+    def _point_in_polygon(self, point: Point2D, polygon: list[Point2D]) -> bool:
         """Check if a point is inside a polygon using the ray casting algorithm."""
         x, y = point
         n = len(polygon) - 1  # Exclude closing point
@@ -487,7 +486,7 @@ class ComplexGeometry:
 
         return inside
 
-    def _edges_intersect(self, poly1: List[Point2D], poly2: List[Point2D]) -> bool:
+    def _edges_intersect(self, poly1: list[Point2D], poly2: list[Point2D]) -> bool:
         """Check if any edges of the two polygons intersect."""
         # Simplified edge intersection check
         for i in range(len(poly1) - 1):
@@ -510,7 +509,7 @@ class ComplexGeometry:
 
 
 def assess_geometry_complexity(
-    contour_points: List[Point2D], area: float
+    contour_points: list[Point2D], area: float
 ) -> ComplexityLevel:
     """Assess the complexity level of a geometry based on its characteristics.
 

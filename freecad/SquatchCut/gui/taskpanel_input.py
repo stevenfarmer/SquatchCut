@@ -256,25 +256,33 @@ class InputGroupWidget(QtWidgets.QGroupBox):
             for obj in doc.Objects:
                 if hasattr(obj, "Shape") and obj.Shape is not None:
                     try:
-                        # Extract bounding box
-                        bbox = extractor.extract_bounding_box(obj)
-                        if bbox is None:
-                            continue
+                        # Use fallback extraction for robust shape processing
+                        geometry, extraction_method, notification = (
+                            extractor.extract_with_fallback(obj)
+                        )
 
-                        width_mm, height_mm = bbox
-                        depth_mm = getattr(obj.Shape.BoundBox, "ZLength", 0.0)
+                        # Log notification if provided
+                        if notification:
+                            logger.info(f"Shape extraction: {notification}")
+
+                        # Get dimensions from the extracted geometry
+                        width_mm = geometry.get_width()
+                        height_mm = geometry.get_height()
+                        depth_mm = (
+                            getattr(obj.Shape.BoundBox, "ZLength", 0.0)
+                            if hasattr(obj, "Shape")
+                            else 0.0
+                        )
 
                         # Create ShapeInfo for the dialog
                         shape_info = ShapeInfo(
                             freecad_object=obj,
                             label=obj.Label,
                             dimensions=(width_mm, height_mm, depth_mm),
-                            geometry_type=extractor._classify_geometry_type(obj),
-                            complexity_score=extractor._assess_complexity(obj),
-                            extraction_method="bounding_box",
-                            area_mm2=(
-                                width_mm * height_mm if width_mm and height_mm else None
-                            ),
+                            geometry_type=geometry.geometry_type,
+                            complexity_score=geometry.complexity_level,
+                            extraction_method=extraction_method,
+                            area_mm2=geometry.area,
                         )
                         detected_shapes.append(shape_info)
 
