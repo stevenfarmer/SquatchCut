@@ -378,7 +378,6 @@ class RunNestingCommand:
             sheet_spacing = compute_sheet_spacing(sheet_sizes, gap_mm)
             boundaries, _ = build_sheet_boundaries(doc, sheet_sizes, sheet_spacing)
             sheet_obj = boundaries[0] if boundaries else None
-            session.set_sheet_objects(boundaries)
             live_sources = self._resolve_live_source_objects(doc, panel_objs)
             if live_sources:
                 session.set_source_panel_objects(live_sources)
