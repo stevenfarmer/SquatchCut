@@ -199,9 +199,20 @@ class ComplexGeometry:
         if abs(kerf_mm) < 0.001:  # No meaningful kerf
             return self
 
+        # Check if kerf is too large for this geometry
+        # For positive kerf (shrinking), limit to 1/4 of the minimum dimension
+        if kerf_mm > 0:
+            min_dimension = min(self.get_width(), self.get_height())
+            max_safe_kerf = min_dimension / 4.0
+            if kerf_mm > max_safe_kerf:
+                raise ValueError(
+                    f"Kerf {kerf_mm}mm too large for geometry {self.id} (max safe kerf: {max_safe_kerf:.3f}mm)"
+                )
+
         # For now, implement a simple uniform offset
         # In a full implementation, this would use proper polygon offsetting algorithms
-        offset_points = self._apply_uniform_offset(self.contour_points, -kerf_mm)
+        # Positive kerf_mm means shrink (inward offset), so we pass kerf_mm directly
+        offset_points = self._apply_uniform_offset(self.contour_points, kerf_mm)
 
         if not offset_points or len(offset_points) < 3:
             # Kerf too large, geometry collapsed
@@ -210,6 +221,12 @@ class ComplexGeometry:
         # Recalculate properties for offset geometry
         new_bounding_box = self._calculate_bounding_box(offset_points)
         new_area = self._calculate_polygon_area(offset_points)
+
+        # Sanity check: for positive kerf, area should decrease
+        if kerf_mm > 0 and new_area > self.area:
+            raise ValueError(
+                f"Kerf {kerf_mm}mm too large for geometry {self.id} - polygon inverted"
+            )
 
         return ComplexGeometry(
             id=self.id,
@@ -336,6 +353,9 @@ class ComplexGeometry:
         if len(points) < 3 or abs(offset) < 0.001:
             return points.copy()
 
+        # Determine polygon orientation (clockwise or counter-clockwise)
+        is_clockwise = self._is_polygon_clockwise(points)
+
         # Simple implementation: move each point inward/outward along edge normals
         offset_points = []
         n = len(points) - 1  # Exclude the closing point
@@ -356,8 +376,13 @@ class ComplexGeometry:
             )
 
             # Calculate normals (perpendicular vectors)
-            prev_normal = self._normalize_vector((-prev_edge[1], prev_edge[0]))
-            next_normal = self._normalize_vector((-next_edge[1], next_edge[0]))
+            # For inward normals: if clockwise, use (dy, -dx); if counter-clockwise, use (-dy, dx)
+            if is_clockwise:
+                prev_normal = self._normalize_vector((prev_edge[1], -prev_edge[0]))
+                next_normal = self._normalize_vector((next_edge[1], -next_edge[0]))
+            else:
+                prev_normal = self._normalize_vector((-prev_edge[1], prev_edge[0]))
+                next_normal = self._normalize_vector((-next_edge[1], next_edge[0]))
 
             # Average the normals to get the offset direction
             avg_normal = (
@@ -366,7 +391,7 @@ class ComplexGeometry:
             )
             avg_normal = self._normalize_vector(avg_normal)
 
-            # Apply offset
+            # Apply offset (positive offset = inward for kerf compensation)
             new_point = (
                 points[i][0] + avg_normal[0] * offset,
                 points[i][1] + avg_normal[1] * offset,
@@ -378,6 +403,25 @@ class ComplexGeometry:
             offset_points.append(offset_points[0])
 
         return offset_points
+
+    def _is_polygon_clockwise(self, points: List[Point2D]) -> bool:
+        """Determine if polygon vertices are ordered clockwise.
+
+        Uses the shoelace formula to calculate signed area.
+        Positive area = counter-clockwise, negative area = clockwise.
+        """
+        if len(points) < 3:
+            return True  # Default assumption
+
+        # Calculate signed area using shoelace formula
+        signed_area = 0.0
+        n = len(points) - 1  # Exclude closing point if present
+
+        for i in range(n):
+            j = (i + 1) % n
+            signed_area += (points[j][0] - points[i][0]) * (points[j][1] + points[i][1])
+
+        return signed_area > 0  # Clockwise if positive
 
     def _normalize_vector(self, vector: Point2D) -> Point2D:
         """Normalize a 2D vector to unit length."""

@@ -391,3 +391,61 @@ class ShapeExtractor:
         # Simple heuristic: if we have many points, it's likely curved
         # A more sophisticated implementation would analyze curvature
         return len(contour_points) > 20
+
+    def _classify_geometry_type(self, freecad_obj) -> GeometryType:
+        """Classify geometry type from a FreeCAD object (overloaded method)."""
+        try:
+            if not hasattr(freecad_obj, "Shape") or freecad_obj.Shape is None:
+                return GeometryType.RECTANGULAR
+
+            shape = freecad_obj.Shape
+
+            # Simple classification based on shape type
+            if hasattr(shape, "ShapeType"):
+                shape_type = shape.ShapeType
+                if shape_type in ["Solid", "CompSolid"]:
+                    # For solids, check if it's a simple box
+                    bbox = shape.BoundBox
+                    if hasattr(bbox, "XLength") and hasattr(bbox, "YLength"):
+                        # Simple heuristic: if it's a box-like solid, consider it rectangular
+                        return GeometryType.RECTANGULAR
+                elif shape_type in ["Face", "Shell"]:
+                    # Faces could be curved
+                    return GeometryType.CURVED
+
+            # Default to complex for unknown types
+            return GeometryType.COMPLEX
+
+        except Exception:
+            return GeometryType.RECTANGULAR
+
+    def _assess_complexity(self, freecad_obj) -> float:
+        """Assess the complexity score of a FreeCAD object."""
+        try:
+            if not hasattr(freecad_obj, "Shape") or freecad_obj.Shape is None:
+                return 1.0
+
+            shape = freecad_obj.Shape
+
+            # Simple complexity scoring based on shape properties
+            complexity_score = 1.0
+
+            # Add complexity based on number of faces
+            if hasattr(shape, "Faces"):
+                face_count = len(shape.Faces)
+                complexity_score += face_count * 0.5
+
+            # Add complexity based on number of edges
+            if hasattr(shape, "Edges"):
+                edge_count = len(shape.Edges)
+                complexity_score += edge_count * 0.1
+
+            # Add complexity based on number of vertices
+            if hasattr(shape, "Vertexes"):
+                vertex_count = len(shape.Vertexes)
+                complexity_score += vertex_count * 0.05
+
+            return min(complexity_score, 10.0)  # Cap at 10.0
+
+        except Exception:
+            return 1.0

@@ -153,7 +153,7 @@ class EnhancedShapeSelectionDialog(QtWidgets.QDialog):
         left_widget = QtWidgets.QWidget()
         left_layout = QtWidgets.QVBoxLayout(left_widget)
 
-        list_label = Qtdgets.QLabel("Detected Shapes:")
+        list_label = QtWidgets.QLabel("Detected Shapes:")
         list_label.setStyleSheet("font-weight: bold;")
         left_layout.addWidget(list_label)
 

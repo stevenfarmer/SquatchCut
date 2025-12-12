@@ -6,8 +6,13 @@ import os
 
 from SquatchCut.core import logger, session_state
 from SquatchCut.core import units as sc_units
+from SquatchCut.core.shape_extractor import ShapeExtractor
 from SquatchCut.freecad_integration import App
 from SquatchCut.gui.commands.cmd_import_csv import run_csv_import
+from SquatchCut.gui.dialogs.dlg_select_shapes import (
+    EnhancedShapeSelectionDialog,
+    ShapeInfo,
+)
 from SquatchCut.gui.qt_compat import QtCore, QtWidgets
 from SquatchCut.ui.messages import show_error
 
@@ -23,6 +28,7 @@ class InputGroupWidget(QtWidgets.QGroupBox):
 
     csv_imported = QtCore.Signal()
     data_changed = QtCore.Signal()
+    shapes_selected = QtCore.Signal()
 
     def __init__(self, prefs, parent=None):
         super().__init__("Input", parent)
@@ -35,8 +41,6 @@ class InputGroupWidget(QtWidgets.QGroupBox):
     def _build_ui(self) -> None:
         vbox = QtWidgets.QVBoxLayout(self)
 
-        self.load_csv_button = QtWidgets.QPushButton("Import CSV")
-        self.load_csv_button.setToolTip("Import a SquatchCut panels CSV file.")
         self.csv_path_label = QtWidgets.QLabel("No file loaded")
         self.csv_path_label.setStyleSheet("color: gray;")
         if hasattr(self.csv_path_label, "setWordWrap"):
@@ -48,7 +52,20 @@ class InputGroupWidget(QtWidgets.QGroupBox):
         if callable(setter):
             setter(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
 
-        vbox.addWidget(self.load_csv_button)
+        # Input method selection
+        input_method_layout = QtWidgets.QHBoxLayout()
+
+        self.load_csv_button = QtWidgets.QPushButton("Import CSV")
+        self.load_csv_button.setToolTip("Import a SquatchCut panels CSV file.")
+        input_method_layout.addWidget(self.load_csv_button)
+
+        self.select_shapes_button = QtWidgets.QPushButton("Select Shapes")
+        self.select_shapes_button.setToolTip(
+            "Select FreeCAD shapes from the current document for nesting."
+        )
+        input_method_layout.addWidget(self.select_shapes_button)
+
+        vbox.addLayout(input_method_layout)
         vbox.addWidget(self.csv_path_label)
 
         csv_units_form = QtWidgets.QFormLayout()
@@ -88,6 +105,7 @@ class InputGroupWidget(QtWidgets.QGroupBox):
         vbox.addWidget(self.parts_table)
 
         self.load_csv_button.clicked.connect(self._choose_csv_file)
+        self.select_shapes_button.clicked.connect(self._select_shapes)
 
         self._update_table_headers()
 
@@ -221,3 +239,93 @@ class InputGroupWidget(QtWidgets.QGroupBox):
         self._sync_csv_units_display(session_state.get_measurement_system())
         self._update_table_headers()
         self.refresh_table()
+
+    def _select_shapes(self) -> None:
+        """Open shape selection dialog and process selected shapes."""
+        doc = App.ActiveDocument
+        if doc is None:
+            show_error("Unable to find an active document.", title="SquatchCut")
+            return
+
+        try:
+            # Extract shapes from the current document
+            extractor = ShapeExtractor()
+            detected_shapes = []
+
+            # Get all objects with Shape properties
+            for obj in doc.Objects:
+                if hasattr(obj, "Shape") and obj.Shape is not None:
+                    try:
+                        # Extract bounding box
+                        bbox = extractor.extract_bounding_box(obj)
+                        if bbox is None:
+                            continue
+
+                        width_mm, height_mm = bbox
+                        depth_mm = getattr(obj.Shape.BoundBox, "ZLength", 0.0)
+
+                        # Create ShapeInfo for the dialog
+                        shape_info = ShapeInfo(
+                            freecad_object=obj,
+                            label=obj.Label,
+                            dimensions=(width_mm, height_mm, depth_mm),
+                            geometry_type=extractor._classify_geometry_type(obj),
+                            complexity_score=extractor._assess_complexity(obj),
+                            extraction_method="bounding_box",
+                            area_mm2=(
+                                width_mm * height_mm if width_mm and height_mm else None
+                            ),
+                        )
+                        detected_shapes.append(shape_info)
+
+                    except Exception as e:
+                        logger.warning(f"Failed to process object {obj.Label}: {e}")
+                        continue
+
+            if not detected_shapes:
+                show_error(
+                    "No valid shapes found in the current document.", title="SquatchCut"
+                )
+                return
+
+            # Open selection dialog
+            dialog = EnhancedShapeSelectionDialog(detected_shapes, parent=self)
+            if dialog.exec_() == QtWidgets.QDialog.Accepted:
+                selection_data = dialog.get_data()
+                selected_shapes = selection_data["selected_shapes"]
+
+                if selected_shapes:
+                    # Convert selected shapes to panel format for session_state
+                    panels = []
+                    for shape_info in selected_shapes:
+                        width_mm, height_mm, _ = shape_info.dimensions
+                        panel = {
+                            "id": shape_info.label,
+                            "label": shape_info.label,
+                            "width": width_mm,
+                            "height": height_mm,
+                            "qty": 1,
+                            "allow_rotate": True,  # Default to allowing rotation
+                            "source": "freecad_shape",
+                            "freecad_object": shape_info.freecad_object,
+                        }
+                        panels.append(panel)
+
+                    # Update session state with selected shapes
+                    session_state.set_panels(panels)
+
+                    # Update UI
+                    self._set_csv_label("")  # Clear CSV label
+                    self.csv_path_label.setText(
+                        f"{len(selected_shapes)} shapes selected"
+                    )
+                    self.csv_path_label.setStyleSheet("")
+                    self.refresh_table()
+                    self.shapes_selected.emit()
+
+                    logger.info(
+                        f">>> [SquatchCut] Selected {len(selected_shapes)} shapes for nesting"
+                    )
+
+        except Exception as exc:
+            show_error(f"Failed to select shapes:\n{exc}", title="SquatchCut")

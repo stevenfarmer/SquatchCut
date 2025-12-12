@@ -7,7 +7,7 @@ shape detection, extraction, and nesting algorithms for complex geometries.
 """
 
 import pytest
-from hypothesis import given, strategies as st, assume, settings, example
+from hypothesis import given, strategies as st, assume, settings, example, HealthCheck
 from unittest.mock import Mock, patch
 import math
 
@@ -317,7 +317,11 @@ class TestComplexGeometryProperties:
         assert min_y <= cy <= max_y
 
     @given(valid_complex_geometry(), st.floats(min_value=-360.0, max_value=360.0))
-    @settings(max_examples=50, deadline=5000)
+    @settings(
+        max_examples=50,
+        deadline=5000,
+        suppress_health_check=[HealthCheck.filter_too_much],
+    )
     def test_property_5_rotation_preservation(self, geometry, angle):
         """**Feature: shape-based-nesting, Property 5: Rotation Preservation**
 
@@ -358,9 +362,9 @@ class TestComplexGeometryProperties:
     @settings(max_examples=50, deadline=5000)
     def test_kerf_application_accuracy(self, geometry, kerf_mm):
         """Test that kerf compensation is applied accurately to complex geometries."""
-        assume(
-            kerf_mm < min(geometry.get_width(), geometry.get_height()) / 4
-        )  # Avoid collapse
+        # Calculate safe kerf limit
+        min_dimension = min(geometry.get_width(), geometry.get_height())
+        max_safe_kerf = min_dimension / 4.0
 
         try:
             kerf_geometry = geometry.apply_kerf(kerf_mm)
@@ -379,8 +383,8 @@ class TestComplexGeometryProperties:
             assert kerf_geometry.bounding_box != geometry.bounding_box
 
         except ValueError:
-            # Kerf too large causing geometry collapse - acceptable behavior
-            pass
+            # Kerf too large causing geometry collapse - should only happen when kerf > max_safe_kerf
+            assert kerf_mm > max_safe_kerf
 
     @given(valid_complex_geometry(), valid_complex_geometry())
     @settings(max_examples=30, deadline=5000)
@@ -542,3 +546,119 @@ class TestErrorHandlingProperties:
         # None document
         panels = extractor.extract_from_document(None)
         assert panels == []  # Should return empty list, not crash
+
+
+class TestGeometryNestingEngine:
+    """Property-based tests for the geometry nesting engine."""
+
+    @given(st.lists(valid_complex_geometry(), min_size=1, max_size=5))
+    @settings(max_examples=20, deadline=10000)
+    def test_property_4_overlap_prevention_in_nesting(self, geometries):
+        """**Feature: shape-based-nesting, Property 4: Overlap Prevention**
+
+        For any pair of complex shapes in a nesting layout, the system should
+        detect and prevent overlaps between actual shape geometries, maintaining
+        specified margins between contours.
+
+        **Validates: Requirements 2.2, 8.2**
+        """
+        from SquatchCut.core.geometry_nesting_engine import (
+            GeometryNestingEngine,
+            SheetGeometry,
+            NestingMode,
+        )
+
+        # Create a reasonably sized sheet
+        sheet = SheetGeometry(width=1000.0, height=1000.0, margin=10.0)
+        engine = GeometryNestingEngine()
+
+        # Attempt nesting
+        result = engine.nest_complex_shapes(geometries, sheet, NestingMode.GEOMETRIC)
+
+        # Verify no overlaps in placed geometries
+        placed = result.placed_geometries
+        for i in range(len(placed)):
+            for j in range(i + 1, len(placed)):
+                geom1 = placed[i].geometry
+                geom2 = placed[j].geometry
+
+                # Create positioned geometries for overlap checking
+                pos_geom1 = engine._create_positioned_geometry(
+                    geom1, placed[i].x, placed[i].y
+                )
+                pos_geom2 = engine._create_positioned_geometry(
+                    geom2, placed[j].x, placed[j].y
+                )
+
+                # Should not overlap
+                assert not engine.detect_geometry_overlaps(
+                    pos_geom1, pos_geom2, 0.1
+                ), f"Geometries {geom1.id} and {geom2.id} overlap in nesting result"
+
+        # Verify result structure
+        assert isinstance(result.placed_geometries, list)
+        assert isinstance(result.unplaced_geometries, list)
+        assert result.sheets_used >= 0
+        assert result.utilization_percent >= 0
+        assert result.processing_time >= 0
+
+    @given(valid_complex_geometry(), st.floats(min_value=0.1, max_value=5.0))
+    @settings(max_examples=30, deadline=5000)
+    def test_kerf_application_in_nesting(self, geometry, kerf_mm):
+        """Test kerf compensation application in nesting engine."""
+        from SquatchCut.core.geometry_nesting_engine import GeometryNestingEngine
+
+        engine = GeometryNestingEngine()
+
+        # Apply kerf compensation
+        kerf_geometry = engine.apply_kerf_to_geometry(geometry, kerf_mm)
+
+        # Should return a valid geometry (original or modified)
+        assert kerf_geometry is not None
+        assert kerf_geometry.id == geometry.id
+        assert kerf_geometry.area > 0
+
+        # If kerf was successfully applied, area should be different
+        if kerf_geometry.kerf_compensation == kerf_mm:
+            if kerf_mm > 0:
+                assert kerf_geometry.area <= geometry.area  # Shrinking
+        else:
+            # Kerf was too large, should return original geometry
+            assert kerf_geometry.kerf_compensation == geometry.kerf_compensation
+            assert kerf_geometry.area == geometry.area
+
+    @given(st.lists(valid_complex_geometry(), min_size=2, max_size=4))
+    @settings(max_examples=15, deadline=8000)
+    def test_utilization_calculation_accuracy(self, geometries):
+        """Test that utilization calculations are accurate for complex geometries."""
+        from SquatchCut.core.geometry_nesting_engine import (
+            GeometryNestingEngine,
+            SheetGeometry,
+            NestingMode,
+        )
+
+        # Create sheet and nest geometries
+        sheet = SheetGeometry(width=800.0, height=600.0, margin=5.0)
+        engine = GeometryNestingEngine()
+
+        result = engine.nest_complex_shapes(geometries, sheet, NestingMode.HYBRID)
+        stats = engine.calculate_actual_utilization(result)
+
+        # Verify utilization statistics
+        assert stats.sheets_used >= 0
+        assert 0 <= stats.utilization_percent <= 100
+        assert stats.area_used_mm2 >= 0
+        assert stats.area_wasted_mm2 >= 0
+        assert 0 <= stats.geometric_efficiency <= 1.0
+        assert 0 <= stats.placement_efficiency <= 1.0
+
+        # Area conservation
+        total_available = sheet.usable_area
+        assert (
+            abs((stats.area_used_mm2 + stats.area_wasted_mm2) - total_available) < 1.0
+        )
+
+        # If shapes were placed, utilization should be positive
+        if result.placed_geometries:
+            assert stats.area_used_mm2 > 0
+            assert stats.utilization_percent > 0

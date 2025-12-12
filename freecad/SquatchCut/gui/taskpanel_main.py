@@ -105,6 +105,7 @@ class SquatchCutTaskPanel:
         # 2. Input Group
         self.input_widget = InputGroupWidget(self._prefs)
         self.input_widget.csv_imported.connect(self._on_csv_imported)
+        self.input_widget.shapes_selected.connect(self._on_shapes_selected)
         self.input_widget.data_changed.connect(self._on_data_changed)
         layout.addWidget(self.input_widget)
 
@@ -378,6 +379,11 @@ class SquatchCutTaskPanel:
     def _on_csv_imported(self):
         self.set_status("CSV Imported.")
         self.has_csv_data = True
+        self._validate_readiness()
+
+    def _on_shapes_selected(self):
+        self.set_status("Shapes Selected.")
+        self.has_csv_data = True  # Treat shape selection like CSV data
         self._validate_readiness()
 
     def _on_data_changed(self):
