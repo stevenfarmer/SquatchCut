@@ -46,6 +46,7 @@ class SheetConfigWidget(QtWidgets.QGroupBox):
 
         self.preset_combo = QtWidgets.QComboBox()
         self.preset_combo.currentIndexChanged.connect(self._on_preset_changed)
+        self.preset_combo.setToolTip("Select a standard sheet size.")
         form.addRow("Preset:", self.preset_combo)
         vbox.addLayout(form)
 
@@ -56,8 +57,10 @@ class SheetConfigWidget(QtWidgets.QGroupBox):
         self.sheet_height_edit = QtWidgets.QLineEdit()
         self.kerf_label = QtWidgets.QLabel("Kerf width (mm):")
         self.kerf_edit = QtWidgets.QLineEdit()
+        self.kerf_edit.setToolTip("Distance between parts to account for the width of the saw blade.")
         self.margin_label = QtWidgets.QLabel("Edge margin (mm):")
         self.margin_edit = QtWidgets.QLineEdit()
+        self.margin_edit.setToolTip("Safety margin around the edges of the sheet.")
 
         for edit in (self.sheet_width_edit, self.sheet_height_edit, self.kerf_edit, self.margin_edit):
             edit.textChanged.connect(self._validate_and_sync)
@@ -179,6 +182,7 @@ class SheetConfigWidget(QtWidgets.QGroupBox):
         prev_system = "imperial" if system == "metric" else "metric"
 
         self._prefs.set_measurement_system(system)
+        self._prefs.set_csv_units(system)
         session_state.set_measurement_system(system)
         sc_units.set_units("in" if system == "imperial" else "mm")
 

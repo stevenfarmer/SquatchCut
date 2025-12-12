@@ -58,7 +58,7 @@ def ensure_sheet_object(width_mm: float, height_mm: float, doc=None):
     except Exception as exc:
         logger.warning(f"Failed to update sheet outline shape: {exc!r}")
     try:
-        if hasattr(sheet_obj, "ViewObject"):
+        if hasattr(sheet_obj, "ViewObject") and sheet_obj.ViewObject:
             sheet_obj.ViewObject.DisplayMode = "Flat Lines"
             sheet_obj.ViewObject.ShapeColor = (0.5, 0.5, 0.5)
     except Exception:
@@ -163,7 +163,7 @@ def _create_sheet_feature(doc, width_mm, height_mm, name, label, offset_x):
         except Exception:
             pass
     try:
-        if hasattr(obj, "ViewObject"):
+        if hasattr(obj, "ViewObject") and obj.ViewObject:
             obj.ViewObject.DisplayMode = "Flat Lines"
             obj.ViewObject.ShapeColor = (0.5, 0.5, 0.5)
     except Exception:

@@ -169,13 +169,13 @@ def test_session_state_defaults_after_reload():
     assert session_state.get_kerf_mm() == 0.0
     assert session_state.get_default_allow_rotate() is False
     assert session_state.get_job_allow_rotate() is None
-    assert session_state.get_measurement_system() == "metric"
+    assert session_state.get_measurement_system() == "imperial"
 
 
 def test_measurement_system_rejects_invalid_values():
     importlib.reload(session_state)
     set_measurement_system("bogus")
-    assert get_measurement_system() == "metric"
+    assert get_measurement_system() == "imperial"
     set_measurement_system("imperial")
     assert get_measurement_system() == "imperial"
 

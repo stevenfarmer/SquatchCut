@@ -43,15 +43,23 @@ def rebuild_nested_geometry(
     if group is None:
         return None, []
     removed = clear_group_children(group)
-    logger.info(f">>> [SquatchCut] Nested group cleared and rebuilt with {removed} parts")
+    logger.info(
+        f">>> [SquatchCut] Nested group cleared and rebuilt with {removed} parts"
+    )
 
     source_objects = source_objects or []
     source_map = _build_source_map(source_objects, doc)
     if not source_map and placements:
-        logger.warning("[SquatchCut][WARN] No valid source objects found for nesting; using fallback boxes.")
+        logger.warning(
+            "[SquatchCut][WARN] No valid source objects found for nesting; using fallback boxes."
+        )
 
     def _find_source(part_id):
-        return source_map.get(part_id) or doc.getObject(part_id) or doc.getObject(f"SC_Source_{part_id}")
+        return (
+            source_map.get(part_id)
+            or doc.getObject(part_id)
+            or doc.getObject(f"SC_Source_{part_id}")
+        )
 
     nested_objs = []
     size_list = sheet_sizes or []
@@ -62,7 +70,11 @@ def rebuild_nested_geometry(
             size_list = [(sheet_w, sheet_h)]
         else:
             size_list = [(0.0, 0.0)]
-    sheet_spacing = float(spacing) if spacing is not None else (float(size_list[0][0]) * 0.25 if size_list and size_list[0][0] else 0.0)
+    sheet_spacing = (
+        float(spacing)
+        if spacing is not None
+        else (float(size_list[0][0]) * 0.25 if size_list and size_list[0][0] else 0.0)
+    )
     sheet_offsets = []
     current_offset = 0.0
     for width, _ in size_list:
@@ -100,7 +112,9 @@ def rebuild_nested_geometry(
         base_y = y
         placement.Base = App.Vector(base_x, base_y, NESTED_Z_OFFSET)
         try:
-            placement.Rotation = App.Rotation(App.Vector(0, 0, 1), float(getattr(pp, "rotation_deg", 0)))
+            placement.Rotation = App.Rotation(
+                App.Vector(0, 0, 1), float(getattr(pp, "rotation_deg", 0))
+            )
         except Exception:
             pass
         obj.Placement = placement
@@ -116,7 +130,9 @@ def rebuild_nested_geometry(
     except Exception:
         pass
 
-    logger.info(f">>> [SquatchCut] Rebuilt nesting view with {len(nested_objs)} object(s).")
+    logger.info(
+        f">>> [SquatchCut] Rebuilt nesting view with {len(nested_objs)} object(s)."
+    )
     return group, nested_objs
 
 

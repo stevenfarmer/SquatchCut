@@ -13,6 +13,7 @@ mock_App = MagicMock()
 mock_Gui = MagicMock()
 mock_Part = MagicMock()
 
+
 # Setup Vector
 def vector_side_effect(x, y, z):
     v = MagicMock()
@@ -20,8 +21,14 @@ def vector_side_effect(x, y, z):
     v.y = y
     v.z = z
     v.__iter__ = lambda self: iter((self.x, self.y, self.z))
-    v.__eq__ = lambda self, other: (self.x, self.y, self.z) == (other.x, other.y, other.z) if hasattr(other, 'x') else False
+    v.__eq__ = lambda self, other: (
+        (self.x, self.y, self.z) == (other.x, other.y, other.z)
+        if hasattr(other, "x")
+        else False
+    )
     return v
+
+
 mock_App.Vector = MagicMock(side_effect=vector_side_effect)
 
 # Setup Rotation
@@ -32,6 +39,7 @@ mock_doc = MagicMock()
 mock_App.ActiveDocument = mock_doc
 mock_App.newDocument.return_value = mock_doc
 
+
 # Setup Objects
 def addObject_side_effect(type, name):
     obj = MagicMock()
@@ -39,21 +47,23 @@ def addObject_side_effect(type, name):
     # ViewObject
     obj.ViewObject = MagicMock()
     obj.ViewObject.DisplayMode = ""
-    obj.ViewObject.ShapeColor = (0., 0., 0.)
+    obj.ViewObject.ShapeColor = (0.0, 0.0, 0.0)
     # Placement
     obj.Placement = MagicMock()
-    obj.Placement.Base = mock_App.Vector(0,0,0)
+    obj.Placement.Base = mock_App.Vector(0, 0, 0)
     obj.Placement.Rotation = MagicMock()
     # Shape
     obj.Shape = MagicMock()
     obj.Shape.BoundBox = MagicMock()
     return obj
 
+
 mock_doc.addObject.side_effect = addObject_side_effect
 mock_doc.getObject.return_value = None
 
 # Setup Part.makePlane
 mock_Part.makePlane = MagicMock()
+
 
 @pytest.fixture(scope="module", autouse=True)
 def setup_integration():
@@ -88,6 +98,7 @@ def setup_integration():
     importlib.reload(sheet_model)
     importlib.reload(nesting_view)
 
+
 def test_ensure_sheet_object_orientation_and_color():
     # Reset mocks
     mock_Part.makePlane.reset_mock()
@@ -115,15 +126,14 @@ def test_ensure_sheet_object_orientation_and_color():
     # Check Color
     assert sheet.ViewObject.ShapeColor == (0.5, 0.5, 0.5)
 
+
 def test_nested_parts_z_placement_mocked():
     placements = [
         PlacedPart(id="P1", sheet_index=0, x=10.0, y=10.0, width=50.0, height=50.0),
     ]
 
     group, objs = nesting_view.rebuild_nested_geometry(
-        mock_doc,
-        placements,
-        sheet_sizes=[(200.0, 100.0)]
+        mock_doc, placements, sheet_sizes=[(200.0, 100.0)]
     )
 
     assert len(objs) == 1
@@ -134,13 +144,16 @@ def test_nested_parts_z_placement_mocked():
     base = part.Placement.Base
     assert base.z == 0.1
 
+
 def test_sheet_boundary_creation():
     mock_Part.makePlane.reset_mock()
 
     sheet_sizes = [(100.0, 100.0), (100.0, 100.0)]
     spacing = 10.0
 
-    boundaries, offsets = sheet_model.build_sheet_boundaries(mock_doc, sheet_sizes, spacing)
+    boundaries, offsets = sheet_model.build_sheet_boundaries(
+        mock_doc, sheet_sizes, spacing
+    )
 
     assert mock_Part.makePlane.call_count == 2
 

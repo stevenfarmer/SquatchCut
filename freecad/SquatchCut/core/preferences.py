@@ -58,13 +58,17 @@ class SquatchCutPreferences:
         has_h, _ = self._get_float_entry(self.IMPERIAL_HEIGHT_KEY)
         return has_w and has_h
 
-    def _set_metric_defaults(self, width_mm: float, height_mm: float, mark: bool = True) -> None:
+    def _set_metric_defaults(
+        self, width_mm: float, height_mm: float, mark: bool = True
+    ) -> None:
         self._set_float(self.METRIC_WIDTH_KEY, width_mm)
         self._set_float(self.METRIC_HEIGHT_KEY, height_mm)
         if mark:
             self._mark_sheet_defaults("metric")
 
-    def _set_imperial_defaults(self, width_in: float, height_in: float, mark: bool = True) -> None:
+    def _set_imperial_defaults(
+        self, width_in: float, height_in: float, mark: bool = True
+    ) -> None:
         self._set_float(self.IMPERIAL_WIDTH_KEY, width_in)
         self._set_float(self.IMPERIAL_HEIGHT_KEY, height_in)
         if mark:
@@ -75,13 +79,25 @@ class SquatchCutPreferences:
             metric_exists = self._metric_defaults_exist()
             imperial_exists = self._imperial_defaults_exist()
             if metric_exists and not imperial_exists:
-                width_mm = self._float(self.METRIC_WIDTH_KEY, self.METRIC_DEFAULT_WIDTH_MM)
-                height_mm = self._float(self.METRIC_HEIGHT_KEY, self.METRIC_DEFAULT_HEIGHT_MM)
-                self._set_imperial_defaults(mm_to_inches(width_mm), mm_to_inches(height_mm), mark=False)
+                width_mm = self._float(
+                    self.METRIC_WIDTH_KEY, self.METRIC_DEFAULT_WIDTH_MM
+                )
+                height_mm = self._float(
+                    self.METRIC_HEIGHT_KEY, self.METRIC_DEFAULT_HEIGHT_MM
+                )
+                self._set_imperial_defaults(
+                    mm_to_inches(width_mm), mm_to_inches(height_mm), mark=False
+                )
             elif imperial_exists and not metric_exists:
-                width_in = self._float(self.IMPERIAL_WIDTH_KEY, self.IMPERIAL_DEFAULT_WIDTH_IN)
-                height_in = self._float(self.IMPERIAL_HEIGHT_KEY, self.IMPERIAL_DEFAULT_HEIGHT_IN)
-                self._set_metric_defaults(inches_to_mm(width_in), inches_to_mm(height_in), mark=False)
+                width_in = self._float(
+                    self.IMPERIAL_WIDTH_KEY, self.IMPERIAL_DEFAULT_WIDTH_IN
+                )
+                height_in = self._float(
+                    self.IMPERIAL_HEIGHT_KEY, self.IMPERIAL_DEFAULT_HEIGHT_IN
+                )
+                self._set_metric_defaults(
+                    inches_to_mm(width_in), inches_to_mm(height_in), mark=False
+                )
             self._set_bool(self.SEPARATE_DEFAULTS_MIGRATED_KEY, True)
 
         if not self._bool(self.KERF_DEFAULTS_MIGRATED_KEY, False):
@@ -96,9 +112,13 @@ class SquatchCutPreferences:
         metric_exists = self._metric_defaults_exist()
         imperial_exists = self._imperial_defaults_exist()
         if not metric_exists:
-            self._set_metric_defaults(self.METRIC_DEFAULT_WIDTH_MM, self.METRIC_DEFAULT_HEIGHT_MM)
+            self._set_metric_defaults(
+                self.METRIC_DEFAULT_WIDTH_MM, self.METRIC_DEFAULT_HEIGHT_MM
+            )
         if not imperial_exists:
-            self._set_imperial_defaults(self.IMPERIAL_DEFAULT_WIDTH_IN, self.IMPERIAL_DEFAULT_HEIGHT_IN)
+            self._set_imperial_defaults(
+                self.IMPERIAL_DEFAULT_WIDTH_IN, self.IMPERIAL_DEFAULT_HEIGHT_IN
+            )
 
     def _float(self, key: str, fallback: float) -> float:
         if self._grp:
@@ -263,16 +283,22 @@ class SquatchCutPreferences:
         height_mm = self.get_default_sheet_height_mm()
         return mm_to_inches(width_mm), mm_to_inches(height_mm)
 
-    def get_default_spacing_mm(self, fallback: float = 0.0, system: str | None = None) -> float:
+    def get_default_spacing_mm(
+        self, fallback: float = 0.0, system: str | None = None
+    ) -> float:
         """
         Return default spacing in mm.
         If system is None, uses the current preferred measurement system.
         """
         sys = system or self.get_measurement_system()
         if sys == "imperial":
-             val_in = self._float(self.IMPERIAL_SPACING_KEY, self.IMPERIAL_DEFAULT_SPACING_IN)
-             return inches_to_mm(val_in)
-        return self._float(self.METRIC_SPACING_KEY, fallback or self.METRIC_DEFAULT_SPACING_MM)
+            val_in = self._float(
+                self.IMPERIAL_SPACING_KEY, self.IMPERIAL_DEFAULT_SPACING_IN
+            )
+            return inches_to_mm(val_in)
+        return self._float(
+            self.METRIC_SPACING_KEY, fallback or self.METRIC_DEFAULT_SPACING_MM
+        )
 
     def set_default_spacing_mm(self, value: float, system: str | None = None) -> None:
         """
@@ -339,7 +365,11 @@ class SquatchCutPreferences:
     def get_measurement_system(self, fallback: str = "metric") -> str:
         default_fallback = fallback
         first_run_default = self._local.get("_first_run_default_system")
-        if first_run_default and "MeasurementSystem" not in self._local and not self._grp:
+        if (
+            first_run_default
+            and "MeasurementSystem" not in self._local
+            and not self._grp
+        ):
             default_fallback = str(first_run_default)
         if (
             getattr(self, "_fresh_local", False)
@@ -360,7 +390,7 @@ class SquatchCutPreferences:
 
     def set_measurement_system(self, system: str) -> None:
         if system not in ("metric", "imperial"):
-            system = "metric"
+            system = "imperial"
         if self._grp:
             try:
                 self._grp.SetString("MeasurementSystem", system)
@@ -374,7 +404,7 @@ class SquatchCutPreferences:
     def is_imperial(self) -> bool:
         return self.get_measurement_system() == "imperial"
 
-    def get_csv_units(self, fallback: str = "metric") -> str:
+    def get_csv_units(self, fallback: str = "imperial") -> str:
         val = fallback
         if self._grp:
             try:
@@ -388,7 +418,7 @@ class SquatchCutPreferences:
 
     def set_csv_units(self, units: str) -> None:
         if units not in ("metric", "imperial"):
-            units = "metric"
+            units = "imperial"
         if self._grp:
             try:
                 self._grp.SetString("CsvUnits", units)

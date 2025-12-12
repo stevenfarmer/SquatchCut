@@ -54,8 +54,12 @@ class InputGroupWidget(QtWidgets.QGroupBox):
         csv_units_form = QtWidgets.QFormLayout()
         csv_units_label = QtWidgets.QLabel("CSV units:")
         self.csv_units_combo = QtWidgets.QComboBox()
-        self.csv_units_combo.addItem("Metric (mm)", "mm")
-        self.csv_units_combo.addItem("Imperial (in)", "in")
+        self.csv_units_combo.addItem("Metric (mm)", "metric")
+        self.csv_units_combo.addItem("Imperial (in)", "imperial")
+        if hasattr(self.csv_units_combo, "setEnabled"):
+            self.csv_units_combo.setEnabled(False)
+        if hasattr(self.csv_units_combo, "setToolTip"):
+            self.csv_units_combo.setToolTip("CSV units follow the Sheet units selection.")
         csv_units_form.addRow(csv_units_label, self.csv_units_combo)
         vbox.addLayout(csv_units_form)
 
@@ -84,11 +88,19 @@ class InputGroupWidget(QtWidgets.QGroupBox):
         self._update_table_headers()
 
     def get_csv_units(self) -> str:
-        """Return csv units selection ('mm' or 'in')."""
+        """Return current measurement system for CSV operations."""
         data = self.csv_units_combo.currentData()
-        if data in ("mm", "in"):
+        if data in ("metric", "imperial"):
             return data
-        return "mm"
+        return "metric"
+
+    def _sync_csv_units_display(self, system: str | None) -> None:
+        normalized = "imperial" if system == "imperial" else "metric"
+        idx = self.csv_units_combo.findData(normalized)
+        if idx >= 0:
+            self.csv_units_combo.blockSignals(True)
+            self.csv_units_combo.setCurrentIndex(idx)
+            self.csv_units_combo.blockSignals(False)
 
     def _choose_csv_file(self) -> None:
         caption = "Select panels CSV"
@@ -185,15 +197,12 @@ class InputGroupWidget(QtWidgets.QGroupBox):
 
     def apply_state(self, state: dict) -> None:
         """Apply hydrated state to widgets."""
-        csv_units = state.get("csv_units")
-        idx = self.csv_units_combo.findData(csv_units)
-        if idx >= 0:
-            self.csv_units_combo.blockSignals(True)
-            self.csv_units_combo.setCurrentIndex(idx)
-            self.csv_units_combo.blockSignals(False)
+        system = state.get("measurement_system", "metric")
+        self._sync_csv_units_display(system)
         self.refresh_table()
 
     def on_units_changed(self) -> None:
         """Handle global unit change."""
+        self._sync_csv_units_display(session_state.get_measurement_system())
         self._update_table_headers()
         self.refresh_table()
