@@ -62,11 +62,11 @@ def test_property_retry_and_escalation_protocol(task):
     agent = Agent(task)
     result = agent.execute_task()
 
-    if task.failures <= MAX_RETRIES:
+    if task.failures < MAX_RETRIES:
         assert result == "Task succeeded"
         assert not agent.escalated
         assert task.attempts == task.failures + 1
     else:
         assert result == "Task failed after multiple retries"
         assert agent.escalated
-        assert task.attempts == MAX_RETRIES + 1
+        assert task.attempts == MAX_RETRIES

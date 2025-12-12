@@ -62,10 +62,12 @@ class TestDXFExport:
         """Test that DXF export fails gracefully when importDXF is not available."""
         output_path = tmp_path / "test_export.dxf"
 
+        real_import = __import__
+
         def mock_import(name, *args, **kwargs):
             if name == "importDXF":
                 raise ImportError("No module named 'importDXF'")
-            return __import__(name, *args, **kwargs)
+            return real_import(name, *args, **kwargs)
 
         with patch("builtins.__import__", side_effect=mock_import):
             with pytest.raises(RuntimeError, match="DXF export not available"):
@@ -75,10 +77,12 @@ class TestDXFExport:
         """Test that DXF export fails gracefully when FreeCAD App is not available."""
         output_path = tmp_path / "test_export.dxf"
 
+        real_import = __import__
+
         def mock_import(name, *args, **kwargs):
             if name == "importDXF":
                 return MagicMock()
-            return __import__(name, *args, **kwargs)
+            return real_import(name, *args, **kwargs)
 
         with patch("builtins.__import__", side_effect=mock_import):
             with patch("SquatchCut.core.exporter.App", None):
@@ -95,10 +99,12 @@ class TestDXFExport:
         mock_doc.Name = "TestDoc"
         mock_app.newDocument.return_value = mock_doc
 
+        real_import = __import__
+
         def mock_import(name, *args, **kwargs):
             if name == "importDXF":
                 return mock_import_dxf
-            return __import__(name, *args, **kwargs)
+            return real_import(name, *args, **kwargs)
 
         with patch("builtins.__import__", side_effect=mock_import):
             with patch("SquatchCut.core.exporter.App", mock_app):
@@ -131,10 +137,12 @@ class TestDXFExport:
         mock_doc.Name = "TestDoc"
         mock_app.newDocument.return_value = mock_doc
 
+        real_import = __import__
+
         def mock_import(name, *args, **kwargs):
             if name == "importDXF":
                 return mock_import_dxf
-            return __import__(name, *args, **kwargs)
+            return real_import(name, *args, **kwargs)
 
         with patch("builtins.__import__", side_effect=mock_import):
             with patch("SquatchCut.core.exporter.App", mock_app):
@@ -161,10 +169,12 @@ class TestDXFExport:
         mock_doc.Name = "TestDoc"
         mock_app.newDocument.return_value = mock_doc
 
+        real_import = __import__
+
         def mock_import(name, *args, **kwargs):
             if name == "importDXF":
                 return mock_import_dxf
-            return __import__(name, *args, **kwargs)
+            return real_import(name, *args, **kwargs)
 
         with patch("builtins.__import__", side_effect=mock_import):
             with patch("SquatchCut.core.exporter.App", mock_app):
@@ -212,10 +222,12 @@ class TestDXFExport:
         mock_app.newDocument.return_value = mock_doc
         mock_app.Vector.side_effect = lambda x, y, z: (x, y, z)
 
+        real_import = __import__
+
         def mock_import(name, *args, **kwargs):
             if name == "importDXF":
                 return mock_import_dxf
-            return __import__(name, *args, **kwargs)
+            return real_import(name, *args, **kwargs)
 
         with patch("builtins.__import__", side_effect=mock_import):
             with patch("SquatchCut.core.exporter.App", mock_app):
