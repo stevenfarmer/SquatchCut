@@ -123,7 +123,9 @@ class RunNestingCommand:
         self.validation_error = None
         if App is None or Gui is None:
             try:
-                logger.warning("RunNestingCommand.Activated() called outside FreeCAD GUI environment.")
+                logger.warning(
+                    "RunNestingCommand.Activated() called outside FreeCAD GUI environment."
+                )
             except Exception:
                 pass
             return
@@ -144,7 +146,9 @@ class RunNestingCommand:
 
             panel_objs = self._get_panel_objects()
             if not panel_objs:
-                logger.info("RunNestingCommand: no source panel objects; nothing to nest.")
+                logger.info(
+                    "RunNestingCommand: no source panel objects; nothing to nest."
+                )
                 return
 
             for src in panel_objs:
@@ -188,7 +192,9 @@ class RunNestingCommand:
 
             source_group = doc.getObject("SquatchCut_SourceParts")
             if source_group is None:
-                source_group = doc.addObject("App::DocumentObjectGroup", "SquatchCut_SourceParts")
+                source_group = doc.addObject(
+                    "App::DocumentObjectGroup", "SquatchCut_SourceParts"
+                )
 
             # Move original selected panel objects into the SourcePanels group
             valid_panel_objs = []
@@ -200,7 +206,9 @@ class RunNestingCommand:
                         source_group.addObject(obj)
                     valid_panel_objs.append(obj)
                 except Exception as e:
-                    logger.warning(f"Skipping invalid panel object during nesting addObject: {e}")
+                    logger.warning(
+                        f"Skipping invalid panel object during nesting addObject: {e}"
+                    )
                     continue
             if not valid_panel_objs:
                 show_warning("No valid panel objects available for nesting.")
@@ -248,13 +256,17 @@ class RunNestingCommand:
                         can_rotate = bool(obj.SquatchCutCanRotate)
                     except Exception:
                         can_rotate = False
-                parts.append(Part(id=obj.Name, width=w, height=h, can_rotate=can_rotate))
+                parts.append(
+                    Part(id=obj.Name, width=w, height=h, can_rotate=can_rotate)
+                )
 
             if not parts:
                 logger.warning("RunNesting: no valid panel dimensions found")
                 return
 
-            usable_width, usable_height = get_usable_sheet_area(sheet_w, sheet_h, margin_mm=gap_mm)
+            usable_width, usable_height = get_usable_sheet_area(
+                sheet_w, sheet_h, margin_mm=gap_mm
+            )
             try:
                 validate_parts_fit_sheet(parts, usable_width, usable_height)
             except NestingValidationError as exc:
@@ -263,10 +275,17 @@ class RunNestingCommand:
 
             sheet_mode = session_state.get_sheet_mode()
             job_sheets = session_state.get_job_sheets()
-            sheet_definitions = get_effective_job_sheets_for_nesting(sheet_mode, job_sheets)
+            sheet_definitions = get_effective_job_sheets_for_nesting(
+                sheet_mode, job_sheets
+            )
             if sheet_mode == "job_sheets" and not sheet_definitions:
-                show_error("No job sheets are defined. Add at least one sheet or switch back to simple mode.", title="SquatchCut")
-                self.validation_error = ValueError("Missing job sheets in advanced mode.")
+                show_error(
+                    "No job sheets are defined. Add at least one sheet or switch back to simple mode.",
+                    title="SquatchCut",
+                )
+                self.validation_error = ValueError(
+                    "Missing job sheets in advanced mode."
+                )
                 return
             sheet_sizes_override = expand_sheet_sizes(sheet_definitions or [])
             if sheet_definitions:
@@ -277,7 +296,9 @@ class RunNestingCommand:
                     width = sheet.get("width_mm") or 0
                     height = sheet.get("height_mm") or 0
                     qty = sheet.get("quantity") or 1
-                    summary_parts.append(f"{label}={width:.1f}x{height:.1f}mm (qty {qty})")
+                    summary_parts.append(
+                        f"{label}={width:.1f}x{height:.1f}mm (qty {qty})"
+                    )
                 logger.info(
                     f">>> [SquatchCut] Advanced job sheets active with {total_instances} sheet instance(s): "
                     + "; ".join(summary_parts)
@@ -291,7 +312,9 @@ class RunNestingCommand:
                         spacing_mm=gap_mm,
                         nesting_mode="cut_friendly",
                     )
-                    placed_parts = nest_parts(parts, sheet_w, sheet_h, cfg, sheet_sizes=sheet_sizes_override)
+                    placed_parts = nest_parts(
+                        parts, sheet_w, sheet_h, cfg, sheet_sizes=sheet_sizes_override
+                    )
                 elif opt_mode == "cuts":
                     placed_parts = nest_cut_optimized(
                         parts,
@@ -338,7 +361,9 @@ class RunNestingCommand:
                 return
 
             logger.info(">>> [SquatchCut] Rebuilding nested layout view...")
-            logger.info(">>> [SquatchCut] RunNesting: cleaning up previous nested layout")
+            logger.info(
+                ">>> [SquatchCut] RunNesting: cleaning up previous nested layout"
+            )
             session.clear_nested_layout(doc)
             sheet_sizes = derive_sheet_sizes_for_layout(
                 sheet_mode,
@@ -377,12 +402,16 @@ class RunNestingCommand:
                     doc.recompute()
                 except Exception:
                     pass
-                session.set_sheet_objects(boundaries if boundaries else ([sheet_obj] if sheet_obj else []))
+                session.set_sheet_objects(
+                    boundaries if boundaries else ([sheet_obj] if sheet_obj else [])
+                )
                 session.set_nested_panel_objects(nested_objs)
                 session_state.set_nested_sheet_group(group)
                 util = compute_utilization_for_sheets(placed_parts, sheet_sizes)
                 cuts = estimate_cut_counts_for_sheets(placed_parts, sheet_sizes)
-                cut_complexity = estimate_cut_path_complexity(placed_parts, kerf_width_mm=kerf_width or kerf_mm)
+                cut_complexity = estimate_cut_path_complexity(
+                    placed_parts, kerf_width_mm=kerf_width or kerf_mm
+                )
                 overlaps = detect_overlaps(placed_parts)
                 if overlaps:
                     for a, b in overlaps:
@@ -392,8 +421,14 @@ class RunNestingCommand:
                 logger.info(
                     f">>> [SquatchCut] Nesting mode={nesting_mode}, parts={len(placed_parts)}, sheets={util.get('sheets_used', 0)}"
                 )
-                set_nesting_stats(util.get("sheets_used", None), cut_complexity, len(overlaps))
-                sheet_count = (max(pp.sheet_index for pp in placed_parts) + 1) if placed_parts else 0
+                set_nesting_stats(
+                    util.get("sheets_used", None), cut_complexity, len(overlaps)
+                )
+                sheet_count = (
+                    (max(pp.sheet_index for pp in placed_parts) + 1)
+                    if placed_parts
+                    else 0
+                )
                 summary_msg = (
                     f"Nesting complete: {len(placed_parts)} parts, "
                     f"sheets used={util.get('sheets_used', 0)}, "
@@ -402,10 +437,16 @@ class RunNestingCommand:
                     f"({cuts.get('vertical', 0)} vertical, {cuts.get('horizontal', 0)} horizontal).\n"
                 )
                 logger.info(summary_msg.strip())
-                logger.info(f"Nesting complete: {len(placed_parts)} parts across {sheet_count} sheet(s).")
-                logger.info(f"Nested {len(panel_objs)} source panels into {sheet_count} sheet group(s).")
+                logger.info(
+                    f"Nesting complete: {len(placed_parts)} parts across {sheet_count} sheet(s)."
+                )
+                logger.info(
+                    f"Nested {len(panel_objs)} source panels into {sheet_count} sheet group(s)."
+                )
             try:
-                view_controller.show_nesting_view(doc, active_sheet=sheet_obj, nested_objects=nested_objs)
+                view_controller.show_nesting_view(
+                    doc, active_sheet=sheet_obj, nested_objects=nested_objs
+                )
             except Exception:
                 pass
             try:
@@ -507,7 +548,12 @@ class ApplyNestingCommand:
         return float(width), float(height)
 
     def _create_sheet_group(
-        self, doc, sheet_index: int, sheet_w: float, sheet_h: float, sheet_origin_x: float = 0.0
+        self,
+        doc,
+        sheet_index: int,
+        sheet_w: float,
+        sheet_h: float,
+        sheet_origin_x: float = 0.0,
     ):
         """Create and return a Group to hold one sheet's panels."""
         group_name = f"Sheet_{sheet_index + 1}"
@@ -550,7 +596,9 @@ class ToggleSourcePanelsCommand:
     def Activated(self):
         if App is None or Gui is None:
             try:
-                logger.warning("ToggleSourcePanelsCommand.Activated() called outside FreeCAD GUI environment.")
+                logger.warning(
+                    "ToggleSourcePanelsCommand.Activated() called outside FreeCAD GUI environment."
+                )
             except Exception:
                 pass
             return
@@ -578,33 +626,79 @@ class ToggleSourcePanelsCommand:
 
 class ExportNestingCSVCommand:
     """
-    Placeholder command for exporting nesting data to CSV.
-    This is a stub and currently does nothing. It exists only
-    so the command can be registered without breaking imports.
+    Export nesting layout data to CSV using the ExportJob model.
+    Exports part placements with positions, dimensions, and sheet assignments.
     """
 
     def GetResources(self):
         return {
             "MenuText": "Export Nesting CSV",
-            "ToolTip": "Placeholder (not implemented yet).",
+            "ToolTip": "Export the current nesting layout to CSV with part positions and dimensions.",
             "Pixmap": "",
         }
 
     def IsActive(self):
-        # Keep this command disabled for now until implemented.
-        return False
+        return App is not None and Gui is not None and App.ActiveDocument is not None
 
     def Activated(self):
-        # No-op for now; TODO: implement real CSV export.
+        if App is None or Gui is None:
+            return
+
         try:
-            logger.info("ExportNestingCSVCommand.Activated() called, but feature is not implemented yet.")
-        except Exception:
-            pass
+            from SquatchCut.core import exporter
+            from SquatchCut.gui.qt_compat import QtWidgets
+
+            doc = App.ActiveDocument
+            if doc is None:
+                logger.warning("ExportNestingCSVCommand: no active document.")
+                return
+
+            # Build export job from current session state
+            export_job = exporter.build_export_job_from_current_nesting(doc)
+            if export_job is None or not export_job.sheets:
+                QtWidgets.QMessageBox.information(
+                    Gui.getMainWindow(),
+                    "SquatchCut Export",
+                    "No nesting layout to export. Please run nesting first.",
+                )
+                return
+
+            # Show file dialog
+            suggested_path = exporter.suggest_export_path(doc, "csv")
+            file_path, _ = QtWidgets.QFileDialog.getSaveFileName(
+                Gui.getMainWindow(),
+                "Export Nesting Layout",
+                suggested_path,
+                "CSV files (*.csv);;All files (*.*)",
+            )
+
+            if not file_path:
+                return
+
+            # Export using the ExportJob model
+            exporter.export_cutlist(export_job, file_path)
+
+            # Count parts for user feedback
+            total_parts = sum(len(sheet.parts) for sheet in export_job.sheets)
+            QtWidgets.QMessageBox.information(
+                Gui.getMainWindow(),
+                "SquatchCut Export",
+                f"Successfully exported {total_parts} parts across {len(export_job.sheets)} sheet(s) to:\n{file_path}",
+            )
+            logger.info(f"[SquatchCut] Nesting CSV export complete: {file_path}")
+
+        except Exception as e:
+            logger.error(f"Error in ExportNestingCSVCommand.Activated(): {e!r}")
+            if Gui:
+                QtWidgets.QMessageBox.critical(
+                    Gui.getMainWindow(),
+                    "SquatchCut Export Error",
+                    f"Failed to export nesting CSV:\n{str(e)}",
+                )
 
 
 if Gui is not None:
     Gui.addCommand("SquatchCut_ToggleSourcePanels", ToggleSourcePanelsCommand())
-    # TODO: Implement real nesting CSV export and enable this command.
     Gui.addCommand("SquatchCut_ExportNestingCSV", ExportNestingCSVCommand())
     Gui.addCommand("SquatchCut_RunNesting", RunNestingCommand())
     Gui.addCommand("SquatchCut_ApplyNesting", ApplyNestingCommand())
