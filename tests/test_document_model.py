@@ -37,7 +37,9 @@ def test_single_sheet_object_is_reused():
     first = ensure_sheet_object(100.0, 150.0, doc)
     second = ensure_sheet_object(200.0, 250.0, doc)
     assert first is second
-    sheets = [obj for obj in getattr(doc, "Objects", []) if obj.Name == SHEET_OBJECT_NAME]
+    sheets = [
+        obj for obj in getattr(doc, "Objects", []) if obj.Name == SHEET_OBJECT_NAME
+    ]
     assert len(sheets) == 1
     bbox = second.Shape.BoundBox
     assert bbox.XLength == pytest.approx(200.0)
@@ -48,20 +50,39 @@ def test_single_sheet_object_is_reused():
 def test_source_group_rebuilt_on_reimport(tmp_path):
     doc = _new_doc("DocSourceGroup")
     csv1 = tmp_path / "parts1.csv"
-    _write_csv(csv1, [{"id": "P1", "width": 100, "height": 200}, {"id": "P2", "width": 150, "height": 250}, {"id": "P3", "width": 200, "height": 300}])
+    _write_csv(
+        csv1,
+        [
+            {"id": "P1", "width": 100, "height": 200},
+            {"id": "P2", "width": 150, "height": 250},
+            {"id": "P3", "width": 200, "height": 300},
+        ],
+    )
     run_csv_import(doc, str(csv1), csv_units="metric")
     source_group = doc.getObject("SquatchCut_SourceParts")
     assert source_group is not None
     initial_children = list(getattr(source_group, "Group", []))
     assert len(initial_children) == 3
     csv2 = tmp_path / "parts2.csv"
-    _write_csv(csv2, [{"id": "A", "width": 80, "height": 60}, {"id": "B", "width": 120, "height": 90}])
+    _write_csv(
+        csv2,
+        [
+            {"id": "A", "width": 80, "height": 60},
+            {"id": "B", "width": 120, "height": 90},
+        ],
+    )
     run_csv_import(doc, str(csv2), csv_units="metric")
     source_group2 = doc.getObject("SquatchCut_SourceParts")
     assert source_group2 is source_group
     children = list(getattr(source_group2, "Group", []))
     assert len(children) == 2
-    stray_root = [obj for obj in getattr(doc, "Objects", []) if obj not in children and obj is not source_group2 and obj.Name.startswith("SC_Source_")]
+    stray_root = [
+        obj
+        for obj in getattr(doc, "Objects", [])
+        if obj not in children
+        and obj is not source_group2
+        and obj.Name.startswith("SC_Source_")
+    ]
     assert not stray_root
     _close_doc(doc)
 
@@ -76,7 +97,9 @@ def test_invalid_csv_import_no_source_group(tmp_path):
 
 
 class _DummyPlacement:
-    def __init__(self, part_id, width, height, x=0.0, y=0.0, sheet_index=0, rotation_deg=0.0):
+    def __init__(
+        self, part_id, width, height, x=0.0, y=0.0, sheet_index=0, rotation_deg=0.0
+    ):
         self.id = part_id
         self.width = width
         self.height = height
@@ -96,6 +119,7 @@ def test_nested_group_rebuilt_on_rerun():
         doc,
         placements,
         sheet_sizes=[(2440.0, 1220.0)],
+        prefs=None,
     )
     assert group is not None
     initial_count = len(list(getattr(group, "Group", [])))
@@ -104,10 +128,17 @@ def test_nested_group_rebuilt_on_rerun():
         doc,
         placements,
         sheet_sizes=[(2440.0, 1220.0)],
+        prefs=None,
     )
     assert group2 is group
     latest_children = list(getattr(group, "Group", []))
     assert len(latest_children) == initial_count
-    stray = [obj for obj in getattr(doc, "Objects", []) if obj not in latest_children and obj is not group and obj.Name.startswith("SC_Nested_")]
+    stray = [
+        obj
+        for obj in getattr(doc, "Objects", [])
+        if obj not in latest_children
+        and obj is not group
+        and obj.Name.startswith("SC_Nested_")
+    ]
     assert not stray
     _close_doc(doc)

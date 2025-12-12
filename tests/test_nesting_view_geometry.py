@@ -133,7 +133,7 @@ def test_nested_parts_z_placement_mocked():
     ]
 
     group, objs = nesting_view.rebuild_nested_geometry(
-        mock_doc, placements, sheet_sizes=[(200.0, 100.0)]
+        mock_doc, placements, sheet_sizes=[(200.0, 100.0)], prefs=None
     )
 
     assert len(objs) == 1

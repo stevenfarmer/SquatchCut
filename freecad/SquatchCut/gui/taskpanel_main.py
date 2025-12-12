@@ -203,6 +203,35 @@ class SquatchCutTaskPanel:
         visibility_layout.addWidget(self.show_nested_check)
         vbox.addWidget(self.visibility_controls_container)
 
+        # Nesting View Controls
+        self.nesting_view_controls_container = QtWidgets.QWidget()
+        nesting_view_layout = QtWidgets.QVBoxLayout(
+            self.nesting_view_controls_container
+        )
+        nesting_view_layout.setContentsMargins(0, 0, 0, 0)
+        nesting_view_layout.setSpacing(2)
+
+        # Quick toggles for common settings
+        nesting_view_layout.addWidget(QtWidgets.QLabel("Nesting View:"))
+
+        nesting_controls_row = QtWidgets.QHBoxLayout()
+        nesting_controls_row.setContentsMargins(0, 0, 0, 0)
+        nesting_controls_row.setSpacing(4)
+
+        self.show_part_labels_check = QtWidgets.QCheckBox("Labels")
+        self.show_part_labels_check.setToolTip("Show part ID labels on nested pieces")
+        self.show_part_labels_check.toggled.connect(self._on_nesting_view_toggled)
+        nesting_controls_row.addWidget(self.show_part_labels_check)
+
+        self.simplified_view_check = QtWidgets.QCheckBox("Simple")
+        self.simplified_view_check.setToolTip("Use simplified view for complex layouts")
+        self.simplified_view_check.toggled.connect(self._on_nesting_view_toggled)
+        nesting_controls_row.addWidget(self.simplified_view_check)
+
+        nesting_controls_row.addStretch()
+        nesting_view_layout.addLayout(nesting_controls_row)
+        vbox.addWidget(self.nesting_view_controls_container)
+
         self.show_source_button = QtWidgets.QPushButton("Show Source View")
         self.show_source_button.clicked.connect(self.on_show_source_panels)
         vbox.addWidget(self.show_source_button)
@@ -329,6 +358,17 @@ class SquatchCutTaskPanel:
 
         self.include_labels_check.setChecked(bool(state["include_labels"]))
         self.include_dimensions_check.setChecked(bool(state["include_dimensions"]))
+
+        # Initialize nesting view controls with user preferences
+        try:
+            self.show_part_labels_check.setChecked(
+                self._prefs.get_nesting_show_part_labels()
+            )
+            self.simplified_view_check.setChecked(
+                self._prefs.get_nesting_simplified_view()
+            )
+        except Exception as e:
+            logger.warning(f"Failed to initialize nesting view controls: {e}")
 
         self._refresh_summary()
         self._validate_readiness()
@@ -601,6 +641,33 @@ class SquatchCutTaskPanel:
     def _on_view_toggled(self):
         # Implement visibility logic if needed
         pass
+
+    def _on_nesting_view_toggled(self):
+        """Handle nesting view preference changes and trigger view refresh."""
+        try:
+            # Update preferences
+            prefs = self._prefs
+            prefs.set_nesting_show_part_labels(self.show_part_labels_check.isChecked())
+            prefs.set_nesting_simplified_view(self.simplified_view_check.isChecked())
+
+            # Trigger view refresh if we have nested parts
+            if hasattr(self, "_last_nesting_result") and self._last_nesting_result:
+                self._refresh_nesting_view()
+
+        except Exception as e:
+            logger.warning(f"Failed to update nesting view preferences: {e}")
+
+    def _refresh_nesting_view(self):
+        """Refresh the nesting view with current preferences."""
+        try:
+            # Trigger a view refresh by calling the view controller
+            from SquatchCut.core import view_controller
+
+            doc = self._ensure_document()
+            if doc:
+                view_controller.rebuild_nested_layout_view(doc)
+        except Exception as e:
+            logger.warning(f"Failed to refresh nesting view: {e}")
 
     def on_export_cutlist_clicked(self):
         try:

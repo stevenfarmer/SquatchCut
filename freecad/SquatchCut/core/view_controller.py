@@ -255,12 +255,19 @@ def _redraw_nested_group(doc):
         sheet_sizes = [(sheet_w, sheet_h)]
     sheet_spacing = compute_sheet_spacing(sheet_sizes, session_state.get_gap_mm())
     source_objs = session.get_source_panel_objects()
+
+    # Get user preferences for nesting view
+    from SquatchCut.core.preferences import SquatchCutPreferences
+
+    prefs = SquatchCutPreferences()
+
     group, nested_objs = rebuild_nested_geometry(
         doc,
         placements,
         sheet_sizes=sheet_sizes,
         spacing=sheet_spacing,
         source_objects=source_objs,
+        prefs=prefs,
     )
     session.set_nested_panel_objects(nested_objs or [])
     try:
@@ -322,7 +329,9 @@ def show_source_view(doc=None) -> None:
     group, created = _redraw_source_group(resolved_doc)
     set_squatchcut_group_visibility(resolved_doc, SOURCE_GROUP_NAME)
     count = len(created or getattr(group, "Group", []))
-    logger.info(f">>> [SquatchCut] View: showing source geometry only ({count} objects).")
+    logger.info(
+        f">>> [SquatchCut] View: showing source geometry only ({count} objects)."
+    )
     view = _resolve_view()
     auto_zoom_to_group(view, group)
 

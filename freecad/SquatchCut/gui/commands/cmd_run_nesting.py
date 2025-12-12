@@ -386,12 +386,18 @@ class RunNestingCommand:
                     session_state.set_source_panel_objects(live_sources)
                 except Exception:
                     pass
+            # Get user preferences for nesting view
+            from SquatchCut.core.preferences import SquatchCutPreferences
+
+            prefs = SquatchCutPreferences()
+
             group, nested_objs = rebuild_nested_geometry(
                 doc,
                 placed_parts,
                 sheet_sizes=sheet_sizes,
                 spacing=sheet_spacing,
                 source_objects=live_sources or panel_objs,
+                prefs=prefs,
             )
             sheet_label = getattr(sheet_obj, "Name", "unknown sheet")
             logger.info(

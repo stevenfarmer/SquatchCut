@@ -24,14 +24,31 @@ def _close_doc(doc):
 def test_rebuild_nested_geometry_creates_group_and_children():
     doc = _new_doc("TestNestedView")
     placements = [
-        PlacedPart(id="P1", sheet_index=0, x=0.0, y=0.0, width=100.0, height=50.0, rotation_deg=0),
-        PlacedPart(id="P2", sheet_index=0, x=120.0, y=0.0, width=80.0, height=60.0, rotation_deg=90),
+        PlacedPart(
+            id="P1",
+            sheet_index=0,
+            x=0.0,
+            y=0.0,
+            width=100.0,
+            height=50.0,
+            rotation_deg=0,
+        ),
+        PlacedPart(
+            id="P2",
+            sheet_index=0,
+            x=120.0,
+            y=0.0,
+            width=80.0,
+            height=60.0,
+            rotation_deg=90,
+        ),
     ]
 
     group, objs = rebuild_nested_geometry(
         doc,
         placements,
         sheet_sizes=[(300.0, 150.0)],
+        prefs=None,
     )
 
     assert group is not None
@@ -47,7 +64,15 @@ def test_rebuild_nested_geometry_skips_deleted_source_objects():
     src = doc.addObject("Part::Box", "P_del")
     doc.recompute()
     placements = [
-        PlacedPart(id="P_del", sheet_index=0, x=10.0, y=5.0, width=40.0, height=20.0, rotation_deg=0),
+        PlacedPart(
+            id="P_del",
+            sheet_index=0,
+            x=10.0,
+            y=5.0,
+            width=40.0,
+            height=20.0,
+            rotation_deg=0,
+        ),
     ]
     doc.removeObject("P_del")
 
@@ -56,6 +81,7 @@ def test_rebuild_nested_geometry_skips_deleted_source_objects():
         placements,
         sheet_sizes=[(200.0, 100.0)],
         source_objects=[src],
+        prefs=None,
     )
 
     assert group is not None

@@ -2,13 +2,22 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 from SquatchCut.core import logger
+from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.core.sheet_model import clear_group_children, get_or_create_group
 from SquatchCut.freecad_integration import App, Part
+from SquatchCut.gui.nesting_colors import (
+    get_freecad_color,
+    get_transparency_for_display_mode,
+)
 
 NESTED_Z_OFFSET = 0.1
+SHEET_Z_OFFSET = -0.1  # Sheets render below parts
 
 NESTED_GROUP_NAME = "SquatchCut_NestedParts"
+SHEET_GROUP_NAME = "SquatchCut_SheetBoundaries"
 
 
 def ensure_nested_group(doc):
@@ -21,6 +30,164 @@ def ensure_nested_group(doc):
     return get_or_create_group(doc, NESTED_GROUP_NAME)
 
 
+def ensure_sheet_group(doc):
+    """Ensure the sheet boundaries group exists and return it."""
+    if App is None:
+        logger.warning("ensure_sheet_group() skipped: FreeCAD not available.")
+        return None
+    if doc is None:
+        doc = App.newDocument("SquatchCut")
+    return get_or_create_group(doc, SHEET_GROUP_NAME)
+
+
+def create_sheet_boundary(
+    doc,
+    sheet_index: int,
+    width: float,
+    height: float,
+    x_offset: float = 0.0,
+    prefs: Optional[SquatchCutPreferences] = None,
+):
+    """Create a sheet boundary object with user-configured appearance."""
+    if App is None or Part is None:
+        return None
+
+    if prefs is None:
+        prefs = SquatchCutPreferences()
+
+    # Get user preferences
+    display_mode = prefs.get_nesting_sheet_display_mode()
+    color_scheme = prefs.get_nesting_color_scheme()
+
+    # Create sheet boundary object
+    name = f"SC_Sheet_{sheet_index}_Boundary"
+    sheet_obj = doc.addObject("Part::Box", name)
+    sheet_obj.Width = width
+    sheet_obj.Length = height
+    sheet_obj.Height = 0.1  # Very thin sheet
+
+    # Position the sheet
+    placement = sheet_obj.Placement
+    placement.Base = App.Vector(x_offset, 0, SHEET_Z_OFFSET)
+    sheet_obj.Placement = placement
+
+    # Apply visual styling
+    try:
+        if hasattr(sheet_obj, "ViewObject"):
+            view_obj = sheet_obj.ViewObject
+
+            # Set colors based on scheme
+            outline_color = get_freecad_color(color_scheme, "sheet_outline")
+            fill_color = get_freecad_color(color_scheme, "sheet_fill")
+
+            if display_mode == "wireframe":
+                view_obj.DisplayMode = "Wireframe"
+                view_obj.LineColor = outline_color
+                view_obj.LineWidth = 2.0
+            else:
+                view_obj.DisplayMode = "Flat Lines"
+                view_obj.ShapeColor = fill_color
+                view_obj.LineColor = outline_color
+                view_obj.LineWidth = 2.0
+
+                # Set transparency
+                transparency = get_transparency_for_display_mode(display_mode)
+                view_obj.Transparency = int(transparency * 100)  # FreeCAD uses 0-100
+
+    except Exception as e:
+        logger.warning(f"Failed to set sheet boundary appearance: {e}")
+
+    return sheet_obj
+
+
+def create_sheet_label(
+    doc,
+    sheet_index: int,
+    width: float,
+    height: float,
+    x_offset: float = 0.0,
+    label_text: Optional[str] = None,
+    prefs: Optional[SquatchCutPreferences] = None,
+):
+    """Create a text label for the sheet."""
+    if App is None:
+        return None
+
+    if prefs is None:
+        prefs = SquatchCutPreferences()
+
+    # Create text object
+    name = f"SC_Sheet_{sheet_index}_Label"
+    text_obj = doc.addObject("Draft::Text", name)
+
+    if label_text is None:
+        label_text = f"Sheet {sheet_index + 1}"
+
+    text_obj.Text = [label_text]
+    text_obj.Height = min(width, height) * 0.05  # 5% of smaller dimension
+
+    # Position at top-left corner of sheet
+    placement = text_obj.Placement
+    placement.Base = App.Vector(x_offset + 10, height - 20, NESTED_Z_OFFSET + 0.1)
+    text_obj.Placement = placement
+
+    # Apply styling
+    try:
+        if hasattr(text_obj, "ViewObject"):
+            color_scheme = prefs.get_nesting_color_scheme()
+            label_color = get_freecad_color(color_scheme, "sheet_label")
+            text_obj.ViewObject.TextColor = label_color
+    except Exception as e:
+        logger.warning(f"Failed to set sheet label appearance: {e}")
+
+    return text_obj
+
+
+def create_part_label(
+    doc,
+    placement_part,
+    x: float,
+    y: float,
+    width: float,
+    height: float,
+    prefs: Optional[SquatchCutPreferences] = None,
+):
+    """Create a text label for a nested part."""
+    if App is None:
+        return None
+
+    if prefs is None:
+        prefs = SquatchCutPreferences()
+
+    # Create text object
+    part_id = getattr(placement_part, "id", "Unknown")
+    name = f"SC_PartLabel_{part_id}"
+    text_obj = doc.addObject("Draft::Text", name)
+
+    # Use part ID as label text
+    text_obj.Text = [str(part_id)]
+    text_obj.Height = min(width, height) * 0.1  # 10% of smaller dimension, min 5mm
+    text_obj.Height = max(text_obj.Height, 5.0)
+
+    # Position at center of part
+    placement = text_obj.Placement
+    center_x = x + width / 2
+    center_y = y + height / 2
+    placement.Base = App.Vector(center_x, center_y, NESTED_Z_OFFSET + 0.2)
+    text_obj.Placement = placement
+
+    # Apply styling
+    try:
+        if hasattr(text_obj, "ViewObject"):
+            color_scheme = prefs.get_nesting_color_scheme()
+            label_color = get_freecad_color(color_scheme, "part_label")
+            text_obj.ViewObject.TextColor = label_color
+    except Exception as e:
+        logger.warning(f"Failed to set part label appearance: {e}")
+
+    return text_obj
+
+
 def rebuild_nested_geometry(
     doc,
     placements,
@@ -29,6 +196,7 @@ def rebuild_nested_geometry(
     sheet_sizes=None,
     spacing=None,
     source_objects=None,
+    prefs=None,
 ):
     """
     Clear existing nested geometry and rebuild from placements.
@@ -39,6 +207,10 @@ def rebuild_nested_geometry(
         logger.warning("rebuild_nested_geometry() skipped: FreeCAD/Part unavailable.")
         return None, []
 
+    if prefs is None:
+        prefs = SquatchCutPreferences()
+
+    # Clear and rebuild nested parts group
     group = ensure_nested_group(doc)
     if group is None:
         return None, []
@@ -46,6 +218,14 @@ def rebuild_nested_geometry(
     logger.info(
         f">>> [SquatchCut] Nested group cleared and rebuilt with {removed} parts"
     )
+
+    # Clear and rebuild sheet boundaries group
+    sheet_group = ensure_sheet_group(doc)
+    if sheet_group is not None:
+        sheet_removed = clear_group_children(sheet_group)
+        logger.info(
+            f">>> [SquatchCut] Sheet boundaries cleared and rebuilt with {sheet_removed} objects"
+        )
 
     source_objects = source_objects or []
     source_map = _build_source_map(source_objects, doc)
@@ -75,10 +255,35 @@ def rebuild_nested_geometry(
         if spacing is not None
         else (float(size_list[0][0]) * 0.25 if size_list and size_list[0][0] else 0.0)
     )
+    # Calculate sheet offsets and create sheet boundaries
     sheet_offsets = []
     current_offset = 0.0
-    for width, _ in size_list:
+    sheet_objects = []
+
+    for sheet_idx, (width, height) in enumerate(size_list):
         sheet_offsets.append(current_offset)
+
+        # Create sheet boundary if user preferences allow
+        if sheet_group is not None and width > 0 and height > 0:
+            # Create sheet boundary
+            sheet_boundary = create_sheet_boundary(
+                doc, sheet_idx, width, height, current_offset, prefs
+            )
+            if sheet_boundary:
+                sheet_group.addObject(sheet_boundary)
+                sheet_objects.append(sheet_boundary)
+
+            # Create sheet label if enabled
+            if (
+                prefs.get_nesting_show_part_labels()
+            ):  # Reuse part labels setting for sheet labels
+                sheet_label = create_sheet_label(
+                    doc, sheet_idx, width, height, current_offset, None, prefs
+                )
+                if sheet_label:
+                    sheet_group.addObject(sheet_label)
+                    sheet_objects.append(sheet_label)
+
         current_offset += width + sheet_spacing
 
     for idx, pp in enumerate(placements or []):
@@ -118,12 +323,47 @@ def rebuild_nested_geometry(
         except Exception:
             pass
         obj.Placement = placement
+
+        # Apply visual styling based on user preferences
         try:
-            obj.ViewObject.DisplayMode = "Flat Lines"
-        except Exception:
-            pass
+            if hasattr(obj, "ViewObject"):
+                view_obj = obj.ViewObject
+                view_obj.DisplayMode = "Flat Lines"
+
+                # Get color scheme
+                color_scheme = prefs.get_nesting_color_scheme()
+
+                # Determine if part is rotated
+                rotation_deg = float(getattr(pp, "rotation_deg", 0))
+                is_rotated = abs(rotation_deg % 180) > 1  # Allow small tolerance
+
+                # Set part color based on rotation
+                if is_rotated:
+                    part_color = get_freecad_color(color_scheme, "part_rotated")
+                else:
+                    part_color = get_freecad_color(color_scheme, "part_default")
+
+                view_obj.ShapeColor = part_color
+
+                # Use simplified view if enabled and we have many parts
+                if prefs.get_nesting_simplified_view() and len(placements or []) > 20:
+                    view_obj.DisplayMode = "Wireframe"
+
+        except Exception as e:
+            logger.warning(f"Failed to set part appearance for {name}: {e}")
+
         group.addObject(obj)
         nested_objs.append(obj)
+
+        # Create part label if enabled
+        if prefs.get_nesting_show_part_labels():
+            try:
+                part_label = create_part_label(doc, pp, base_x, base_y, w, h, prefs)
+                if part_label:
+                    group.addObject(part_label)
+                    nested_objs.append(part_label)
+            except Exception as e:
+                logger.warning(f"Failed to create part label for {name}: {e}")
 
     try:
         doc.recompute()
