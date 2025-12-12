@@ -322,7 +322,64 @@ class RunNestingCommand:
                         f"Nesting {len(parts)} parts", threshold_seconds=2.0
                     )
                     def run_nesting_algorithm():
-                        if cut_mode:
+                        # Check if genetic algorithm optimization is enabled
+                        use_genetic = session_state.get_use_genetic_algorithm()
+
+                        if use_genetic:
+                            from SquatchCut.core.genetic_nesting import (
+                                genetic_nest_parts,
+                                GeneticConfig,
+                            )
+                            from SquatchCut.core.grain_direction import (
+                                add_grain_info_to_parts,
+                                GrainConstraints,
+                            )
+
+                            # Convert parts to grain-aware parts
+                            grain_aware_parts = add_grain_info_to_parts(parts)
+
+                            # Configure genetic algorithm
+                            genetic_config = GeneticConfig(
+                                population_size=session_state.get_genetic_population_size()
+                                or 50,
+                                generations=session_state.get_genetic_generations()
+                                or 100,
+                                mutation_rate=session_state.get_genetic_mutation_rate()
+                                or 0.1,
+                                crossover_rate=session_state.get_genetic_crossover_rate()
+                                or 0.8,
+                                max_time_seconds=session_state.get_genetic_max_time()
+                                or 300,
+                            )
+
+                            logger.info(
+                                f">>> [SquatchCut] Using genetic algorithm optimization with {len(grain_aware_parts)} parts"
+                            )
+
+                            # Apply performance optimizations for genetic algorithm
+                            from SquatchCut.core.performance_utils import (
+                                cached_nesting,
+                                memory_optimized,
+                            )
+
+                            @cached_nesting
+                            @memory_optimized
+                            def optimized_genetic_nesting(
+                                parts, width, height, kerf, spacing, config
+                            ):
+                                return genetic_nest_parts(
+                                    parts, width, height, kerf, spacing, config
+                                )
+
+                            return optimized_genetic_nesting(
+                                grain_aware_parts,
+                                sheet_w,
+                                sheet_h,
+                                kerf_mm,
+                                gap_mm,
+                                genetic_config,
+                            )
+                        elif cut_mode:
                             cfg = NestingConfig(
                                 optimize_for_cut_path=True,
                                 kerf_width_mm=kerf_width or kerf_mm,
@@ -447,6 +504,65 @@ class RunNestingCommand:
                         logger.error(
                             f"Overlap detected between {getattr(a, 'id', '?')} and {getattr(b, 'id', '?')} on sheet {getattr(a, 'sheet_index', '?')}."
                         )
+
+                # Run quality assurance checks
+                from SquatchCut.core.quality_assurance import check_nesting_quality
+
+                quality_report = check_nesting_quality(
+                    placed_parts, sheet_sizes, min_spacing=gap_mm, original_parts=parts
+                )
+
+                # Log quality issues
+                if quality_report.issues:
+                    critical_issues = [
+                        i
+                        for i in quality_report.issues
+                        if i.severity.value == "critical"
+                    ]
+                    warning_issues = [
+                        i
+                        for i in quality_report.issues
+                        if i.severity.value == "warning"
+                    ]
+
+                    if critical_issues:
+                        logger.error(
+                            f">>> [SquatchCut] Quality check found {len(critical_issues)} critical issues"
+                        )
+                        for issue in critical_issues[:3]:  # Show first 3
+                            logger.error(f"    - {issue.description}")
+
+                    if warning_issues:
+                        logger.warning(
+                            f">>> [SquatchCut] Quality check found {len(warning_issues)} warnings"
+                        )
+                        for issue in warning_issues[:2]:  # Show first 2
+                            logger.warning(f"    - {issue.description}")
+                else:
+                    logger.info(
+                        f">>> [SquatchCut] Quality check passed: {quality_report.overall_score:.1f}/100 score"
+                    )
+
+                # Generate cut sequence if requested
+                if session_state.get_generate_cut_sequence():
+                    from SquatchCut.core.cut_sequence import (
+                        plan_optimal_cutting_sequence,
+                    )
+
+                    cut_sequences = plan_optimal_cutting_sequence(
+                        placed_parts, sheet_sizes, kerf_mm
+                    )
+
+                    total_cuts = sum(len(seq.operations) for seq in cut_sequences)
+                    total_time = sum(
+                        seq.estimated_time_minutes for seq in cut_sequences
+                    )
+                    logger.info(
+                        f">>> [SquatchCut] Cut sequence planned: {total_cuts} operations, estimated {total_time:.1f} minutes"
+                    )
+
+                    # Store cut sequences in session state for export
+                    session_state.set_cut_sequences(cut_sequences)
                 logger.info(
                     f">>> [SquatchCut] Nesting mode={nesting_mode}, parts={len(placed_parts)}, sheets={util.get('sheets_used', 0)}"
                 )

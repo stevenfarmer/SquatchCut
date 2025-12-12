@@ -39,9 +39,12 @@ except ImportError:  # pragma: no cover - fallback for stripped installs
     def create_export_shape_text(*_args, **_kwargs):
         global _MISSING_TEXT_HELPER_WARNED
         if not _MISSING_TEXT_HELPER_WARNED:
-            logger.warning("[SquatchCut] text helper module unavailable; export labels disabled.")
+            logger.warning(
+                "[SquatchCut] text helper module unavailable; export labels disabled."
+            )
             _MISSING_TEXT_HELPER_WARNED = True
         return None
+
 
 _EXPORT_SUBDIR = "SquatchCutExports"
 
@@ -136,7 +139,9 @@ def _resolve_export_path(
         try:
             candidate.parent.mkdir(parents=True, exist_ok=True)
         except Exception as exc:
-            logger.warning(f"[SquatchCut] Unable to prepare export directory '{candidate.parent}': {exc}")
+            logger.warning(
+                f"[SquatchCut] Unable to prepare export directory '{candidate.parent}': {exc}"
+            )
             fallback = _default_export_directory()
             candidate = fallback / candidate.name
             try:
@@ -157,7 +162,15 @@ def export_cutlist_to_csv(placements: Sequence, file_path: str) -> None:
     with open(file_path, "w", newline="", encoding="utf-8") as fh:
         writer = csv.writer(fh)
         writer.writerow(
-            ["sheet_index", "part_id", "width_mm", "height_mm", "rotation_deg", "x_mm", "y_mm"]
+            [
+                "sheet_index",
+                "part_id",
+                "width_mm",
+                "height_mm",
+                "rotation_deg",
+                "x_mm",
+                "y_mm",
+            ]
         )
         for p in placements:
             writer.writerow(
@@ -226,7 +239,9 @@ def _build_rectangles(
             label = getattr(p, "id", None) or getattr(p, "label", None) or ""
             tx = x + w / 2.0 + sheet_index * (sheet_w + sheet_spacing)
             ty = y + h / 2.0
-            txt = create_export_shape_text(doc, str(label), tx, ty, 0.0, size=_label_size(w, h))
+            txt = create_export_shape_text(
+                doc, str(label), tx, ty, 0.0, size=_label_size(w, h)
+            )
             if txt is not None:
                 objs.append(txt)
 
@@ -235,18 +250,24 @@ def _build_rectangles(
             margin = 5.0
             tx = x + w / 2.0 + sheet_index * (sheet_w + sheet_spacing)
             ty = y - margin
-            tw = create_export_shape_text(doc, f"W: {w:.1f} mm", tx, ty, 0.0, size=_label_size(w, h) * 0.6)
+            tw = create_export_shape_text(
+                doc, f"W: {w:.1f} mm", tx, ty, 0.0, size=_label_size(w, h) * 0.6
+            )
             if tw is not None:
                 objs.append(tw)
             tx = x + w + margin + sheet_index * (sheet_w + sheet_spacing)
             ty = y + h / 2.0
-            th = create_export_shape_text(doc, f"H: {h:.1f} mm", tx, ty, 0.0, size=_label_size(w, h) * 0.6)
+            th = create_export_shape_text(
+                doc, f"H: {h:.1f} mm", tx, ty, 0.0, size=_label_size(w, h) * 0.6
+            )
             if th is not None:
                 objs.append(th)
     return objs
 
 
-def export_cutlist_map_to_csv(cutlist_by_sheet: dict[int, list], file_path: str) -> None:
+def export_cutlist_map_to_csv(
+    cutlist_by_sheet: dict[int, list], file_path: str
+) -> None:
     """Write a cutlist mapping (sheet -> cuts) to CSV."""
     with open(file_path, "w", newline="", encoding="utf-8") as fh:
         writer = csv.writer(fh)
@@ -297,7 +318,9 @@ def export_cutlist_to_text(
             fh.write(f"Sheet {sheet_index + 1}\n")
             fh.write("-" * 22 + "\n")
             for cut in cutlist_by_sheet[sheet_index]:
-                fh.write(f"{cut.get('cut_order', '')}. {cut.get('cut_type', '')} cut:\n")
+                fh.write(
+                    f"{cut.get('cut_order', '')}. {cut.get('cut_type', '')} cut:\n"
+                )
                 fh.write(
                     f"   Direction: {cut.get('cut_direction', '')} from {cut.get('from_edge', '')} "
                     f"at {_fmt(cut.get('distance_from_edge_mm'))}\n"
@@ -305,6 +328,8 @@ def export_cutlist_to_text(
                 fh.write(f"   Length: {_fmt(cut.get('cut_length_mm'))}\n")
                 parts = ";".join(cut.get("parts_affected", []) or []) or "None"
                 fh.write(f"   Parts released: {parts}\n\n")
+
+
 def export_layout_to_dxf(
     placements: Sequence,
     sheet_size_mm: tuple[float, float],
@@ -370,7 +395,9 @@ def export_layout_to_svg(
     measurement_system = "imperial" if measurement_system == "imperial" else "metric"
     sheet_mode = sheet_mode or "simple"
     job_sheet_defs = list(job_sheets or [])
-    sheet_sizes = derive_sheet_sizes_for_layout(sheet_mode, job_sheet_defs, sheet_w, sheet_h, placements)
+    sheet_sizes = derive_sheet_sizes_for_layout(
+        sheet_mode, job_sheet_defs, sheet_w, sheet_h, placements
+    )
 
     placements_by_sheet = _group_placements_by_sheet(placements)
     if not placements_by_sheet:
@@ -380,7 +407,9 @@ def export_layout_to_svg(
 
     generated_paths: list[Path] = []
     for sheet_index in sorted(placements_by_sheet.keys()):
-        width_mm, height_mm = resolve_sheet_dimensions(sheet_sizes, sheet_index, sheet_w, sheet_h)
+        width_mm, height_mm = resolve_sheet_dimensions(
+            sheet_sizes, sheet_index, sheet_w, sheet_h
+        )
         content = _render_sheet_svg(
             sheet_number=sheet_index + 1,
             total_sheets=sheet_total,
@@ -432,14 +461,18 @@ def _svg_y(sheet_height: float, math_y: float) -> float:
     return sheet_height - math_y
 
 
-def _format_dimension_pair(width_mm: float, height_mm: float, measurement_system: str) -> str:
+def _format_dimension_pair(
+    width_mm: float, height_mm: float, measurement_system: str
+) -> str:
     label = unit_utils.unit_label_for_system(measurement_system)
     width_str = unit_utils.format_length(width_mm, measurement_system)
     height_str = unit_utils.format_length(height_mm, measurement_system)
     return f"{width_str} x {height_str} {label}"
 
 
-def _part_font_size(width_mm: float, height_mm: float, sheet_size: tuple[float, float]) -> float:
+def _part_font_size(
+    width_mm: float, height_mm: float, sheet_size: tuple[float, float]
+) -> float:
     min_sheet_dim = max(min(sheet_size), 1.0)
     base = min(width_mm, height_mm) * 0.25
     base = min(base, min_sheet_dim / 10.0)
@@ -454,6 +487,8 @@ def _render_sheet_svg(
     measurement_system: str,
     include_labels: bool,
     include_dimensions: bool,
+    include_cut_lines: bool,
+    include_waste_areas: bool,
     export_job: ExportJob,
 ) -> str:
     width_mm, height_mm = sheet_dimensions
@@ -470,6 +505,8 @@ def _render_sheet_svg(
         ".part-rect{fill:none;stroke:#111;stroke-width:0.5;}"
         ".part-label{fill:#111;font-family:sans-serif;text-anchor:middle;}"
         ".sheet-header{fill:#000;font-family:sans-serif;text-anchor:middle;}"
+        ".cut-line{stroke:#ff0000;stroke-width:0.3;stroke-dasharray:2,2;}"
+        ".waste-area{fill:#ffcccc;fill-opacity:0.3;stroke:none;}"
         "</style>"
     )
 
@@ -491,6 +528,30 @@ def _render_sheet_svg(
     )
 
     parts_sorted = sorted(sheet.parts, key=lambda p: (p.y_mm, p.x_mm, p.part_id or ""))
+
+    # Add cut lines if requested
+    if include_cut_lines:
+        cut_lines = _calculate_cut_lines(sheet.parts, width_mm, height_mm)
+        for line in cut_lines:
+            if line["direction"] == "vertical":
+                body.append(
+                    f'<line class="cut-line" x1="{_fmt_float(line["position"])}" y1="0" '
+                    f'x2="{_fmt_float(line["position"])}" y2="{_fmt_float(height_mm)}" />'
+                )
+            else:  # horizontal
+                body.append(
+                    f'<line class="cut-line" x1="0" y1="{_fmt_float(line["position"])}" '
+                    f'x2="{_fmt_float(width_mm)}" y2="{_fmt_float(line["position"])}" />'
+                )
+
+    # Add waste areas if requested
+    if include_waste_areas:
+        waste_areas = _calculate_waste_areas(sheet.parts, width_mm, height_mm)
+        for area in waste_areas:
+            body.append(
+                f'<rect class="waste-area" x="{_fmt_float(area["x"])}" y="{_fmt_float(area["y"])}" '
+                f'width="{_fmt_float(area["width"])}" height="{_fmt_float(area["height"])}" />'
+            )
 
     for part in parts_sorted:
         x = float(part.x_mm or 0.0)
@@ -571,7 +632,9 @@ def build_export_job_from_current_nesting(doc=None) -> ExportJob | None:
     sheets: list[ExportSheet] = []
     total_parts = 0
     for sheet_index in sorted(grouped.keys()):
-        width_mm, height_mm = resolve_sheet_dimensions(sheet_sizes, sheet_index, fallback_w, fallback_h)
+        width_mm, height_mm = resolve_sheet_dimensions(
+            sheet_sizes, sheet_index, fallback_w, fallback_h
+        )
         export_parts: list[ExportPartPlacement] = []
         for placement in grouped[sheet_index]:
             try:
@@ -605,8 +668,12 @@ def build_export_job_from_current_nesting(doc=None) -> ExportJob | None:
         )
 
     job_name = _resolve_job_name(doc)
-    export_job = ExportJob(job_name=job_name, measurement_system=measurement_system, sheets=sheets)
-    logger.info(f"[SquatchCut] ExportJob summary: {len(sheets)} sheet(s), {total_parts} part(s).")
+    export_job = ExportJob(
+        job_name=job_name, measurement_system=measurement_system, sheets=sheets
+    )
+    logger.info(
+        f"[SquatchCut] ExportJob summary: {len(sheets)} sheet(s), {total_parts} part(s)."
+    )
     for sheet in sheets[:3]:
         logger.info(
             f"[SquatchCut]   Sheet {sheet.sheet_index}: {_fmt_float(sheet.width_mm)} x {_fmt_float(sheet.height_mm)} mm, {len(sheet.parts)} part(s)."
@@ -630,7 +697,9 @@ def _resolve_job_name(doc) -> str:
     return "SquatchCut Job"
 
 
-def export_cutlist(export_job: ExportJob, target_path: str, *, as_text: bool = False) -> None:
+def export_cutlist(
+    export_job: ExportJob, target_path: str, *, as_text: bool = False
+) -> None:
     """
     Export a cutlist for the provided ExportJob.
 
@@ -639,7 +708,9 @@ def export_cutlist(export_job: ExportJob, target_path: str, *, as_text: bool = F
     if as_text:
         placements = _export_job_to_placements(export_job)
         if not placements:
-            logger.warning("[SquatchCut] No placements available; cutlist export skipped.")
+            logger.warning(
+                "[SquatchCut] No placements available; cutlist export skipped."
+            )
             return
         primary_sheet = _job_primary_sheet_size(export_job)
         cutlist_map = generate_cutlist(placements, primary_sheet)
@@ -701,6 +772,8 @@ def export_nesting_to_svg(
     *,
     include_labels: bool = True,
     include_dimensions: bool = False,
+    include_cut_lines: bool = False,
+    include_waste_areas: bool = False,
 ) -> list[Path]:
     """
     Export one SVG per sheet for the provided ExportJob.
@@ -731,6 +804,8 @@ def export_nesting_to_svg(
             measurement_system=measurement_system,
             include_labels=include_labels,
             include_dimensions=include_dimensions,
+            include_cut_lines=include_cut_lines,
+            include_waste_areas=include_waste_areas,
             export_job=export_job,
         )
         target_path = _sheet_specific_path(base_target, idx + 1)
@@ -741,7 +816,9 @@ def export_nesting_to_svg(
             raise
         generated_paths.append(target_path)
 
-    logger.info(f"[SquatchCut] SVG export complete via gateway: {len(generated_paths)} file(s).")
+    logger.info(
+        f"[SquatchCut] SVG export complete via gateway: {len(generated_paths)} file(s)."
+    )
     return generated_paths
 
 
@@ -803,3 +880,249 @@ def format_dimension_for_export(value_mm: float, export_job: ExportJob) -> str:
         return f"{formatted} in"
     metric_value = unit_utils.format_metric_length(value_mm, decimals=3)
     return f"{metric_value} mm"
+
+
+def _calculate_cut_lines(
+    parts: list[ExportPartPlacement], sheet_width: float, sheet_height: float
+) -> list[dict]:
+    """Calculate cut lines for efficient cutting sequence."""
+    cut_lines = []
+
+    # Collect all unique x and y coordinates from part boundaries
+    x_coords = set([0.0, sheet_width])
+    y_coords = set([0.0, sheet_height])
+
+    for part in parts:
+        x_coords.add(part.x_mm)
+        x_coords.add(part.x_mm + part.width_mm)
+        y_coords.add(part.y_mm)
+        y_coords.add(part.y_mm + part.height_mm)
+
+    # Add vertical cut lines
+    for x in sorted(x_coords):
+        if 0 < x < sheet_width:  # Exclude sheet edges
+            cut_lines.append(
+                {"direction": "vertical", "position": x, "length": sheet_height}
+            )
+
+    # Add horizontal cut lines
+    for y in sorted(y_coords):
+        if 0 < y < sheet_height:  # Exclude sheet edges
+            cut_lines.append(
+                {"direction": "horizontal", "position": y, "length": sheet_width}
+            )
+
+    return cut_lines
+
+
+def _calculate_waste_areas(
+    parts: list[ExportPartPlacement], sheet_width: float, sheet_height: float
+) -> list[dict]:
+    """Calculate waste areas (unused space) on the sheet."""
+    waste_areas = []
+
+    # Create a grid to track occupied areas
+    # Use 1mm resolution for reasonable performance
+    grid_resolution = 1.0
+    grid_width = int(sheet_width / grid_resolution) + 1
+    grid_height = int(sheet_height / grid_resolution) + 1
+    occupied = [[False for _ in range(grid_height)] for _ in range(grid_width)]
+
+    # Mark occupied areas
+    for part in parts:
+        x_start = int(part.x_mm / grid_resolution)
+        x_end = int((part.x_mm + part.width_mm) / grid_resolution) + 1
+        y_start = int(part.y_mm / grid_resolution)
+        y_end = int((part.y_mm + part.height_mm) / grid_resolution) + 1
+
+        for x in range(max(0, x_start), min(grid_width, x_end)):
+            for y in range(max(0, y_start), min(grid_height, y_end)):
+                occupied[x][y] = True
+
+    # Find rectangular waste areas
+    visited = [[False for _ in range(grid_height)] for _ in range(grid_width)]
+
+    for x in range(grid_width):
+        for y in range(grid_height):
+            if not occupied[x][y] and not visited[x][y]:
+                # Found unoccupied cell, try to expand into rectangle
+                width = 0
+                height = 0
+
+                # Find maximum width
+                while (
+                    x + width < grid_width
+                    and not occupied[x + width][y]
+                    and not visited[x + width][y]
+                ):
+                    width += 1
+
+                # Find maximum height for this width
+                valid_height = True
+                while valid_height and y + height < grid_height:
+                    for w in range(width):
+                        if occupied[x + w][y + height] or visited[x + w][y + height]:
+                            valid_height = False
+                            break
+                    if valid_height:
+                        height += 1
+
+                # Mark area as visited
+                for w in range(width):
+                    for h in range(height):
+                        if x + w < grid_width and y + h < grid_height:
+                            visited[x + w][y + h] = True
+
+                # Add waste area if it's significant (> 100 sq mm)
+                area_mm2 = (width * grid_resolution) * (height * grid_resolution)
+                if area_mm2 > 100:
+                    waste_areas.append(
+                        {
+                            "x": x * grid_resolution,
+                            "y": y * grid_resolution,
+                            "width": width * grid_resolution,
+                            "height": height * grid_resolution,
+                            "area": area_mm2,
+                        }
+                    )
+
+    return waste_areas
+
+
+def export_nesting_to_dxf(
+    export_job: ExportJob,
+    base_path: str,
+    *,
+    include_labels: bool = True,
+    include_dimensions: bool = False,
+    include_cut_lines: bool = False,
+) -> list[Path]:
+    """
+    Export nesting layout to DXF format with optional cut lines.
+
+    Returns list of generated file paths (one per sheet).
+    """
+    if export_job is None or not export_job.sheets:
+        logger.warning("[SquatchCut] DXF export skipped: job has no sheets.")
+        return []
+
+    try:
+        import ezdxf
+    except ImportError:
+        raise RuntimeError(
+            "DXF export requires the 'ezdxf' package. Install it with: pip install ezdxf"
+        )
+
+    base_target = Path(base_path)
+    if base_target.suffix.lower() != ".dxf":
+        base_target = base_target.with_suffix(".dxf")
+
+    try:
+        base_target.parent.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+
+    generated_paths: list[Path] = []
+
+    for idx, sheet in enumerate(sorted(export_job.sheets, key=lambda s: s.sheet_index)):
+        # Create new DXF document
+        doc = ezdxf.new("R2010")  # Use R2010 for broad compatibility
+        msp = doc.modelspace()
+
+        # Add sheet boundary
+        msp.add_lwpolyline(
+            [
+                (0, 0),
+                (sheet.width_mm, 0),
+                (sheet.width_mm, sheet.height_mm),
+                (0, sheet.height_mm),
+                (0, 0),
+            ],
+            close=True,
+            dxfattribs={"layer": "SHEET_BOUNDARY", "color": 1},
+        )
+
+        # Add parts
+        for part in sheet.parts:
+            x, y = part.x_mm, part.y_mm
+            w, h = part.width_mm, part.height_mm
+
+            # Add part rectangle
+            msp.add_lwpolyline(
+                [(x, y), (x + w, y), (x + w, y + h), (x, y + h), (x, y)],
+                close=True,
+                dxfattribs={"layer": "PARTS", "color": 2},
+            )
+
+            # Add part label if requested
+            if include_labels and part.part_id:
+                text_x = x + w / 2
+                text_y = y + h / 2
+                text_height = min(w, h) * 0.1
+                msp.add_text(
+                    part.part_id,
+                    dxfattribs={
+                        "layer": "LABELS",
+                        "color": 3,
+                        "height": max(text_height, 2.0),
+                    },
+                ).set_pos((text_x, text_y), align="MIDDLE_CENTER")
+
+            # Add dimensions if requested
+            if include_dimensions:
+                dim_layer = "DIMENSIONS"
+                # Width dimension (bottom)
+                msp.add_linear_dim(
+                    base=(x, y - 5),
+                    p1=(x, y),
+                    p2=(x + w, y),
+                    dxfattribs={"layer": dim_layer, "color": 4},
+                )
+                # Height dimension (left)
+                msp.add_linear_dim(
+                    base=(x - 5, y),
+                    p1=(x, y),
+                    p2=(x, y + h),
+                    dxfattribs={"layer": dim_layer, "color": 4},
+                )
+
+        # Add cut lines if requested
+        if include_cut_lines:
+            cut_lines = _calculate_cut_lines(
+                sheet.parts, sheet.width_mm, sheet.height_mm
+            )
+            for line in cut_lines:
+                if line["direction"] == "vertical":
+                    msp.add_line(
+                        (line["position"], 0),
+                        (line["position"], sheet.height_mm),
+                        dxfattribs={
+                            "layer": "CUT_LINES",
+                            "color": 1,
+                            "linetype": "DASHED",
+                        },
+                    )
+                else:  # horizontal
+                    msp.add_line(
+                        (0, line["position"]),
+                        (sheet.width_mm, line["position"]),
+                        dxfattribs={
+                            "layer": "CUT_LINES",
+                            "color": 1,
+                            "linetype": "DASHED",
+                        },
+                    )
+
+        # Save DXF file
+        target_path = _sheet_specific_path(base_target, idx + 1)
+        target_path = target_path.with_suffix(".dxf")
+
+        try:
+            doc.saveas(str(target_path))
+            generated_paths.append(target_path)
+        except Exception as exc:
+            logger.warning(f"[SquatchCut] DXF export failed for '{target_path}': {exc}")
+            raise
+
+    logger.info(f"[SquatchCut] DXF export complete: {len(generated_paths)} file(s).")
+    return generated_paths

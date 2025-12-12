@@ -46,10 +46,19 @@ _export_include_dimensions = False
 _source_panel_objects = []
 _nested_sheet_group = None
 
+# Genetic algorithm settings
+_use_genetic_algorithm = False
+_genetic_population_size = 50
+_genetic_generations = 100
+_genetic_mutation_rate = 0.1
+_genetic_crossover_rate = 0.8
+_genetic_max_time = 300  # seconds
+
 
 # --------------------------
 # Sheet size accessors
 # --------------------------
+
 
 def set_sheet_size(width_mm: float, height_mm: float) -> None:
     """Store sheet size in millimeters in session memory."""
@@ -123,11 +132,18 @@ def get_job_sheets():
     return deepcopy(_job_sheets)
 
 
-def add_job_sheet(width_mm: float, height_mm: float, quantity: int = 1, label: str | None = None):
+def add_job_sheet(
+    width_mm: float, height_mm: float, quantity: int = 1, label: str | None = None
+):
     """Append a new sheet definition."""
     global _job_sheets
     entry = _normalize_sheet_entry(
-        {"width_mm": width_mm, "height_mm": height_mm, "quantity": quantity, "label": label}
+        {
+            "width_mm": width_mm,
+            "height_mm": height_mm,
+            "quantity": quantity,
+            "label": label,
+        }
     )
     _job_sheets.append(entry)
     return entry
@@ -169,6 +185,7 @@ def clear_job_sheets():
 # Sheet mode helpers
 # --------------------------
 
+
 def set_sheet_mode(mode: str | None) -> None:
     """Set how sheets are provided: 'simple' (default) or 'job_sheets'."""
     global _sheet_mode
@@ -192,9 +209,11 @@ def is_job_sheets_mode() -> bool:
     """Return True when explicit job sheets should be used."""
     return get_sheet_mode() == SHEET_MODE_JOB_SHEETS
 
+
 # --------------------------
 # Kerf / gap accessors
 # --------------------------
+
 
 def set_kerf_mm(value: float) -> None:
     """Store kerf width (mm) used between adjacent parts."""
@@ -289,6 +308,7 @@ def get_allowed_rotations_deg():
 # Measurement system
 # --------------------------
 
+
 def set_measurement_system(system: str) -> None:
     """Store measurement system preference ('metric' or 'imperial')."""
     global _measurement_system
@@ -304,6 +324,7 @@ def get_measurement_system() -> str:
 # --------------------------
 # Last layout storage
 # --------------------------
+
 
 def set_last_layout(layout_list) -> None:
     """Store a copy of the last nesting layout (list of PlacedPart)."""
@@ -335,12 +356,16 @@ def set_nesting_stats(
 
 def get_nesting_stats() -> dict:
     """Return summary stats from the last nesting run."""
-    return dict(_nesting_stats or {"sheets_used": None, "cut_complexity": None, "overlaps_count": None})
+    return dict(
+        _nesting_stats
+        or {"sheets_used": None, "cut_complexity": None, "overlaps_count": None}
+    )
 
 
 # --------------------------
 # Panels storage (pure data)
 # --------------------------
+
 
 def set_panels(panels_list) -> None:
     """Replace panels list."""
@@ -370,6 +395,7 @@ def clear_panels() -> None:
 # --------------------------
 # Optimization mode
 # --------------------------
+
 
 def set_optimization_mode(mode: str) -> None:
     """Set nesting optimization mode (material or cuts)."""
@@ -401,6 +427,7 @@ def get_nesting_mode() -> str:
 # Export flags
 # --------------------------
 
+
 def set_export_include_labels(value: bool) -> None:
     """Set whether exports include part labels."""
     global _export_include_labels
@@ -427,6 +454,7 @@ def get_export_include_dimensions() -> bool:
 # Document object tracking
 # --------------------------
 
+
 def set_source_panel_objects(objs) -> None:
     """Track source panel FreeCAD objects used for nesting."""
     global _source_panel_objects
@@ -447,3 +475,104 @@ def set_nested_sheet_group(group) -> None:
 def get_nested_sheet_group():
     """Return the nested sheet group object."""
     return _nested_sheet_group
+
+
+# --------------------------
+# Genetic Algorithm Settings
+# --------------------------
+
+
+def set_use_genetic_algorithm(enabled: bool) -> None:
+    """Enable or disable genetic algorithm optimization."""
+    global _use_genetic_algorithm
+    _use_genetic_algorithm = bool(enabled)
+
+
+def get_use_genetic_algorithm() -> bool:
+    """Return whether genetic algorithm optimization is enabled."""
+    return _use_genetic_algorithm
+
+
+def set_genetic_population_size(size: int) -> None:
+    """Set genetic algorithm population size."""
+    global _genetic_population_size
+    _genetic_population_size = max(10, int(size))
+
+
+def get_genetic_population_size() -> int:
+    """Return genetic algorithm population size."""
+    return _genetic_population_size
+
+
+def set_genetic_generations(generations: int) -> None:
+    """Set genetic algorithm number of generations."""
+    global _genetic_generations
+    _genetic_generations = max(10, int(generations))
+
+
+def get_genetic_generations() -> int:
+    """Return genetic algorithm number of generations."""
+    return _genetic_generations
+
+
+def set_genetic_mutation_rate(rate: float) -> None:
+    """Set genetic algorithm mutation rate."""
+    global _genetic_mutation_rate
+    _genetic_mutation_rate = max(0.0, min(1.0, float(rate)))
+
+
+def get_genetic_mutation_rate() -> float:
+    """Return genetic algorithm mutation rate."""
+    return _genetic_mutation_rate
+
+
+def set_genetic_crossover_rate(rate: float) -> None:
+    """Set genetic algorithm crossover rate."""
+    global _genetic_crossover_rate
+    _genetic_crossover_rate = max(0.0, min(1.0, float(rate)))
+
+
+def get_genetic_crossover_rate() -> float:
+    """Return genetic algorithm crossover rate."""
+    return _genetic_crossover_rate
+
+
+def set_genetic_max_time(seconds: int) -> None:
+    """Set genetic algorithm maximum time in seconds."""
+    global _genetic_max_time
+    _genetic_max_time = max(30, int(seconds))
+
+
+def get_genetic_max_time() -> int:
+    """Return genetic algorithm maximum time in seconds."""
+    return _genetic_max_time
+
+
+# --------------------------
+# Cut Sequence Settings
+# --------------------------
+
+_generate_cut_sequence = False
+_cut_sequences = []
+
+
+def set_generate_cut_sequence(enabled: bool) -> None:
+    """Enable or disable cut sequence generation."""
+    global _generate_cut_sequence
+    _generate_cut_sequence = bool(enabled)
+
+
+def get_generate_cut_sequence() -> bool:
+    """Return whether cut sequence generation is enabled."""
+    return _generate_cut_sequence
+
+
+def set_cut_sequences(sequences) -> None:
+    """Store generated cut sequences."""
+    global _cut_sequences
+    _cut_sequences = sequences or []
+
+
+def get_cut_sequences():
+    """Return stored cut sequences."""
+    return _cut_sequences or []

@@ -290,6 +290,55 @@ Long-running operations now show progress indicators:
 
 These indicators help you understand when operations are working and provide estimated completion times for large datasets.
 
+## Advanced Features
+
+SquatchCut includes several advanced features for professional workflows:
+
+### Genetic Algorithm Optimization
+For complex layouts requiring maximum material utilization:
+- **Intelligent Evolution**: Uses genetic algorithms to find optimal part arrangements
+- **Grain Direction Support**: Respects wood grain orientation for structural integrity
+- **Configurable Parameters**: Adjust population size, generations, and optimization time
+- **Automatic Activation**: Enabled through settings for challenging layouts
+
+### Enhanced Export Capabilities
+Professional export options for various workflows:
+- **SVG with Cut Lines**: Visual cutting guides for manual operations
+- **DXF Export**: CAD-compatible format for CNC and automated cutting
+- **Waste Area Highlighting**: Identify unused material for future projects
+- **Multi-Sheet Layouts**: Organized output for complex projects
+
+### Smart Cut Optimization
+Automated cutting sequence planning:
+- **Optimal Cut Order**: Minimizes material handling and setup time
+- **Rip and Crosscut Planning**: Follows woodworking best practices
+- **Time Estimation**: Realistic cutting time predictions
+- **Cut Length Optimization**: Reduces unnecessary cuts
+
+### Quality Assurance
+Comprehensive layout validation:
+- **Overlap Detection**: Identifies conflicting part placements
+- **Bounds Checking**: Ensures all parts fit within sheet boundaries
+- **Spacing Validation**: Verifies minimum spacing requirements
+- **Quality Scoring**: Overall layout quality assessment (0-100)
+- **Detailed Reports**: Actionable feedback for improvements
+
+### Performance Enhancements
+Optimizations for large datasets:
+- **Intelligent Caching**: Avoids redundant calculations
+- **Multi-threading**: Parallel processing for complex operations
+- **Memory Optimization**: Efficient handling of large part lists
+- **Progress Tracking**: Real-time feedback for long operations
+
+### Accessing Advanced Features
+Most advanced features are automatically enabled when beneficial:
+- **Genetic Algorithm**: Enable in Settings → Advanced → Use Genetic Optimization
+- **Cut Sequences**: Enable in Settings → Advanced → Generate Cut Sequences
+- **Quality Reports**: Automatically generated after nesting operations
+- **Enhanced Exports**: Available through standard export commands
+
+For detailed information about advanced features, see the [Advanced Features Guide](advanced_features.md).
+
 ### Enhanced Error Messages
 
 SquatchCut now provides clearer, more helpful error messages:
