@@ -34,7 +34,9 @@ class SC_ExportReportCommand:
             try:
                 from SquatchCut.core import logger
 
-                logger.warning("SC_ExportReportCommand.Activated() called outside FreeCAD GUI environment.")
+                logger.warning(
+                    "SC_ExportReportCommand.Activated() called outside FreeCAD GUI environment."
+                )
             except Exception:
                 pass
             return
@@ -60,15 +62,16 @@ class SC_ExportReportCommand:
         pdf_path = os.path.join(directory, "squatchcut_nesting_report.pdf")
         csv_path = os.path.join(directory, "squatchcut_nesting_report.csv")
 
+        from SquatchCut.ui.progress import SimpleProgressContext
+
         generator = ReportGenerator()
         try:
-            generator.generate_pdf(report_data, pdf_path)
-            if data.get("generate_csv") or data.get("include_csv"):
-                generator.generate_csv(report_data, csv_path)
+            with SimpleProgressContext("Generating PDF report...", "SquatchCut Export"):
+                generator.generate_pdf(report_data, pdf_path)
+                if data.get("generate_csv") or data.get("include_csv"):
+                    generator.generate_csv(report_data, csv_path)
         except Exception as exc:
-            QtWidgets.QMessageBox.critical(
-                None, "SquatchCut", f"Export failed:\n{exc}"
-            )
+            QtWidgets.QMessageBox.critical(None, "SquatchCut", f"Export failed:\n{exc}")
             return
 
         QtWidgets.QMessageBox.information(

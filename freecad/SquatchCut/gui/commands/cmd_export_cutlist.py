@@ -25,19 +25,22 @@ class ExportCutlistCommand:
         if App is None or Gui is None:
             return
         try:
+            from SquatchCut.ui.progress import SimpleProgressContext
+
             doc = App.ActiveDocument
             if doc is None:
                 logger.warning("ExportCutlistCommand: no active document.")
                 return
 
-            cut_ops = generate_cutops_from_session()
-            if not cut_ops:
-                QtWidgets.QMessageBox.information(
-                    Gui.getMainWindow(),
-                    "SquatchCut Cutlist",
-                    "No cuts to export. Make sure nesting has been run.",
-                )
-                return
+            with SimpleProgressContext("Generating cutlist...", "SquatchCut Export"):
+                cut_ops = generate_cutops_from_session()
+                if not cut_ops:
+                    QtWidgets.QMessageBox.information(
+                        Gui.getMainWindow(),
+                        "SquatchCut Cutlist",
+                        "No cuts to export. Make sure nesting has been run.",
+                    )
+                    return
 
             dlg = QtWidgets.QFileDialog(Gui.getMainWindow())
             dlg.setAcceptMode(QtWidgets.QFileDialog.AcceptSave)
@@ -53,10 +56,26 @@ class ExportCutlistCommand:
                 return
 
             out_path = filenames[0]
-            export_cutops_to_csv(out_path, cut_ops)
+            with SimpleProgressContext(
+                "Exporting cutlist to CSV...", "SquatchCut Export"
+            ):
+                export_cutops_to_csv(out_path, cut_ops)
+
+            QtWidgets.QMessageBox.information(
+                Gui.getMainWindow(),
+                "SquatchCut Export",
+                f"Cutlist exported successfully to:\n{out_path}",
+            )
 
         except Exception as e:
-            logger.error(f"Error in ExportCutlistCommand.Activated(): {e!r}")
+            from SquatchCut.ui.error_handling import handle_command_error, ErrorMessages
+
+            handle_command_error(
+                "Export Cutlist",
+                e,
+                ErrorMessages.EXPORT_FAILED,
+                ErrorMessages.EXPORT_FAILED_ACTION,
+            )
 
 
 if Gui:

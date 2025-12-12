@@ -28,7 +28,9 @@ class AddShapesCommand:
             try:
                 from SquatchCut.core import logger
 
-                logger.warning("AddShapesCommand.Activated() called outside FreeCAD GUI environment.")
+                logger.warning(
+                    "AddShapesCommand.Activated() called outside FreeCAD GUI environment."
+                )
             except Exception:
                 pass
             return
@@ -45,78 +47,90 @@ class AddShapesCommand:
         if doc is None:
             doc = App.newDocument("SquatchCut")
 
+        from SquatchCut.ui.progress import ProgressDialog
+
         shapes_per_row = 5
         count = 0
 
-        for panel in panels:
-            width = float(panel.get("width", 0) or 0)
-            height = float(panel.get("height", 0) or 0)
-            qty = int(panel.get("qty", 1) or 1)
-            label = (panel.get("label") or "Panel").strip() or "Panel"
+        with ProgressDialog("Creating Shapes", Gui.getMainWindow()) as progress:
+            progress.set_range(0, len(panels))
+            progress.set_label("Creating panel shapes...")
 
-            for _ in range(qty):
-                # Skip invalid dimensions
-                if width <= 0 or height <= 0:
-                    App.Console.PrintError(
-                        f"[SquatchCut] Skipping panel with non-positive size: "
-                        f"width={width}, height={height}\n"
-                    )
-                    continue
+            for idx, panel in enumerate(panels):
+                progress.set_value(idx)
+                progress.set_label(f"Creating shape {idx + 1} of {len(panels)}...")
 
-                # Build a rectangular face in the XY plane from (0,0) to (width, height)
-                p0 = App.Vector(0, 0, 0)
-                p1 = App.Vector(width, 0, 0)
-                p2 = App.Vector(width, height, 0)
-                p3 = App.Vector(0, height, 0)
+                width = float(panel.get("width", 0) or 0)
+                height = float(panel.get("height", 0) or 0)
+                qty = int(panel.get("qty", 1) or 1)
+                label = (panel.get("label") or "Panel").strip() or "Panel"
 
-                poly = Part.makePolygon([p0, p1, p2, p3, p0])
-                face = Part.Face(poly)
-
-                obj_name = f"{label}_{count + 1}"
-                obj = doc.addObject("Part::Feature", obj_name)
-                obj.Shape = face
-
-                # Optional rotation flag from CSV panels
-                allow_rotate = bool(panel.get("allow_rotate", False))
-                try:
-                    if not hasattr(obj, "SquatchCutCanRotate"):
-                        obj.addProperty(
-                            "App::PropertyBool",
-                            "SquatchCutCanRotate",
-                            "SquatchCut",
-                            "Whether this panel may be rotated 90 degrees during nesting",
+                for _ in range(qty):
+                    # Skip invalid dimensions
+                    if width <= 0 or height <= 0:
+                        App.Console.PrintError(
+                            f"[SquatchCut] Skipping panel with non-positive size: "
+                            f"width={width}, height={height}\n"
                         )
-                    obj.SquatchCutCanRotate = allow_rotate
-                except Exception:
-                    pass
+                        continue
 
-                # Tag this object so other commands (e.g. RunNesting) can find it
-                try:
-                    if not hasattr(obj, "SquatchCutPanel"):
-                        obj.addProperty(
-                            "App::PropertyBool",
-                            "SquatchCutPanel",
-                            "SquatchCut",
-                            "True if this object is a panel created by SquatchCut.",
-                        )
-                    obj.SquatchCutPanel = True
-                except Exception:
-                    # Property creation is non-critical; fail silently if needed
-                    pass
+                    # Build a rectangular face in the XY plane from (0,0) to (width, height)
+                    p0 = App.Vector(0, 0, 0)
+                    p1 = App.Vector(width, 0, 0)
+                    p2 = App.Vector(width, height, 0)
+                    p3 = App.Vector(0, height, 0)
 
-                # Give it a stable, human-friendly label
-                try:
-                    obj.Label = f"SquatchCut Panel {count + 1}"
-                except Exception:
-                    pass
+                    poly = Part.makePolygon([p0, p1, p2, p3, p0])
+                    face = Part.Face(poly)
 
-                col = count % shapes_per_row
-                row = count // shapes_per_row
-                x_offset = col * (width + 5)
-                y_offset = row * (height + 5)
-                obj.Placement.Base = App.Vector(x_offset, y_offset, 0)
+                    obj_name = f"{label}_{count + 1}"
+                    obj = doc.addObject("Part::Feature", obj_name)
+                    obj.Shape = face
 
-                count += 1
+                    # Optional rotation flag from CSV panels
+                    allow_rotate = bool(panel.get("allow_rotate", False))
+                    try:
+                        if not hasattr(obj, "SquatchCutCanRotate"):
+                            obj.addProperty(
+                                "App::PropertyBool",
+                                "SquatchCutCanRotate",
+                                "SquatchCut",
+                                "Whether this panel may be rotated 90 degrees during nesting",
+                            )
+                        obj.SquatchCutCanRotate = allow_rotate
+                    except Exception:
+                        pass
+
+                    # Tag this object so other commands (e.g. RunNesting) can find it
+                    try:
+                        if not hasattr(obj, "SquatchCutPanel"):
+                            obj.addProperty(
+                                "App::PropertyBool",
+                                "SquatchCutPanel",
+                                "SquatchCut",
+                                "True if this object is a panel created by SquatchCut.",
+                            )
+                        obj.SquatchCutPanel = True
+                    except Exception:
+                        # Property creation is non-critical; fail silently if needed
+                        pass
+
+                    # Give it a stable, human-friendly label
+                    try:
+                        obj.Label = f"SquatchCut Panel {count + 1}"
+                    except Exception:
+                        pass
+
+                    col = count % shapes_per_row
+                    row = count // shapes_per_row
+                    x_offset = col * (width + 5)
+                    y_offset = row * (height + 5)
+                    obj.Placement.Base = App.Vector(x_offset, y_offset, 0)
+
+                    count += 1
+
+            progress.set_value(len(panels))
+            progress.set_label("Finalizing shapes...")
 
         App.Console.PrintMessage(f"[SquatchCut] Added {count} shapes to document.\n")
         App.Console.PrintMessage(

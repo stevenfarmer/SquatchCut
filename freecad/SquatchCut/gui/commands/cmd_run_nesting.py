@@ -304,40 +304,49 @@ class RunNestingCommand:
                     f">>> [SquatchCut] Advanced job sheets active with {total_instances} sheet instance(s): "
                     + "; ".join(summary_parts)
                 )
+            from SquatchCut.ui.progress import SimpleProgressContext
+
             try:
-                if cut_mode:
-                    cfg = NestingConfig(
-                        optimize_for_cut_path=True,
-                        kerf_width_mm=kerf_width or kerf_mm,
-                        allowed_rotations_deg=allowed_rotations,
-                        spacing_mm=gap_mm,
-                        nesting_mode="cut_friendly",
-                    )
-                    placed_parts = nest_parts(
-                        parts, sheet_w, sheet_h, cfg, sheet_sizes=sheet_sizes_override
-                    )
-                elif opt_mode == "cuts":
-                    placed_parts = nest_cut_optimized(
-                        parts,
-                        sheet_w,
-                        sheet_h,
-                        kerf=float(kerf_mm),
-                        margin=float(gap_mm),
-                        sheet_sizes=sheet_sizes_override,
-                    )
-                else:
-                    cfg = NestingConfig(
-                        kerf_width_mm=kerf_mm,
-                        spacing_mm=gap_mm,
-                        nesting_mode=nesting_mode,
-                    )
-                    placed_parts = nest_on_multiple_sheets(
-                        parts,
-                        sheet_w,
-                        sheet_h,
-                        cfg,
-                        sheet_definitions=sheet_definitions,
-                    )
+                with SimpleProgressContext(
+                    "Running nesting algorithm...", "SquatchCut Nesting"
+                ):
+                    if cut_mode:
+                        cfg = NestingConfig(
+                            optimize_for_cut_path=True,
+                            kerf_width_mm=kerf_width or kerf_mm,
+                            allowed_rotations_deg=allowed_rotations,
+                            spacing_mm=gap_mm,
+                            nesting_mode="cut_friendly",
+                        )
+                        placed_parts = nest_parts(
+                            parts,
+                            sheet_w,
+                            sheet_h,
+                            cfg,
+                            sheet_sizes=sheet_sizes_override,
+                        )
+                    elif opt_mode == "cuts":
+                        placed_parts = nest_cut_optimized(
+                            parts,
+                            sheet_w,
+                            sheet_h,
+                            kerf=float(kerf_mm),
+                            margin=float(gap_mm),
+                            sheet_sizes=sheet_sizes_override,
+                        )
+                    else:
+                        cfg = NestingConfig(
+                            kerf_width_mm=kerf_mm,
+                            spacing_mm=gap_mm,
+                            nesting_mode=nesting_mode,
+                        )
+                        placed_parts = nest_on_multiple_sheets(
+                            parts,
+                            sheet_w,
+                            sheet_h,
+                            cfg,
+                            sheet_definitions=sheet_definitions,
+                        )
             except ValueError as e:
                 show_error(
                     f"Nesting failed due to panel size constraints:\n\n{e}",
@@ -475,12 +484,13 @@ class RunNestingCommand:
                 pass
 
         except Exception as exc:
-            logger.error(f"Error in RunNestingCommand.Activated(): {exc}")
-            logger.debug(traceback.format_exc())
-            QtWidgets.QMessageBox.critical(
-                None,
-                "SquatchCut – Nesting Error",
-                f"An error occurred while running nesting:\n{exc}",
+            from SquatchCut.ui.error_handling import handle_command_error
+
+            handle_command_error(
+                "Run Nesting",
+                exc,
+                "The nesting operation failed.",
+                "Please check your panel sizes and sheet dimensions, then try again.",
             )
 
     def _handle_validation_error(self, doc, exc: NestingValidationError) -> None:
