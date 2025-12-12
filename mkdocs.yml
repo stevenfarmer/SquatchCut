@@ -22,16 +22,26 @@ nav:
       - Installation: getting-started/installation.md
       - Basic Workflow: getting-started/workflow.md
   - User Guide:
+      - User Guide: user_guide.md
       - Commands & Tools: user/commands.md
       - CSV & TS Tools: user/csv_and_ts_tools.md
   - Developer Guide:
       - Architecture Overview: architecture.md
       - MVP Scope: mvp.md
-      - AI Worker Workflows (Codex-style): codex_workflows.md
+      - AI Worker Workflows: ai_workflows.md
+      - Development Environment: Development_Environment.md
+      - Developer Guide: developer_guide.md
+      - Testing Guide: TESTING.md
+      - Quickstart: quickstart.md
   - Blog:
       - "Teaching a FreeCAD Plugin to Behave": blog/squatchcut_lessons_from_the_machine_seo.md
   - SquatchCut:
       - "Lessons Learned": lessons/squatchcut_lessons_learned.md
+  - Project Management:
+      - Roadmap: roadmap.md
+      - UAT Checklist: UAT_Checklist.md
+      - UAT Prep Instructions: UAT_Prep_Instructions.md
+      - Backlog Archive v3.2: backlog_archive_v3.2.md
   - Reporting Bugs: reporting_bugs.md
   - Testing: dev/testing.md
 docs_dir: "docs"
