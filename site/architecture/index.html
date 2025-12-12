@@ -1,0 +1,1676 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+
+        <meta name="description" content="A cryptid-powered nesting workbench for FreeCAD.">
+
+
+
+        <link rel="canonical" href="https://stevenfarmer.github.io/SquatchCut/architecture/">
+
+
+        <link rel="prev" href="../user/csv_and_ts_tools/">
+
+
+        <link rel="next" href="../mvp/">
+
+
+
+
+
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+
+
+
+        <title>Architecture Overview - SquatchCut</title>
+
+
+
+      <link rel="stylesheet" href="../assets/stylesheets/main.618322db.min.css">
+
+
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+
+
+
+
+
+
+
+
+
+
+
+
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+
+
+
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+
+
+
+
+
+  </head>
+
+
+
+
+
+
+
+
+
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="orange">
+
+
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+
+
+        <a href="#architecture" class="md-skip">
+          Skip to content
+        </a>
+
+    </div>
+    <div data-md-component="announce">
+
+    </div>
+
+
+
+
+
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="SquatchCut" class="md-header__button md-logo" aria-label="SquatchCut" data-md-component="logo">
+
+
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SquatchCut
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+
+              Architecture Overview
+
+          </span>
+        </div>
+      </div>
+    </div>
+
+
+        <form class="md-header__option" data-md-component="palette">
+
+
+
+
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="orange"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+
+
+</form>
+
+
+
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+
+
+
+
+
+        <label class="md-header__button md-icon" for="__search">
+
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+      <div class="md-header__source">
+        <a href="https://github.com/stevenfarmer/SquatchCut" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    SquatchCut
+  </div>
+</a>
+      </div>
+
+  </nav>
+
+</header>
+
+    <div class="md-container" data-md-component="container">
+
+
+
+
+
+
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+
+
+
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="SquatchCut" class="md-nav__button md-logo" aria-label="SquatchCut" data-md-component="logo">
+
+
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    SquatchCut
+  </label>
+
+    <div class="md-nav__source">
+      <a href="https://github.com/stevenfarmer/SquatchCut" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    SquatchCut
+  </div>
+</a>
+    </div>
+
+  <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Home
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../release-notes/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Release Notes
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../Project_Guide_v3.3/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Project Guide v3.3
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../Project_Guide_v3.2/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Project Guide v3.2 (Historical)
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+
+
+
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+
+
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Getting Started
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    Getting Started
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../getting-started/installation/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Installation
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../getting-started/workflow/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Basic Workflow
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+
+
+
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+
+
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+
+
+
+  <span class="md-ellipsis">
+
+
+    User Guide
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    User Guide
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../user_guide/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    User Guide
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../user/commands/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Commands & Tools
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../user/csv_and_ts_tools/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    CSV & TS Tools
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+
+
+
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+
+
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Developer Guide
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    Developer Guide
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--active">
+
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+
+
+
+
+
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Architecture Overview
+
+
+
+  </span>
+
+
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+
+      <a href="./" class="md-nav__link md-nav__link--active">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Architecture Overview
+
+
+
+  </span>
+
+
+
+      </a>
+
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+
+
+
+
+
+
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+
+        <li class="md-nav__item">
+  <a href="#1-project-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        1. Project Layout
+
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#2-core-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        2. Core Modules
+
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#3-gui-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        3. GUI Layer
+
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#4-data-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        4. Data Flow
+
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#5-supporting-documentation-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        5. Supporting Documentation &amp; Tools
+
+    </span>
+  </a>
+
+</li>
+
+    </ul>
+
+</nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../mvp/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    MVP Scope
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../ai_workflows/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    AI Worker Workflows
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../Development_Environment/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Development Environment
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../developer_guide/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Developer Guide
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../TESTING/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Testing Guide
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../quality_and_performance/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Quality and Performance
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Quickstart
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+
+
+
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+
+
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Blog
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    Blog
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../blog/squatchcut_lessons_from_the_machine_seo/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Teaching a FreeCAD Plugin to Behave
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+
+
+
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+
+
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+
+
+
+  <span class="md-ellipsis">
+
+
+    SquatchCut
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    SquatchCut
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../lessons/squatchcut_lessons_learned/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Lessons Learned
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+
+
+
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+
+
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Project Management
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    Project Management
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Roadmap
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../UAT_Checklist/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    UAT Checklist
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../UAT_Prep_Instructions/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    UAT Prep Instructions
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../backlog_archive_v3.2/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Backlog Archive v3.2
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../reporting_bugs/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Reporting Bugs
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../dev/testing/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Testing
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+
+
+
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+
+
+
+
+
+
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+
+        <li class="md-nav__item">
+  <a href="#1-project-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        1. Project Layout
+
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#2-core-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        2. Core Modules
+
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#3-gui-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        3. GUI Layer
+
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#4-data-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        4. Data Flow
+
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#5-supporting-documentation-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        5. Supporting Documentation &amp; Tools
+
+    </span>
+  </a>
+
+</li>
+
+    </ul>
+
+</nav>
+                  </div>
+                </div>
+              </div>
+
+
+
+            <div class="md-content" data-md-component="content">
+
+              <article class="md-content__inner md-typeset">
+
+
+
+
+
+
+
+
+<h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
+<p>This document snapshots how SquatchCut is organized so new work streams (AI agents or humans) stay aligned with the existing structure, data flow, and helper layers.</p>
+<hr />
+<h2 id="1-project-layout">1. Project Layout<a class="headerlink" href="#1-project-layout" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>root/</code></li>
+<li><code>freecad/SquatchCut/</code><ul>
+<li><code>InitGui.py</code>: workbench registration, toolbar/menu hooks, icon loading.</li>
+<li><code>__init__.py</code>: module metadata, lazy-bundled imports for FreeCAD.</li>
+<li><code>gui/</code>: Qt widgets, commands, dialogs, and view helpers.</li>
+<li><code>core/</code>: pure-Python algorithms, session plumbing, exporters, and utilities.</li>
+<li><code>resources/</code>: icons, templates, and static UI helpers.</li>
+</ul>
+</li>
+<li><code>docs/</code>: architecture/roadmap/backlog, developer guidance, UAT + testing instructions.</li>
+<li><code>tests/</code>: pytest regression suite exercising hydration, nesting, exports, and docs.</li>
+<li><code>assets/</code> &amp; <code>blog/</code>: site collateral (screenshots, articles) that support docs.</li>
+<li>Top-level helpers: README, <code>AGENTS.md</code>, <code>squatchcut.code-workspace</code>, and CI config files.</li>
+</ul>
+<p>This layout keeps FreeCAD integrations under <code>freecad/SquatchCut</code> while leaving tests/docs at the repo root for easy access by automation and documentation flows.</p>
+<hr />
+<h2 id="2-core-modules">2. Core Modules<a class="headerlink" href="#2-core-modules" title="Permanent link">&para;</a></h2>
+<p>The <code>core/</code> package is the heart of the nesting logic and keeps FreeCAD dependencies confined to integration points.</p>
+<ul>
+<li><strong>Session + settings</strong></li>
+<li><code>session_state.py</code>: in-memory defaults, job sheets, panels, measurement system, and export flags used by all UI wiring.</li>
+<li><code>session.py</code>: mirrors <code>session_state</code> into the active FreeCAD document, tracks FreeCAD objects, and clears/chases Group nodes.</li>
+<li><code>preferences.py</code> &amp; <code>presets.py</code>: wrap FreeCAD preferences, expose defaults per measurement system, and manage preset metadata used by the TaskPanel.</li>
+<li>
+<p><code>settings.py</code>: hydrates defaults, exposes the configuration API, and guards persistence rules described in <code>docs/Project_Guide_v3.3.md</code>.</p>
+</li>
+<li>
+<p><strong>Unit conversion &amp; logging</strong></p>
+</li>
+<li><code>units.py</code> + <code>text_helpers.py</code>: convert between millimeters and fractional inches, format preset labels, and share helper text strings.</li>
+<li>
+<p><code>logger.py</code>: centralized logger with SquatchCut-friendly prefixes for reporting and GUI tests.</p>
+</li>
+<li>
+<p><strong>CSV ingestion</strong></p>
+</li>
+<li><code>csv_import.py</code>: high-level validation harness used by GUI commands and CLI integrations (includes measurement overrides).</li>
+<li>
+<p><code>csv_loader.py</code>: low-level importer that normalizes rows, enforces required headers, and converts everything into panel dictionaries.</p>
+</li>
+<li>
+<p><strong>Panel discovery + validation</strong></p>
+</li>
+<li><code>shape_extractor.py</code>: reads selected FreeCAD objects, enforces <code>SquatchCutCanRotate</code>, and exposes clean panel metadata.</li>
+<li>
+<p><code>overlap_check.py</code>: utility to ensure placements do not overlap when verifying layouts.</p>
+</li>
+<li>
+<p><strong>Nesting &amp; optimization</strong></p>
+</li>
+<li><code>nesting.py</code>: orchestrates the multi-sheet workflow (sheet iteration, job sheet handling, compute_utilization, estimate_cut_counts).</li>
+<li><code>cut_optimization.py</code>: solver that does guillotine/shelf packing against free rectangles.</li>
+<li><code>nesting_engine.py</code>: encapsulates the algorithm that <code>cut_optimization</code> relies on; supports both “material” and “cuts” optimization modes.</li>
+<li>
+<p><code>multi_sheet_optimizer.py</code>: spreads panels across multiple sheets, stopping when all parts are placed or sheets are exhausted.</p>
+</li>
+<li>
+<p><strong>Geometry &amp; exports</strong></p>
+</li>
+<li><code>geometry_output.py</code>: turns placements into FreeCAD rectangles, groups, and sources/nested sheet hierarchies.</li>
+<li><code>geometry_sync.py</code>: keeps the document in sync after imports/nesting by rebuilding views and logging stale-reference issues.</li>
+<li><code>view_controller.py</code>: TaskPanel-driven helpers to show source vs. nesting views, clear groups, and zoom to objects.</li>
+<li><code>gui_tests.py</code>: GUI-level smoke checks invoked from the Settings panel and the developer toolbar.</li>
+<li>
+<p><code>cutlist.py</code>, <code>exporter.py</code>, <code>report_generator.py</code>: build deterministic exports (CSV cutlists, SVG maps, PDF reports) from <code>ExportJob</code>/<code>ExportSheet</code> state instead of FreeCAD objects.</p>
+</li>
+<li>
+<p><strong>Sheet helpers</strong></p>
+</li>
+<li><code>sheet_model.py</code>: manages FreeCAD Group/Boundary helpers and ensures canonical names/clear/rebuild flows.</li>
+<li><code>sheet_presets.py</code>: provides factory presets for metric/imperial defaults that never auto-select themselves.</li>
+</ul>
+<p>The <code>core</code> package intentionally minimizes FreeCAD API surface, enabling the python-only tests to run inside the Docker/devcontainer environment described in <code>docs/TESTING.md</code>.</p>
+<hr />
+<h2 id="3-gui-layer">3. GUI Layer<a class="headerlink" href="#3-gui-layer" title="Permanent link">&para;</a></h2>
+<p><code>gui/</code> wraps commands, dialogs, and widgets for user interaction.</p>
+<ul>
+<li><code>gui/commands/</code>: entry points that plug into the FreeCAD GUI.</li>
+<li><code>cmd_run_nesting.py</code>, <code>cmd_export_report.py</code>, <code>cmd_import_csv.py</code>, <code>cmd_set_sheet_size.py</code>, <code>cmd_preferences.py</code>, <code>cmd_run_gui_tests.py</code>, <code>cmd_add_shapes.py</code>.</li>
+<li>
+<p>Commands import <code>core</code> helpers, show dialogs, and set <code>session_state</code> before running logic.</p>
+</li>
+<li>
+<p>Dialogs: <code>gui/dialogs/*.py</code> (CSV import, export report, run nesting, select shapes, sheet size) gather structured input before deferring to commands.</p>
+</li>
+<li>
+<p>TaskPanel widgets: </p>
+</li>
+<li><code>taskpanel_main.py</code> (main TaskPanel + summary stats + new developer tools section), </li>
+<li><code>taskpanel_settings.py</code> (settings UI with GUI test launcher/status), </li>
+<li><code>taskpanel_nesting.py</code>, <code>taskpanel_sheet.py</code>, <code>taskpanel_input.py</code>.</li>
+<li>
+<p><code>qt_compat.py</code> provides lightweight Qt stubs so tests can instantiate widgets headlessly.</p>
+</li>
+<li>
+<p>Views/helpers: <code>source_view.py</code>, <code>nesting_view.py</code>, <code>view_helpers.py</code>, <code>view_utils.py</code> coordinate FreeCAD object visibility.</p>
+</li>
+<li>
+<p><code>icons.py</code> resolves bundled icon names for commands and panels (no new icon dependencies allowed without review).</p>
+</li>
+</ul>
+<hr />
+<h2 id="4-data-flow">4. Data Flow<a class="headerlink" href="#4-data-flow" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>CSV import or FreeCAD shape selection</strong> feeds panel metadata into <code>session_state</code>.</li>
+<li>The TaskPanel (main + settings) hydrates defaults via <code>settings.hydrate_from_params()</code> and populates widgets/sheets.</li>
+<li><code>session_state</code> + <code>nesting.py</code> assemble panels, job sheets, kerf/spacing, and routing (optimize-for-cut vs material). This includes <code>nesting_engine</code>, <code>cut_optimization</code>, and <code>multi_sheet_optimizer</code>.</li>
+<li><code>geometry_output</code> + <code>view_controller</code> rebuild the FreeCAD scene (source vs nested) and log visual diagnostics.</li>
+<li><code>Exporter</code>, <code>cutlist</code>, and <code>report_generator</code> read <code>ExportJob</code>/<code>ExportSheet</code> state to write deterministic CSV/SVG reports; FreeCAD geometry is never directly traversed when exports exist.</li>
+<li>Developer-facing GUI tests (<code>core/gui_tests.py</code>, TaskPanel developer group) run a lean import + nesting cycle and log formatted results for Report view visibility.</li>
+</ol>
+<hr />
+<h2 id="5-supporting-documentation-tools">5. Supporting Documentation &amp; Tools<a class="headerlink" href="#5-supporting-documentation-tools" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Docs: <code>docs/Project_Guide_v3.3.md</code> (v3.2 preserved historically), <code>docs/Backlog.md</code>, <code>docs/TESTING.md</code>, <code>docs/Development_Environment.md</code>, <code>docs/user_guide.md</code>, and the root <code>AGENTS.md</code> describe policies every change must obey.</li>
+<li>Testing: <code>docs/TESTING.md</code> and the Docker/devcontainer instructions explain how to run <code>pytest</code> (pure Python and FreeCAD-aware) plus <code>FreeCADCmd</code> GUI flows.</li>
+<li>Developer tooling: <code>gui/taskpanel_settings.py</code> and <code>core/gui_tests.py</code> surface the GUI test launcher, while <code>docs/TESTING.md</code> explains the Docker workflow for matching CI.</li>
+<li>Markdown assets (roadmap/backlog) live under <code>docs/</code>; they are validated by <code>tests/test_docs_backlog_structure.py</code> so future edits stay aligned with stated priorities.</li>
+</ul>
+<p>Keeping this document synchronized with the real file tree prevents misconceptions about where logic lives and what responsibilities each module bears.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+              </article>
+            </div>
+
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+
+      </main>
+
+        <footer class="md-footer">
+
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+
+
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+
+</div>
+
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+
+
+
+
+
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.instant", "content.code.copy"], "search": "../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+
+
+      <script src="../assets/javascripts/bundle.e71a0d61.min.js"></script>
+
+
+  </body>
+</html>

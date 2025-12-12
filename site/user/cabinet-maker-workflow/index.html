@@ -1,0 +1,2420 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+
+        <meta name="description" content="A cryptid-powered nesting workbench for FreeCAD.">
+
+
+
+        <link rel="canonical" href="https://stevenfarmer.github.io/SquatchCut/user/cabinet-maker-workflow/">
+
+
+
+
+
+
+
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+
+
+
+        <title>Cabinet Maker Workflow Guide - SquatchCut</title>
+
+
+
+      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+
+
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+
+
+
+
+
+
+
+
+
+
+
+
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+
+
+
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+
+
+
+
+
+  </head>
+
+
+
+
+
+
+
+
+
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="orange">
+
+
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+
+
+        <a href="#cabinet-maker-workflow-guide" class="md-skip">
+          Skip to content
+        </a>
+
+    </div>
+    <div data-md-component="announce">
+
+    </div>
+
+
+
+
+
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="SquatchCut" class="md-header__button md-logo" aria-label="SquatchCut" data-md-component="logo">
+
+
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SquatchCut
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+
+              Cabinet Maker Workflow Guide
+
+          </span>
+        </div>
+      </div>
+    </div>
+
+
+        <form class="md-header__option" data-md-component="palette">
+
+
+
+
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="orange"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+
+
+</form>
+
+
+
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+
+
+
+
+
+        <label class="md-header__button md-icon" for="__search">
+
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+      <div class="md-header__source">
+        <a href="https://github.com/stevenfarmer/SquatchCut" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    SquatchCut
+  </div>
+</a>
+      </div>
+
+  </nav>
+
+</header>
+
+    <div class="md-container" data-md-component="container">
+
+
+
+
+
+
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+
+
+
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="SquatchCut" class="md-nav__button md-logo" aria-label="SquatchCut" data-md-component="logo">
+
+
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    SquatchCut
+  </label>
+
+    <div class="md-nav__source">
+      <a href="https://github.com/stevenfarmer/SquatchCut" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    SquatchCut
+  </div>
+</a>
+    </div>
+
+  <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Home
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../release-notes/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Release Notes
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../Project_Guide_v3.3/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Project Guide v3.3
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../Project_Guide_v3.2/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Project Guide v3.2 (Historical)
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+
+
+
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+
+
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Getting Started
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    Getting Started
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Installation
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../getting-started/workflow/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Basic Workflow
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+
+
+
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+
+
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+
+
+
+  <span class="md-ellipsis">
+
+
+    User Guide
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    User Guide
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../user_guide/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    User Guide
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../commands/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Commands & Tools
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../csv_and_ts_tools/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    CSV & TS Tools
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+
+
+
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+
+
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Developer Guide
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    Developer Guide
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Architecture Overview
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../mvp/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    MVP Scope
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../ai_workflows/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    AI Worker Workflows
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../Development_Environment/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Development Environment
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../developer_guide/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Developer Guide
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../TESTING/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Testing Guide
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../quality_and_performance/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Quality and Performance
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Quickstart
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+
+
+
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+
+
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Blog
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    Blog
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../blog/squatchcut_lessons_from_the_machine_seo/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Teaching a FreeCAD Plugin to Behave
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+
+
+
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+
+
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+
+
+
+  <span class="md-ellipsis">
+
+
+    SquatchCut
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    SquatchCut
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../lessons/squatchcut_lessons_learned/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Lessons Learned
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+
+
+
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+
+
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Project Management
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    Project Management
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../roadmap/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Roadmap
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../UAT_Checklist/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    UAT Checklist
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../UAT_Prep_Instructions/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    UAT Prep Instructions
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../backlog_archive_v3.2/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Backlog Archive v3.2
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../reporting_bugs/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Reporting Bugs
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../../dev/testing/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Testing
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+
+
+
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+
+
+
+
+
+
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        Overview
+
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        Prerequisites
+
+    </span>
+  </a>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#part-1-designing-cabinet-parts-in-freecad" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        Part 1: Designing Cabinet Parts in FreeCAD
+
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="Part 1: Designing Cabinet Parts in FreeCAD">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#11-setting-up-your-freecad-document" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        1.1 Setting Up Your FreeCAD Document
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#12-creating-cabinet-parts" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        1.2 Creating Cabinet Parts
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#13-example-kitchen-cabinet-door" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        1.3 Example: Kitchen Cabinet Door
+
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#part-2-using-squatchcuts-shape-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        Part 2: Using SquatchCut's Shape Selection
+
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="Part 2: Using SquatchCut&#39;s Shape Selection">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#21-opening-the-shape-selection-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        2.1 Opening the Shape Selection Interface
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#22-shape-detection-and-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        2.2 Shape Detection and Selection
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#23-understanding-shape-classifications" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        2.3 Understanding Shape Classifications
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#24-making-your-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        2.4 Making Your Selection
+
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#part-3-nesting-configuration-and-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        Part 3: Nesting Configuration and Execution
+
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="Part 3: Nesting Configuration and Execution">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#31-sheet-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        3.1 Sheet Configuration
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#32-nesting-mode-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        3.2 Nesting Mode Selection
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#33-running-the-nesting" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        3.3 Running the Nesting
+
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#part-4-understanding-nesting-results" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        Part 4: Understanding Nesting Results
+
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="Part 4: Understanding Nesting Results">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#41-interpreting-the-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        4.1 Interpreting the Layout
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#42-layout-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        4.2 Layout Validation
+
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#part-5-exporting-for-production" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        Part 5: Exporting for Production
+
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="Part 5: Exporting for Production">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#51-export-options" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        5.1 Export Options
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#52-export-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        5.2 Export Workflow
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#53-production-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        5.3 Production Tips
+
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#part-6-advanced-techniques" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        Part 6: Advanced Techniques
+
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="Part 6: Advanced Techniques">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#61-optimizing-complex-shapes" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        6.1 Optimizing Complex Shapes
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#62-multi-sheet-projects" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        6.2 Multi-Sheet Projects
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#63-quality-control" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        6.3 Quality Control
+
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#part-7-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        Part 7: Troubleshooting
+
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="Part 7: Troubleshooting">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#71-common-shape-detection-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        7.1 Common Shape Detection Issues
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#72-nesting-problems" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        7.2 Nesting Problems
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#73-export-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        7.3 Export Issues
+
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#part-8-best-practices-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        Part 8: Best Practices Summary
+
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="Part 8: Best Practices Summary">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#81-design-phase" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        8.1 Design Phase
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#82-selection-phase" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        8.2 Selection Phase
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#83-nesting-phase" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        8.3 Nesting Phase
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#84-export-phase" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        8.4 Export Phase
+
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#part-9-example-project-walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        Part 9: Example Project Walkthrough
+
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="Part 9: Example Project Walkthrough">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#91-project-kitchen-cabinet-face-frames" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        9.1 Project: Kitchen Cabinet Face Frames
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#92-project-curved-cabinet-doors" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        9.2 Project: Curved Cabinet Doors
+
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        Conclusion
+
+    </span>
+  </a>
+
+</li>
+
+    </ul>
+
+</nav>
+                  </div>
+                </div>
+              </div>
+
+
+
+            <div class="md-content" data-md-component="content">
+
+              <article class="md-content__inner md-typeset">
+
+
+
+
+
+
+
+
+<h1 id="cabinet-maker-workflow-guide">Cabinet Maker Workflow Guide<a class="headerlink" href="#cabinet-maker-workflow-guide" title="Permanent link">&para;</a></h1>
+<p><strong>Shape-Based Nesting with FreeCAD and SquatchCut</strong></p>
+<p>Version: v3.4+
+Feature: Shape-Based Nesting
+Applies to: FreeCAD 1.0+ with SquatchCut v3.4+</p>
+<hr />
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>This guide walks cabinet makers through the complete workflow of designing furniture parts in FreeCAD and using SquatchCut's shape-based nesting to optimize material usage on sheet goods. Unlike traditional CSV-based workflows that use rectangular approximations, shape-based nesting considers the actual geometry of your parts for maximum material efficiency.</p>
+<p><strong>What You'll Learn:</strong>
+- How to design cabinet parts in FreeCAD for optimal nesting
+- Using SquatchCut's shape selection interface
+- Understanding the difference between rectangular and geometric nesting
+- Exporting cutting layouts with accurate shape outlines
+- Troubleshooting common shape extraction issues</p>
+<hr />
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<p>Before starting, ensure you have:</p>
+<ul>
+<li><strong>FreeCAD 1.0+</strong> installed</li>
+<li><strong>SquatchCut v3.4+</strong> add-on installed</li>
+<li>Basic familiarity with FreeCAD's Part Design workbench</li>
+<li>Understanding of cabinet construction and sheet goods</li>
+<li>Knowledge of your cutting tools (kerf width, capabilities)</li>
+</ul>
+<hr />
+<h2 id="part-1-designing-cabinet-parts-in-freecad">Part 1: Designing Cabinet Parts in FreeCAD<a class="headerlink" href="#part-1-designing-cabinet-parts-in-freecad" title="Permanent link">&para;</a></h2>
+<h3 id="11-setting-up-your-freecad-document">1.1 Setting Up Your FreeCAD Document<a class="headerlink" href="#11-setting-up-your-freecad-document" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Create a New Document</strong></li>
+<li>Open FreeCAD</li>
+<li>File → New to create a new document</li>
+<li>
+<p>Save immediately with a descriptive name (e.g., "Kitchen_Cabinet_Doors.FCStd")</p>
+</li>
+<li>
+<p><strong>Choose Your Measurement System</strong></p>
+</li>
+<li>Go to Edit → Preferences → General → Units</li>
+<li>Select your preferred system:<ul>
+<li><strong>Metric</strong>: Millimeters for precise measurements</li>
+<li><strong>Imperial</strong>: Inches for traditional woodworking</li>
+</ul>
+</li>
+<li>
+<p>SquatchCut will automatically detect and use your document's measurement system</p>
+</li>
+<li>
+<p><strong>Switch to Part Design Workbench</strong></p>
+</li>
+<li>Use the workbench dropdown to select "Part Design"</li>
+<li>This provides the tools needed for creating solid cabinet parts</li>
+</ol>
+<h3 id="12-creating-cabinet-parts">1.2 Creating Cabinet Parts<a class="headerlink" href="#12-creating-cabinet-parts" title="Permanent link">&para;</a></h3>
+<p><strong>Best Practices for Shape-Based Nesting:</strong></p>
+<ol>
+<li><strong>Create Real 3D Parts</strong></li>
+<li>Use Pad operations to create parts with actual thickness</li>
+<li>Avoid sketches or 2D shapes - SquatchCut needs solid objects</li>
+<li>
+<p>Typical cabinet part thickness: 18-25mm (3/4" - 1")</p>
+</li>
+<li>
+<p><strong>Design for Nesting Efficiency</strong>
+   ```
+   Good Practices:
+   ✓ Create parts as separate Body objects
+   ✓ Use consistent thickness across similar parts
+   ✓ Design with grain direction in mind
+   ✓ Consider kerf compensation in your design</p>
+</li>
+</ol>
+<p>Avoid:
+   ✗ Compound objects or assemblies
+   ✗ Parts with internal voids that won't nest well
+   ✗ Extremely complex curves that slow processing
+   ```</p>
+<ol>
+<li><strong>Naming Convention</strong></li>
+<li>Use descriptive labels: "Door_Left_Upper", "Shelf_Fixed_Middle"</li>
+<li>Include dimensions if helpful: "Panel_600x400x18"</li>
+<li>Avoid special characters that might cause export issues</li>
+</ol>
+<h3 id="13-example-kitchen-cabinet-door">1.3 Example: Kitchen Cabinet Door<a class="headerlink" href="#13-example-kitchen-cabinet-door" title="Permanent link">&para;</a></h3>
+<p>Let's create a simple raised panel door:</p>
+<ol>
+<li><strong>Create the Main Panel</strong></li>
+<li>Create new Body</li>
+<li>Sketch a rectangle: 600mm × 400mm</li>
+<li>Pad to 18mm thickness</li>
+<li>
+<p>Label: "Door_Main_Panel"</p>
+</li>
+<li>
+<p><strong>Add Raised Center</strong></p>
+</li>
+<li>Create new sketch on the front face</li>
+<li>Draw rectangle 500mm × 300mm (centered)</li>
+<li>Pad 3mm for raised effect</li>
+<li>
+<p>Label: "Door_Raised_Center"</p>
+</li>
+<li>
+<p><strong>Create Handle Cutout</strong> (Optional)</p>
+</li>
+<li>Sketch circle or rectangle for handle</li>
+<li>Use Pocket to cut through</li>
+<li>Label: "Door_Handle_Cutout"</li>
+</ol>
+<p><strong>Result:</strong> You now have a cabinet door that SquatchCut can extract as a complex shape, accounting for the raised panel and any cutouts.</p>
+<hr />
+<h2 id="part-2-using-squatchcuts-shape-selection">Part 2: Using SquatchCut's Shape Selection<a class="headerlink" href="#part-2-using-squatchcuts-shape-selection" title="Permanent link">&para;</a></h2>
+<h3 id="21-opening-the-shape-selection-interface">2.1 Opening the Shape Selection Interface<a class="headerlink" href="#21-opening-the-shape-selection-interface" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Launch SquatchCut</strong></li>
+<li>Click the SquatchCut button in the toolbar</li>
+<li>
+<p>The main TaskPanel opens on the left side</p>
+</li>
+<li>
+<p><strong>Access Shape Selection</strong></p>
+</li>
+<li>In the "Input" section, you'll see two options:<ul>
+<li><strong>Load CSV</strong> (traditional rectangular parts)</li>
+<li><strong>Select Shapes</strong> (new shape-based workflow)</li>
+</ul>
+</li>
+<li>Click <strong>Select Shapes</strong></li>
+</ol>
+<h3 id="22-shape-detection-and-selection">2.2 Shape Detection and Selection<a class="headerlink" href="#22-shape-detection-and-selection" title="Permanent link">&para;</a></h3>
+<p>When you click "Select Shapes", SquatchCut will:</p>
+<ol>
+<li><strong>Scan Your Document</strong></li>
+<li>Automatically detect all objects with valid Shape properties</li>
+<li>Analyze geometry complexity for each part</li>
+<li>
+<p>Extract dimensional and geometric data</p>
+</li>
+<li>
+<p><strong>Display the Selection Dialog</strong></p>
+</li>
+<li>Shows a list of all detected shapes</li>
+<li>
+<p>Displays preview information for each part:</p>
+<ul>
+<li>Part name and dimensions</li>
+<li>Geometry type (Rectangular/Complex)</li>
+<li>Complexity level (Low/Medium/High)</li>
+<li>Estimated processing time</li>
+</ul>
+</li>
+<li>
+<p><strong>Selection Controls</strong></p>
+</li>
+<li><strong>Checkboxes</strong>: Select which parts to include in nesting</li>
+<li><strong>Select All/None</strong>: Quick selection controls</li>
+<li><strong>Preview</strong>: Shows shape thumbnails or descriptions</li>
+<li><strong>Dimensions</strong>: Displays bounding box dimensions</li>
+</ol>
+<h3 id="23-understanding-shape-classifications">2.3 Understanding Shape Classifications<a class="headerlink" href="#23-understanding-shape-classifications" title="Permanent link">&para;</a></h3>
+<p>SquatchCut classifies your parts into categories:</p>
+<p><strong>Rectangular Parts:</strong>
+- Simple boxes or panels
+- Fast processing
+- Uses traditional nesting algorithms
+- Example: Basic cabinet shelves</p>
+<p><strong>Complex Geometry:</strong>
+- Non-rectangular shapes
+- Curved edges, cutouts, or raised features
+- Uses advanced geometric nesting
+- Example: Raised panel doors, curved aprons</p>
+<p><strong>Complexity Levels:</strong>
+- <strong>Low</strong>: Simple shapes, fast processing
+- <strong>Medium</strong>: Moderate complexity, good balance
+- <strong>High</strong>: Complex shapes, longer processing time
+- <strong>Extreme</strong>: Very complex, may trigger automatic simplification</p>
+<h3 id="24-making-your-selection">2.4 Making Your Selection<a class="headerlink" href="#24-making-your-selection" title="Permanent link">&para;</a></h3>
+<p><strong>Selection Strategy:</strong>
+1. <strong>Start Small</strong>: For your first attempt, select 3-5 similar parts
+2. <strong>Group by Type</strong>: Select parts of similar complexity together
+3. <strong>Consider Material</strong>: Group parts that will use the same sheet material
+4. <strong>Check Dimensions</strong>: Ensure selected parts will fit on your sheet size</p>
+<p><strong>Selection Tips:</strong>
+- Parts with similar thickness nest better together
+- Consider grain direction requirements
+- Account for your cutting tool capabilities
+- Leave complex parts for separate nesting runs if needed</p>
+<hr />
+<h2 id="part-3-nesting-configuration-and-execution">Part 3: Nesting Configuration and Execution<a class="headerlink" href="#part-3-nesting-configuration-and-execution" title="Permanent link">&para;</a></h2>
+<h3 id="31-sheet-configuration">3.1 Sheet Configuration<a class="headerlink" href="#31-sheet-configuration" title="Permanent link">&para;</a></h3>
+<p>After selecting your shapes:</p>
+<ol>
+<li><strong>Set Sheet Dimensions</strong></li>
+<li>Width and Height in your document's units</li>
+<li>
+<p>Common sizes:</p>
+<ul>
+<li><strong>Metric</strong>: 1220×2440mm, 1525×3050mm</li>
+<li><strong>Imperial</strong>: 48"×96", 60"×120"</li>
+</ul>
+</li>
+<li>
+<p><strong>Configure Cutting Parameters</strong></p>
+</li>
+<li><strong>Kerf Width</strong>: Your saw blade thickness<ul>
+<li>Circular saw: ~3mm (1/8")</li>
+<li>Table saw: ~2.5mm (3/32")</li>
+<li>CNC router: 1-6mm depending on bit</li>
+</ul>
+</li>
+<li><strong>Margin</strong>: Minimum spacing between parts<ul>
+<li>Hand cutting: 5-10mm (1/4"-3/8")</li>
+<li>CNC cutting: 2-5mm (1/16"-3/16")</li>
+</ul>
+</li>
+</ol>
+<h3 id="32-nesting-mode-selection">3.2 Nesting Mode Selection<a class="headerlink" href="#32-nesting-mode-selection" title="Permanent link">&para;</a></h3>
+<p>SquatchCut automatically chooses the best nesting mode:</p>
+<p><strong>Rectangular Mode:</strong>
+- Used when all selected parts are simple rectangles
+- Fastest processing
+- Traditional bin-packing algorithms</p>
+<p><strong>Geometric Mode:</strong>
+- Used when complex shapes are detected
+- Considers actual part geometry
+- Prevents overlaps between true shape contours
+- Longer processing time but better material utilization</p>
+<p><strong>Hybrid Mode:</strong>
+- Mixes rectangular and geometric approaches
+- Optimizes based on part complexity
+- Balances speed and accuracy</p>
+<h3 id="33-running-the-nesting">3.3 Running the Nesting<a class="headerlink" href="#33-running-the-nesting" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Click "Run Nesting"</strong></li>
+<li>SquatchCut processes your selected shapes</li>
+<li>Progress feedback shows current operation</li>
+<li>
+<p>Processing time varies with complexity</p>
+</li>
+<li>
+<p><strong>Monitor Progress</strong></p>
+</li>
+<li>Shape extraction and validation</li>
+<li>Nesting algorithm execution</li>
+<li>Layout optimization</li>
+<li>
+<p>Result generation</p>
+</li>
+<li>
+<p><strong>Review Results</strong></p>
+</li>
+<li>New "Nested Parts" group appears in model tree</li>
+<li>3D view shows optimized layout</li>
+<li>Utilization statistics displayed</li>
+</ol>
+<hr />
+<h2 id="part-4-understanding-nesting-results">Part 4: Understanding Nesting Results<a class="headerlink" href="#part-4-understanding-nesting-results" title="Permanent link">&para;</a></h2>
+<h3 id="41-interpreting-the-layout">4.1 Interpreting the Layout<a class="headerlink" href="#41-interpreting-the-layout" title="Permanent link">&para;</a></h3>
+<p><strong>Visual Elements:</strong>
+- <strong>Sheet Outline</strong>: Shows your material boundaries
+- <strong>Nested Parts</strong>: Parts positioned for cutting
+- <strong>Spacing</strong>: Visible gaps for kerf and margins
+- <strong>Rotation</strong>: Parts may be rotated for better fit</p>
+<p><strong>Quality Indicators:</strong>
+- <strong>Utilization Percentage</strong>: Material efficiency (aim for 70-85%)
+- <strong>Parts Placed</strong>: How many parts fit on the sheet
+- <strong>Unplaced Parts</strong>: Parts that didn't fit (if any)
+- <strong>Waste Areas</strong>: Unused material regions</p>
+<h3 id="42-layout-validation">4.2 Layout Validation<a class="headerlink" href="#42-layout-validation" title="Permanent link">&para;</a></h3>
+<p><strong>Check for Issues:</strong>
+1. <strong>Overlaps</strong>: Parts shouldn't intersect (red highlighting if detected)
+2. <strong>Boundaries</strong>: All parts should be within sheet edges
+3. <strong>Spacing</strong>: Adequate gaps for your cutting method
+4. <strong>Orientation</strong>: Grain direction considerations
+5. <strong>Access</strong>: Can you actually cut the layout with your tools?</p>
+<p><strong>Common Problems and Solutions:</strong>
+- <strong>Low Utilization</strong>: Try different sheet sizes or add more parts
+- <strong>Parts Don't Fit</strong>: Reduce margins, check part dimensions, or use larger sheet
+- <strong>Complex Layout</strong>: Consider simplifying some parts or using multiple sheets</p>
+<hr />
+<h2 id="part-5-exporting-for-production">Part 5: Exporting for Production<a class="headerlink" href="#part-5-exporting-for-production" title="Permanent link">&para;</a></h2>
+<h3 id="51-export-options">5.1 Export Options<a class="headerlink" href="#51-export-options" title="Permanent link">&para;</a></h3>
+<p>SquatchCut provides multiple export formats for different workflows:</p>
+<p><strong>SVG Export (Visual Cutting Guides):</strong>
+- Accurate shape outlines for manual cutting
+- Includes part labels and dimensions
+- Suitable for printing cutting templates
+- Shows kerf-compensated geometry</p>
+<p><strong>DXF Export (CAD/CNC Compatible):</strong>
+- Precise vector geometry for automated cutting
+- Separate layers for original and kerf-compensated shapes
+- Compatible with most CAM software
+- Maintains dimensional accuracy</p>
+<p><strong>Enhanced Cutlist (Production Planning):</strong>
+- Detailed part information with actual areas
+- Geometry complexity indicators
+- Material utilization statistics
+- Cutting sequence recommendations</p>
+<h3 id="52-export-workflow">5.2 Export Workflow<a class="headerlink" href="#52-export-workflow" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Choose Export Type</strong></li>
+<li>Right-click on the nested layout</li>
+<li>Select "Export Nesting" from context menu</li>
+<li>
+<p>Choose your desired format</p>
+</li>
+<li>
+<p><strong>Configure Export Settings</strong></p>
+</li>
+<li><strong>SVG</strong>: Choose label placement, line weights, colors</li>
+<li><strong>DXF</strong>: Select layers, precision, units</li>
+<li>
+<p><strong>Cutlist</strong>: Pick format (simple/enhanced), include statistics</p>
+</li>
+<li>
+<p><strong>Save and Use</strong></p>
+</li>
+<li>Save to appropriate location</li>
+<li>Import into your CAM software or print for shop use</li>
+<li>Verify dimensions match your expectations</li>
+</ol>
+<h3 id="53-production-tips">5.3 Production Tips<a class="headerlink" href="#53-production-tips" title="Permanent link">&para;</a></h3>
+<p><strong>For Manual Cutting:</strong>
+- Print SVG exports at actual size
+- Use spray adhesive to attach templates to material
+- Cut slightly outside lines, then sand to final dimension
+- Account for kerf by cutting on the waste side of lines</p>
+<p><strong>For CNC/Automated Cutting:</strong>
+- Import DXF into your CAM software
+- Use kerf-compensated layer for tool paths
+- Verify tool diameter matches kerf settings
+- Run simulation before cutting expensive material</p>
+<hr />
+<h2 id="part-6-advanced-techniques">Part 6: Advanced Techniques<a class="headerlink" href="#part-6-advanced-techniques" title="Permanent link">&para;</a></h2>
+<h3 id="61-optimizing-complex-shapes">6.1 Optimizing Complex Shapes<a class="headerlink" href="#61-optimizing-complex-shapes" title="Permanent link">&para;</a></h3>
+<p><strong>Simplification Strategies:</strong>
+- Use "Simplified Nesting" mode for very complex parts
+- Consider breaking complex assemblies into simpler components
+- Use bounding box nesting for extremely detailed parts</p>
+<p><strong>Performance Tuning:</strong>
+- Group similar complexity parts together
+- Process large jobs in smaller batches
+- Use performance monitoring to identify bottlenecks</p>
+<h3 id="62-multi-sheet-projects">6.2 Multi-Sheet Projects<a class="headerlink" href="#62-multi-sheet-projects" title="Permanent link">&para;</a></h3>
+<p><strong>Planning Large Projects:</strong>
+1. Group parts by material type and thickness
+2. Prioritize critical parts for first sheets
+3. Use remaining material efficiently for smaller parts
+4. Plan cutting sequence across multiple sheets</p>
+<p><strong>Workflow:</strong>
+- Create separate nesting runs for each sheet
+- Export each layout with clear sheet numbering
+- Maintain cutting sequence documentation</p>
+<h3 id="63-quality-control">6.3 Quality Control<a class="headerlink" href="#63-quality-control" title="Permanent link">&para;</a></h3>
+<p><strong>Pre-Nesting Checklist:</strong>
+- [ ] All parts have appropriate thickness
+- [ ] Part names are clear and descriptive
+- [ ] Sheet size matches available material
+- [ ] Kerf and margin settings match cutting tools
+- [ ] Grain direction requirements considered</p>
+<p><strong>Post-Nesting Validation:</strong>
+- [ ] No overlapping parts
+- [ ] All parts within sheet boundaries
+- [ ] Adequate spacing for cutting access
+- [ ] Utilization meets efficiency targets
+- [ ] Export files are dimensionally accurate</p>
+<hr />
+<h2 id="part-7-troubleshooting">Part 7: Troubleshooting<a class="headerlink" href="#part-7-troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="71-common-shape-detection-issues">7.1 Common Shape Detection Issues<a class="headerlink" href="#71-common-shape-detection-issues" title="Permanent link">&para;</a></h3>
+<p><strong>Problem: Parts Not Detected</strong>
+- <strong>Cause</strong>: Objects lack valid Shape property
+- <strong>Solution</strong>: Ensure parts are solid bodies, not sketches or assemblies</p>
+<p><strong>Problem: Incorrect Dimensions</strong>
+- <strong>Cause</strong>: Measurement system mismatch
+- <strong>Solution</strong>: Check FreeCAD document units match SquatchCut settings</p>
+<p><strong>Problem: Complex Parts Cause Slow Processing</strong>
+- <strong>Cause</strong>: High geometry complexity
+- <strong>Solution</strong>: Use simplified nesting mode or reduce part detail</p>
+<h3 id="72-nesting-problems">7.2 Nesting Problems<a class="headerlink" href="#72-nesting-problems" title="Permanent link">&para;</a></h3>
+<p><strong>Problem: Poor Material Utilization</strong>
+- <strong>Causes</strong>:
+  - Parts too large for sheet
+  - Excessive margins or kerf settings
+  - Incompatible part shapes
+- <strong>Solutions</strong>:
+  - Try different sheet sizes
+  - Reduce margins if cutting method allows
+  - Group similar parts together</p>
+<p><strong>Problem: Parts Don't Fit</strong>
+- <strong>Causes</strong>:
+  - Sheet too small
+  - Parts larger than expected
+  - Kerf compensation too aggressive
+- <strong>Solutions</strong>:
+  - Verify part dimensions
+  - Check sheet size settings
+  - Reduce kerf if appropriate</p>
+<h3 id="73-export-issues">7.3 Export Issues<a class="headerlink" href="#73-export-issues" title="Permanent link">&para;</a></h3>
+<p><strong>Problem: SVG Labels Overlap or Missing</strong>
+- <strong>Cause</strong>: Label placement algorithm conflicts
+- <strong>Solution</strong>: Adjust label settings or use DXF export instead</p>
+<p><strong>Problem: DXF Dimensions Incorrect</strong>
+- <strong>Cause</strong>: Unit conversion errors
+- <strong>Solution</strong>: Verify measurement system consistency throughout workflow</p>
+<p><strong>Problem: Cutlist Information Incomplete</strong>
+- <strong>Cause</strong>: Shape analysis incomplete
+- <strong>Solution</strong>: Ensure all parts are properly formed solid bodies</p>
+<hr />
+<h2 id="part-8-best-practices-summary">Part 8: Best Practices Summary<a class="headerlink" href="#part-8-best-practices-summary" title="Permanent link">&para;</a></h2>
+<h3 id="81-design-phase">8.1 Design Phase<a class="headerlink" href="#81-design-phase" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Create parts as solid bodies with consistent thickness</li>
+<li>Use descriptive naming conventions</li>
+<li>Consider nesting efficiency in your design</li>
+<li>Design with your cutting tools in mind</li>
+</ul>
+<h3 id="82-selection-phase">8.2 Selection Phase<a class="headerlink" href="#82-selection-phase" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Start with simple parts to learn the workflow</li>
+<li>Group similar complexity parts together</li>
+<li>Consider material and grain direction requirements</li>
+<li>Review shape classifications before proceeding</li>
+</ul>
+<h3 id="83-nesting-phase">8.3 Nesting Phase<a class="headerlink" href="#83-nesting-phase" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Set accurate kerf and margin values</li>
+<li>Choose appropriate sheet sizes for your material</li>
+<li>Monitor processing time and complexity warnings</li>
+<li>Validate results before proceeding to export</li>
+</ul>
+<h3 id="84-export-phase">8.4 Export Phase<a class="headerlink" href="#84-export-phase" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Choose the right export format for your workflow</li>
+<li>Verify dimensional accuracy in exported files</li>
+<li>Test with small projects before large production runs</li>
+<li>Maintain clear documentation for production</li>
+</ul>
+<hr />
+<h2 id="part-9-example-project-walkthrough">Part 9: Example Project Walkthrough<a class="headerlink" href="#part-9-example-project-walkthrough" title="Permanent link">&para;</a></h2>
+<h3 id="91-project-kitchen-cabinet-face-frames">9.1 Project: Kitchen Cabinet Face Frames<a class="headerlink" href="#91-project-kitchen-cabinet-face-frames" title="Permanent link">&para;</a></h3>
+<p><strong>Goal:</strong> Create nesting layout for face frame components</p>
+<p><strong>Parts List:</strong>
+- 4 Stiles: 800mm × 50mm × 18mm
+- 6 Rails: 400mm × 50mm × 18mm
+- 2 Center Stiles: 600mm × 50mm × 18mm</p>
+<p><strong>Step-by-Step:</strong></p>
+<ol>
+<li><strong>Design in FreeCAD</strong></li>
+<li>Create each component as separate Body</li>
+<li>Use consistent 18mm thickness</li>
+<li>
+<p>Label clearly: "Stile_Left_Upper", "Rail_Top_Door1", etc.</p>
+</li>
+<li>
+<p><strong>Shape Selection</strong></p>
+</li>
+<li>Open SquatchCut and click "Select Shapes"</li>
+<li>All parts detected as "Rectangular - Low Complexity"</li>
+<li>
+<p>Select all 12 parts for nesting</p>
+</li>
+<li>
+<p><strong>Configure Nesting</strong></p>
+</li>
+<li>Sheet: 1220mm × 2440mm (standard plywood)</li>
+<li>Kerf: 3mm (circular saw blade)</li>
+<li>
+<p>Margin: 5mm (hand cutting tolerance)</p>
+</li>
+<li>
+<p><strong>Run Nesting</strong></p>
+</li>
+<li>SquatchCut uses rectangular mode (all parts are simple)</li>
+<li>Processing completes in seconds</li>
+<li>
+<p>Result: 85% utilization, all parts fit</p>
+</li>
+<li>
+<p><strong>Export for Production</strong></p>
+</li>
+<li>Export SVG for cutting templates</li>
+<li>Export enhanced cutlist for material planning</li>
+<li>Print SVG at actual size for shop use</li>
+</ol>
+<p><strong>Result:</strong> Efficient layout ready for production with minimal waste.</p>
+<h3 id="92-project-curved-cabinet-doors">9.2 Project: Curved Cabinet Doors<a class="headerlink" href="#92-project-curved-cabinet-doors" title="Permanent link">&para;</a></h3>
+<p><strong>Goal:</strong> Nest raised panel doors with curved tops</p>
+<p><strong>Parts List:</strong>
+- 2 Curved doors: 600mm × 800mm with arch top
+- 4 Straight doors: 400mm × 600mm rectangular</p>
+<p><strong>Step-by-Step:</strong></p>
+<ol>
+<li><strong>Design Curved Doors</strong></li>
+<li>Create base rectangle 600mm × 800mm</li>
+<li>Add curved top using arc and trim operations</li>
+<li>Pad to 18mm thickness</li>
+<li>
+<p>Add raised panel detail</p>
+</li>
+<li>
+<p><strong>Shape Selection</strong></p>
+</li>
+<li>Curved doors: "Complex Geometry - Medium Complexity"</li>
+<li>Straight doors: "Rectangular - Low Complexity"</li>
+<li>
+<p>Select all 6 doors</p>
+</li>
+<li>
+<p><strong>Configure for Complex Shapes</strong></p>
+</li>
+<li>Sheet: 1525mm × 3050mm (larger sheet for complex shapes)</li>
+<li>Kerf: 2mm (router bit for curves)</li>
+<li>
+<p>Margin: 8mm (extra clearance for complex cutting)</p>
+</li>
+<li>
+<p><strong>Run Geometric Nesting</strong></p>
+</li>
+<li>SquatchCut automatically uses geometric mode</li>
+<li>Processing takes 30-45 seconds</li>
+<li>
+<p>Result: 78% utilization, optimal arrangement</p>
+</li>
+<li>
+<p><strong>Export DXF for CNC</strong></p>
+</li>
+<li>Export DXF with kerf compensation</li>
+<li>Import into CAM software</li>
+<li>Generate tool paths for router cutting</li>
+</ol>
+<p><strong>Result:</strong> Complex shapes nested efficiently with accurate cutting geometry.</p>
+<hr />
+<h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">&para;</a></h2>
+<p>Shape-based nesting in SquatchCut represents a significant advancement for cabinet makers working with FreeCAD. By considering actual part geometry rather than simple rectangles, you can achieve better material utilization, more accurate cutting layouts, and ultimately more efficient production.</p>
+<p><strong>Key Benefits:</strong>
+- <strong>Higher Material Utilization</strong>: True shape nesting reduces waste
+- <strong>Accurate Cutting Guides</strong>: Export files match actual part geometry
+- <strong>Flexible Workflows</strong>: Handles both simple and complex parts
+- <strong>Professional Results</strong>: Production-ready layouts with proper kerf compensation</p>
+<p><strong>Next Steps:</strong>
+- Practice with simple projects first
+- Experiment with different sheet sizes and configurations
+- Develop your own design standards for optimal nesting
+- Integrate shape-based nesting into your regular production workflow</p>
+<p>For additional help, see:
+- <a href="../shape-based-nesting-reference/">Technical Reference Guide</a>
+- <a href="../troubleshooting-shape-nesting/">Troubleshooting Guide</a>
+- <a href="../examples/cabinet-projects/">Sample Projects</a></p>
+<hr />
+<p><em>This guide covers SquatchCut v3.4+ shape-based nesting features. For traditional CSV workflows, see the <a href="../../user_guide/">Standard User Guide</a>.</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+              </article>
+            </div>
+
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+
+      </main>
+
+        <footer class="md-footer">
+
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+
+
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+
+</div>
+
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+
+
+
+
+
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.instant", "content.code.copy"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+
+
+      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+
+
+  </body>
+</html>
