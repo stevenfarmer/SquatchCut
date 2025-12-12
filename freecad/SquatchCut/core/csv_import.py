@@ -20,7 +20,9 @@ class CsvValidationError:
     message: str
 
 
-def validate_csv_file(path: str, csv_units: str = "metric") -> tuple[list[dict], list[CsvValidationError]]:
+def validate_csv_file(
+    path: str, csv_units: str = "metric"
+) -> tuple[list[dict], list[CsvValidationError]]:
     """
     Parse and validate the CSV at `path`.
 
@@ -100,23 +102,31 @@ def _is_empty_row(normalized: dict) -> bool:
     return all(not value for value in normalized.values())
 
 
-def _validate_panel_row(row: dict, row_number: int, units: str) -> tuple[dict | None, CsvValidationError | None]:
+def _validate_panel_row(
+    row: dict, row_number: int, units: str
+) -> tuple[dict | None, CsvValidationError | None]:
     missing = [field for field in REQUIRED_COLUMNS if not row.get(field)]
     if missing:
-        return None, CsvValidationError(row_number, f"Missing required fields: {', '.join(missing)}.")
+        return None, CsvValidationError(
+            row_number, f"Missing required fields: {', '.join(missing)}."
+        )
 
     id_value = row["id"]
     width_value, width_error = _parse_positive_float(row["width"], row_number, "Width")
     if width_error:
         return None, width_error
-    height_value, height_error = _parse_positive_float(row["height"], row_number, "Height")
+    height_value, height_error = _parse_positive_float(
+        row["height"], row_number, "Height"
+    )
     if height_error:
         return None, height_error
 
     width_value = _convert_units(width_value, units)
     height_value = _convert_units(height_value, units)
 
-    qty_value, qty_error = _parse_positive_int(row.get("qty", ""), row_number, "Quantity")
+    qty_value, qty_error = _parse_positive_int(
+        row.get("qty", ""), row_number, "Quantity"
+    )
     if qty_error:
         return None, qty_error
 
@@ -140,29 +150,50 @@ def _validate_panel_row(row: dict, row_number: int, units: str) -> tuple[dict | 
     return panel, None
 
 
-def _parse_positive_float(value: str, row_number: int, label: str) -> tuple[float | None, CsvValidationError | None]:
+def _parse_positive_float(
+    value: str, row_number: int, label: str
+) -> tuple[float | None, CsvValidationError | None]:
     text = (value or "").strip()
     if not text:
         return None, CsvValidationError(row_number, f"{label} is missing.")
+
+    # Try parsing as regular float first
     try:
         number = float(text)
     except ValueError:
-        return None, CsvValidationError(row_number, f"{label} must be a number (got '{text}').")
+        # If that fails, try parsing as imperial fraction
+        try:
+            from SquatchCut.core.units import parse_imperial_inches
+
+            number = parse_imperial_inches(text)
+        except (ValueError, ImportError):
+            return None, CsvValidationError(
+                row_number, f"{label} must be a number or fraction (got '{text}')."
+            )
+
     if number <= 0:
-        return None, CsvValidationError(row_number, f"{label} must be greater than zero (got '{text}').")
+        return None, CsvValidationError(
+            row_number, f"{label} must be greater than zero (got '{text}')."
+        )
     return number, None
 
 
-def _parse_positive_int(value: str, row_number: int, label: str) -> tuple[int, CsvValidationError | None]:
+def _parse_positive_int(
+    value: str, row_number: int, label: str
+) -> tuple[int, CsvValidationError | None]:
     text = (value or "").strip()
     if not text:
         return 1, None
     try:
         number = int(text)
     except ValueError:
-        return 0, CsvValidationError(row_number, f"{label} must be an integer (got '{text}').")
+        return 0, CsvValidationError(
+            row_number, f"{label} must be an integer (got '{text}')."
+        )
     if number <= 0:
-        return 0, CsvValidationError(row_number, f"{label} must be greater than zero (got '{text}').")
+        return 0, CsvValidationError(
+            row_number, f"{label} must be greater than zero (got '{text}')."
+        )
     return number, None
 
 

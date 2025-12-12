@@ -1,0 +1,19 @@
+id,width,height,qty,allow_rotate
+Cabinet_Side_A,23 1/4,30,4,0
+Cabinet_Side_B,23 1/4,36,2,0
+Cabinet_Back_A,30,30,2,1
+Cabinet_Back_B,36,30,1,1
+Shelf_A,22 3/4,22 3/4,6,1
+Shelf_B,22 3/4,34 3/4,3,1
+Door_A,15 1/2,29 1/2,4,0
+Door_B,17 3/4,35 1/2,2,0
+Drawer_Front_A,14 1/2,6,4,0
+Drawer_Front_B,16 3/4,8,2,0
+Drawer_Side_A,22,6,8,0
+Drawer_Side_B,22,8,4,0
+Drawer_Bottom_A,21 1/2,13 3/4,4,1
+Drawer_Bottom_B,21 1/2,16 1/4,2,1
+Face_Frame_Rail_A,30,3,4,0
+Face_Frame_Rail_B,36,3,2,0
+Face_Frame_Stile,3,30,6,0
+Toe_Kick,30,4,4,0

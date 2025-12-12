@@ -1,0 +1,21 @@
+id,width,height,qty,allow_rotate
+Vanity_Side,23 1/4,32,2,0
+Vanity_Back,48,32,1,1
+Vanity_Top_Support,46 1/2,22 3/4,1,1
+Vanity_Shelf,46 1/2,22 3/4,2,1
+Vanity_Door_L,23 1/2,31 1/2,1,0
+Vanity_Door_R,23 1/2,31 1/2,1,0
+Drawer_Front_Top,44,6,1,0
+Drawer_Front_Mid,44,8,1,0
+Drawer_Front_Bot,44,10,1,0
+Drawer_Side_Top,22,6,2,0
+Drawer_Side_Mid,22,8,2,0
+Drawer_Side_Bot,22,10,2,0
+Drawer_Bottom_Top,43 1/2,21 1/2,1,1
+Drawer_Bottom_Mid,43 1/2,21 1/2,1,1
+Drawer_Bottom_Bot,43 1/2,21 1/2,1,1
+Medicine_Cabinet_Side,6,30,2,0
+Medicine_Cabinet_Top,24,6,1,1
+Medicine_Cabinet_Bottom,24,6,1,1
+Medicine_Cabinet_Back,24,30,1,1
+Medicine_Cabinet_Shelf,23 1/4,5 1/4,2,1

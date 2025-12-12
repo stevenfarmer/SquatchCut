@@ -456,6 +456,54 @@ def _fmt_float(value: float, precision: int = 3) -> str:
     return text or "0"
 
 
+def _get_current_timestamp() -> str:
+    """Get current timestamp for cutlist header."""
+    from datetime import datetime
+
+    return datetime.now().strftime("%Y-%m-%d %H:%M")
+
+
+def _format_sheet_size_for_export(sheet: ExportSheet, export_job: ExportJob) -> str:
+    """Format sheet size for display in cutlist."""
+    width_display = format_dimension_for_export(sheet.width_mm, export_job)
+    height_display = format_dimension_for_export(sheet.height_mm, export_job)
+    unit_label = "in" if export_job.measurement_system == "imperial" else "mm"
+    return f"{width_display} x {height_display} {unit_label}"
+
+
+def _generate_cut_instructions(
+    part: ExportPartPlacement, sheet: ExportSheet, export_job: ExportJob
+) -> str:
+    """Generate human-readable cutting instructions for a part."""
+    width_display = format_dimension_for_export(part.width_mm, export_job)
+    height_display = format_dimension_for_export(part.height_mm, export_job)
+
+    # Determine if part is rotated
+    if part.rotation_deg != 0:
+        rotation_note = " (rotated 90°)"
+    else:
+        rotation_note = ""
+
+    # Generate position-based instruction
+    pos_left = format_dimension_for_export(part.x_mm, export_job)
+    pos_bottom = format_dimension_for_export(part.y_mm, export_job)
+
+    # Create clear, actionable instruction
+    instruction = f"Cut {width_display} x {height_display}{rotation_note}"
+
+    # Add position guidance for precision work
+    if export_job.measurement_system == "imperial":
+        instruction += (
+            f" - Position: {pos_left} from left edge, {pos_bottom} from bottom edge"
+        )
+    else:
+        instruction += (
+            f" - Position: {pos_left}mm from left, {pos_bottom}mm from bottom"
+        )
+
+    return instruction
+
+
 def _svg_y(sheet_height: float, math_y: float) -> float:
     """Convert mathematical coordinate (origin bottom-left) to SVG (origin top-left)."""
     return sheet_height - math_y
@@ -721,45 +769,95 @@ def export_cutlist(
         logger.warning("[SquatchCut] No sheets available; cutlist export skipped.")
         return
 
+    # Enhanced header with woodshop-friendly column names
     header = [
-        "sheet_index",
-        "sheet_width_mm",
-        "sheet_height_mm",
-        "part_id",
-        "x_mm",
-        "y_mm",
-        "width_mm",
-        "height_mm",
-        "rotation_deg",
-        "width_display",
-        "height_display",
+        "Sheet",
+        "Sheet_Size",
+        "Part_Name",
+        "Width",
+        "Height",
+        "Qty",
+        "Rotated",
+        "Position_From_Left",
+        "Position_From_Bottom",
+        "Cut_Instructions",
     ]
+
     path = Path(target_path)
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
     except Exception:
         pass
+
     try:
         with path.open("w", newline="", encoding="utf-8") as fh:
             writer = csv.writer(fh)
+
+            # Write project header information
+            writer.writerow(["# SquatchCut Cutting List"])
+            writer.writerow([f"# Generated: {_get_current_timestamp()}"])
+            writer.writerow(
+                [f"# Measurement System: {export_job.measurement_system.title()}"]
+            )
+            writer.writerow([f"# Total Sheets: {len(export_job.sheets)}"])
+            writer.writerow([])  # Blank line
+
+            # Write column headers
             writer.writerow(header)
-            for sheet in export_job.sheets:
-                for part in sheet.parts:
+
+            # Group parts by sheet for better organization
+            for sheet in sorted(export_job.sheets, key=lambda s: s.sheet_index):
+                sheet_size_display = _format_sheet_size_for_export(sheet, export_job)
+
+                # Sort parts by position for logical cutting order
+                sorted_parts = sorted(sheet.parts, key=lambda p: (p.y_mm, p.x_mm))
+
+                for part in sorted_parts:
+                    width_display = format_dimension_for_export(
+                        part.width_mm, export_job
+                    )
+                    height_display = format_dimension_for_export(
+                        part.height_mm, export_job
+                    )
+
+                    # Generate human-readable cutting instructions
+                    cut_instructions = _generate_cut_instructions(
+                        part, sheet, export_job
+                    )
+
+                    # Position from edges (more intuitive for woodworkers)
+                    pos_left = format_dimension_for_export(part.x_mm, export_job)
+                    pos_bottom = format_dimension_for_export(part.y_mm, export_job)
+
                     writer.writerow(
                         [
-                            sheet.sheet_index,
-                            _fmt_float(sheet.width_mm),
-                            _fmt_float(sheet.height_mm),
+                            f"Sheet {sheet.sheet_index + 1}",
+                            sheet_size_display,
                             part.part_id,
-                            _fmt_float(part.x_mm),
-                            _fmt_float(part.y_mm),
-                            _fmt_float(part.width_mm),
-                            _fmt_float(part.height_mm),
-                            int(part.rotation_deg or 0),
-                            format_dimension_for_export(part.width_mm, export_job),
-                            format_dimension_for_export(part.height_mm, export_job),
+                            width_display,
+                            height_display,
+                            1,  # Individual parts (qty handled during import)
+                            "Yes" if part.rotation_deg != 0 else "No",
+                            pos_left,
+                            pos_bottom,
+                            cut_instructions,
                         ]
                     )
+
+                # Add blank line between sheets for readability
+                if sheet.sheet_index < len(export_job.sheets) - 1:
+                    writer.writerow([])
+
+            # Add cutting tips at the end
+            writer.writerow([])
+            writer.writerow(["# Cutting Tips:"])
+            writer.writerow(
+                ["# 1. Cut all parts from one sheet before moving to the next"]
+            )
+            writer.writerow(["# 2. Mark each part clearly before cutting"])
+            writer.writerow(["# 3. Measure twice, cut once"])
+            writer.writerow(["# 4. Account for saw kerf in your measurements"])
+
     except OSError as exc:
         logger.warning(f"[SquatchCut] CSV export failed for '{target_path}': {exc}")
         raise
