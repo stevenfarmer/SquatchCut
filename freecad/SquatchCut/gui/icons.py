@@ -17,7 +17,8 @@ ICON_MAP = {
     "set_sheet_size": "set_sheet_size.svg",
     "add_shapes": "add_shapes.svg",
     "toggle_visibility": "toggle_visibility.svg",
-    "tool_settings": "squatchcut-settings.svg",
+    "tool_settings": "sasquatch_settings.svg",
+    "reset_view": "sasquatch_reset_view.svg",
 }
 FALLBACK_ICON_NAME = "squatchcut.svg"
 ICON_KEYS = tuple(ICON_MAP.keys())

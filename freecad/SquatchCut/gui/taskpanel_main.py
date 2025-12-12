@@ -696,6 +696,24 @@ class SquatchCutTaskPanel:
             pass
         self._notify_close()
 
+    def getIcon(self):
+        """Return the icon for this TaskPanel."""
+        from SquatchCut.gui.icons import get_icon
+
+        return get_icon("main")
+
+    def needsFullSpace(self):
+        """Return True if this TaskPanel needs full space."""
+        return True
+
+    def isAllowedAlterDocument(self):
+        """Return True if this TaskPanel is allowed to alter the document."""
+        return True
+
+    def isAllowedAlterView(self):
+        """Return True if this TaskPanel is allowed to alter the view."""
+        return True
+
 
 # Factory
 def create_main_panel_for_tests():

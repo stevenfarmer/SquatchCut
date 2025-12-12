@@ -508,6 +508,24 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
     def getWidget(self):
         return self
 
+    def getIcon(self):
+        """Return the icon for this TaskPanel."""
+        from SquatchCut.gui.icons import get_icon
+
+        return get_icon("tool_settings")
+
+    def needsFullSpace(self):
+        """Return True if this TaskPanel needs full space."""
+        return True
+
+    def isAllowedAlterDocument(self):
+        """Return True if this TaskPanel is allowed to alter the document."""
+        return False
+
+    def isAllowedAlterView(self):
+        """Return True if this TaskPanel is allowed to alter the view."""
+        return False
+
     def set_close_callback(self, callback):
         self._close_callback = callback
 

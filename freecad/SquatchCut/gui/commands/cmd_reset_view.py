@@ -24,7 +24,7 @@ class ResetViewCommand:
         return {
             "MenuText": "Reset View",
             "ToolTip": "Show the sheet and nested layout, hide source parts, and fit the view.",
-            "Pixmap": get_icon("main"),
+            "Pixmap": get_icon("reset_view"),
         }
 
     def Activated(self):
@@ -43,7 +43,9 @@ class ResetViewCommand:
             logger.info("[SquatchCut] Reset view skipped: no sheet or nested layout.")
             return
 
-        has_nested = nested_group is not None and bool(getattr(nested_group, "Group", []))
+        has_nested = nested_group is not None and bool(
+            getattr(nested_group, "Group", [])
+        )
         if has_nested:
             show_nested_only(doc)
             fit_view_to_sheet_and_nested(doc)

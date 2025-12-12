@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Sasquatch footprint background -->
+  <polygon fill="black" points="64,4 77,25 98,18 103,40 122,52 113,72 122,95 103,108 98,128 77,118 64,128 51,118 30,128 25,108 6,95 15,72 6,52 25,40 30,18 51,25"/>
+
+  <!-- Sasquatch hand/paw with tools -->
+  <g fill="white">
+    <!-- Palm -->
+    <ellipse cx="64" cy="70" rx="16" ry="20"/>
+    <!-- Thumb -->
+    <ellipse cx="45" cy="65" rx="6" ry="12" transform="rotate(-30 45 65)"/>
+    <!-- Fingers -->
+    <ellipse cx="58" cy="45" rx="5" ry="15" transform="rotate(-10 58 45)"/>
+    <ellipse cx="68" cy="42" rx="5" ry="16"/>
+    <ellipse cx="78" cy="45" rx="5" ry="15" transform="rotate(10 78 45)"/>
+    <ellipse cx="86" cy="52" rx="4" ry="12" transform="rotate(20 86 52)"/>
+  </g>
+
+  <!-- Wrench/tool in hand -->
+  <g fill="white" opacity="0.9">
+    <rect x="60" y="75" width="8" height="25" rx="2" transform="rotate(15 64 87)"/>
+    <ellipse cx="58" cy="78" rx="6" ry="4" transform="rotate(15 58 78)"/>
+    <ellipse cx="70" cy="96" rx="4" ry="6" transform="rotate(15 70 96)"/>
+  </g>
+</svg>
