@@ -324,13 +324,22 @@ Every AI agent task must include all of these elements:
 
 ### Hydration Patterns
 
-#### Correct TaskPanel Initialization
+#### Complete TaskPanel Initialization Pattern
 ```python
 class TaskPanel_Example:
+    """Complete example of correct TaskPanel initialization"""
+
     def __init__(self):
-        # 1. Initialize basic attributes
+        # 1. Initialize basic attributes ONLY
         self.form = None
         self.session = None
+        self.settings = None
+
+        # Initialize UI references to None
+        self.width_input = None
+        self.height_input = None
+        self.kerf_input = None
+        self.preset_combo = None
 
         # 2. CRITICAL: Hydrate before anything else
         self.hydrate_from_params()
@@ -341,115 +350,1575 @@ class TaskPanel_Example:
         # 4. Populate with hydrated values
         self.populate_ui_values()
 
-        # 5. Connect signals last
+        # 5. Apply measurement formatting
+        self.apply_measurement_formatting()
+
+        # 6. Connect signals last
         self.connect_signals()
 
+        # 7. Final UI setup
+        self.finalize_ui()
+
     def hydrate_from_params(self):
-        """Load persistent values - NO GUI ACCESS"""
+        """Load persistent values - ABSOLUTELY NO GUI ACCESS"""
+        # Load session state
         self.session = get_session_state()
+
+        # Load settings
+        self.settings = SquatchCutPreferences()
+
+        # Hydrate all persistent values
         self.sheet_width = self.session.get_sheet_width()
         self.sheet_height = self.session.get_sheet_height()
-        # Never access self.form or GUI elements here
+        self.kerf_width = self.session.get_kerf_width()
+        self.measurement_system = self.session.get_measurement_system()
+
+        # Load defaults (not current values)
+        self.default_width = self.settings.get_default_sheet_width()
+        self.default_height = self.settings.get_default_sheet_height()
+
+        # CRITICAL: Never access self.form, self.width_input, or any GUI elements
+        # CRITICAL: Never call setText(), setCurrentText(), or any GUI methods
+        # CRITICAL: Never create widgets here
 
     def create_widgets(self):
-        """Create UI widgets after hydration"""
+        """Create UI widgets after hydration - ONLY widget creation"""
         self.form = QtWidgets.QWidget()
+
+        # Create layout
+        layout = QtWidgets.QVBoxLayout(self.form)
+
+        # Create input widgets
         self.width_input = QtWidgets.QLineEdit()
         self.height_input = QtWidgets.QLineEdit()
-        # Widget creation happens here
+        self.kerf_input = QtWidgets.QLineEdit()
+
+        # Create combo boxes
+        self.preset_combo = QtWidgets.QComboBox()
+        self.measurement_combo = QtWidgets.QComboBox()
+
+        # Create labels
+        self.width_label = QtWidgets.QLabel("Width:")
+        self.height_label = QtWidgets.QLabel("Height:")
+
+        # Add to layout
+        layout.addWidget(self.width_label)
+        layout.addWidget(self.width_input)
+        layout.addWidget(self.height_label)
+        layout.addWidget(self.height_input)
+
+        # CRITICAL: Do NOT populate values here
+        # CRITICAL: Do NOT connect signals here
 
     def populate_ui_values(self):
         """Populate widgets with hydrated values"""
+        # Populate preset combo (always start with None)
+        self.preset_combo.addItems(["None / Custom", "4' x 8'", "4' x 4'", "2' x 4'"])
+        self.preset_combo.setCurrentText("None / Custom")  # ALWAYS None
+
+        # Populate measurement system
+        self.measurement_combo.addItems(["metric", "imperial"])
+        self.measurement_combo.setCurrentText(self.measurement_system)
+
+        # Populate input fields with current values (not defaults)
         self.width_input.setText(str(self.sheet_width))
         self.height_input.setText(str(self.sheet_height))
+        self.kerf_input.setText(str(self.kerf_width))
+
+    def apply_measurement_formatting(self):
+        """Apply measurement system formatting to all numeric fields"""
+        if self.measurement_system == "imperial":
+            # Convert mm to fractional inches for display
+            width_inches = mm_to_inches(self.sheet_width)
+            height_inches = mm_to_inches(self.sheet_height)
+            kerf_inches = mm_to_inches(self.kerf_width)
+
+            self.width_input.setText(format_fractional_inches(width_inches))
+            self.height_input.setText(format_fractional_inches(height_inches))
+            self.kerf_input.setText(format_fractional_inches(kerf_inches))
+
+            # Update labels
+            self.width_label.setText("Width (inches):")
+            self.height_label.setText("Height (inches):")
+        else:
+            # Already in mm, just format
+            self.width_input.setText(f"{self.sheet_width:.1f}")
+            self.height_input.setText(f"{self.sheet_height:.1f}")
+            self.kerf_input.setText(f"{self.kerf_width:.2f}")
+
+            # Update labels
+            self.width_label.setText("Width (mm):")
+            self.height_label.setText("Height (mm):")
+
+    def connect_signals(self):
+        """Connect all signals after widgets are populated"""
+        self.width_input.textChanged.connect(self.on_width_changed)
+        self.height_input.textChanged.connect(self.on_height_changed)
+        self.preset_combo.currentTextChanged.connect(self.on_preset_selected)
+        self.measurement_combo.currentTextChanged.connect(self.on_measurement_system_changed)
+
+    def finalize_ui(self):
+        """Final UI setup and validation"""
+        # Validate all inputs
+        self.validate_inputs()
+
+        # Set focus to first input
+        self.width_input.setFocus()
+
+        # Apply any final styling
+        self.apply_ui_styling()
 ```
 
-#### Correct Preset Handling
-```python
-def load_taskpanel(self):
-    """Always start with None preset, never auto-select"""
-    # CORRECT: Always start with None
-    self.preset_combo.setCurrentText("None / Custom")
+#### Advanced Hydration Patterns
 
-    # Load defaults (not presets)
-    self.width_input.setText(str(self.default_width))
-    self.height_input.setText(str(self.default_height))
+##### Multi-Source Hydration
+```python
+def hydrate_from_params(self):
+    """Hydrate from multiple sources with fallback hierarchy"""
+    # 1. Load session state (current values)
+    self.session = get_session_state()
+
+    # 2. Load user preferences (defaults)
+    self.settings = SquatchCutPreferences()
+
+    # 3. Load project-specific settings if available
+    self.project_settings = load_project_settings()  # May return None
+
+    # 4. Hydrate with fallback hierarchy: session -> project -> user -> system
+    self.sheet_width = (
+        self.session.get_sheet_width() or
+        (self.project_settings.get_sheet_width() if self.project_settings else None) or
+        self.settings.get_default_sheet_width() or
+        1220.0  # System default
+    )
+
+    self.sheet_height = (
+        self.session.get_sheet_height() or
+        (self.project_settings.get_sheet_height() if self.project_settings else None) or
+        self.settings.get_default_sheet_height() or
+        2440.0  # System default
+    )
+
+    # 5. Validate hydrated values
+    self.validate_hydrated_values()
+
+def validate_hydrated_values(self):
+    """Validate hydrated values and apply constraints"""
+    # Ensure positive dimensions
+    if self.sheet_width <= 0:
+        self.sheet_width = 1220.0  # Fallback to system default
+
+    if self.sheet_height <= 0:
+        self.sheet_height = 2440.0  # Fallback to system default
+
+    # Ensure reasonable limits
+    self.sheet_width = max(100.0, min(10000.0, self.sheet_width))
+    self.sheet_height = max(100.0, min(10000.0, self.sheet_height))
+```
+
+##### Conditional Hydration
+```python
+def hydrate_from_params(self):
+    """Hydrate with conditional logic based on context"""
+    self.session = get_session_state()
+    self.settings = SquatchCutPreferences()
+
+    # Check if we're in a specific context
+    if self.is_new_project():
+        # New project: use defaults
+        self.sheet_width = self.settings.get_default_sheet_width()
+        self.sheet_height = self.settings.get_default_sheet_height()
+        self.kerf_width = self.settings.get_default_kerf_width()
+    elif self.is_importing_csv():
+        # CSV import: try to detect from CSV, fallback to session
+        csv_dimensions = self.detect_csv_dimensions()
+        if csv_dimensions:
+            self.sheet_width = csv_dimensions.width
+            self.sheet_height = csv_dimensions.height
+        else:
+            self.sheet_width = self.session.get_sheet_width()
+            self.sheet_height = self.session.get_sheet_height()
+    else:
+        # Normal operation: use session values
+        self.sheet_width = self.session.get_sheet_width()
+        self.sheet_height = self.session.get_sheet_height()
+        self.kerf_width = self.session.get_kerf_width()
+
+    # Always load measurement system from session
+    self.measurement_system = self.session.get_measurement_system()
+```
+
+#### Preset Handling Patterns
+
+##### Complete Preset Management
+```python
+def initialize_presets(self):
+    """Initialize preset system - called during widget creation"""
+    # Define available presets
+    self.presets = {
+        "None / Custom": None,  # Special case - no preset
+        "4' x 8'": {"width": inches_to_mm(48), "height": inches_to_mm(96)},
+        "4' x 4'": {"width": inches_to_mm(48), "height": inches_to_mm(48)},
+        "2' x 4'": {"width": inches_to_mm(24), "height": inches_to_mm(48)},
+        "1220 x 2440": {"width": 1220.0, "height": 2440.0},
+        "1220 x 1220": {"width": 1220.0, "height": 1220.0},
+    }
+
+    # Populate combo box
+    self.preset_combo.addItems(list(self.presets.keys()))
+
+    # CRITICAL: Always start with None / Custom
+    self.preset_combo.setCurrentText("None / Custom")
 
 def on_preset_selected(self, preset_name):
     """Handle preset selection without modifying defaults"""
-    if preset_name == "4' x 8'":
-        # Update UI fields (not defaults)
-        self.width_input.setText("48")
-        self.height_input.setText("96")
-        # NEVER: self.settings.set_default_width(48)
+    if preset_name == "None / Custom":
+        # Don't change anything - user is in custom mode
+        return
+
+    preset_data = self.presets.get(preset_name)
+    if not preset_data:
+        return
+
+    # Update UI fields (not internal storage yet)
+    if self.measurement_system == "imperial":
+        width_inches = mm_to_inches(preset_data["width"])
+        height_inches = mm_to_inches(preset_data["height"])
+        self.width_input.setText(format_fractional_inches(width_inches))
+        self.height_input.setText(format_fractional_inches(height_inches))
+    else:
+        self.width_input.setText(f"{preset_data['width']:.1f}")
+        self.height_input.setText(f"{preset_data['height']:.1f}")
+
+    # CRITICAL: Never modify defaults
+    # NEVER: self.settings.set_default_width(preset_data["width"])
+    # NEVER: self.session.set_sheet_width(preset_data["width"])
+
+def on_manual_input_changed(self):
+    """Handle manual input changes - switch to custom mode"""
+    # When user manually changes values, switch to custom
+    if self.preset_combo.currentText() != "None / Custom":
+        # Temporarily disconnect to avoid recursion
+        self.preset_combo.currentTextChanged.disconnect()
+        self.preset_combo.setCurrentText("None / Custom")
+        self.preset_combo.currentTextChanged.connect(self.on_preset_selected)
+
+def detect_current_preset(self):
+    """Detect if current values match a preset (for display only)"""
+    current_width = self.sheet_width
+    current_height = self.sheet_height
+
+    for preset_name, preset_data in self.presets.items():
+        if preset_data is None:  # Skip "None / Custom"
+            continue
+
+        if (abs(current_width - preset_data["width"]) < 0.1 and
+            abs(current_height - preset_data["height"]) < 0.1):
+            return preset_name
+
+    return "None / Custom"
 ```
 
 ### Measurement System Patterns
 
-#### Correct Unit Conversion
+#### Complete Unit Conversion System
 ```python
 def handle_user_input(self, user_value, measurement_system):
-    """Always convert to mm for internal storage"""
-    if measurement_system == "imperial":
-        # Parse fractional inches
-        inches_value = parse_fractional_inches(user_value)
-        # Convert to mm for internal storage
-        mm_value = inches_to_mm(inches_value)
-    else:
-        # Already in mm
-        mm_value = float(user_value)
+    """Always convert to mm for internal storage with comprehensive validation"""
+    try:
+        if measurement_system == "imperial":
+            # Parse fractional inches with validation
+            inches_value = parse_fractional_inches(user_value)
 
-    # Store internally in mm
-    self.internal_width = mm_value
-    return mm_value
+            # Validate reasonable range (0.1" to 1000")
+            if not (0.1 <= inches_value <= 1000.0):
+                raise ValueError(f"Imperial value {inches_value} out of range")
+
+            # Convert to mm for internal storage
+            mm_value = inches_to_mm(inches_value)
+        else:
+            # Parse metric with validation
+            mm_value = float(user_value)
+
+            # Validate reasonable range (1mm to 25000mm)
+            if not (1.0 <= mm_value <= 25000.0):
+                raise ValueError(f"Metric value {mm_value} out of range")
+
+        # Store internally in mm (ALWAYS)
+        self.internal_width = mm_value
+
+        # Update session state
+        self.session.set_sheet_width(mm_value)
+
+        return mm_value
+
+    except ValueError as e:
+        # Handle parsing errors gracefully
+        self.show_input_error(f"Invalid input: {e}")
+        return None
 
 def format_for_display(self, mm_value, measurement_system):
-    """Format for UI display"""
+    """Format for UI display with proper precision"""
     if measurement_system == "imperial":
         inches_value = mm_to_inches(mm_value)
         return format_fractional_inches(inches_value)
     else:
-        return f"{mm_value:.1f} mm"
+        # Use appropriate precision for metric
+        if mm_value >= 1000:
+            return f"{mm_value:.0f} mm"  # No decimals for large values
+        elif mm_value >= 10:
+            return f"{mm_value:.1f} mm"  # One decimal for medium values
+        else:
+            return f"{mm_value:.2f} mm"  # Two decimals for small values
+
+def parse_fractional_inches(self, input_str):
+    """Parse fractional inches with comprehensive format support"""
+    input_str = input_str.strip()
+
+    # Handle empty input
+    if not input_str:
+        raise ValueError("Empty input")
+
+    # Handle whole numbers: "48", "12"
+    if input_str.isdigit():
+        return float(input_str)
+
+    # Handle decimal inches: "48.5", "12.25" (convert to fractional)
+    try:
+        decimal_value = float(input_str)
+        return decimal_value
+    except ValueError:
+        pass
+
+    # Handle fractions: "3/4", "1/2", "7/8"
+    if '/' in input_str and ' ' not in input_str:
+        parts = input_str.split('/')
+        if len(parts) == 2:
+            numerator = float(parts[0])
+            denominator = float(parts[1])
+            if denominator != 0:
+                return numerator / denominator
+
+    # Handle mixed fractions: "48 3/4", "12 1/2"
+    if ' ' in input_str:
+        parts = input_str.split(' ')
+        if len(parts) == 2:
+            whole_part = float(parts[0])
+            fraction_part = parts[1]
+
+            if '/' in fraction_part:
+                frac_parts = fraction_part.split('/')
+                if len(frac_parts) == 2:
+                    numerator = float(frac_parts[0])
+                    denominator = float(frac_parts[1])
+                    if denominator != 0:
+                        return whole_part + (numerator / denominator)
+
+    raise ValueError(f"Cannot parse fractional inches: {input_str}")
+
+def format_fractional_inches(self, inches_value):
+    """Format decimal inches as fractional inches"""
+    # Handle negative values
+    if inches_value < 0:
+        return f"-{self.format_fractional_inches(-inches_value)}"
+
+    # Extract whole and fractional parts
+    whole_part = int(inches_value)
+    fractional_part = inches_value - whole_part
+
+    # If no fractional part, return whole number
+    if fractional_part < 0.001:  # Account for floating point precision
+        return str(whole_part)
+
+    # Convert to common fractions (1/16 precision)
+    sixteenths = round(fractional_part * 16)
+
+    # Simplify fraction
+    if sixteenths == 0:
+        return str(whole_part)
+    elif sixteenths == 16:
+        return str(whole_part + 1)
+    else:
+        # Simplify the fraction
+        numerator = sixteenths
+        denominator = 16
+
+        # Find GCD to simplify
+        while denominator != 0:
+            numerator, denominator = denominator, numerator % denominator
+        gcd = numerator
+
+        simplified_num = sixteenths // gcd
+        simplified_den = 16 // gcd
+
+        if whole_part == 0:
+            return f"{simplified_num}/{simplified_den}"
+        else:
+            return f"{whole_part} {simplified_num}/{simplified_den}"
 ```
 
-#### Correct Measurement System Switching
+#### Advanced Measurement System Switching
 ```python
 def on_measurement_system_changed(self, new_system):
-    """Reformat all UI fields when system changes"""
-    # Get current values in mm (internal storage)
-    width_mm = self.get_internal_width()
-    height_mm = self.get_internal_height()
+    """Comprehensive measurement system switching with validation"""
+    old_system = self.measurement_system
 
-    # Reformat all numeric fields
-    self.width_input.setText(self.format_for_display(width_mm, new_system))
-    self.height_input.setText(self.format_for_display(height_mm, new_system))
-    self.kerf_input.setText(self.format_for_display(self.kerf_mm, new_system))
+    # Validate the change is actually needed
+    if old_system == new_system:
+        return
 
-    # Update labels
-    self.update_unit_labels(new_system)
+    # Store the new system
+    self.measurement_system = new_system
+
+    # Get all current values in mm (internal storage)
+    width_mm = self.sheet_width  # Always stored in mm
+    height_mm = self.sheet_height  # Always stored in mm
+    kerf_mm = self.kerf_width  # Always stored in mm
+
+    # Temporarily disconnect signals to avoid recursion
+    self.disconnect_input_signals()
+
+    try:
+        # Reformat all numeric input fields
+        self.width_input.setText(self.format_for_display(width_mm, new_system))
+        self.height_input.setText(self.format_for_display(height_mm, new_system))
+        self.kerf_input.setText(self.format_for_display(kerf_mm, new_system))
+
+        # Update all unit labels
+        self.update_unit_labels(new_system)
+
+        # Update input field placeholders
+        self.update_input_placeholders(new_system)
+
+        # Update validation patterns
+        self.update_input_validators(new_system)
+
+        # Save the preference
+        self.session.set_measurement_system(new_system)
+
+    finally:
+        # Reconnect signals
+        self.connect_input_signals()
+
+def update_unit_labels(self, measurement_system):
+    """Update all labels to show correct units"""
+    if measurement_system == "imperial":
+        self.width_label.setText("Width (inches):")
+        self.height_label.setText("Height (inches):")
+        self.kerf_label.setText("Kerf (inches):")
+    else:
+        self.width_label.setText("Width (mm):")
+        self.height_label.setText("Height (mm):")
+        self.kerf_label.setText("Kerf (mm):")
+
+def update_input_placeholders(self, measurement_system):
+    """Update input field placeholders with examples"""
+    if measurement_system == "imperial":
+        self.width_input.setPlaceholderText("e.g., 48 or 48 3/4")
+        self.height_input.setPlaceholderText("e.g., 96 or 96 1/2")
+        self.kerf_input.setPlaceholderText("e.g., 1/8 or 0.125")
+    else:
+        self.width_input.setPlaceholderText("e.g., 1220.0")
+        self.height_input.setPlaceholderText("e.g., 2440.0")
+        self.kerf_input.setPlaceholderText("e.g., 3.2")
+
+def update_input_validators(self, measurement_system):
+    """Update input field validators for the measurement system"""
+    if measurement_system == "imperial":
+        # Allow fractional input: digits, spaces, and forward slashes
+        imperial_regex = QtCore.QRegExp(r"[0-9 /\.]+")
+        imperial_validator = QtGui.QRegExpValidator(imperial_regex)
+
+        self.width_input.setValidator(imperial_validator)
+        self.height_input.setValidator(imperial_validator)
+        self.kerf_input.setValidator(imperial_validator)
+    else:
+        # Allow decimal numbers
+        metric_validator = QtGui.QDoubleValidator(0.1, 25000.0, 2)
+        metric_validator.setNotation(QtGui.QDoubleValidator.StandardNotation)
+
+        self.width_input.setValidator(metric_validator)
+        self.height_input.setValidator(metric_validator)
+        self.kerf_input.setValidator(metric_validator)
+```
+
+#### Measurement Conversion Utilities
+```python
+def inches_to_mm(self, inches):
+    """Convert inches to millimeters with high precision"""
+    return inches * 25.4
+
+def mm_to_inches(self, mm):
+    """Convert millimeters to inches with high precision"""
+    return mm / 25.4
+
+def validate_measurement_input(self, input_text, measurement_system):
+    """Validate user input before conversion"""
+    if not input_text or input_text.isspace():
+        return False, "Input cannot be empty"
+
+    try:
+        if measurement_system == "imperial":
+            value = self.parse_fractional_inches(input_text)
+            if value <= 0:
+                return False, "Value must be positive"
+            if value > 1000:  # 1000 inches = ~25 meters
+                return False, "Value too large (max 1000 inches)"
+        else:
+            value = float(input_text)
+            if value <= 0:
+                return False, "Value must be positive"
+            if value > 25000:  # 25 meters
+                return False, "Value too large (max 25000 mm)"
+
+        return True, None
+
+    except ValueError as e:
+        return False, f"Invalid format: {e}"
+
+def get_measurement_precision(self, measurement_system):
+    """Get appropriate precision for calculations"""
+    if measurement_system == "imperial":
+        return 1/16  # 1/16 inch precision
+    else:
+        return 0.1   # 0.1 mm precision
+
+def round_to_precision(self, value, measurement_system):
+    """Round value to appropriate precision for the measurement system"""
+    precision = self.get_measurement_precision(measurement_system)
+    return round(value / precision) * precision
+```
+
+### UI Component Patterns
+
+#### Complete TaskPanel Implementation
+```python
+class TaskPanel_Complete:
+    """Complete example of proper TaskPanel implementation"""
+
+    def __init__(self):
+        # 1. Initialize attributes
+        self.form = None
+        self.session = None
+        self.settings = None
+
+        # 2. Hydrate first
+        self.hydrate_from_params()
+
+        # 3. Create UI
+        self.create_widgets()
+
+        # 4. Populate and connect
+        self.populate_ui_values()
+        self.connect_signals()
+
+        # 5. Final setup
+        self.finalize_ui()
+
+    def create_widgets(self):
+        """Create responsive UI that works in narrow docks"""
+        self.form = QtWidgets.QWidget()
+
+        # Use QVBoxLayout for narrow dock compatibility
+        main_layout = QtWidgets.QVBoxLayout(self.form)
+        main_layout.setContentsMargins(6, 6, 6, 6)
+        main_layout.setSpacing(4)
+
+        # Create sections with proper spacing
+        self.create_dimensions_section(main_layout)
+        self.create_options_section(main_layout)
+        self.create_actions_section(main_layout)
+
+        # Add stretch to push content to top
+        main_layout.addStretch()
+
+    def create_dimensions_section(self, parent_layout):
+        """Create dimensions input section"""
+        # Section header
+        header = QtWidgets.QLabel("Sheet Dimensions")
+        header.setStyleSheet("font-weight: bold; margin-top: 8px;")
+        parent_layout.addWidget(header)
+
+        # Dimensions grid
+        grid_layout = QtWidgets.QGridLayout()
+        grid_layout.setSpacing(4)
+
+        # Width input
+        self.width_label = QtWidgets.QLabel("Width:")
+        self.width_input = QtWidgets.QLineEdit()
+        self.width_input.setMinimumWidth(80)
+        grid_layout.addWidget(self.width_label, 0, 0)
+        grid_layout.addWidget(self.width_input, 0, 1)
+
+        # Height input
+        self.height_label = QtWidgets.QLabel("Height:")
+        self.height_input = QtWidgets.QLineEdit()
+        self.height_input.setMinimumWidth(80)
+        grid_layout.addWidget(self.height_label, 1, 0)
+        grid_layout.addWidget(self.height_input, 1, 1)
+
+        # Kerf input
+        self.kerf_label = QtWidgets.QLabel("Kerf:")
+        self.kerf_input = QtWidgets.QLineEdit()
+        self.kerf_input.setMinimumWidth(80)
+        grid_layout.addWidget(self.kerf_label, 2, 0)
+        grid_layout.addWidget(self.kerf_input, 2, 1)
+
+        parent_layout.addLayout(grid_layout)
+
+    def create_options_section(self, parent_layout):
+        """Create options section"""
+        # Section header
+        header = QtWidgets.QLabel("Options")
+        header.setStyleSheet("font-weight: bold; margin-top: 8px;")
+        parent_layout.addWidget(header)
+
+        # Measurement system
+        measurement_layout = QtWidgets.QHBoxLayout()
+        measurement_layout.addWidget(QtWidgets.QLabel("Units:"))
+        self.measurement_combo = QtWidgets.QComboBox()
+        self.measurement_combo.addItems(["metric", "imperial"])
+        measurement_layout.addWidget(self.measurement_combo)
+        measurement_layout.addStretch()
+        parent_layout.addLayout(measurement_layout)
+
+        # Presets
+        preset_layout = QtWidgets.QHBoxLayout()
+        preset_layout.addWidget(QtWidgets.QLabel("Preset:"))
+        self.preset_combo = QtWidgets.QComboBox()
+        preset_layout.addWidget(self.preset_combo)
+        preset_layout.addStretch()
+        parent_layout.addLayout(preset_layout)
+
+    def create_actions_section(self, parent_layout):
+        """Create action buttons section"""
+        # Section header
+        header = QtWidgets.QLabel("Actions")
+        header.setStyleSheet("font-weight: bold; margin-top: 8px;")
+        parent_layout.addWidget(header)
+
+        # Button layout
+        button_layout = QtWidgets.QVBoxLayout()
+        button_layout.setSpacing(4)
+
+        # Primary actions
+        self.apply_button = QtWidgets.QPushButton("Apply Settings")
+        self.apply_button.setMinimumHeight(28)
+        button_layout.addWidget(self.apply_button)
+
+        self.reset_button = QtWidgets.QPushButton("Reset to Defaults")
+        button_layout.addWidget(self.reset_button)
+
+        parent_layout.addLayout(button_layout)
+
+    def connect_signals(self):
+        """Connect all signals after UI is fully created"""
+        # Input field signals
+        self.width_input.textChanged.connect(self.on_width_changed)
+        self.height_input.textChanged.connect(self.on_height_changed)
+        self.kerf_input.textChanged.connect(self.on_kerf_changed)
+
+        # Combo box signals
+        self.measurement_combo.currentTextChanged.connect(self.on_measurement_system_changed)
+        self.preset_combo.currentTextChanged.connect(self.on_preset_selected)
+
+        # Button signals
+        self.apply_button.clicked.connect(self.on_apply_clicked)
+        self.reset_button.clicked.connect(self.on_reset_clicked)
+
+    def finalize_ui(self):
+        """Final UI setup and validation"""
+        # Set tab order
+        self.form.setTabOrder(self.width_input, self.height_input)
+        self.form.setTabOrder(self.height_input, self.kerf_input)
+        self.form.setTabOrder(self.kerf_input, self.measurement_combo)
+
+        # Set focus to first input
+        self.width_input.setFocus()
+
+        # Validate initial state
+        self.validate_all_inputs()
+```
+
+#### Responsive Layout Patterns
+```python
+def create_responsive_layout(self):
+    """Create layout that adapts to narrow docks"""
+    # Use QVBoxLayout as primary layout (stacks vertically)
+    main_layout = QtWidgets.QVBoxLayout(self.form)
+
+    # Set margins appropriate for dock panels
+    main_layout.setContentsMargins(6, 6, 6, 6)
+    main_layout.setSpacing(4)
+
+    # For input pairs, use QGridLayout with proper column stretching
+    input_grid = QtWidgets.QGridLayout()
+    input_grid.setColumnStretch(1, 1)  # Make input column stretch
+
+    # Labels in column 0, inputs in column 1
+    input_grid.addWidget(QtWidgets.QLabel("Width:"), 0, 0)
+    input_grid.addWidget(self.width_input, 0, 1)
+
+    # Avoid QHBoxLayout for label-input pairs in narrow spaces
+    # WRONG: label_input_layout = QtWidgets.QHBoxLayout()
+    # RIGHT: Use QGridLayout as shown above
+
+def handle_narrow_dock(self):
+    """Adapt UI for narrow dock panels"""
+    # Use minimum widths instead of fixed widths
+    self.width_input.setMinimumWidth(60)  # Not setFixedWidth(200)
+
+    # Use elided text for long labels
+    self.long_label.setText(self.elide_text("Very Long Label Text", 100))
+
+    # Stack buttons vertically in narrow spaces
+    if self.form.width() < 200:
+        self.button_layout.setDirection(QtWidgets.QBoxLayout.TopToBottom)
+    else:
+        self.button_layout.setDirection(QtWidgets.QBoxLayout.LeftToRight)
+
+def elide_text(self, text, max_width):
+    """Elide text to fit in available space"""
+    font_metrics = QtGui.QFontMetrics(self.form.font())
+    return font_metrics.elidedText(text, QtCore.Qt.ElideRight, max_width)
+```
+
+#### Signal Connection Patterns
+```python
+def connect_signals(self):
+    """Proper signal connection with error handling"""
+    try:
+        # Connect input signals
+        self.width_input.textChanged.connect(self.on_width_changed)
+        self.height_input.textChanged.connect(self.on_height_changed)
+
+        # Connect with lambda for parameterized slots
+        self.preset_combo.currentTextChanged.connect(
+            lambda preset: self.on_preset_selected(preset)
+        )
+
+        # Connect button signals
+        self.apply_button.clicked.connect(self.on_apply_clicked)
+
+    except Exception as e:
+        print(f"Error connecting signals: {e}")
+        # Don't let signal connection errors crash the panel
+
+def disconnect_signals(self):
+    """Safely disconnect all signals"""
+    try:
+        # Disconnect input signals
+        self.width_input.textChanged.disconnect()
+        self.height_input.textChanged.disconnect()
+
+        # Disconnect combo signals
+        self.preset_combo.currentTextChanged.disconnect()
+
+        # Disconnect button signals
+        self.apply_button.clicked.disconnect()
+
+    except Exception:
+        # Ignore errors during disconnection
+        pass
+
+def temporarily_disconnect_signals(self):
+    """Context manager for temporary signal disconnection"""
+    class SignalBlocker:
+        def __init__(self, panel):
+            self.panel = panel
+
+        def __enter__(self):
+            self.panel.disconnect_signals()
+            return self
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            self.panel.connect_signals()
+
+    return SignalBlocker(self)
+
+# Usage:
+def update_ui_without_signals(self):
+    with self.temporarily_disconnect_signals():
+        self.width_input.setText("1220")
+        self.height_input.setText("2440")
+        # No signals fired during this block
+```
+
+#### Input Validation Patterns
+```python
+def setup_input_validation(self):
+    """Set up comprehensive input validation"""
+    # Set up validators based on measurement system
+    self.update_input_validators(self.measurement_system)
+
+    # Connect validation signals
+    self.width_input.textChanged.connect(self.validate_width_input)
+    self.height_input.textChanged.connect(self.validate_height_input)
+
+    # Set up visual feedback
+    self.setup_validation_styling()
+
+def validate_width_input(self, text):
+    """Validate width input with visual feedback"""
+    is_valid, error_message = self.validate_measurement_input(text, self.measurement_system)
+
+    if is_valid:
+        self.clear_input_error(self.width_input)
+        self.enable_apply_button()
+    else:
+        self.show_input_error(self.width_input, error_message)
+        self.disable_apply_button()
+
+def show_input_error(self, input_widget, message):
+    """Show input error with visual feedback"""
+    # Apply error styling
+    input_widget.setStyleSheet("QLineEdit { border: 2px solid red; }")
+
+    # Show tooltip with error message
+    input_widget.setToolTip(f"Error: {message}")
+
+    # Update status
+    self.status_label.setText(f"Error: {message}")
+    self.status_label.setStyleSheet("color: red;")
+
+def clear_input_error(self, input_widget):
+    """Clear input error styling"""
+    input_widget.setStyleSheet("")
+    input_widget.setToolTip("")
+    self.status_label.setText("Ready")
+    self.status_label.setStyleSheet("color: green;")
+
+def setup_validation_styling(self):
+    """Set up CSS styles for validation feedback"""
+    self.error_style = """
+        QLineEdit {
+            border: 2px solid #ff6b6b;
+            background-color: #ffe0e0;
+        }
+    """
+
+    self.success_style = """
+        QLineEdit {
+            border: 2px solid #51cf66;
+            background-color: #e0ffe0;
+        }
+    """
+
+    self.normal_style = """
+        QLineEdit {
+            border: 1px solid #ccc;
+            background-color: white;
+        }
+    """
+```
+
+### Preset and Default Separation Patterns
+
+#### Understanding the Distinction
+```python
+"""
+CRITICAL CONCEPT: Presets vs Defaults
+
+DEFAULTS:
+- User's personal preferences stored in settings
+- Changed only through Settings panel save operations
+- Persist across FreeCAD sessions
+- Apply when starting new projects
+
+PRESETS:
+- Predefined common configurations
+- Temporary selections that populate UI fields
+- Never modify stored defaults
+- Always start with "None / Custom" selected
+"""
+
+class PresetDefaultManager:
+    """Proper separation of presets and defaults"""
+
+    def __init__(self):
+        # Load user's personal defaults (persistent)
+        self.settings = SquatchCutPreferences()
+        self.default_width = self.settings.get_default_sheet_width()
+        self.default_height = self.settings.get_default_sheet_height()
+
+        # Define available presets (static configurations)
+        self.presets = {
+            "None / Custom": None,  # Special case - no preset active
+            "4' x 8' Plywood": {"width": inches_to_mm(48), "height": inches_to_mm(96)},
+            "4' x 4' Plywood": {"width": inches_to_mm(48), "height": inches_to_mm(48)},
+            "2' x 4' Lumber": {"width": inches_to_mm(24), "height": inches_to_mm(48)},
+            "Standard Metric": {"width": 1220.0, "height": 2440.0},
+        }
+
+        # Current working values (may differ from defaults)
+        self.current_width = self.default_width
+        self.current_height = self.default_height
+
+    def load_panel_initial_state(self):
+        """Load panel with defaults, never auto-select presets"""
+        # ALWAYS start with None / Custom preset
+        self.preset_combo.setCurrentText("None / Custom")
+
+        # Populate with user's defaults (not preset values)
+        self.width_input.setText(str(self.default_width))
+        self.height_input.setText(str(self.default_height))
+
+        # Set current working values to defaults
+        self.current_width = self.default_width
+        self.current_height = self.default_height
+
+    def on_preset_selected(self, preset_name):
+        """Handle preset selection without modifying defaults"""
+        if preset_name == "None / Custom":
+            # User switched to custom mode - don't change values
+            return
+
+        preset_data = self.presets.get(preset_name)
+        if not preset_data:
+            return
+
+        # Update current working values (NOT defaults)
+        self.current_width = preset_data["width"]
+        self.current_height = preset_data["height"]
+
+        # Update UI to show preset values
+        self.width_input.setText(str(self.current_width))
+        self.height_input.setText(str(self.current_height))
+
+        # CRITICAL: Never modify defaults
+        # NEVER: self.settings.set_default_sheet_width(preset_data["width"])
+        # NEVER: self.default_width = preset_data["width"]
+
+    def on_manual_input_change(self):
+        """Handle manual input - switch to custom mode"""
+        # When user manually changes values, switch to None / Custom
+        if self.preset_combo.currentText() != "None / Custom":
+            # Temporarily disconnect to avoid recursion
+            self.preset_combo.currentTextChanged.disconnect()
+            self.preset_combo.setCurrentText("None / Custom")
+            self.preset_combo.currentTextChanged.connect(self.on_preset_selected)
+
+        # Update current working values from UI
+        try:
+            self.current_width = float(self.width_input.text())
+            self.current_height = float(self.height_input.text())
+        except ValueError:
+            pass  # Invalid input - keep previous values
+
+    def save_as_new_defaults(self):
+        """Save current values as new defaults - ONLY through Settings panel"""
+        # This should ONLY be called from Settings panel save operation
+        self.settings.set_default_sheet_width(self.current_width)
+        self.settings.set_default_sheet_height(self.current_height)
+        self.settings.save()
+
+        # Update local default values
+        self.default_width = self.current_width
+        self.default_height = self.current_height
+
+    def reset_to_defaults(self):
+        """Reset current values to user's defaults"""
+        self.current_width = self.default_width
+        self.current_height = self.default_height
+
+        # Update UI
+        self.width_input.setText(str(self.current_width))
+        self.height_input.setText(str(self.current_height))
+
+        # Switch to None / Custom
+        self.preset_combo.setCurrentText("None / Custom")
+```
+
+#### Advanced Preset Management
+```python
+class AdvancedPresetManager:
+    """Advanced preset management with validation and feedback"""
+
+    def __init__(self):
+        self.setup_presets()
+        self.setup_defaults()
+        self.current_preset = "None / Custom"
+
+    def setup_presets(self):
+        """Define presets with metadata"""
+        self.presets = {
+            "None / Custom": {
+                "data": None,
+                "description": "Custom dimensions",
+                "category": "custom"
+            },
+            "4' x 8' Plywood": {
+                "data": {"width": inches_to_mm(48), "height": inches_to_mm(96)},
+                "description": "Standard plywood sheet",
+                "category": "plywood"
+            },
+            "4' x 4' Plywood": {
+                "data": {"width": inches_to_mm(48), "height": inches_to_mm(48)},
+                "description": "Square plywood sheet",
+                "category": "plywood"
+            },
+            "2' x 4' Lumber": {
+                "data": {"width": inches_to_mm(24), "height": inches_to_mm(48)},
+                "description": "Standard lumber dimensions",
+                "category": "lumber"
+            }
+        }
+
+    def populate_preset_combo(self):
+        """Populate preset combo with categories"""
+        self.preset_combo.clear()
+
+        # Add None / Custom first
+        self.preset_combo.addItem("None / Custom")
+
+        # Group by category
+        categories = {}
+        for name, preset in self.presets.items():
+            if name == "None / Custom":
+                continue
+            category = preset["category"]
+            if category not in categories:
+                categories[category] = []
+            categories[category].append(name)
+
+        # Add categorized items
+        for category, items in categories.items():
+            for item in items:
+                self.preset_combo.addItem(f"  {item}")  # Indent for visual grouping
+
+    def detect_matching_preset(self):
+        """Detect if current values match a preset (for display only)"""
+        current_width = self.current_width
+        current_height = self.current_height
+
+        for preset_name, preset_info in self.presets.items():
+            if preset_info["data"] is None:
+                continue
+
+            preset_data = preset_info["data"]
+            if (abs(current_width - preset_data["width"]) < 0.1 and
+                abs(current_height - preset_data["height"]) < 0.1):
+                return preset_name
+
+        return "None / Custom"
+
+    def validate_preset_compatibility(self, preset_name):
+        """Validate if preset is compatible with current settings"""
+        preset_info = self.presets.get(preset_name)
+        if not preset_info or not preset_info["data"]:
+            return True, ""
+
+        preset_data = preset_info["data"]
+
+        # Check if dimensions are reasonable for current kerf
+        if self.kerf_width * 2 >= min(preset_data["width"], preset_data["height"]):
+            return False, "Kerf too large for preset dimensions"
+
+        # Check if preset fits current part requirements
+        if hasattr(self, 'parts') and self.parts:
+            max_part_width = max(part.width for part in self.parts)
+            max_part_height = max(part.height for part in self.parts)
+
+            if (max_part_width > preset_data["width"] or
+                max_part_height > preset_data["height"]):
+                return False, "Preset too small for current parts"
+
+        return True, ""
+
+    def apply_preset_with_validation(self, preset_name):
+        """Apply preset with validation and user feedback"""
+        # Validate compatibility
+        is_valid, error_message = self.validate_preset_compatibility(preset_name)
+
+        if not is_valid:
+            # Show warning dialog
+            reply = QtWidgets.QMessageBox.question(
+                self.form,
+                "Preset Compatibility Warning",
+                f"Warning: {error_message}\n\nApply preset anyway?",
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            )
+
+            if reply == QtWidgets.QMessageBox.No:
+                # Revert preset selection
+                self.preset_combo.setCurrentText(self.current_preset)
+                return
+
+        # Apply the preset
+        self.on_preset_selected(preset_name)
+        self.current_preset = preset_name
+```
+
+#### Settings Panel Integration
+```python
+class SettingsPanel:
+    """Settings panel that properly manages defaults"""
+
+    def __init__(self):
+        self.settings = SquatchCutPreferences()
+        self.load_current_defaults()
+
+    def load_current_defaults(self):
+        """Load current defaults for editing"""
+        self.default_width = self.settings.get_default_sheet_width()
+        self.default_height = self.settings.get_default_sheet_height()
+        self.default_kerf = self.settings.get_default_kerf_width()
+
+        # Populate UI with current defaults
+        self.width_input.setText(str(self.default_width))
+        self.height_input.setText(str(self.default_height))
+        self.kerf_input.setText(str(self.default_kerf))
+
+    def on_save_defaults(self):
+        """Save new defaults - ONLY place defaults can change"""
+        try:
+            # Validate inputs
+            new_width = float(self.width_input.text())
+            new_height = float(self.height_input.text())
+            new_kerf = float(self.kerf_input.text())
+
+            # Validate ranges
+            if not (100 <= new_width <= 10000):
+                raise ValueError("Width must be between 100 and 10000 mm")
+            if not (100 <= new_height <= 10000):
+                raise ValueError("Height must be between 100 and 10000 mm")
+            if not (0.1 <= new_kerf <= 50):
+                raise ValueError("Kerf must be between 0.1 and 50 mm")
+
+            # Save to settings
+            self.settings.set_default_sheet_width(new_width)
+            self.settings.set_default_sheet_height(new_height)
+            self.settings.set_default_kerf_width(new_kerf)
+            self.settings.save()
+
+            # Update local values
+            self.default_width = new_width
+            self.default_height = new_height
+            self.default_kerf = new_kerf
+
+            # Show success message
+            QtWidgets.QMessageBox.information(
+                self.form,
+                "Settings Saved",
+                "Default values have been saved successfully."
+            )
+
+        except ValueError as e:
+            QtWidgets.QMessageBox.warning(
+                self.form,
+                "Invalid Input",
+                str(e)
+            )
+
+    def on_reset_to_factory(self):
+        """Reset to factory defaults"""
+        reply = QtWidgets.QMessageBox.question(
+            self.form,
+            "Reset to Factory Defaults",
+            "This will reset all settings to factory defaults. Continue?",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+        )
+
+        if reply == QtWidgets.QMessageBox.Yes:
+            # Reset to factory defaults
+            self.settings.reset_to_factory_defaults()
+            self.settings.save()
+
+            # Reload UI
+            self.load_current_defaults()
 ```
 
 ### Export Architecture Patterns
 
-#### Correct Export Implementation
+#### Complete Export Architecture Implementation
 ```python
 def export_cutlist(self, file_path):
-    """Use canonical export architecture"""
-    # 1. Build ExportJob from current nesting
-    export_job = build_export_job_from_current_nesting()
+    """Complete CSV export using canonical architecture"""
+    try:
+        # 1. Build ExportJob from current nesting state
+        export_job = build_export_job_from_current_nesting()
 
-    # 2. Use exporter.py functions
-    from SquatchCut.core.exporter import export_cutlist
-    export_cutlist(export_job, file_path)
+        # 2. Validate export job
+        if not export_job or not export_job.sheets:
+            raise ValueError("No nesting data available for export")
 
-    # Never access FreeCAD geometry directly
+        # 3. Use canonical exporter
+        from SquatchCut.core.exporter import export_cutlist
+        export_cutlist(export_job, file_path)
+
+        # 4. Log successful export
+        print(f"Cutlist exported successfully to {file_path}")
+
+    except Exception as e:
+        # Handle export errors gracefully
+        QtWidgets.QMessageBox.critical(
+            None,
+            "Export Error",
+            f"Failed to export cutlist: {str(e)}"
+        )
+        raise
 
 def export_svg(self, file_path):
-    """SVG export through canonical architecture"""
-    export_job = build_export_job_from_current_nesting()
+    """Complete SVG export using canonical architecture"""
+    try:
+        # 1. Build ExportJob from current nesting
+        export_job = build_export_job_from_current_nesting()
 
-    from SquatchCut.core.exporter import export_nesting_to_svg
-    export_nesting_to_svg(export_job, file_path)
+        # 2. Validate export data
+        self.validate_export_job(export_job)
+
+        # 3. Use canonical SVG exporter
+        from SquatchCut.core.exporter import export_nesting_to_svg
+        export_nesting_to_svg(export_job, file_path)
+
+        # 4. Verify export file was created
+        if not os.path.exists(file_path):
+            raise RuntimeError("SVG file was not created")
+
+        print(f"SVG exported successfully to {file_path}")
+
+    except Exception as e:
+        QtWidgets.QMessageBox.critical(
+            None,
+            "SVG Export Error",
+            f"Failed to export SVG: {str(e)}"
+        )
+        raise
+
+def validate_export_job(self, export_job):
+    """Validate ExportJob data integrity"""
+    if not export_job:
+        raise ValueError("ExportJob is None")
+
+    if not export_job.sheets:
+        raise ValueError("No sheets in ExportJob")
+
+    for i, sheet in enumerate(export_job.sheets):
+        if sheet.width_mm <= 0 or sheet.height_mm <= 0:
+            raise ValueError(f"Sheet {i} has invalid dimensions")
+
+        if not sheet.parts:
+            print(f"Warning: Sheet {i} has no parts")
+
+        for j, part in enumerate(sheet.parts):
+            if part.width_mm <= 0 or part.height_mm <= 0:
+                raise ValueError(f"Part {j} on sheet {i} has invalid dimensions")
+
+def build_export_job_from_current_nesting(self):
+    """Build ExportJob from current nesting state"""
+    # Get current session state
+    session = get_session_state()
+
+    # Create ExportJob
+    export_job = ExportJob(
+        measurement_system=session.get_measurement_system(),
+        timestamp=datetime.now(),
+        source_file=session.get_source_csv_path()
+    )
+
+    # Get nesting results
+    nesting_results = session.get_nesting_results()
+    if not nesting_results:
+        raise ValueError("No nesting results available")
+
+    # Convert nesting results to ExportSheets
+    for sheet_index, sheet_result in enumerate(nesting_results.sheets):
+        export_sheet = ExportSheet(
+            sheet_id=f"Sheet_{sheet_index + 1}",
+            width_mm=sheet_result.width_mm,
+            height_mm=sheet_result.height_mm,
+            kerf_mm=sheet_result.kerf_mm
+        )
+
+        # Add parts to sheet
+        for part_result in sheet_result.placed_parts:
+            export_part = ExportPartPlacement(
+                part_id=part_result.part_id,
+                label=part_result.label,
+                width_mm=part_result.width_mm,
+                height_mm=part_result.height_mm,
+                x_mm=part_result.x_mm,
+                y_mm=part_result.y_mm,
+                rotation_degrees=part_result.rotation_degrees
+            )
+            export_sheet.parts.append(export_part)
+
+        export_job.sheets.append(export_sheet)
+
+    return export_job
+```
+
+#### Advanced Export Patterns
+```python
+class ExportManager:
+    """Centralized export management"""
+
+    def __init__(self):
+        self.supported_formats = ["csv", "svg"]  # DXF deferred
+        self.export_history = []
+
+    def export_with_format_detection(self, file_path):
+        """Export with automatic format detection"""
+        # Detect format from file extension
+        _, ext = os.path.splitext(file_path.lower())
+
+        if ext == ".csv":
+            return self.export_cutlist(file_path)
+        elif ext == ".svg":
+            return self.export_svg(file_path)
+        elif ext == ".dxf":
+            raise NotImplementedError("DXF export is deferred - use CSV or SVG instead")
+        else:
+            raise ValueError(f"Unsupported export format: {ext}")
+
+    def export_with_progress(self, file_path, format_type):
+        """Export with progress dialog"""
+        progress = QtWidgets.QProgressDialog(
+            f"Exporting {format_type.upper()}...",
+            "Cancel",
+            0, 100
+        )
+        progress.setWindowModality(QtCore.Qt.WindowModal)
+        progress.show()
+
+        try:
+            # Update progress
+            progress.setValue(25)
+            QtCore.QCoreApplication.processEvents()
+
+            # Build export job
+            export_job = build_export_job_from_current_nesting()
+
+            progress.setValue(50)
+            QtCore.QCoreApplication.processEvents()
+
+            # Perform export
+            if format_type == "csv":
+                from SquatchCut.core.exporter import export_cutlist
+                export_cutlist(export_job, file_path)
+            elif format_type == "svg":
+                from SquatchCut.core.exporter import export_nesting_to_svg
+                export_nesting_to_svg(export_job, file_path)
+
+            progress.setValue(100)
+
+            # Record export in history
+            self.export_history.append({
+                "file_path": file_path,
+                "format": format_type,
+                "timestamp": datetime.now(),
+                "sheet_count": len(export_job.sheets)
+            })
+
+        finally:
+            progress.close()
+
+    def batch_export(self, base_path, formats):
+        """Export multiple formats simultaneously"""
+        export_job = build_export_job_from_current_nesting()
+
+        results = {}
+        for format_type in formats:
+            if format_type not in self.supported_formats:
+                results[format_type] = f"Error: Unsupported format {format_type}"
+                continue
+
+            try:
+                # Generate file path
+                file_path = f"{base_path}.{format_type}"
+
+                # Export using canonical architecture
+                if format_type == "csv":
+                    from SquatchCut.core.exporter import export_cutlist
+                    export_cutlist(export_job, file_path)
+                elif format_type == "svg":
+                    from SquatchCut.core.exporter import export_nesting_to_svg
+                    export_nesting_to_svg(export_job, file_path)
+
+                results[format_type] = f"Success: {file_path}"
+
+            except Exception as e:
+                results[format_type] = f"Error: {str(e)}"
+
+        return results
+```
+
+#### Export Data Model Patterns
+```python
+class ExportJob:
+    """Canonical export data model"""
+
+    def __init__(self, measurement_system, timestamp=None, source_file=None):
+        self.measurement_system = measurement_system  # "metric" or "imperial"
+        self.timestamp = timestamp or datetime.now()
+        self.source_file = source_file
+        self.sheets = []  # List of ExportSheet objects
+
+    def get_total_parts(self):
+        """Get total number of parts across all sheets"""
+        return sum(len(sheet.parts) for sheet in self.sheets)
+
+    def get_total_area_mm2(self):
+        """Get total sheet area in mm²"""
+        return sum(sheet.width_mm * sheet.height_mm for sheet in self.sheets)
+
+    def get_utilization_percentage(self):
+        """Calculate material utilization percentage"""
+        total_sheet_area = self.get_total_area_mm2()
+        if total_sheet_area == 0:
+            return 0.0
+
+        total_part_area = sum(
+            part.width_mm * part.height_mm
+            for sheet in self.sheets
+            for part in sheet.parts
+        )
+
+        return (total_part_area / total_sheet_area) * 100
+
+class ExportSheet:
+    """Canonical sheet data model"""
+
+    def __init__(self, sheet_id, width_mm, height_mm, kerf_mm=0.0):
+        self.sheet_id = sheet_id
+        self.width_mm = float(width_mm)  # Always store in mm
+        self.height_mm = float(height_mm)  # Always store in mm
+        self.kerf_mm = float(kerf_mm)  # Always store in mm
+        self.parts = []  # List of ExportPartPlacement objects
+
+    def get_part_count(self):
+        """Get number of parts on this sheet"""
+        return len(self.parts)
+
+    def get_utilization(self):
+        """Get utilization percentage for this sheet"""
+        sheet_area = self.width_mm * self.height_mm
+        if sheet_area == 0:
+            return 0.0
+
+        part_area = sum(part.width_mm * part.height_mm for part in self.parts)
+        return (part_area / sheet_area) * 100
+
+class ExportPartPlacement:
+    """Canonical part placement data model"""
+
+    def __init__(self, part_id, label, width_mm, height_mm, x_mm, y_mm, rotation_degrees=0):
+        self.part_id = part_id
+        self.label = label
+        self.width_mm = float(width_mm)  # Always store in mm
+        self.height_mm = float(height_mm)  # Always store in mm
+        self.x_mm = float(x_mm)  # Always store in mm
+        self.y_mm = float(y_mm)  # Always store in mm
+        self.rotation_degrees = float(rotation_degrees)
+
+    def get_bounds(self):
+        """Get bounding box of the part"""
+        return {
+            "min_x": self.x_mm,
+            "min_y": self.y_mm,
+            "max_x": self.x_mm + self.width_mm,
+            "max_y": self.y_mm + self.height_mm
+        }
+
+    def overlaps_with(self, other_part):
+        """Check if this part overlaps with another part"""
+        bounds1 = self.get_bounds()
+        bounds2 = other_part.get_bounds()
+
+        return not (bounds1["max_x"] <= bounds2["min_x"] or
+                   bounds2["max_x"] <= bounds1["min_x"] or
+                   bounds1["max_y"] <= bounds2["min_y"] or
+                   bounds2["max_y"] <= bounds1["min_y"])
+```
+
+#### Export Format Handlers
+```python
+def export_cutlist_csv(export_job, file_path):
+    """Export cutlist to CSV format using ExportJob data"""
+    with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile)
+
+        # Write header
+        writer.writerow([
+            "Sheet", "Part ID", "Label", "Width", "Height",
+            "X Position", "Y Position", "Rotation"
+        ])
+
+        # Write data from ExportJob (canonical source)
+        for sheet in export_job.sheets:
+            for part in sheet.parts:
+                # Format dimensions according to measurement system
+                if export_job.measurement_system == "imperial":
+                    width = format_fractional_inches(mm_to_inches(part.width_mm))
+                    height = format_fractional_inches(mm_to_inches(part.height_mm))
+                    x_pos = format_fractional_inches(mm_to_inches(part.x_mm))
+                    y_pos = format_fractional_inches(mm_to_inches(part.y_mm))
+                else:
+                    width = f"{part.width_mm:.1f} mm"
+                    height = f"{part.height_mm:.1f} mm"
+                    x_pos = f"{part.x_mm:.1f} mm"
+                    y_pos = f"{part.y_mm:.1f} mm"
+
+                writer.writerow([
+                    sheet.sheet_id,
+                    part.part_id,
+                    part.label,
+                    width,
+                    height,
+                    x_pos,
+                    y_pos,
+                    f"{part.rotation_degrees:.1f}°"
+                ])
+
+def export_nesting_svg(export_job, file_path):
+    """Export nesting layout to SVG using ExportJob data"""
+    # SVG header
+    svg_content = ['<?xml version="1.0" encoding="UTF-8"?>']
+
+    # Calculate total SVG dimensions
+    max_width = max(sheet.width_mm for sheet in export_job.sheets) if export_job.sheets else 1220
+    total_height = sum(sheet.height_mm + 50 for sheet in export_job.sheets)  # 50mm spacing
+
+    svg_content.append(f'<svg width="{max_width}" height="{total_height}" '
+                      f'viewBox="0 0 {max_width} {total_height}" '
+                      f'xmlns="http://www.w3.org/2000/svg">')
+
+    # Add styles
+    svg_content.append('<style>')
+    svg_content.append('.sheet { fill: none; stroke: black; stroke-width: 2; }')
+    svg_content.append('.part { fill: lightblue; stroke: blue; stroke-width: 1; }')
+    svg_content.append('.label { font-family: Arial; font-size: 12px; text-anchor: middle; }')
+    svg_content.append('</style>')
+
+    # Draw sheets and parts from ExportJob (canonical source)
+    y_offset = 0
+    for sheet in export_job.sheets:
+        # Draw sheet outline
+        svg_content.append(f'<rect class="sheet" x="0" y="{y_offset}" '
+                          f'width="{sheet.width_mm}" height="{sheet.height_mm}"/>')
+
+        # Draw parts
+        for part in sheet.parts:
+            part_x = part.x_mm
+            part_y = y_offset + part.y_mm
+
+            # Draw part rectangle
+            svg_content.append(f'<rect class="part" x="{part_x}" y="{part_y}" '
+                              f'width="{part.width_mm}" height="{part.height_mm}"/>')
+
+            # Add part label
+            label_x = part_x + part.width_mm / 2
+            label_y = part_y + part.height_mm / 2
+            svg_content.append(f'<text class="label" x="{label_x}" y="{label_y}">'
+                              f'{part.label}</text>')
+
+        y_offset += sheet.height_mm + 50  # Add spacing between sheets
+
+    svg_content.append('</svg>')
+
+    # Write SVG file
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(svg_content))
 ```
 
 ### Testing Patterns
@@ -497,39 +1966,204 @@ def __init__(self):
 - Widgets may be populated with stale data
 - Hydration can't properly initialize UI state
 - Leads to inconsistent behavior
+- May cause AttributeError if hydration tries to access widgets
 
-**Correct Approach:**
-```python
-def __init__(self):
-    self.hydrate_from_params()  # First!
-    self.create_widgets()       # Then widgets
-```
+**Consequences:**
+- UI shows wrong values on first load
+- Settings don't persist correctly
+- Unpredictable behavior across sessions
 
 #### ❌ GUI Access During Hydration
 ```python
 # WRONG - Accessing GUI during hydration
 def hydrate_from_params(self):
-    self.sheet_width = get_default_width()
-    self.width_input.setText(str(self.sheet_width))  # GUI access!
+    self.session = get_session_state()
+    self.sheet_width = self.session.get_sheet_width()
+
+    # WRONG: GUI access during hydration
+    self.width_input.setText(str(self.sheet_width))  # Widgets don't exist yet!
+    self.preset_combo.setCurrentText("None / Custom")  # Will crash!
+
+    # WRONG: Creating widgets during hydration
+    if not self.form:
+        self.form = QtWidgets.QWidget()  # Violates initialization order
 ```
 
 **Why This Fails:**
-- Widgets may not exist yet
+- Widgets may not exist yet (AttributeError)
 - Violates separation of concerns
 - Makes testing difficult
+- Breaks the initialization contract
+
+**Consequences:**
+- Runtime crashes with AttributeError
+- Impossible to unit test hydration logic
+- Tight coupling between data and UI
 
 #### ❌ Preset Auto-Selection
 ```python
-# WRONG - Auto-selecting presets
+# WRONG - Auto-selecting presets based on current values
 def load_panel(self):
+    # WRONG: Auto-detecting and selecting presets
     if self.sheet_width == 1220 and self.sheet_height == 2440:
-        self.preset_combo.setCurrentText("4' x 8'")  # Auto-selection!
+        self.preset_combo.setCurrentText("4' x 8'")
+    elif self.sheet_width == inches_to_mm(48) and self.sheet_height == inches_to_mm(96):
+        self.preset_combo.setCurrentText("4' x 8'")
+
+    # WRONG: Selecting preset during hydration
+    def hydrate_from_params(self):
+        self.sheet_width = self.session.get_sheet_width()
+        # Auto-select matching preset
+        matching_preset = self.find_matching_preset(self.sheet_width, self.sheet_height)
+        self.current_preset = matching_preset  # Violates preset/default separation
 ```
 
 **Why This Fails:**
 - Violates preset/default separation
 - Confuses users about what's a default vs preset
 - Makes behavior unpredictable
+- Breaks the "None / Custom" default rule
+
+**Consequences:**
+- Users can't distinguish between defaults and presets
+- Unexpected preset selection confuses workflow
+- Breaks user mental model of presets vs defaults
+
+#### ❌ Default Modification During Hydration
+```python
+# WRONG - Modifying defaults during TaskPanel initialization
+def hydrate_from_params(self):
+    self.session = get_session_state()
+    self.settings = SquatchCutPreferences()
+
+    # Load current values
+    self.sheet_width = self.session.get_sheet_width()
+
+    # WRONG: Modifying defaults during hydration
+    if self.sheet_width != self.settings.get_default_sheet_width():
+        # "Update" defaults to match current values
+        self.settings.set_default_sheet_width(self.sheet_width)  # VIOLATION!
+        self.settings.save()  # VIOLATION!
+
+    # WRONG: Auto-saving current state as defaults
+    self.settings.set_default_sheet_height(self.sheet_height)  # VIOLATION!
+```
+
+**Why This Fails:**
+- Violates HYDRATION-002 constraint
+- Defaults should only change via Settings panel
+- Creates unpredictable default behavior
+- Breaks user expectations about persistence
+
+**Consequences:**
+- Defaults change without user knowledge
+- Settings panel becomes unreliable
+- User loses control over their preferences
+
+#### ❌ Circular Hydration Dependencies
+```python
+# WRONG - Creating circular dependencies during hydration
+def hydrate_from_params(self):
+    self.session = get_session_state()
+
+    # WRONG: Hydration depends on UI state
+    if hasattr(self, 'measurement_combo') and self.measurement_combo:
+        current_system = self.measurement_combo.currentText()  # UI dependency!
+        self.measurement_system = current_system
+    else:
+        self.measurement_system = self.session.get_measurement_system()
+
+    # WRONG: Hydration triggers other hydration
+    self.sheet_width = self.session.get_sheet_width()
+    self.update_related_values()  # May trigger more hydration
+
+def update_related_values(self):
+    # WRONG: Called during hydration, but accesses UI
+    if self.measurement_system == "imperial":
+        self.width_input.setText(format_fractional_inches(mm_to_inches(self.sheet_width)))
+```
+
+**Why This Fails:**
+- Creates circular dependencies
+- Makes initialization order unpredictable
+- Violates single responsibility principle
+- Makes debugging extremely difficult
+
+#### ❌ Exception Handling That Masks Problems
+```python
+# WRONG - Catching exceptions that hide hydration problems
+def hydrate_from_params(self):
+    try:
+        self.session = get_session_state()
+        self.sheet_width = self.session.get_sheet_width()
+
+        # WRONG: Accessing GUI during hydration, but catching the error
+        self.width_input.setText(str(self.sheet_width))  # Will fail
+    except AttributeError:
+        # WRONG: Silently ignoring the architectural violation
+        pass  # This hides the real problem!
+    except Exception as e:
+        # WRONG: Generic exception handling that masks issues
+        print(f"Hydration failed: {e}")  # Doesn't fix the root cause
+        self.sheet_width = 1220.0  # Band-aid solution
+```
+
+**Why This Fails:**
+- Masks architectural violations
+- Makes debugging impossible
+- Hides the real problem
+- Creates unreliable behavior
+
+#### ❌ Lazy Hydration
+```python
+# WRONG - Lazy hydration that happens on-demand
+def get_sheet_width(self):
+    # WRONG: Hydrating on first access
+    if not hasattr(self, '_sheet_width'):
+        self.hydrate_from_params()  # Too late!
+    return self._sheet_width
+
+def create_widgets(self):
+    self.form = QtWidgets.QWidget()
+    self.width_input = QtWidgets.QLineEdit()
+
+    # WRONG: Accessing values that trigger lazy hydration
+    current_width = self.get_sheet_width()  # Triggers hydration after widgets exist
+    self.width_input.setText(str(current_width))
+```
+
+**Why This Fails:**
+- Violates initialization order
+- Makes behavior unpredictable
+- Can trigger hydration at wrong times
+- Breaks the explicit initialization contract
+
+#### ❌ Partial Hydration
+```python
+# WRONG - Only hydrating some values
+def hydrate_from_params(self):
+    self.session = get_session_state()
+
+    # WRONG: Only hydrating width, forgetting height
+    self.sheet_width = self.session.get_sheet_width()
+    # Missing: self.sheet_height = self.session.get_sheet_height()
+
+    # WRONG: Conditional hydration that skips values
+    if self.is_advanced_mode():
+        self.kerf_width = self.session.get_kerf_width()
+    # Missing kerf_width for non-advanced mode
+
+def populate_ui_values(self):
+    self.width_input.setText(str(self.sheet_width))
+    # CRASH: self.sheet_height is not defined!
+    self.height_input.setText(str(self.sheet_height))  # AttributeError!
+```
+
+**Why This Fails:**
+- Creates incomplete state
+- Leads to AttributeError crashes
+- Makes behavior inconsistent
+- Violates the complete initialization principle
 
 ### Measurement System Anti-Patterns
 
@@ -538,34 +2172,203 @@ def load_panel(self):
 # WRONG - Storing imperial values internally
 def set_width(self, inches_value):
     self.width = inches_value  # Should be mm!
+    self.internal_dimensions = {"width": inches_value, "height": 96}  # Mixed units!
+
+# WRONG - Conditional internal storage
+def store_dimension(self, value, measurement_system):
+    if measurement_system == "imperial":
+        self.sheet_width = value  # Storing inches internally!
+    else:
+        self.sheet_width = value  # Storing mm internally!
+    # Now self.sheet_width could be in either unit!
+
+# WRONG - Storing original input format
+def handle_input(self, user_input):
+    self.raw_width = user_input  # Could be "48 3/4" or "1220.5"
+    # Later code has to guess the format and units
 ```
 
 **Why This Fails:**
 - Inconsistent with FreeCAD internal units
-- Causes conversion errors
+- Causes conversion errors in calculations
 - Makes calculations unreliable
+- Creates ambiguity about what units values represent
+- Breaks interoperability with FreeCAD geometry
+
+**Consequences:**
+- Nesting calculations produce wrong results
+- Export data has incorrect dimensions
+- FreeCAD geometry creation fails
+- Cross-module communication breaks
 
 #### ❌ Decimal Inch Display
 ```python
 # WRONG - Using decimal inches in UI
 def format_imperial(self, mm_value):
     inches = mm_to_inches(mm_value)
-    return f"{inches:.2f} in"  # Decimal inches!
+    return f"{inches:.2f} in"  # Decimal inches violate woodworking standards!
+
+# WRONG - Inconsistent decimal precision
+def format_dimensions(self, width_mm, height_mm):
+    width_inches = mm_to_inches(width_mm)
+    height_inches = mm_to_inches(height_mm)
+    return f"{width_inches:.3f}\" x {height_inches:.1f}\""  # Different precisions!
+
+# WRONG - Scientific notation for inches
+def format_large_imperial(self, mm_value):
+    inches = mm_to_inches(mm_value)
+    return f"{inches:.2e} in"  # 4.80e+01 instead of 48"
 ```
 
 **Why This Fails:**
-- Doesn't match woodworking standards
-- Users expect fractional inches
+- Doesn't match woodworking industry standards
+- Users expect fractional inches (1/2, 3/4, etc.)
 - Inconsistent with project requirements
+- Confuses users familiar with fractional measurements
+- Makes manual verification difficult
+
+**Consequences:**
+- Users can't easily verify measurements
+- Doesn't match physical measuring tools
+- Breaks user mental model of woodworking
+- Inconsistent with cut list expectations
 
 #### ❌ Mixed Unit Calculations
 ```python
 # WRONG - Mixing units in calculations
 def calculate_area(self):
-    width_inches = self.width_input.text()  # Could be inches
-    height_mm = self.height_mm              # Definitely mm
-    return float(width_inches) * height_mm  # Mixed units!
+    width_inches = float(self.width_input.text())  # Could be inches
+    height_mm = self.height_mm                     # Definitely mm
+    return width_inches * height_mm  # Mixed units = wrong result!
+
+# WRONG - Assuming input units
+def calculate_perimeter(self):
+    # Assumes input is always in mm, but could be inches
+    width = float(self.width_input.text())
+    height = float(self.height_input.text())
+    return 2 * (width + height)  # Wrong if inputs are inches!
+
+# WRONG - Unit-dependent calculations
+def validate_dimensions(self):
+    width = float(self.width_input.text())
+    if self.measurement_system == "imperial":
+        return width > 1  # Assumes inches, but what if it's mm?
+    else:
+        return width > 25  # Assumes mm, but what if it's inches?
 ```
+
+**Why This Fails:**
+- Creates incorrect calculations
+- Results depend on current UI state
+- Makes code unreliable and unpredictable
+- Violates the internal mm storage rule
+
+#### ❌ Conversion Chain Errors
+```python
+# WRONG - Multiple conversions that accumulate errors
+def process_measurement(self, user_input):
+    # Convert to inches first
+    inches = parse_fractional_inches(user_input)
+
+    # Convert to cm for some reason
+    cm = inches * 2.54
+
+    # Convert to mm
+    mm = cm * 10
+
+    # Convert back to inches for validation
+    validation_inches = mm / 25.4
+
+    # Each conversion introduces floating point errors!
+    return mm
+
+# WRONG - Unnecessary round-trip conversions
+def format_and_parse(self, mm_value):
+    # Convert to display format
+    inches = mm_to_inches(mm_value)
+    display_text = format_fractional_inches(inches)
+
+    # Immediately parse it back (why?)
+    parsed_inches = parse_fractional_inches(display_text)
+    return inches_to_mm(parsed_inches)  # Lost precision!
+```
+
+**Why This Fails:**
+- Accumulates floating point errors
+- Unnecessary precision loss
+- Makes calculations unreliable
+- Violates the "convert once, store in mm" principle
+
+#### ❌ Unit System State Confusion
+```python
+# WRONG - Storing measurement system in multiple places
+def __init__(self):
+    self.measurement_system = "metric"  # In TaskPanel
+    self.session.measurement_system = "imperial"  # In session
+    self.settings.default_units = "metric"  # In settings
+    # Which one is correct?
+
+# WRONG - UI-dependent unit detection
+def get_current_units(self):
+    # Guessing units from UI state
+    if "inches" in self.width_label.text():
+        return "imperial"
+    elif "mm" in self.width_label.text():
+        return "metric"
+    else:
+        return "unknown"  # Unreliable!
+
+# WRONG - Inconsistent unit switching
+def switch_to_imperial(self):
+    self.measurement_system = "imperial"
+    # Forgot to update UI labels!
+    # Forgot to reformat input fields!
+    # Forgot to update session state!
+```
+
+**Why This Fails:**
+- Creates inconsistent state across components
+- Makes unit system unreliable
+- UI and data can get out of sync
+- Violates single source of truth principle
+
+#### ❌ Precision Loss and Rounding Errors
+```python
+# WRONG - Premature rounding
+def handle_input(self, user_input):
+    inches = parse_fractional_inches(user_input)
+    rounded_inches = round(inches, 2)  # Premature rounding!
+    mm = inches_to_mm(rounded_inches)
+    return round(mm, 1)  # More rounding!
+
+# WRONG - Inconsistent precision
+def format_measurements(self, values):
+    results = []
+    for i, mm_value in enumerate(values):
+        if i % 2 == 0:
+            # Even indices get more precision
+            results.append(f"{mm_value:.3f} mm")
+        else:
+            # Odd indices get less precision
+            results.append(f"{mm_value:.1f} mm")
+    return results
+
+# WRONG - Precision depends on measurement system
+def store_value(self, value, system):
+    if system == "imperial":
+        # Store with inch precision
+        self.value = round(value, 3)
+    else:
+        # Store with mm precision
+        self.value = round(value, 1)
+    # Different precision for same internal value!
+```
+
+**Why This Fails:**
+- Loses precision unnecessarily
+- Creates inconsistent behavior
+- Makes calculations less accurate
+- Violates the high-precision internal storage principle
 
 ### Export Anti-Patterns
 
@@ -597,6 +2400,206 @@ def my_custom_export(self, file_path):
 - Violates single source of truth principle
 - Creates maintenance burden
 - Leads to inconsistent export behavior
+
+### Preset and Default Separation Anti-Patterns
+
+#### ❌ Auto-Selecting Presets Based on Current Values
+```python
+# WRONG - Auto-detecting and selecting presets
+def load_panel(self):
+    # Load current values
+    self.current_width = self.session.get_sheet_width()
+    self.current_height = self.session.get_sheet_height()
+
+    # WRONG: Auto-select matching preset
+    if self.current_width == 1220 and self.current_height == 2440:
+        self.preset_combo.setCurrentText("Standard Metric")  # Auto-selection!
+    elif self.current_width == inches_to_mm(48) and self.current_height == inches_to_mm(96):
+        self.preset_combo.setCurrentText("4' x 8' Plywood")  # Auto-selection!
+
+# WRONG - Preset selection during hydration
+def hydrate_from_params(self):
+    self.sheet_width = self.session.get_sheet_width()
+    self.sheet_height = self.session.get_sheet_height()
+
+    # WRONG: Determining preset during hydration
+    matching_preset = self.find_matching_preset(self.sheet_width, self.sheet_height)
+    self.current_preset = matching_preset  # Violates preset/default separation
+```
+
+**Why This Fails:**
+- Violates the "None / Custom" default rule
+- Confuses users about what's a default vs preset
+- Makes behavior unpredictable
+- Breaks user mental model of presets
+
+**Consequences:**
+- Users can't distinguish between their defaults and presets
+- Unexpected preset selection disrupts workflow
+- Makes it unclear when defaults vs presets are active
+
+#### ❌ Modifying Defaults Through Preset Selection
+```python
+# WRONG - Preset selection modifies stored defaults
+def on_preset_selected(self, preset_name):
+    preset_data = self.presets[preset_name]
+
+    # Update UI
+    self.width_input.setText(str(preset_data["width"]))
+    self.height_input.setText(str(preset_data["height"]))
+
+    # WRONG: Modifying defaults when preset is selected
+    self.settings.set_default_sheet_width(preset_data["width"])  # VIOLATION!
+    self.settings.set_default_sheet_height(preset_data["height"])  # VIOLATION!
+    self.settings.save()  # VIOLATION!
+
+# WRONG - "Apply as Default" functionality in main panel
+def on_apply_preset_as_default(self):
+    current_preset = self.preset_combo.currentText()
+    if current_preset != "None / Custom":
+        preset_data = self.presets[current_preset]
+
+        # WRONG: Changing defaults outside Settings panel
+        self.settings.set_default_sheet_width(preset_data["width"])  # VIOLATION!
+        self.settings.save()  # VIOLATION!
+```
+
+**Why This Fails:**
+- Violates HYDRATION-002 constraint
+- Defaults should only change via Settings panel
+- Creates unpredictable default behavior
+- Breaks user expectations about persistence
+
+#### ❌ Blurred Preset/Default Boundaries
+```python
+# WRONG - Mixing preset and default concepts
+def __init__(self):
+    # WRONG: Treating presets as defaults
+    self.default_presets = {
+        "user_default": {"width": 1220, "height": 2440},  # Is this a preset or default?
+        "project_default": {"width": 1200, "height": 2400}  # Confusing terminology
+    }
+
+# WRONG - Saving "current preset" as persistent state
+def save_session_state(self):
+    # WRONG: Persisting preset selection
+    self.session.set_current_preset(self.preset_combo.currentText())  # Violates separation
+
+    # Should only persist actual values, not preset names
+    self.session.set_sheet_width(self.current_width)  # CORRECT
+    self.session.set_sheet_height(self.current_height)  # CORRECT
+
+# WRONG - Loading preset selection from session
+def load_session_state(self):
+    # WRONG: Restoring preset selection
+    saved_preset = self.session.get_current_preset()
+    if saved_preset:
+        self.preset_combo.setCurrentText(saved_preset)  # Violates "None / Custom" rule
+```
+
+**Why This Fails:**
+- Creates confusion between temporary and permanent settings
+- Violates the clear separation of concerns
+- Makes behavior unpredictable
+- Breaks the preset selection model
+
+#### ❌ Preset-Dependent Default Behavior
+```python
+# WRONG - Default behavior that depends on preset selection
+def get_default_kerf(self):
+    current_preset = self.preset_combo.currentText()
+
+    # WRONG: Defaults depend on preset selection
+    if current_preset == "4' x 8' Plywood":
+        return 3.2  # Plywood kerf
+    elif current_preset == "2' x 4' Lumber":
+        return 2.4  # Lumber kerf
+    else:
+        return self.settings.get_default_kerf_width()
+
+# WRONG - Validation rules that change based on preset
+def validate_dimensions(self):
+    current_preset = self.preset_combo.currentText()
+
+    # WRONG: Different validation for different presets
+    if "Plywood" in current_preset:
+        max_width = inches_to_mm(48)  # Plywood-specific limit
+    elif "Lumber" in current_preset:
+        max_width = inches_to_mm(24)  # Lumber-specific limit
+    else:
+        max_width = 10000  # No limit for custom
+
+    return self.current_width <= max_width
+```
+
+**Why This Fails:**
+- Creates inconsistent behavior
+- Makes presets more than just UI convenience
+- Violates the principle that presets are just value templates
+- Creates complex interdependencies
+
+#### ❌ Incomplete Preset Implementation
+```python
+# WRONG - Presets that don't cover all relevant values
+def on_preset_selected(self, preset_name):
+    preset_data = self.presets[preset_name]
+
+    # WRONG: Only updating some values
+    self.width_input.setText(str(preset_data["width"]))
+    self.height_input.setText(str(preset_data["height"]))
+    # Missing: kerf, measurement system, other related settings
+
+# WRONG - Presets with inconsistent data
+def setup_presets(self):
+    self.presets = {
+        "4' x 8'": {"width": inches_to_mm(48), "height": inches_to_mm(96)},
+        "Metric Standard": {"width": 1220, "height": 2440, "kerf": 3.2},  # Inconsistent fields
+        "Small Sheet": {"width": 600}  # Missing height
+    }
+
+# WRONG - Preset selection that leaves UI in inconsistent state
+def apply_partial_preset(self, preset_name):
+    # Updates some fields but not others
+    self.width_input.setText("1220")
+    # Forgot to update height, kerf, measurement system
+    # UI is now in inconsistent state
+```
+
+**Why This Fails:**
+- Creates incomplete or inconsistent state
+- Confuses users about what the preset actually sets
+- Leads to unexpected behavior
+- Makes presets unreliable
+
+#### ❌ Settings Panel That Doesn't Control Defaults
+```python
+# WRONG - Settings panel that can't actually change defaults
+class SettingsPanel:
+    def __init__(self):
+        # WRONG: Loading current values instead of defaults
+        self.width_input.setText(str(self.session.get_sheet_width()))  # Current, not default
+        self.height_input.setText(str(self.session.get_sheet_height()))  # Current, not default
+
+    def on_save(self):
+        # WRONG: Saving to session instead of defaults
+        self.session.set_sheet_width(float(self.width_input.text()))  # Wrong target!
+        # Should be: self.settings.set_default_sheet_width(...)
+
+# WRONG - Multiple ways to change defaults
+def save_current_as_default(self):
+    # WRONG: Changing defaults outside Settings panel
+    self.settings.set_default_sheet_width(self.current_width)  # Should only happen in Settings
+
+def quick_save_defaults(self):
+    # WRONG: Shortcut that bypasses Settings panel
+    self.settings.set_default_sheet_width(self.width_input.text())  # Violates single point of control
+```
+
+**Why This Fails:**
+- Settings panel becomes meaningless
+- Multiple ways to change defaults creates confusion
+- Violates single point of control principle
+- Makes default management unpredictable
 
 ### Python Compatibility Anti-Patterns
 
@@ -640,27 +2643,223 @@ from ..gui import commands
 def show_settings(self):
     if not hasattr(self, 'settings_panel'):
         self.settings_panel = TaskPanel_Settings()
-    # Creates new instance each time
+    # Creates new instance each time - memory leak!
     new_panel = TaskPanel_Settings()
+    return new_panel
+
+# WRONG - Not tracking panel instances
+def open_advanced_settings(self):
+    # Creates new panel every time
+    panel = TaskPanel_AdvancedSettings()
+    panel.show()  # Multiple panels can be open simultaneously
+
+# WRONG - Circular references
+def create_nested_panels(self):
+    self.main_panel = TaskPanel_Main()
+    self.settings_panel = TaskPanel_Settings()
+
+    # Circular reference - prevents garbage collection
+    self.main_panel.settings_ref = self.settings_panel
+    self.settings_panel.main_ref = self.main_panel
 ```
 
 **Why This Fails:**
-- Wastes resources
-- Can cause conflicts
-- Violates singleton pattern
+- Wastes memory and resources
+- Can cause conflicts between instances
+- Violates singleton pattern for UI panels
+- Creates memory leaks
+- Makes state management impossible
 
-#### ❌ UI Overflow Ignorance
+**Consequences:**
+- FreeCAD becomes slow and unresponsive
+- Multiple conflicting panels confuse users
+- Memory usage grows continuously
+- Panel state becomes inconsistent
+
+#### ❌ UI Overflow and Fixed Layouts
 ```python
-# WRONG - Not considering narrow docks
+# WRONG - Fixed width layouts that overflow narrow docks
 def create_layout(self):
-    # Fixed width layout that overflows
     self.setFixedWidth(800)  # Too wide for narrow docks
+
+    # WRONG - Horizontal layout for many controls
+    layout = QtWidgets.QHBoxLayout()
+    layout.addWidget(QtWidgets.QLabel("Very Long Label Text"))
+    layout.addWidget(self.input1)
+    layout.addWidget(QtWidgets.QLabel("Another Long Label"))
+    layout.addWidget(self.input2)
+    # This will overflow in narrow docks
+
+# WRONG - Not considering minimum sizes
+def create_inputs(self):
+    self.width_input = QtWidgets.QLineEdit()
+    self.width_input.setFixedWidth(200)  # Too wide for narrow docks
+
+    # WRONG - Long text without eliding
+    self.status_label = QtWidgets.QLabel("This is a very long status message that will overflow")
+
+# WRONG - Grid layouts with too many columns
+def create_grid(self):
+    grid = QtWidgets.QGridLayout()
+    # Too many columns for narrow spaces
+    grid.addWidget(QtWidgets.QLabel("Width:"), 0, 0)
+    grid.addWidget(self.width_input, 0, 1)
+    grid.addWidget(QtWidgets.QLabel("Height:"), 0, 2)
+    grid.addWidget(self.height_input, 0, 3)
+    grid.addWidget(QtWidgets.QLabel("Kerf:"), 0, 4)
+    grid.addWidget(self.kerf_input, 0, 5)
 ```
 
 **Why This Fails:**
 - Makes UI unusable on narrow docks
-- Poor user experience
+- Poor user experience in constrained spaces
 - Violates responsive design principles
+- Forces horizontal scrolling
+- Makes text unreadable
+
+#### ❌ Signal Connection Problems
+```python
+# WRONG - Connecting signals before widgets exist
+def __init__(self):
+    self.connect_signals()  # Widgets don't exist yet!
+    self.create_widgets()
+
+# WRONG - Not disconnecting signals during updates
+def update_all_values(self):
+    # This will trigger signals and cause recursion
+    self.width_input.setText("1220")  # Triggers textChanged
+    self.height_input.setText("2440")  # Triggers textChanged
+    # Each signal handler tries to update other fields
+
+# WRONG - Connecting the same signal multiple times
+def setup_ui(self):
+    self.width_input.textChanged.connect(self.on_width_changed)
+    # Later in the code...
+    self.width_input.textChanged.connect(self.on_width_changed)  # Connected twice!
+
+# WRONG - Lambda functions that capture self
+def connect_dynamic_signals(self):
+    for i, button in enumerate(self.buttons):
+        # This creates a closure that captures the loop variable
+        button.clicked.connect(lambda: self.on_button_clicked(i))  # Wrong i value!
+```
+
+**Why This Fails:**
+- Causes AttributeError crashes
+- Creates infinite recursion loops
+- Leads to duplicate signal handling
+- Memory leaks from unclosed lambdas
+- Unpredictable behavior
+
+#### ❌ Widget Lifecycle Problems
+```python
+# WRONG - Not properly cleaning up widgets
+def close_panel(self):
+    self.form.hide()  # Widget still exists in memory
+    # Should call self.form.deleteLater()
+
+# WRONG - Accessing deleted widgets
+def update_ui_later(self):
+    # Widget might have been deleted
+    self.width_input.setText("1220")  # RuntimeError: wrapped C/C++ object deleted
+
+# WRONG - Creating widgets in wrong thread
+def background_task(self):
+    # WRONG - Creating GUI widgets in background thread
+    self.progress_dialog = QtWidgets.QProgressDialog()  # GUI in wrong thread!
+
+# WRONG - Modifying UI from non-GUI thread
+def worker_thread_function(self):
+    # WRONG - Updating GUI from worker thread
+    self.status_label.setText("Processing...")  # Thread safety violation!
+```
+
+**Why This Fails:**
+- Memory leaks from undestroyed widgets
+- Runtime crashes from deleted widget access
+- Thread safety violations
+- Unpredictable Qt behavior
+
+#### ❌ Input Validation Problems
+```python
+# WRONG - No input validation
+def on_width_changed(self, text):
+    # Directly using user input without validation
+    self.sheet_width = float(text)  # Will crash on invalid input!
+
+# WRONG - Inconsistent validation
+def validate_inputs(self):
+    # Different validation for similar inputs
+    if self.width_input.text():
+        width = float(self.width_input.text())  # May crash
+
+    height_text = self.height_input.text()
+    if height_text and height_text.isdigit():  # Different validation logic
+        height = int(height_text)
+
+# WRONG - Validation that prevents user input
+def strict_validation(self, text):
+    # Prevents user from typing intermediate values
+    try:
+        value = float(text)
+        if value <= 0:
+            self.width_input.setText("")  # Clears input while typing!
+    except ValueError:
+        self.width_input.setText("")  # Clears input on any invalid character!
+
+# WRONG - No visual feedback for errors
+def validate_silently(self, text):
+    try:
+        value = float(text)
+        self.sheet_width = value
+    except ValueError:
+        pass  # Silent failure - user has no idea what's wrong
+```
+
+**Why This Fails:**
+- Crashes on invalid user input
+- Inconsistent user experience
+- Prevents normal typing workflow
+- No feedback about what's wrong
+- Makes debugging impossible
+
+#### ❌ State Management Problems
+```python
+# WRONG - UI state not synchronized with data
+def on_preset_selected(self, preset_name):
+    # Updates UI but not internal state
+    self.width_input.setText("1220")
+    self.height_input.setText("2440")
+    # Forgot: self.sheet_width = 1220, self.sheet_height = 2440
+
+# WRONG - Multiple sources of truth
+def __init__(self):
+    self.ui_width = 1220      # UI state
+    self.data_width = 1220    # Data state
+    self.session_width = 1220 # Session state
+    # Which one is correct?
+
+# WRONG - State updates that don't persist
+def apply_temporary_changes(self):
+    # Updates UI but doesn't save to session
+    self.width_input.setText("2440")
+    self.height_input.setText("1220")
+    # Changes lost when panel reopens
+
+# WRONG - Inconsistent state during updates
+def update_measurement_system(self, new_system):
+    self.measurement_system = new_system
+    # UI still shows old units while updating
+    self.width_input.setText(self.convert_width(new_system))
+    # Brief moment where system and UI are inconsistent
+```
+
+**Why This Fails:**
+- UI and data get out of sync
+- Multiple conflicting states
+- Changes don't persist
+- Inconsistent behavior
+- User confusion about current state
 
 ---
 ## Testing Requirements

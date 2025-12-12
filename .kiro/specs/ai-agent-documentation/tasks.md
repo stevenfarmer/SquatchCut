@@ -86,43 +86,43 @@
     - **Property 7: Repository Organization Compliance**
     - **Validates: Requirements 7.1, 7.2, 7.3, 7.4, 7.5**
 
-- [ ] 5. Create comprehensive examples and anti-patterns library
-  - [ ] 5.1 Document hydration patterns and anti-patterns
+- [x] 5. Create comprehensive examples and anti-patterns library
+  - [x] 5.1 Document hydration patterns and anti-patterns
     - Create examples of correct hydration initialization order
     - Document common hydration mistakes and their consequences
     - Add code examples showing proper hydrate_from_params() usage
     - Include anti-patterns that cause hydration failures
     - _Requirements: 8.1_
 
-  - [ ] 5.2 Document measurement system patterns
+  - [x] 5.2 Document measurement system patterns
     - Create examples of proper mm/fractional inch handling
     - Document common measurement system mistakes to avoid
     - Add code examples for correct unit conversion and display
     - Include anti-patterns that cause measurement drift or errors
     - _Requirements: 8.2_
 
-  - [ ] 5.3 Document UI component patterns
+  - [x] 5.3 Document UI component patterns
     - Create examples of correct TaskPanel initialization patterns
     - Document UI anti-patterns that cause overflow or loading failures
     - Add code examples for proper widget creation and signal connection
     - Include examples of qt_compat usage for GUI testing
     - _Requirements: 8.3_
 
-  - [ ] 5.4 Document preset and default separation patterns
+  - [x] 5.4 Document preset and default separation patterns
     - Create clear examples showing preset vs default concepts
     - Document anti-patterns that blur the preset/default separation
     - Add code examples of proper preset handling without overriding defaults
     - Include examples of correct Settings panel behavior
     - _Requirements: 8.4_
 
-  - [ ] 5.5 Document export architecture patterns
+  - [x] 5.5 Document export architecture patterns
     - Create examples of correct ExportJob usage and data flow
     - Document export anti-patterns that bypass canonical data models
     - Add code examples for deterministic CSV and SVG export
     - Include explicit DXF deferral documentation and rationale
     - _Requirements: 8.5, 4.1, 4.2, 4.3, 4.4, 4.5_
 
-  - [ ] 5.6 Write property test for export architecture preservation
+  - [x] 5.6 Write property test for export architecture preservation
     - **Property 4: Export Architecture Preservation**
     - **Validates: Requirements 4.1, 4.2, 4.3, 4.4, 4.5**
 
