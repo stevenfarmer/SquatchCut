@@ -530,10 +530,8 @@ class ApplyNestingCommand:
         try:
             run_cmd = RunNestingCommand()
             run_cmd.Activated()
-            try:
-                Gui.Control.closeDialog()
-            except Exception as e:
-                logger.warning(f"ApplyNestingCommand: failed to close dialog: {e!r}")
+            # Note: Removed automatic dialog closing to keep TaskPanel open for iterative workflow
+            # Users can manually close the panel if desired
         except Exception as e:
             logger.error(f"Error in ApplyNestingCommand.Activated(): {e!r}")
 

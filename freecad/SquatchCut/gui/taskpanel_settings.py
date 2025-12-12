@@ -19,7 +19,9 @@ class _UnitRadioProxy:
         self._value = value
 
     def isChecked(self) -> bool:
-        return (getattr(self._panel, "measurement_system", None) or "metric") == self._value
+        return (
+            getattr(self._panel, "measurement_system", None) or "metric"
+        ) == self._value
 
     def setChecked(self, checked: bool) -> None:
         if not checked:
@@ -62,10 +64,13 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         layout.addWidget(self._build_sheet_defaults_group())
         layout.addWidget(self._build_cut_defaults_group())
         layout.addWidget(self._build_rotation_group())
+        layout.addWidget(self._build_nesting_view_group())
 
         # Developer Mode Checkbox (always visible)
         self.developer_mode_check = QtWidgets.QCheckBox("Enable Developer Mode")
-        self.developer_mode_check.setToolTip("Show advanced logging and developer tools.")
+        self.developer_mode_check.setToolTip(
+            "Show advanced logging and developer tools."
+        )
         self.developer_mode_check.toggled.connect(self._on_developer_mode_toggled)
         layout.addWidget(self.developer_mode_check)
 
@@ -119,8 +124,70 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         group = QtWidgets.QGroupBox("Rotation defaults")
         layout = QtWidgets.QVBoxLayout(group)
         self.allow_rotation_check = QtWidgets.QCheckBox("Allow rotation by default")
-        self.allow_rotation_check.setToolTip("Applied when CSV panels omit orientation flags.")
+        self.allow_rotation_check.setToolTip(
+            "Applied when CSV panels omit orientation flags."
+        )
         layout.addWidget(self.allow_rotation_check)
+        return group
+
+    def _build_nesting_view_group(self) -> QtWidgets.QGroupBox:
+        group = QtWidgets.QGroupBox("Nesting view settings")
+        layout = QtWidgets.QVBoxLayout(group)
+
+        # Sheet display mode
+        sheet_form = QtWidgets.QFormLayout()
+        self.sheet_display_combo = QtWidgets.QComboBox()
+        self.sheet_display_combo.addItem("Transparent rectangles", "transparent")
+        self.sheet_display_combo.addItem("Wireframe outlines", "wireframe")
+        self.sheet_display_combo.addItem("Solid backgrounds", "solid")
+        self.sheet_display_combo.setToolTip(
+            "How to display sheet boundaries in nesting view"
+        )
+        sheet_form.addRow("Sheet display:", self.sheet_display_combo)
+
+        # Sheet layout mode
+        self.sheet_layout_combo = QtWidgets.QComboBox()
+        self.sheet_layout_combo.addItem("Side by side", "side_by_side")
+        self.sheet_layout_combo.addItem("Stacked", "stacked")
+        self.sheet_layout_combo.addItem("Auto arrange", "auto")
+        self.sheet_layout_combo.setToolTip("How to arrange multiple sheets in the view")
+        sheet_form.addRow("Sheet layout:", self.sheet_layout_combo)
+
+        # Color scheme
+        self.color_scheme_combo = QtWidgets.QComboBox()
+        self.color_scheme_combo.addItem("Default (blue/gray)", "default")
+        self.color_scheme_combo.addItem("Professional (green/brown)", "professional")
+        self.color_scheme_combo.addItem(
+            "High contrast (accessibility)", "high_contrast"
+        )
+        self.color_scheme_combo.setToolTip("Color scheme for nesting visualization")
+        sheet_form.addRow("Color scheme:", self.color_scheme_combo)
+
+        layout.addLayout(sheet_form)
+
+        # Display options checkboxes
+        self.show_part_labels_check = QtWidgets.QCheckBox("Show part labels")
+        self.show_part_labels_check.setToolTip(
+            "Display part ID/name on each nested piece"
+        )
+        layout.addWidget(self.show_part_labels_check)
+
+        self.show_cut_lines_check = QtWidgets.QCheckBox("Show cut lines")
+        self.show_cut_lines_check.setToolTip("Display cut line indicators")
+        layout.addWidget(self.show_cut_lines_check)
+
+        self.show_waste_areas_check = QtWidgets.QCheckBox("Highlight waste areas")
+        self.show_waste_areas_check.setToolTip("Highlight unused areas on sheets")
+        layout.addWidget(self.show_waste_areas_check)
+
+        self.simplified_view_check = QtWidgets.QCheckBox(
+            "Simplified view for complex layouts"
+        )
+        self.simplified_view_check.setToolTip(
+            "Use simplified display for layouts with many parts"
+        )
+        layout.addWidget(self.simplified_view_check)
+
         return group
 
     def _build_developer_group(self) -> QtWidgets.QGroupBox:
@@ -151,7 +218,9 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         layout.addWidget(helper)
 
         self.run_gui_tests_button = QtWidgets.QPushButton("Run GUI Test Suite")
-        self.run_gui_tests_button.setToolTip("Run SquatchCut's GUI regression suite. Results are logged to the Report view.")
+        self.run_gui_tests_button.setToolTip(
+            "Run SquatchCut's GUI regression suite. Results are logged to the Report view."
+        )
         self.run_gui_tests_button.clicked.connect(self.on_run_gui_tests_clicked)
         layout.addWidget(self.run_gui_tests_button)
 
@@ -179,9 +248,13 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
     def _compute_initial_state(self, measurement_system: str) -> dict:
         has_defaults = self._prefs.has_default_sheet_size(measurement_system)
         if has_defaults:
-            width_mm, height_mm = self._prefs.get_default_sheet_size_mm(measurement_system)
+            width_mm, height_mm = self._prefs.get_default_sheet_size_mm(
+                measurement_system
+            )
         else:
-            width_mm, height_mm = sheet_presets.get_factory_default_sheet_size(measurement_system)
+            width_mm, height_mm = sheet_presets.get_factory_default_sheet_size(
+                measurement_system
+            )
 
         return {
             "measurement_system": measurement_system,
@@ -193,6 +266,14 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
             "developer_mode": self._prefs.get_developer_mode(),
             "log_level_report": self._prefs.get_report_view_log_level(),
             "log_level_console": self._prefs.get_python_console_log_level(),
+            # Nesting view settings
+            "nesting_sheet_display": self._prefs.get_nesting_sheet_display_mode(),
+            "nesting_sheet_layout": self._prefs.get_nesting_sheet_layout(),
+            "nesting_color_scheme": self._prefs.get_nesting_color_scheme(),
+            "nesting_show_part_labels": self._prefs.get_nesting_show_part_labels(),
+            "nesting_show_cut_lines": self._prefs.get_nesting_show_cut_lines(),
+            "nesting_show_waste_areas": self._prefs.get_nesting_show_waste_areas(),
+            "nesting_simplified_view": self._prefs.get_nesting_simplified_view(),
         }
 
     def _apply_initial_state(self, state: dict) -> None:
@@ -233,7 +314,38 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         if idx_c >= 0:
             self.log_level_console_combo.setCurrentIndex(idx_c)
 
-    def _set_length_text(self, widget: QtWidgets.QLineEdit, value_mm: float | None) -> None:
+        # Nesting view settings
+        sheet_display = state.get("nesting_sheet_display", "transparent")
+        idx_display = self.sheet_display_combo.findData(sheet_display)
+        if idx_display >= 0:
+            self.sheet_display_combo.setCurrentIndex(idx_display)
+
+        sheet_layout = state.get("nesting_sheet_layout", "side_by_side")
+        idx_layout = self.sheet_layout_combo.findData(sheet_layout)
+        if idx_layout >= 0:
+            self.sheet_layout_combo.setCurrentIndex(idx_layout)
+
+        color_scheme = state.get("nesting_color_scheme", "default")
+        idx_color = self.color_scheme_combo.findData(color_scheme)
+        if idx_color >= 0:
+            self.color_scheme_combo.setCurrentIndex(idx_color)
+
+        self.show_part_labels_check.setChecked(
+            bool(state.get("nesting_show_part_labels", True))
+        )
+        self.show_cut_lines_check.setChecked(
+            bool(state.get("nesting_show_cut_lines", False))
+        )
+        self.show_waste_areas_check.setChecked(
+            bool(state.get("nesting_show_waste_areas", False))
+        )
+        self.simplified_view_check.setChecked(
+            bool(state.get("nesting_simplified_view", False))
+        )
+
+    def _set_length_text(
+        self, widget: QtWidgets.QLineEdit, value_mm: float | None
+    ) -> None:
         if value_mm is None:
             widget.clear()
             return
@@ -253,7 +365,11 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
             width_mm = self._parse_length(self.sheet_width_edit, "Sheet width")
             height_mm = self._parse_length(self.sheet_height_edit, "Sheet height")
             kerf_mm = self._parse_length(self.kerf_edit, "Kerf")
-            gap = float(self.gap_edit.text().strip()) if self.gap_edit.text().strip() else None
+            gap = (
+                float(self.gap_edit.text().strip())
+                if self.gap_edit.text().strip()
+                else None
+            )
         except ValueError as exc:
             QtWidgets.QMessageBox.warning(self, "SquatchCut", str(exc))
             return False
@@ -296,6 +412,28 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         if console_level:
             self._prefs.set_python_console_log_level(console_level)
 
+        # Save Nesting View Settings
+        sheet_display = self.sheet_display_combo.currentData()
+        if sheet_display:
+            self._prefs.set_nesting_sheet_display_mode(sheet_display)
+
+        sheet_layout = self.sheet_layout_combo.currentData()
+        if sheet_layout:
+            self._prefs.set_nesting_sheet_layout(sheet_layout)
+
+        color_scheme = self.color_scheme_combo.currentData()
+        if color_scheme:
+            self._prefs.set_nesting_color_scheme(color_scheme)
+
+        self._prefs.set_nesting_show_part_labels(
+            self.show_part_labels_check.isChecked()
+        )
+        self._prefs.set_nesting_show_cut_lines(self.show_cut_lines_check.isChecked())
+        self._prefs.set_nesting_show_waste_areas(
+            self.show_waste_areas_check.isChecked()
+        )
+        self._prefs.set_nesting_simplified_view(self.simplified_view_check.isChecked())
+
         return True
 
     def _on_units_changed(self) -> None:
@@ -336,9 +474,13 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         total = len(results)
         failed = total - passed
         if failed:
-            self._set_dev_tools_status(f"GUI tests completed with {failed} failure(s). See Report view.")
+            self._set_dev_tools_status(
+                f"GUI tests completed with {failed} failure(s). See Report view."
+            )
         else:
-            self._set_dev_tools_status("GUI tests completed successfully. See Report view.")
+            self._set_dev_tools_status(
+                "GUI tests completed successfully. See Report view."
+            )
 
     def accept(self) -> None:
         if self._apply_changes() and Gui is not None:

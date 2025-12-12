@@ -508,6 +508,112 @@ class SquatchCutPreferences:
     def set_developer_mode(self, value: bool) -> None:
         self._set_bool("DeveloperModeEnabled", value)
 
+    # -------------------- Nesting View Settings --------------------
+
+    def get_nesting_sheet_display_mode(self, fallback: str = "transparent") -> str:
+        """Get sheet display mode: 'transparent', 'wireframe', or 'solid'."""
+        val = fallback
+        if self._grp:
+            try:
+                val = self._grp.GetString("NestingSheetDisplayMode", fallback)
+            except Exception:
+                val = fallback
+        val = str(self._local.get("NestingSheetDisplayMode", val))
+        if val not in ("transparent", "wireframe", "solid"):
+            val = fallback
+        return val
+
+    def set_nesting_sheet_display_mode(self, mode: str) -> None:
+        """Set sheet display mode: 'transparent', 'wireframe', or 'solid'."""
+        if mode not in ("transparent", "wireframe", "solid"):
+            mode = "transparent"
+        if self._grp:
+            try:
+                self._grp.SetString("NestingSheetDisplayMode", mode)
+            except Exception:
+                pass
+        self._local["NestingSheetDisplayMode"] = mode
+
+    def get_nesting_sheet_layout(self, fallback: str = "side_by_side") -> str:
+        """Get sheet layout mode: 'side_by_side', 'stacked', or 'auto'."""
+        val = fallback
+        if self._grp:
+            try:
+                val = self._grp.GetString("NestingSheetLayout", fallback)
+            except Exception:
+                val = fallback
+        val = str(self._local.get("NestingSheetLayout", val))
+        if val not in ("side_by_side", "stacked", "auto"):
+            val = fallback
+        return val
+
+    def set_nesting_sheet_layout(self, layout: str) -> None:
+        """Set sheet layout mode: 'side_by_side', 'stacked', or 'auto'."""
+        if layout not in ("side_by_side", "stacked", "auto"):
+            layout = "side_by_side"
+        if self._grp:
+            try:
+                self._grp.SetString("NestingSheetLayout", layout)
+            except Exception:
+                pass
+        self._local["NestingSheetLayout"] = layout
+
+    def get_nesting_show_part_labels(self, fallback: bool = True) -> bool:
+        """Get whether to show part ID/name labels on nested parts."""
+        return self._bool("NestingShowPartLabels", fallback)
+
+    def set_nesting_show_part_labels(self, value: bool) -> None:
+        """Set whether to show part ID/name labels on nested parts."""
+        self._set_bool("NestingShowPartLabels", value)
+
+    def get_nesting_show_cut_lines(self, fallback: bool = False) -> bool:
+        """Get whether to show cut line indicators."""
+        return self._bool("NestingShowCutLines", fallback)
+
+    def set_nesting_show_cut_lines(self, value: bool) -> None:
+        """Set whether to show cut line indicators."""
+        self._set_bool("NestingShowCutLines", value)
+
+    def get_nesting_show_waste_areas(self, fallback: bool = False) -> bool:
+        """Get whether to highlight waste/unused areas."""
+        return self._bool("NestingShowWasteAreas", fallback)
+
+    def set_nesting_show_waste_areas(self, value: bool) -> None:
+        """Set whether to highlight waste/unused areas."""
+        self._set_bool("NestingShowWasteAreas", value)
+
+    def get_nesting_color_scheme(self, fallback: str = "default") -> str:
+        """Get color scheme: 'default', 'professional', or 'high_contrast'."""
+        val = fallback
+        if self._grp:
+            try:
+                val = self._grp.GetString("NestingColorScheme", fallback)
+            except Exception:
+                val = fallback
+        val = str(self._local.get("NestingColorScheme", val))
+        if val not in ("default", "professional", "high_contrast"):
+            val = fallback
+        return val
+
+    def set_nesting_color_scheme(self, scheme: str) -> None:
+        """Set color scheme: 'default', 'professional', or 'high_contrast'."""
+        if scheme not in ("default", "professional", "high_contrast"):
+            scheme = "default"
+        if self._grp:
+            try:
+                self._grp.SetString("NestingColorScheme", scheme)
+            except Exception:
+                pass
+        self._local["NestingColorScheme"] = scheme
+
+    def get_nesting_simplified_view(self, fallback: bool = False) -> bool:
+        """Get whether to use simplified view for complex layouts."""
+        return self._bool("NestingSimplifiedView", fallback)
+
+    def set_nesting_simplified_view(self, value: bool) -> None:
+        """Set whether to use simplified view for complex layouts."""
+        self._set_bool("NestingSimplifiedView", value)
+
 
 # Backward-compatible alias if other modules imported Preferences
 Preferences = SquatchCutPreferences
