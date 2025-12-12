@@ -1,0 +1,2192 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A cryptid-powered nesting workbench for FreeCAD.">
+      
+      
+      
+        <link rel="canonical" href="https://stevenfarmer.github.io/SquatchCut/advanced_features/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>SquatchCut Advanced Features - SquatchCut</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="orange">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#squatchcut-advanced-features" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="SquatchCut" class="md-header__button md-logo" aria-label="SquatchCut" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SquatchCut
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              SquatchCut Advanced Features
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="orange"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/stevenfarmer/SquatchCut" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    SquatchCut
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="SquatchCut" class="md-nav__button md-logo" aria-label="SquatchCut" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    SquatchCut
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/stevenfarmer/SquatchCut" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    SquatchCut
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Project_Guide_v3.3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Guide v3.3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Project_Guide_v3.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Guide v3.2 (Historical)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Basic Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user/commands/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Commands & Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user/csv_and_ts_tools/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CSV & TS Tools
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Developer Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mvp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MVP Scope
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ai_workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Worker Workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Development_Environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development Environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developer_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TESTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blog
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Blog
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../blog/squatchcut_lessons_from_the_machine_seo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Teaching a FreeCAD Plugin to Behave
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SquatchCut
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    SquatchCut
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lessons/squatchcut_lessons_learned/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lessons Learned
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Management
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project Management
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../UAT_Checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UAT Checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../UAT_Prep_Instructions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UAT Prep Instructions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backlog_archive_v3.2/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backlog Archive v3.2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reporting_bugs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reporting Bugs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dev/testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-1-advanced-nesting-algorithms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature 1: Advanced Nesting Algorithms
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature 1: Advanced Nesting Algorithms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#genetic-algorithm-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Genetic Algorithm Optimization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grain-direction-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grain Direction Support
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-2-enhanced-export-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature 2: Enhanced Export Capabilities
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature 2: Enhanced Export Capabilities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#svg-export-with-cut-lines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SVG Export with Cut Lines
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dxf-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DXF Export
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#enhanced-csv-export" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Enhanced CSV Export
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-3-smart-cut-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature 3: Smart Cut Optimization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature 3: Smart Cut Optimization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cut-sequence-planning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cut Sequence Planning
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cut-optimization-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cut Optimization Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-4-quality-assurance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature 4: Quality Assurance
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature 4: Quality Assurance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#comprehensive-layout-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comprehensive Layout Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quality-reporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quality Reporting
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feature-5-performance-enhancements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature 5: Performance Enhancements
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Feature 5: Performance Enhancements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#intelligent-caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Intelligent Caching
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-threading-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-threading Support
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#memory-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Memory Optimization
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#integration-with-main-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Integration with Main System
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Integration with Main System">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#session-state-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Session State Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#command-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#export-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Export Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-and-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration and Settings
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration and Settings">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#genetic-algorithm-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Genetic Algorithm Settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quality-assurance-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quality Assurance Settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Best Practices
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#when-to-use-genetic-algorithm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to Use Genetic Algorithm
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#export-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Export Recommendations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quality-assurance-guidelines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quality Assurance Guidelines
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Optimization
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-tuning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Tuning
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#future-enhancements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Future Enhancements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="squatchcut-advanced-features">SquatchCut Advanced Features<a class="headerlink" href="#squatchcut-advanced-features" title="Permanent link">&para;</a></h1>
+<p>This document describes the advanced features implemented in SquatchCut for enhanced nesting optimization, export capabilities, cut planning, quality assurance, and performance.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>The advanced features system provides five major enhancements to SquatchCut's core functionality:</p>
+<ol>
+<li><strong>Advanced Nesting Algorithms</strong> - Genetic algorithm optimization with grain direction support</li>
+<li><strong>Enhanced Export Capabilities</strong> - SVG with cut lines, DXF export, and enhanced CSV exports</li>
+<li><strong>Smart Cut Optimization</strong> - Automated cut sequence planning for efficient material processing</li>
+<li><strong>Quality Assurance</strong> - Comprehensive layout validation and quality reporting</li>
+<li><strong>Performance Enhancements</strong> - Multi-threading, caching, and memory optimization</li>
+</ol>
+<h2 id="feature-1-advanced-nesting-algorithms">Feature 1: Advanced Nesting Algorithms<a class="headerlink" href="#feature-1-advanced-nesting-algorithms" title="Permanent link">&para;</a></h2>
+<h3 id="genetic-algorithm-optimization">Genetic Algorithm Optimization<a class="headerlink" href="#genetic-algorithm-optimization" title="Permanent link">&para;</a></h3>
+<p>The genetic algorithm provides superior nesting results for complex layouts by evolving solutions over multiple generations.</p>
+<p><strong>Key Components:</strong>
+- <code>GeneticNestingOptimizer</code> - Main optimization engine
+- <code>GeneticConfig</code> - Configuration for population size, generations, mutation rates
+- <code>Individual</code> - Represents a single nesting solution in the population</p>
+<p><strong>Configuration Options:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="n">config</span> <span class="o">=</span> <span class="n">GeneticConfig</span><span class="p">(</span>
+    <span class="n">population_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>      <span class="c1"># Number of solutions per generation</span>
+    <span class="n">generations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>         <span class="c1"># Number of evolution cycles</span>
+    <span class="n">mutation_rate</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>       <span class="c1"># Probability of random changes</span>
+    <span class="n">crossover_rate</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>      <span class="c1"># Probability of combining solutions</span>
+    <span class="n">max_time_seconds</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>    <span class="c1"># Maximum optimization time</span>
+    <span class="n">target_utilization</span><span class="o">=</span><span class="mf">0.95</span>  <span class="c1"># Stop if this utilization is reached</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<p><strong>Usage:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">SquatchCut.core.genetic_nesting</span><span class="w"> </span><span class="kn">import</span> <span class="n">genetic_nest_parts</span><span class="p">,</span> <span class="n">GeneticConfig</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">GeneticConfig</span><span class="p">(</span><span class="n">population_size</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">generations</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="n">placed_parts</span> <span class="o">=</span> <span class="n">genetic_nest_parts</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span> <span class="n">sheet_width</span><span class="p">,</span> <span class="n">sheet_height</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="grain-direction-support">Grain Direction Support<a class="headerlink" href="#grain-direction-support" title="Permanent link">&para;</a></h3>
+<p>Wood grain direction awareness ensures parts are oriented correctly for structural integrity and appearance.</p>
+<p><strong>Grain Directions:</strong>
+- <code>HORIZONTAL</code> - Grain runs left-right
+- <code>VERTICAL</code> - Grain runs up-down
+- <code>ANY</code> - No grain preference</p>
+<p><strong>Key Components:</strong>
+- <code>GrainAwarePart</code> - Part with grain direction information
+- <code>GrainConstraints</code> - Rules for grain compliance
+- Automatic grain inference from part dimensions
+- Grain compatibility checking and penalty calculation</p>
+<p><strong>Usage:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">SquatchCut.core.grain_direction</span><span class="w"> </span><span class="kn">import</span> <span class="n">GrainAwarePart</span><span class="p">,</span> <span class="n">GrainConstraints</span>
+
+<span class="c1"># Create grain-aware part</span>
+<span class="n">part</span> <span class="o">=</span> <span class="n">GrainAwarePart</span><span class="p">(</span><span class="s2">&quot;panel&quot;</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="n">grain_direction</span><span class="o">=</span><span class="n">GrainDirection</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">)</span>
+
+<span class="c1"># Set constraints</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="n">GrainConstraints</span><span class="p">(</span>
+    <span class="n">sheet_grain</span><span class="o">=</span><span class="n">GrainDirection</span><span class="o">.</span><span class="n">HORIZONTAL</span><span class="p">,</span>
+    <span class="n">enforce_part_grain</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">allow_cross_grain</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<h2 id="feature-2-enhanced-export-capabilities">Feature 2: Enhanced Export Capabilities<a class="headerlink" href="#feature-2-enhanced-export-capabilities" title="Permanent link">&para;</a></h2>
+<h3 id="svg-export-with-cut-lines">SVG Export with Cut Lines<a class="headerlink" href="#svg-export-with-cut-lines" title="Permanent link">&para;</a></h3>
+<p>Enhanced SVG exports include visual cut lines and waste area highlighting for better workshop planning.</p>
+<p><strong>New SVG Features:</strong>
+- Cut line visualization (dashed red lines)
+- Waste area highlighting (semi-transparent red)
+- Improved part labeling and dimensions
+- Multi-sheet support with proper scaling</p>
+<p><strong>Usage:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">SquatchCut.core.exporter</span><span class="w"> </span><span class="kn">import</span> <span class="n">export_nesting_to_svg</span>
+
+<span class="n">paths</span> <span class="o">=</span> <span class="n">export_nesting_to_svg</span><span class="p">(</span>
+    <span class="n">export_job</span><span class="p">,</span>
+    <span class="s2">&quot;nesting_layout.svg&quot;</span><span class="p">,</span>
+    <span class="n">include_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">include_dimensions</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">include_cut_lines</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">include_waste_areas</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<h3 id="dxf-export">DXF Export<a class="headerlink" href="#dxf-export" title="Permanent link">&para;</a></h3>
+<p>Professional CAD-compatible DXF export for CNC and CAM software integration.</p>
+<p><strong>DXF Features:</strong>
+- Industry-standard R2010 format
+- Organized layers (SHEET_BOUNDARY, PARTS, LABELS, CUT_LINES, DIMENSIONS)
+- Proper scaling and units
+- Cut line generation for automated cutting</p>
+<p><strong>Usage:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">SquatchCut.core.exporter</span><span class="w"> </span><span class="kn">import</span> <span class="n">export_nesting_to_dxf</span>
+
+<span class="n">paths</span> <span class="o">=</span> <span class="n">export_nesting_to_dxf</span><span class="p">(</span>
+    <span class="n">export_job</span><span class="p">,</span>
+    <span class="s2">&quot;nesting_layout.dxf&quot;</span><span class="p">,</span>
+    <span class="n">include_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">include_cut_lines</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<h3 id="enhanced-csv-export">Enhanced CSV Export<a class="headerlink" href="#enhanced-csv-export" title="Permanent link">&para;</a></h3>
+<p>Improved CSV exports with measurement system formatting and additional metadata.</p>
+<p><strong>CSV Enhancements:</strong>
+- Display dimensions in user's preferred units (metric/imperial)
+- Sheet information included
+- Rotation and position data
+- Export job metadata</p>
+<h2 id="feature-3-smart-cut-optimization">Feature 3: Smart Cut Optimization<a class="headerlink" href="#feature-3-smart-cut-optimization" title="Permanent link">&para;</a></h2>
+<h3 id="cut-sequence-planning">Cut Sequence Planning<a class="headerlink" href="#cut-sequence-planning" title="Permanent link">&para;</a></h3>
+<p>Automated planning of optimal cutting sequences to minimize material handling and setup time.</p>
+<p><strong>Key Components:</strong>
+- <code>CutSequencePlanner</code> - Main planning engine
+- <code>CutOperation</code> - Individual cut with metadata
+- <code>CutSequence</code> - Complete sequence for one sheet</p>
+<p><strong>Cut Types:</strong>
+- <strong>Rip cuts</strong> - Vertical cuts along the grain
+- <strong>Crosscuts</strong> - Horizontal cuts across the grain
+- <strong>Trim cuts</strong> - Final sizing operations</p>
+<p><strong>Planning Strategy:</strong>
+1. Collect all required cut lines from part boundaries
+2. Plan rip cuts first (left to right)
+3. Plan crosscuts second (bottom to top)
+4. Optimize sequence to minimize material handling
+5. Calculate time estimates and cut lengths</p>
+<p><strong>Usage:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">SquatchCut.core.cut_sequence</span><span class="w"> </span><span class="kn">import</span> <span class="n">plan_optimal_cutting_sequence</span>
+
+<span class="n">sequences</span> <span class="o">=</span> <span class="n">plan_optimal_cutting_sequence</span><span class="p">(</span><span class="n">placed_parts</span><span class="p">,</span> <span class="n">sheet_sizes</span><span class="p">,</span> <span class="n">kerf_width</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">sequence</span> <span class="ow">in</span> <span class="n">sequences</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sheet </span><span class="si">{</span><span class="n">sequence</span><span class="o">.</span><span class="n">sheet_index</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">sequence</span><span class="o">.</span><span class="n">operations</span><span class="p">)</span><span class="si">}</span><span class="s2"> cuts&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total cut length: </span><span class="si">{</span><span class="n">sequence</span><span class="o">.</span><span class="n">total_cut_length</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">mm&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Estimated time: </span><span class="si">{</span><span class="n">sequence</span><span class="o">.</span><span class="n">estimated_time_minutes</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> minutes&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="cut-optimization-features">Cut Optimization Features<a class="headerlink" href="#cut-optimization-features" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Material handling optimization</strong> - Minimize offcut movement</li>
+<li><strong>Setup time reduction</strong> - Group similar cuts together</li>
+<li><strong>Cut length optimization</strong> - Only cut where necessary</li>
+<li><strong>Time estimation</strong> - Realistic cutting time predictions</li>
+</ul>
+<h2 id="feature-4-quality-assurance">Feature 4: Quality Assurance<a class="headerlink" href="#feature-4-quality-assurance" title="Permanent link">&para;</a></h2>
+<h3 id="comprehensive-layout-validation">Comprehensive Layout Validation<a class="headerlink" href="#comprehensive-layout-validation" title="Permanent link">&para;</a></h3>
+<p>Automated quality checks ensure nesting layouts meet production requirements.</p>
+<p><strong>Quality Checks:</strong>
+- <strong>Overlap detection</strong> - Find overlapping parts
+- <strong>Bounds compliance</strong> - Ensure parts fit within sheets
+- <strong>Spacing requirements</strong> - Verify minimum spacing between parts
+- <strong>Rotation validation</strong> - Check for valid rotation angles
+- <strong>Dimension consistency</strong> - Compare with original part specifications
+- <strong>Grain direction compliance</strong> - Validate grain requirements</p>
+<p><strong>Issue Severity Levels:</strong>
+- <strong>Critical</strong> - Must be fixed before production
+- <strong>Warning</strong> - Should be reviewed
+- <strong>Info</strong> - Informational only</p>
+<p><strong>Usage:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">SquatchCut.core.quality_assurance</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_nesting_quality</span>
+
+<span class="n">report</span> <span class="o">=</span> <span class="n">check_nesting_quality</span><span class="p">(</span>
+    <span class="n">placed_parts</span><span class="p">,</span>
+    <span class="n">sheet_sizes</span><span class="p">,</span>
+    <span class="n">min_spacing</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span>
+    <span class="n">original_parts</span><span class="o">=</span><span class="n">parts</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Quality Score: </span><span class="si">{</span><span class="n">report</span><span class="o">.</span><span class="n">overall_score</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">/100&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Issues Found: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">issues</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">issue</span> <span class="ow">in</span> <span class="n">report</span><span class="o">.</span><span class="n">issues</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;- </span><span class="si">{</span><span class="n">issue</span><span class="o">.</span><span class="n">severity</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">issue</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="quality-reporting">Quality Reporting<a class="headerlink" href="#quality-reporting" title="Permanent link">&para;</a></h3>
+<p>Detailed quality reports provide actionable feedback for layout improvements.</p>
+<p><strong>Report Contents:</strong>
+- Overall quality score (0-100)
+- Issue breakdown by severity
+- Quality metrics (utilization, compliance rates)
+- Suggested fixes for each issue
+- Pass/fail status for each check</p>
+<h2 id="feature-5-performance-enhancements">Feature 5: Performance Enhancements<a class="headerlink" href="#feature-5-performance-enhancements" title="Permanent link">&para;</a></h2>
+<h3 id="intelligent-caching">Intelligent Caching<a class="headerlink" href="#intelligent-caching" title="Permanent link">&para;</a></h3>
+<p>Results caching eliminates redundant calculations for identical nesting parameters.</p>
+<p><strong>Cache Features:</strong>
+- Memory and disk-based caching
+- Automatic cache key generation
+- Configurable cache size limits
+- Thread-safe operations</p>
+<p><strong>Usage:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">SquatchCut.core.performance_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">cached_nesting</span><span class="p">,</span> <span class="n">configure_cache</span>
+
+<span class="c1"># Configure cache</span>
+<span class="n">configure_cache</span><span class="p">(</span><span class="n">cache_dir</span><span class="o">=</span><span class="s2">&quot;/tmp/squatchcut_cache&quot;</span><span class="p">,</span> <span class="n">max_cache_size</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># Use caching decorator</span>
+<span class="nd">@cached_nesting</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">my_nesting_function</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># Expensive nesting calculation</span>
+    <span class="k">return</span> <span class="n">result</span>
+</code></pre></div>
+
+<h3 id="multi-threading-support">Multi-threading Support<a class="headerlink" href="#multi-threading-support" title="Permanent link">&para;</a></h3>
+<p>Parallel processing capabilities for large datasets and multiple sheets.</p>
+<p><strong>Parallel Processing:</strong>
+- Multi-sheet processing in parallel
+- Large dataset batch processing
+- Configurable worker threads
+- Automatic load balancing</p>
+<p><strong>Usage:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">SquatchCut.core.performance_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParallelNestingProcessor</span>
+
+<span class="n">processor</span> <span class="o">=</span> <span class="n">ParallelNestingProcessor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="c1"># Process multiple sheet configurations</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="n">process_multiple_sheets</span><span class="p">(</span><span class="n">sheet_configs</span><span class="p">,</span> <span class="n">nesting_function</span><span class="p">)</span>
+
+<span class="c1"># Process large datasets in batches</span>
+<span class="n">batch_results</span> <span class="o">=</span> <span class="n">processor</span><span class="o">.</span><span class="n">process_part_batches</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">processing_func</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="memory-optimization">Memory Optimization<a class="headerlink" href="#memory-optimization" title="Permanent link">&para;</a></h3>
+<p>Memory usage optimization for large datasets and extended operations.</p>
+<p><strong>Memory Features:</strong>
+- Part data structure optimization
+- Intermediate data cleanup
+- Garbage collection triggers
+- Memory usage monitoring</p>
+<p><strong>Usage:</strong></p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">SquatchCut.core.performance_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">memory_optimized</span>
+
+<span class="nd">@memory_optimized</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">memory_efficient_nesting</span><span class="p">(</span><span class="n">parts</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span>
+    <span class="c1"># Memory-optimized nesting operation</span>
+    <span class="k">return</span> <span class="n">result</span>
+</code></pre></div>
+
+<h2 id="integration-with-main-system">Integration with Main System<a class="headerlink" href="#integration-with-main-system" title="Permanent link">&para;</a></h2>
+<h3 id="session-state-integration">Session State Integration<a class="headerlink" href="#session-state-integration" title="Permanent link">&para;</a></h3>
+<p>All advanced features integrate with SquatchCut's session state system:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Enable genetic algorithm</span>
+<span class="n">session_state</span><span class="o">.</span><span class="n">set_use_genetic_algorithm</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">session_state</span><span class="o">.</span><span class="n">set_genetic_population_size</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+<span class="n">session_state</span><span class="o">.</span><span class="n">set_genetic_generations</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># Enable cut sequence generation</span>
+<span class="n">session_state</span><span class="o">.</span><span class="n">set_generate_cut_sequence</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+
+<h3 id="command-integration">Command Integration<a class="headerlink" href="#command-integration" title="Permanent link">&para;</a></h3>
+<p>Advanced features are automatically used when enabled in the main nesting command:</p>
+<ol>
+<li><strong>Genetic Algorithm</strong> - Activated when <code>use_genetic_algorithm</code> is enabled</li>
+<li><strong>Quality Assurance</strong> - Always runs after nesting completion</li>
+<li><strong>Cut Sequence Planning</strong> - Activated when <code>generate_cut_sequence</code> is enabled</li>
+<li><strong>Performance Optimizations</strong> - Applied automatically for large datasets</li>
+</ol>
+<h3 id="export-integration">Export Integration<a class="headerlink" href="#export-integration" title="Permanent link">&para;</a></h3>
+<p>Enhanced export capabilities are available through the existing export commands:</p>
+<ul>
+<li>SVG exports automatically include cut lines when requested</li>
+<li>DXF export is available as a new export option</li>
+<li>CSV exports include enhanced formatting and metadata</li>
+</ul>
+<h2 id="configuration-and-settings">Configuration and Settings<a class="headerlink" href="#configuration-and-settings" title="Permanent link">&para;</a></h2>
+<h3 id="genetic-algorithm-settings">Genetic Algorithm Settings<a class="headerlink" href="#genetic-algorithm-settings" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Population and evolution settings</span>
+<span class="n">session_state</span><span class="o">.</span><span class="n">set_genetic_population_size</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>      <span class="c1"># 10-200 recommended</span>
+<span class="n">session_state</span><span class="o">.</span><span class="n">set_genetic_generations</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>         <span class="c1"># 50-500 recommended</span>
+<span class="n">session_state</span><span class="o">.</span><span class="n">set_genetic_mutation_rate</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>       <span class="c1"># 0.05-0.2 recommended</span>
+<span class="n">session_state</span><span class="o">.</span><span class="n">set_genetic_crossover_rate</span><span class="p">(</span><span class="mf">0.8</span><span class="p">)</span>      <span class="c1"># 0.6-0.9 recommended</span>
+<span class="n">session_state</span><span class="o">.</span><span class="n">set_genetic_max_time</span><span class="p">(</span><span class="mi">300</span><span class="p">)</span>            <span class="c1"># Maximum seconds</span>
+</code></pre></div>
+
+<h3 id="quality-assurance-settings">Quality Assurance Settings<a class="headerlink" href="#quality-assurance-settings" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Quality check configuration</span>
+<span class="n">checker</span> <span class="o">=</span> <span class="n">QualityAssuranceChecker</span><span class="p">(</span>
+    <span class="n">min_spacing</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span>           <span class="c1"># Minimum spacing between parts (mm)</span>
+    <span class="n">tolerance</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>             <span class="c1"># Measurement tolerance (mm)</span>
+    <span class="n">check_grain_direction</span><span class="o">=</span><span class="kc">True</span> <span class="c1"># Enable grain direction checking</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<h3 id="performance-settings">Performance Settings<a class="headerlink" href="#performance-settings" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># Cache configuration</span>
+<span class="n">configure_cache</span><span class="p">(</span>
+    <span class="n">cache_dir</span><span class="o">=</span><span class="s2">&quot;/path/to/cache&quot;</span><span class="p">,</span>  <span class="c1"># Cache directory</span>
+    <span class="n">max_cache_size</span><span class="o">=</span><span class="mi">100</span>           <span class="c1"># Maximum cached items</span>
+<span class="p">)</span>
+
+<span class="c1"># Parallel processing</span>
+<span class="n">processor</span> <span class="o">=</span> <span class="n">ParallelNestingProcessor</span><span class="p">(</span>
+    <span class="n">max_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>        <span class="c1"># Number of worker threads</span>
+    <span class="n">use_processes</span><span class="o">=</span><span class="kc">False</span>   <span class="c1"># Use threads (False) or processes (True)</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="when-to-use-genetic-algorithm">When to Use Genetic Algorithm<a class="headerlink" href="#when-to-use-genetic-algorithm" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Complex layouts</strong> with many parts</li>
+<li><strong>High utilization requirements</strong> (&gt;90%)</li>
+<li><strong>Grain direction constraints</strong> are important</li>
+<li><strong>Standard algorithms</strong> produce suboptimal results</li>
+</ul>
+<h3 id="export-recommendations">Export Recommendations<a class="headerlink" href="#export-recommendations" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>SVG with cut lines</strong> for workshop planning and manual cutting</li>
+<li><strong>DXF export</strong> for CNC and automated cutting systems</li>
+<li><strong>Enhanced CSV</strong> for detailed part lists and inventory</li>
+</ul>
+<h3 id="quality-assurance-guidelines">Quality Assurance Guidelines<a class="headerlink" href="#quality-assurance-guidelines" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Always run quality checks</strong> before production</li>
+<li><strong>Address critical issues</strong> immediately</li>
+<li><strong>Review warnings</strong> for potential improvements</li>
+<li><strong>Monitor quality scores</strong> over time</li>
+</ul>
+<h3 id="performance-optimization">Performance Optimization<a class="headerlink" href="#performance-optimization" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Enable caching</strong> for repeated operations</li>
+<li><strong>Use parallel processing</strong> for large datasets (&gt;100 parts)</li>
+<li><strong>Monitor memory usage</strong> for very large projects</li>
+<li><strong>Clear cache periodically</strong> to free disk space</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Genetic algorithm too slow</strong></li>
+<li>Reduce population size or generations</li>
+<li>Set shorter max_time_seconds</li>
+<li>
+<p>Enable caching for repeated runs</p>
+</li>
+<li>
+<p><strong>Quality issues not detected</strong></p>
+</li>
+<li>Check tolerance settings</li>
+<li>Verify minimum spacing requirements</li>
+<li>
+<p>Enable all quality checks</p>
+</li>
+<li>
+<p><strong>Export failures</strong></p>
+</li>
+<li>Ensure sufficient disk space</li>
+<li>Check file permissions</li>
+<li>
+<p>Verify export directory exists</p>
+</li>
+<li>
+<p><strong>Memory issues with large datasets</strong></p>
+</li>
+<li>Enable memory optimization</li>
+<li>Process in smaller batches</li>
+<li>Increase system memory</li>
+</ol>
+<h3 id="performance-tuning">Performance Tuning<a class="headerlink" href="#performance-tuning" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Small datasets (&lt;50 parts)</strong>: Use standard algorithms</li>
+<li><strong>Medium datasets (50-500 parts)</strong>: Enable caching and memory optimization</li>
+<li><strong>Large datasets (&gt;500 parts)</strong>: Enable all performance features</li>
+<li><strong>Very large datasets (&gt;1000 parts)</strong>: Use parallel processing and batching</li>
+</ul>
+<h2 id="future-enhancements">Future Enhancements<a class="headerlink" href="#future-enhancements" title="Permanent link">&para;</a></h2>
+<p>The advanced features system is designed for extensibility. Planned enhancements include:</p>
+<ul>
+<li><strong>Machine learning</strong> optimization algorithms</li>
+<li><strong>Advanced grain patterns</strong> (diagonal, radial)</li>
+<li><strong>3D nesting</strong> for thick materials</li>
+<li><strong>Real-time collaboration</strong> features</li>
+<li><strong>Cloud-based optimization</strong> services</li>
+</ul>
+<h2 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">&para;</a></h2>
+<p>For detailed API documentation, see the individual module documentation:</p>
+<ul>
+<li><code>freecad/SquatchCut/core/genetic_nesting.py</code> - Genetic algorithm implementation</li>
+<li><code>freecad/SquatchCut/core/grain_direction.py</code> - Grain direction support</li>
+<li><code>freecad/SquatchCut/core/cut_sequence.py</code> - Cut sequence planning</li>
+<li><code>freecad/SquatchCut/core/quality_assurance.py</code> - Quality assurance system</li>
+<li><code>freecad/SquatchCut/core/performance_utils.py</code> - Performance enhancements</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.instant", "content.code.copy"], "search": "../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+    
+  </body>
+</html>
