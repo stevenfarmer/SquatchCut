@@ -116,15 +116,42 @@ def create_sheet_label(
     if prefs is None:
         prefs = SquatchCutPreferences()
 
-    # Create text object
+    # Create text object with fallbacks
     name = f"SC_Sheet_{sheet_index}_Label"
-    text_obj = doc.addObject("Draft::Text", name)
+    text_obj = None
 
     if label_text is None:
         label_text = f"Sheet {sheet_index + 1}"
 
-    text_obj.Text = [label_text]
-    text_obj.Height = min(width, height) * 0.05  # 5% of smaller dimension
+    # Try different text object types based on what's available
+    try:
+        # Try Draft::Text first (most common)
+        text_obj = doc.addObject("Draft::Text", name)
+        text_obj.Text = [label_text]
+        text_obj.Height = min(width, height) * 0.05  # 5% of smaller dimension
+    except (TypeError, AttributeError):
+        try:
+            # Try App::Annotation as fallback
+            text_obj = doc.addObject("App::Annotation", name)
+            text_obj.LabelText = [label_text]
+        except (TypeError, AttributeError):
+            try:
+                # If no text objects work, create a small box as visual placeholder
+                text_obj = doc.addObject("Part::Box", name)
+                text_obj.Width = min(
+                    width * 0.1, 50.0
+                )  # Small box as label placeholder
+                text_obj.Length = 10.0
+                text_obj.Height = 2.0
+            except Exception:
+                # If all else fails, return None - labels are optional
+                logger.warning(
+                    f"Could not create sheet label {name}: no suitable object types available"
+                )
+                return None
+
+    if text_obj is None:
+        return None
 
     # Position at top-left corner of sheet
     placement = text_obj.Placement
@@ -159,15 +186,43 @@ def create_part_label(
     if prefs is None:
         prefs = SquatchCutPreferences()
 
-    # Create text object
+    # Create text object with fallbacks
     part_id = getattr(placement_part, "id", "Unknown")
     name = f"SC_PartLabel_{part_id}"
-    text_obj = doc.addObject("Draft::Text", name)
+    text_obj = None
 
-    # Use part ID as label text
-    text_obj.Text = [str(part_id)]
-    text_obj.Height = min(width, height) * 0.1  # 10% of smaller dimension, min 5mm
-    text_obj.Height = max(text_obj.Height, 5.0)
+    label_text = str(part_id)
+
+    # Try different text object types based on what's available
+    try:
+        # Try Draft::Text first (most common)
+        text_obj = doc.addObject("Draft::Text", name)
+        text_obj.Text = [label_text]
+        text_obj.Height = min(width, height) * 0.1  # 10% of smaller dimension, min 5mm
+        text_obj.Height = max(text_obj.Height, 5.0)
+    except (TypeError, AttributeError):
+        try:
+            # Try App::Annotation as fallback
+            text_obj = doc.addObject("App::Annotation", name)
+            text_obj.LabelText = [label_text]
+        except (TypeError, AttributeError):
+            try:
+                # If no text objects work, create a small box as visual placeholder
+                text_obj = doc.addObject("Part::Box", name)
+                text_obj.Width = min(
+                    width * 0.2, 20.0
+                )  # Small box as label placeholder
+                text_obj.Length = min(height * 0.2, 20.0)
+                text_obj.Height = 1.0
+            except Exception:
+                # If all else fails, return None - labels are optional
+                logger.warning(
+                    f"Could not create part label {name}: no suitable object types available"
+                )
+                return None
+
+    if text_obj is None:
+        return None
 
     # Position at center of part
     placement = text_obj.Placement
