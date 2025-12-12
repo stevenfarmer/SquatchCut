@@ -32,6 +32,7 @@ nav:
       - Development Environment: Development_Environment.md
       - Developer Guide: developer_guide.md
       - Testing Guide: TESTING.md
+      - Quality and Performance: quality_and_performance.md
       - Quickstart: quickstart.md
   - Blog:
       - "Teaching a FreeCAD Plugin to Behave": blog/squatchcut_lessons_from_the_machine_seo.md
