@@ -418,6 +418,97 @@ class ConstraintFramework:
             source_documents=["AGENTS.md", "Project_Guide_v3.3.md"],
         )
 
+        # CRITICAL Communication and Collaboration Constraints
+        self.define_constraint(
+            "COMMUNICATION-001",
+            ConstraintArea.COMMUNICATION,
+            Severity.CRITICAL,
+            "Treat the user as a non-technical stakeholder and communicate as Lead Developer & Product Manager in plain English first",
+            "Ensures stakeholder-ready communication and avoids jargon-first responses",
+            examples=[
+                "Begin responses with a brief plain-English plan before technical details",
+                "Reference constraints and risks in simple language the user can confirm",
+            ],
+            anti_patterns=[
+                "Assuming technical expertise from the user",
+                "Diving into implementation without a plain-English outline",
+            ],
+            validation_method="Check AGENTS.md/AI_AGENT_HANDBOOK.md for Lead Developer & Product Manager framing",
+            source_documents=["AGENTS.md", "AI_AGENT_HANDBOOK.md"],
+        )
+
+        self.define_constraint(
+            "COMMUNICATION-002",
+            ConstraintArea.COMMUNICATION,
+            Severity.CRITICAL,
+            "Apply the discovery process (pause, ask 3-4 clarifying questions, validate, propose) before coding vague requests",
+            "Prevents misalignment and reduces rework when requirements are incomplete",
+            examples=[
+                "Pause -> Ask clarifying questions -> Restate goal -> Propose plan",
+                "Confirm acceptance criteria and tests before editing files",
+            ],
+            anti_patterns=[
+                "Starting implementation without clarifying scope",
+                "Skipping plan confirmation for ambiguous asks",
+            ],
+            validation_method="Verify discovery steps are documented and followed before coding",
+            source_documents=["AGENTS.md", "AI_AGENT_HANDBOOK.md"],
+        )
+
+        self.define_constraint(
+            "COMMUNICATION-003",
+            ConstraintArea.COMMUNICATION,
+            Severity.CRITICAL,
+            "Escalate ambiguous or conflicting instructions before implementation",
+            "Avoids constraint violations and misaligned work when guidance is unclear",
+            examples=[
+                "Stop and ask for guidance when requirements conflict or are incomplete",
+                "Document constraint risks in the plan before proceeding",
+            ],
+            anti_patterns=[
+                "Guessing user intent when instructions conflict",
+                "Proceeding despite missing acceptance criteria",
+            ],
+            validation_method="Check escalation triggers are documented and used during planning",
+            source_documents=["AGENTS.md", "AI_AGENT_HANDBOOK.md"],
+        )
+
+        self.define_constraint(
+            "COMMUNICATION-004",
+            ConstraintArea.COMMUNICATION,
+            Severity.IMPORTANT,
+            "Enforce branch isolation with naming ai/<worker-name>/<feature> and one AI per branch",
+            "Prevents overlapping work and preserves clear ownership during collaboration",
+            examples=[
+                "Create branches like ai/codex/interaction-guidelines",
+                "Do not reuse or push to another worker's branch",
+            ],
+            anti_patterns=[
+                "Sharing branches across workers concurrently",
+                "Using ambiguous branch names without owner identification",
+            ],
+            validation_method="Check branch naming and ownership rules in documentation",
+            source_documents=["AGENTS.md", "AI_AGENT_HANDBOOK.md"],
+        )
+
+        self.define_constraint(
+            "COMMUNICATION-005",
+            ConstraintArea.COMMUNICATION,
+            Severity.IMPORTANT,
+            "Architect mediates handoffs/merges; commit and PR descriptions must summarize scope, constraints, tests, and avoid force-push over others",
+            "Maintains safe collaboration, reviewability, and stakeholder visibility",
+            examples=[
+                "PR uses stakeholder template with tests run and constraints honored",
+                "On conflicts, stop and escalate instead of force-pushing",
+            ],
+            anti_patterns=[
+                "Merging over another worker without coordination",
+                "Force-pushing to resolve conflicts silently",
+            ],
+            validation_method="Verify collaboration workflow rules and PR standards are documented",
+            source_documents=["AGENTS.md", "AI_AGENT_HANDBOOK.md"],
+        )
+
         # Add more constraints for IMPORTANT and RECOMMENDED levels...
         # (This would continue with the full constraint set from the analysis)
 

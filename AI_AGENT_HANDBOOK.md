@@ -13,13 +13,14 @@ Applies to: All AI agents (local assistants, hosted agents, coding tools)
 1. [Quick Reference](#quick-reference)
 2. [Architectural Constraints](#architectural-constraints)
 3. [Task Specification Guidelines](#task-specification-guidelines)
-4. [Code Examples and Patterns](#code-examples-and-patterns)
-5. [Anti-Patterns to Avoid](#anti-patterns-to-avoid)
-6. [Testing Requirements](#testing-requirements)
-7. [Error Handling and Escalation](#error-handling-and-escalation)
-8. [Troubleshooting Guide](#troubleshooting-guide)
-9. [Validation Tools](#validation-tools)
-10. [Appendices](#appendices)
+4. [Communication & Collaboration Protocols](#communication--collaboration-protocols)
+5. [Code Examples and Patterns](#code-examples-and-patterns)
+6. [Anti-Patterns to Avoid](#anti-patterns-to-avoid)
+7. [Testing Requirements](#testing-requirements)
+8. [Error Handling and Escalation](#error-handling-and-escalation)
+9. [Troubleshooting Guide](#troubleshooting-guide)
+10. [Validation Tools](#validation-tools)
+11. [Appendices](#appendices)
 
 ---
 
@@ -51,6 +52,14 @@ Applies to: All AI agents (local assistants, hosted agents, coding tools)
 - Requirements conflict with existing constraints
 - Architectural changes are needed to meet requirements
 - Technical limitations prevent constraint compliance
+
+### Interaction & Collaboration Quick Checks
+
+- Lead Developer & Product Manager framing; explain in plain English before technical details.
+- Discovery sequence for vague asks: Pause -> Ask 3-4 clarifying questions -> Validate -> Propose.
+- Branch naming: `ai/<worker-name>/<feature>`; one AI per branch with Architect-mediated merges.
+- Never force-push over another worker; escalate on conflicts and capture impacted files.
+- Commit and PRs use the stakeholder template and list tests plus constraints touched.
 
 ---
 ## Architectural Constraints
@@ -318,6 +327,37 @@ Every AI agent task must include all of these elements:
    - Specify how you'll verify constraint compliance
    - Include constraint checks in acceptance criteria
    - Plan testing that validates constraint adherence
+
+## Communication & Collaboration Protocols
+
+### Stakeholder Communication (Requirements 5.1–5.5)
+- Lead with the **Lead Developer & Product Manager** role; assume the user is a non-technical stakeholder.
+- Run the discovery sequence for vague asks: pause, ask 3-4 clarifying questions, then restate the goal.
+- Confirm scope, constraints, acceptance criteria, and tests before editing files.
+- Escalate immediately when requirements conflict, are incomplete, or risk violating CRITICAL constraints.
+- Provide short, stakeholder-ready updates that list progress, risks, and constraint implications.
+
+#### Discovery Script
+1. Pause and avoid coding until the ask is clear.
+2. Ask 3-4 clarifying questions that narrow scope and surface constraints.
+3. Restate the user's goal in plain English; list the constraints you will respect.
+4. Outline the plan and tests you will run; ask for confirmation.
+5. Proceed only after confirmation or explicit acceptance of the plan.
+
+#### Stakeholder Communication Example
+> Plain-English summary of the goal, the plan in one or two bullets, the constraints you will honor, and the tests you will run. Close with a yes/no confirmation request before executing.
+
+### Collaboration Workflow (Requirements 10.1–10.5)
+- One AI per branch with naming `ai/<worker-name>/<feature>`; do not reuse another worker's branch.
+- Architect/human reviewer mediates handoffs and merges; align before merging across workers.
+- Commit messages summarize scope and constraints touched; PRs must use the stakeholder template and list tests run.
+- On merge conflicts or overlapping edits: stop, capture the conflicting files/branches, notify the Architect/human reviewer, and never force-push over another worker.
+- Keep changes small and in-scope; record the plan and test outcomes in the PR for auditability.
+
+#### Merge Conflict Protocol
+1. Stop work when a conflict or overlap is detected.
+2. Note the branches/files involved and the decisions at risk.
+3. Escalate to the Architect/human reviewer with a short summary and preferred resolution; wait for guidance.
 
 ---
 ## Code Examples and Patterns
@@ -2862,214 +2902,431 @@ def update_measurement_system(self, new_system):
 - User confusion about current state
 
 ---
+
 ## Testing Requirements
+
+
 
 ### Mandatory Testing by Reasoning Level
 
+
+
 #### LOW Reasoning - Basic Testing
+
 **Required:**
+
 - Unit tests for modified functions
+
 - Python compatibility validation
 
+
+
 **Example:**
+
 ```python
+
 def test_simple_function():
+
     """Test the modified function works correctly"""
+
     result = simple_function("input")
+
     assert result == "expected_output"
 
+
+
 def test_python_compatibility():
+
     """Ensure no modern Python features used"""
+
     # Check for PEP 604 unions, etc.
+
     pass
+
 ```
 
+
+
 #### MEDIUM Reasoning - Standard Testing
+
 **Required:**
+
 - Unit tests for all modified logic
+
 - Integration tests for component interactions
+
 - Constraint compliance validation
 
+
+
 #### HIGH Reasoning - Comprehensive Testing
+
 **Required:**
+
 - Unit tests for all logic changes
+
 - Integration tests for multi-component changes
+
 - GUI tests using qt_compat patterns
+
 - Hydration order validation tests
+
 - Constraint compliance tests
+
 - Property-based tests for universal properties
 
+
+
 **Example GUI Test:**
+
 ```python
+
 def test_taskpanel_hydration_order():
+
     """Test hydration occurs before widget creation"""
+
     with patch('SquatchCut.core.session_state.get_session_state') as mock_session:
+
         mock_session.return_value = MockSession()
+
+
 
         panel = TaskPanel_Test()
 
+
+
         # Verify hydration happened
+
         assert panel.session is not None
+
         assert panel.sheet_width > 0
 
+
+
         # Verify widgets exist and are populated
+
         assert panel.form is not None
+
         assert panel.width_input.text() == str(panel.sheet_width)
+
 ```
 
+
+
 #### EXTRA-HIGH Reasoning - Full Test Suite
+
 **Required:**
+
 - All previous testing requirements
+
 - Architectural validation tests
+
 - Performance regression tests
+
 - Cross-platform compatibility tests
+
 - Property-based tests with high iteration counts
+
+
 
 ### Core Testing Areas
 
+
+
 #### Measurement System Testing
+
 **Always Required When:**
+
 - Modifying units.py or text_helpers.py
+
 - Changing measurement display logic
+
 - Adding new unit conversion functions
 
+
+
 **Test Pattern:**
+
 ```python
+
 @given(st.floats(min_value=0.1, max_value=10000.0))
+
 def test_measurement_roundtrip(mm_value):
+
     """Property: mm -> inches -> mm preserves value"""
+
     inches = mm_to_inches(mm_value)
+
     back_to_mm = inches_to_mm(inches)
+
     assert abs(mm_value - back_to_mm) < 0.001
 
+
+
 def test_fractional_parsing():
+
     """Test fractional inch parsing"""
+
     assert parse_fractional_inches("48 3/4") == 48.75
+
     assert parse_fractional_inches("1/2") == 0.5
+
     assert parse_fractional_inches("12") == 12.0
+
 ```
+
+
 
 #### Hydration Testing
+
 **Always Required When:**
+
 - Modifying TaskPanel initialization
+
 - Changing session_state or settings
+
 - Adding new persistent values
 
+
+
 **Test Pattern:**
+
 ```python
+
 def test_hydration_before_widgets():
+
     """Ensure hydration occurs before widget creation"""
+
     panel = TaskPanel_Test()
+
+
 
     # Hydration should have occurred
+
     assert hasattr(panel, 'session')
+
     assert panel.session is not None
 
+
+
     # Widgets should be created after
+
     assert hasattr(panel, 'form')
+
     assert panel.form is not None
 
+
+
 def test_preset_never_auto_selected():
+
     """Ensure presets are never auto-selected"""
+
     panel = TaskPanel_Test()
 
+
+
     # Should always start with None/Custom
+
     assert panel.preset_combo.currentText() == "None / Custom"
+
 ```
+
+
 
 #### Export Testing
+
 **Always Required When:**
+
 - Modifying exporter.py
+
 - Adding new export formats
+
 - Changing export data models
 
+
+
 **Test Pattern:**
+
 ```python
+
 def test_export_uses_canonical_architecture():
+
     """Ensure exports go through exporter.py"""
+
     with patch('SquatchCut.core.exporter.export_cutlist') as mock_export:
+
         export_cutlist_command()
 
+
+
         # Should call canonical export function
+
         mock_export.assert_called_once()
 
+
+
 def test_export_job_data_integrity():
+
     """Test ExportJob contains correct data"""
+
     export_job = build_export_job_from_current_nesting()
 
+
+
     assert export_job.measurement_system in ["metric", "imperial"]
+
     assert len(export_job.sheets) > 0
+
     assert all(sheet.width_mm > 0 for sheet in export_job.sheets)
+
 ```
+
+
 
 ### Property-Based Testing Guidelines
 
+
+
 **Use Property Tests For:**
+
 - Universal mathematical properties (roundtrip, invariants)
+
 - Algorithm correctness across many inputs
+
 - Data integrity across transformations
+
 - Constraint validation across scenarios
 
+
+
 **Property Test Template:**
+
 ```python
+
 @given(st.lists(valid_parts(), min_size=1, max_size=20))
+
 @settings(max_examples=100, deadline=5000)
+
 def test_nesting_no_overlaps(parts):
+
     """Property: Nested parts should never overlap"""
+
     **Feature: constraint-validation, Property 1: No Overlaps**
+
+
 
     layout = nest_parts(parts, sheet_size=(1220, 2440))
 
+
+
     # Check no overlaps
+
     for i, part1 in enumerate(layout):
+
         for part2 in layout[i+1:]:
+
             assert not parts_overlap(part1, part2)
+
 ```
+
+
 
 ### Testing Tools and Patterns
 
+
+
 #### qt_compat Usage
+
 ```python
+
 from SquatchCut.gui.qt_compat import QtWidgets
 
+
+
 def test_gui_component():
+
     """Test GUI component using qt_compat"""
+
     widget = QtWidgets.QLineEdit()
+
     widget.setText("test")
 
+
+
     # Manually trigger signal (qt_compat doesn't auto-emit)
+
     widget.textChanged.emit("test")
 
+
+
     assert widget.text() == "test"
+
 ```
 
+
+
 #### Mock Patterns
+
 ```python
+
 # Mock preferences in importer's namespace
+
 @patch('SquatchCut.settings.SquatchCutPreferences')
+
 def test_settings_behavior(mock_prefs):
+
     mock_prefs.return_value.get_sheet_width.return_value = 1220
 
+
+
     # Test code that uses preferences
+
     result = function_that_uses_preferences()
+
     assert result == expected_value
+
 ```
 
 ---
+
+## Quality and Performance Guidelines
+
+
+
+For detailed requirements on performance, self-correction, destructive changes, and error handling, refer to the [Quality and Performance Guidelines](docs/quality_and_performance.md).
+
+
+
+---
+
 ## Error Handling and Escalation
+
+
 
 ### Escalation Decision Tree
 
+
+
 ```
+
 ┌─ Constraint Violation Detected ─┐
+
 │                                  │
+
 ├─ CRITICAL Constraint? ──────────┼─ YES ─► STOP ─► Escalate Immediately
+
 │                                  │
+
 ├─ NO ─► IMPORTANT Constraint? ───┼─ YES ─► Document ─► Request Approval
+
 │                                  │
+
 ├─ NO ─► RECOMMENDED? ────────────┼─ YES ─► Note in PR ─► Continue
+
 │                                  │
+
 └─ NO ─► Continue ────────────────┘
+
 ```
 
 ### Immediate Escalation Scenarios

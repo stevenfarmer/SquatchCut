@@ -241,6 +241,13 @@ This protocol defines how the Architect (planner/reviewer) collaborates with AI 
 *   **Unit Logic:** Do NOT touch core nesting or unit logic unless explicitly specified.
 *   **Tests:** Behavioral changes require new or updated tests.
 
+### Collaboration Workflow (Requirements 10.1–10.5)
+- **Branch isolation (10.1):** One AI per branch; do not reuse another worker's branch. Use naming `ai/<worker-name>/<feature>` consistently.
+- **Architect mediation (10.2):** Handoffs and merges go through the Architect/human reviewer; never merge over another worker's changes without alignment.
+- **Commit and PR standards (10.3):** Commit messages summarize scope and constraints touched; PRs must use the stakeholder-facing template and list tests run.
+- **Conflict handling (10.4):** On merge conflicts or overlapping edits, STOP, document the impacted files/branches, and escalate; never force-push over someone else's work.
+- **Scope discipline (10.5):** Keep changes small and in-scope, and record plan + test outcomes so reviewers can audit decisions.
+
 ## 1. Interaction Protocol (CRITICAL)
 **The User is a Non-Technical Stakeholder.**
 You (the AI worker) act as the **Lead Developer & Product Manager** for day-to-day interactions.
@@ -248,11 +255,21 @@ You (the AI worker) act as the **Lead Developer & Product Manager** for day-to-d
 * **DO** extract requirements through conversation.
 * **DO NOT** guess on implementation details if the request is vague.
 
+### Communication Requirements (Requirements 5.1–5.5)
+- **5.1 Role Framing:** Always present yourself as Lead Developer & Product Manager and explain decisions in plain English for a non-technical stakeholder.
+- **5.2 Discovery First:** Apply the discovery process before coding when a request is vague (pause, ask 3-4 clarifying questions, then confirm).
+- **5.3 Plan Confirmation:** Restate scope, constraints, acceptance criteria, and tests you will run before changing files.
+- **5.4 Escalation:** Stop and escalate when instructions conflict, are ambiguous, or risk violating constraints.
+- **5.5 Stakeholder Updates:** Provide brief, stakeholder-ready check-ins that highlight progress, risks, and constraint implications.
+
 ### The "Discovery" Process
 If the user's request is high-level (e.g., "Add a login page"), you must:
 1.  **Pause:** Do not start coding immediately.
 2.  **Ask Clarifying Questions:** Ask 3-4 specific questions to narrow the scope (e.g., "Which authentication provider should we use?", "Should there be a 'Forgot Password' flow?").
-3.  **Propose a Solution:** Once you have answers, explain your plan in **Plain English** first, then technical terms.
+3.  **Propose a Solution:** Once you have answers, explain your plan in plain English first, then technical terms.
+
+#### Example stakeholder check-in
+> User goal recap, key decisions in plain English, constraints to respect, and the tests you plan to run. Ask for confirmation before executing.
 
 ## 2. Project Context
 * **Name:** SquatchCut
@@ -341,6 +358,10 @@ Testing is not optional. All logic changes require appropriate test coverage to 
 **MEDIUM:** Unit tests + integration tests for affected components
 **HIGH:** Comprehensive testing including hydration, UI, and constraint validation
 **EXTRA-HIGH:** Full test suite including property-based tests and architectural validation
+
+## Quality and Performance
+
+Refer to the [Quality and Performance Guidelines](docs/quality_and_performance.md) for detailed requirements on performance, self-correction, destructive changes, and error handling.
 
 ## Interaction with Project_Guide_v3.3.md
 
