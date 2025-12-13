@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://stevenfarmer.github.io/SquatchCut/quickstart/">
       
       
-        <link rel="prev" href="../TESTING/">
+        <link rel="prev" href="../quality_and_performance/">
       
       
         <link rel="next" href="../blog/squatchcut_lessons_from_the_machine_seo/">
@@ -831,6 +831,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../quality_and_performance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quality and Performance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -916,13 +944,41 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-basic-workflow" class="md-nav__link">
+  <a href="#3-basic-workflows" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Basic Workflow
+        3. Basic Workflows
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="3. Basic Workflows">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#3a-traditional-csv-workflow-rectangular-parts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3A. Traditional CSV Workflow (Rectangular Parts)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3b-shape-based-nesting-complex-parts-new" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3B. Shape-Based Nesting (Complex Parts) - NEW!
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1401,13 +1457,41 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-basic-workflow" class="md-nav__link">
+  <a href="#3-basic-workflows" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Basic Workflow
+        3. Basic Workflows
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="3. Basic Workflows">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#3a-traditional-csv-workflow-rectangular-parts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3A. Traditional CSV Workflow (Rectangular Parts)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3b-shape-based-nesting-complex-parts-new" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3B. Shape-Based Nesting (Complex Parts) - NEW!
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1470,18 +1554,20 @@
 <li>Click <strong>Save / Apply</strong>.</li>
 </ol>
 <hr />
-<h2 id="3-basic-workflow">3. Basic Workflow<a class="headerlink" href="#3-basic-workflow" title="Permanent link">&para;</a></h2>
+<h2 id="3-basic-workflows">3. Basic Workflows<a class="headerlink" href="#3-basic-workflows" title="Permanent link">&para;</a></h2>
+<p>SquatchCut supports two main workflows:</p>
+<h3 id="3a-traditional-csv-workflow-rectangular-parts">3A. Traditional CSV Workflow (Rectangular Parts)<a class="headerlink" href="#3a-traditional-csv-workflow-rectangular-parts" title="Permanent link">&para;</a></h3>
 <ol>
-<li><strong>Open the panel</strong>  </li>
+<li><strong>Open the panel</strong></li>
 <li>
 <p>Click <strong>SquatchCut</strong>.</p>
 </li>
 <li>
 <p><strong>Import parts from CSV</strong></p>
 </li>
-<li>In the <strong>CSV Import</strong> section:<ul>
+<li>In the <strong>Input</strong> section:<ul>
 <li>Set <strong>CSV Units</strong> to <strong>Metric</strong> or <strong>Imperial</strong>.</li>
-<li>Pick your CSV file.</li>
+<li>Click <strong>Load CSV</strong> and pick your CSV file.</li>
 <li>Click <strong>Import Parts</strong>.</li>
 </ul>
 </li>
@@ -1489,22 +1575,9 @@
 <p>Check that a <strong>Source Parts</strong> group appears in the model tree.</p>
 </li>
 <li>
-<p><strong>Set sheet size</strong></p>
+<p><strong>Set sheet size and run nesting</strong></p>
 </li>
 <li>Confirm sheet width/height fields match your panel.</li>
-<li>Optionally choose a preset:<ul>
-<li><code>None / Custom</code></li>
-<li><code>4′ x 8′</code></li>
-<li><code>2′ x 4′</code></li>
-<li><code>5′ x 10′</code></li>
-</ul>
-</li>
-<li>
-<p>Editing width/height manually should switch preset to <code>None / Custom</code>.</p>
-</li>
-<li>
-<p><strong>Run nesting</strong></p>
-</li>
 <li>Click <strong>Run Nesting</strong>.</li>
 <li>
 <p>A <strong>Nested Parts</strong> group appears, containing the layout.</p>
@@ -1516,6 +1589,37 @@
 <li>Save your file (<strong>File → Save</strong>).</li>
 <li>Export as needed (<strong>File → Export</strong>, DXF/SVG/PDF).</li>
 </ol>
+<h3 id="3b-shape-based-nesting-complex-parts-new">3B. Shape-Based Nesting (Complex Parts) - NEW!<a class="headerlink" href="#3b-shape-based-nesting-complex-parts-new" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Design parts in FreeCAD</strong></li>
+<li>Use Part Design workbench to create solid bodies.</li>
+<li>
+<p>Give parts descriptive names.</p>
+</li>
+<li>
+<p><strong>Select shapes</strong></p>
+</li>
+<li>Click <strong>SquatchCut</strong> to open the panel.</li>
+<li>In the <strong>Input</strong> section, click <strong>Select Shapes</strong>.</li>
+<li>
+<p>Choose which parts to nest from the dialog.</p>
+</li>
+<li>
+<p><strong>Configure and nest</strong></p>
+</li>
+<li>Set sheet size and cutting parameters.</li>
+<li>Click <strong>Run Nesting</strong>.</li>
+<li>
+<p>SquatchCut automatically uses the best nesting mode.</p>
+</li>
+<li>
+<p><strong>Export for production</strong></p>
+</li>
+<li>Export SVG for cutting templates.</li>
+<li>Export DXF for CNC cutting.</li>
+<li>Export enhanced cutlist for production planning.</li>
+</ol>
+<p><strong>For detailed shape-based workflows, see the <a href="../user/cabinet-maker-workflow/">Cabinet Maker Guide</a>.</strong></p>
 <hr />
 <h2 id="4-if-something-breaks">4. If Something Breaks<a class="headerlink" href="#4-if-something-breaks" title="Permanent link">&para;</a></h2>
 <ul>
