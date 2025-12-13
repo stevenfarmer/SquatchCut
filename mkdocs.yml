@@ -25,6 +25,19 @@ nav:
       - User Guide: user_guide.md
       - Commands & Tools: user/commands.md
       - CSV & TS Tools: user/csv_and_ts_tools.md
+      - Shape-Based Nesting:
+          - Workflow Guide: user/cabinet-maker-workflow.md
+          - Technical Reference: user/shape-based-nesting-reference.md
+          - Troubleshooting: user/troubleshooting-shape-nesting.md
+      - Advanced Features: advanced_features.md
+  - Examples:
+      - Overview: examples/README.md
+      - Cabinet Projects:
+          - Face Frames: examples/cabinet-projects/face-frame-example.md
+          - Curved Doors: examples/cabinet-projects/curved-doors-example.md
+          - Multi-Sheet: examples/cabinet-projects/multi-sheet-example.md
+      - CSV Examples: examples/csv-examples/traditional-workflow-samples.md
+      - Performance: examples/performance-benchmarks/complexity-test-suite.md
   - Developer Guide:
       - Architecture Overview: architecture.md
       - MVP Scope: mvp.md
