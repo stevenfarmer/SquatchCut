@@ -393,7 +393,7 @@ This example includes:
 After completing this example:
 1. Try the [Curved Cabinet Doors Example](curved-doors-example.md)
 2. Explore [Multi-Sheet Projects](multi-sheet-example.md)
-3. Learn about [Performance Optimization](../performance-benchmarks/)
+3. Learn about [Performance Optimization](../performance-benchmarks/complexity-test-suite.md)
 
 ---
 

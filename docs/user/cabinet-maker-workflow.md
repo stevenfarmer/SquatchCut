@@ -557,7 +557,7 @@ Shape-based nesting in SquatchCut represents a significant advancement for cabin
 For additional help, see:
 - [Technical Reference Guide](shape-based-nesting-reference.md)
 - [Troubleshooting Guide](troubleshooting-shape-nesting.md)
-- [Sample Projects](../examples/cabinet-projects/)
+- [Sample Projects](../examples/cabinet-projects/face-frame-example.md)
 
 ---
 

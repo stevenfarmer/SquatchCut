@@ -413,7 +413,7 @@ This example collection includes:
 After working through these examples:
 
 1. **Try Shape-Based Nesting**: Explore [Cabinet Maker Workflow](../cabinet-projects/face-frame-example.md)
-2. **Advanced Features**: Learn about [Performance Optimization](../performance-benchmarks/)
+2. **Advanced Features**: Learn about [Performance Optimization](../performance-benchmarks/complexity-test-suite.md)
 3. **Custom Workflows**: Develop your own project templates
 4. **Integration**: Combine CSV and shape-based approaches
 
