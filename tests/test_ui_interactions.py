@@ -1,8 +1,8 @@
 """Tests for UI interactions and user workflows."""
 
-import pytest
 from unittest.mock import MagicMock, Mock, patch
 
+import pytest
 from SquatchCut.gui.qt_compat import QtWidgets
 
 

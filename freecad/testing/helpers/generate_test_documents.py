@@ -6,10 +6,9 @@ It creates basic rectangle-based documents used for SquatchCut testing.
 
 from __future__ import annotations
 
+import FreeCAD as App  # type: ignore
 import FreeCADGui as Gui  # type: ignore
 from Draft import makeRectangle  # type: ignore
-
-import FreeCAD as App  # type: ignore
 
 
 def create_basic_rectangles_doc():

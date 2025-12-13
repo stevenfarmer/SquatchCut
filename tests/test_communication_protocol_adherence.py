@@ -8,9 +8,11 @@ discovery, escalation, and stakeholder-ready updates.
 """
 
 import pathlib
-from hypothesis import given, strategies as st, settings
-from constraint_framework import ConstraintFramework, ConstraintArea
 
+from hypothesis import given, settings
+from hypothesis import strategies as st
+
+from constraint_framework import ConstraintArea, ConstraintFramework
 
 DOC_PATHS = [
     pathlib.Path(__file__).resolve().parents[1] / "AGENTS.md",

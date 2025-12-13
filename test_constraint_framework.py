@@ -7,13 +7,14 @@ and enforced before implementation begins
 **Validates: Requirements 1.1, 1.3, 1.4, 1.5**
 """
 
+
 import pytest
-from hypothesis import given, strategies as st, assume, settings, example
-from typing import Dict, Any, List
+from hypothesis import assume, example, given, settings
+from hypothesis import strategies as st
+
 from constraint_framework import (
-    ConstraintFramework,
-    Constraint,
     ConstraintArea,
+    ConstraintFramework,
     Severity,
     ValidationResult,
 )

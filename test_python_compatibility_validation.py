@@ -7,14 +7,13 @@ older than 3.10 should be enforced
 **Validates: Requirements 6.1, 6.2, 6.3, 6.4, 6.5**
 """
 
-import pytest
 import ast
 import re
-import tempfile
-import os
-from hypothesis import given, strategies as st, assume, settings, example
-from typing import Dict, Any, List, Set
-from pathlib import Path
+from typing import Any
+
+import pytest
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 
 class PythonCompatibilityValidator:
@@ -23,7 +22,7 @@ class PythonCompatibilityValidator:
     def __init__(self):
         self.compatibility_issues = []
 
-    def validate_code(self, code: str) -> Dict[str, Any]:
+    def validate_code(self, code: str) -> dict[str, Any]:
         """Validate Python code for compatibility issues."""
         issues = []
 
@@ -56,7 +55,7 @@ class PythonCompatibilityValidator:
             ),
         }
 
-    def _check_ast_compatibility(self, tree: ast.AST) -> List[Dict[str, Any]]:
+    def _check_ast_compatibility(self, tree: ast.AST) -> list[dict[str, Any]]:
         """Check AST for compatibility issues."""
         issues = []
 
@@ -74,7 +73,7 @@ class PythonCompatibilityValidator:
 
         return issues
 
-    def _check_text_compatibility(self, code: str) -> List[Dict[str, Any]]:
+    def _check_text_compatibility(self, code: str) -> list[dict[str, Any]]:
         """Check code text for compatibility issues."""
         issues = []
 

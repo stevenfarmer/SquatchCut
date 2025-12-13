@@ -7,8 +7,7 @@ architectural constraints for AI agents working on the SquatchCut project.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional, Dict, Any
-import re
+from typing import Any
 
 
 class Severity(Enum):
@@ -41,10 +40,10 @@ class Constraint:
     severity: Severity
     rule: str
     rationale: str
-    examples: List[str]
-    anti_patterns: List[str]
-    validation_method: Optional[str] = None
-    source_documents: List[str] = None
+    examples: list[str]
+    anti_patterns: list[str]
+    validation_method: str | None = None
+    source_documents: list[str] = None
 
     def __post_init__(self):
         if self.source_documents is None:
@@ -56,9 +55,9 @@ class ValidationResult:
     """Result of constraint validation."""
 
     is_compliant: bool
-    violated_constraints: List[Constraint]
-    warnings: List[str]
-    recommendations: List[str]
+    violated_constraints: list[Constraint]
+    warnings: list[str]
+    recommendations: list[str]
     approval_required: bool
 
 
@@ -74,7 +73,7 @@ class ConstraintFramework:
     """
 
     def __init__(self):
-        self.constraints: Dict[str, Constraint] = {}
+        self.constraints: dict[str, Constraint] = {}
         self._initialize_core_constraints()
 
     def define_constraint(
@@ -84,10 +83,10 @@ class ConstraintFramework:
         severity: Severity,
         rule: str,
         rationale: str,
-        examples: List[str] = None,
-        anti_patterns: List[str] = None,
+        examples: list[str] = None,
+        anti_patterns: list[str] = None,
         validation_method: str = None,
-        source_documents: List[str] = None,
+        source_documents: list[str] = None,
     ) -> Constraint:
         """Define a new constraint in the framework."""
         constraint = Constraint(
@@ -105,19 +104,19 @@ class ConstraintFramework:
         self.constraints[constraint_id] = constraint
         return constraint
 
-    def get_constraint(self, constraint_id: str) -> Optional[Constraint]:
+    def get_constraint(self, constraint_id: str) -> Constraint | None:
         """Retrieve a constraint by ID."""
         return self.constraints.get(constraint_id)
 
-    def get_constraints_by_area(self, area: ConstraintArea) -> List[Constraint]:
+    def get_constraints_by_area(self, area: ConstraintArea) -> list[Constraint]:
         """Get all constraints for a specific area."""
         return [c for c in self.constraints.values() if c.area == area]
 
-    def get_constraints_by_severity(self, severity: Severity) -> List[Constraint]:
+    def get_constraints_by_severity(self, severity: Severity) -> list[Constraint]:
         """Get all constraints oific severity level."""
         return [c for c in self.constraints.values() if c.severity == severity]
 
-    def validate_compliance(self, code_change: Dict[str, Any]) -> ValidationResult:
+    def validate_compliance(self, code_change: dict[str, Any]) -> ValidationResult:
         """
         Validate compliance with constraints for a code change.
 
@@ -161,8 +160,8 @@ class ConstraintFramework:
         )
 
     def generate_constraint_checklist(
-        self, task_type: str, file_paths: List[str] = None
-    ) -> List[str]:
+        self, task_type: str, file_paths: list[str] = None
+    ) -> list[str]:
         """
         Generate a constraint checklist for a specific task type.
 
@@ -204,7 +203,7 @@ class ConstraintFramework:
 
         return checklist
 
-    def provide_constraint_rationale(self, constraint_id: str) -> Optional[str]:
+    def provide_constraint_rationale(self, constraint_id: str) -> str | None:
         """Provide detailed rationale for a specific constraint."""
         constraint = self.get_constraint(constraint_id)
         if not constraint:
@@ -513,8 +512,8 @@ class ConstraintFramework:
         # (This would continue with the full constraint set from the analysis)
 
     def _get_applicable_constraints(
-        self, code_change: Dict[str, Any]
-    ) -> List[Constraint]:
+        self, code_change: dict[str, Any]
+    ) -> list[Constraint]:
         """Determine which constraints apply to a specific code change."""
         applicable = []
 
@@ -561,7 +560,7 @@ class ConstraintFramework:
         return applicable
 
     def _validate_constraint(
-        self, constraint: Constraint, code_change: Dict[str, Any]
+        self, constraint: Constraint, code_change: dict[str, Any]
     ) -> bool:
         """
         Validate a specific constraint against a code change.
@@ -574,8 +573,8 @@ class ConstraintFramework:
         return True
 
     def _determine_relevant_areas(
-        self, task_type: str, file_paths: List[str] = None
-    ) -> List[ConstraintArea]:
+        self, task_type: str, file_paths: list[str] = None
+    ) -> list[ConstraintArea]:
         """Determine relevant constraint areas based on task type and file paths."""
         relevant_areas = []
 

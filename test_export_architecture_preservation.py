@@ -15,15 +15,16 @@ Requirements validated:
 - 4.5: CSV/SVG exports use deterministic behavior from ExportJob data
 """
 
-import pytest
-import tempfile
-import os
 import csv
+import os
+import tempfile
 import xml.etree.ElementTree as ET
-from datetime import datetime
-from hypothesis import given, strategies as st, settings, assume
-from typing import List, Optional
 from dataclasses import dataclass
+from datetime import datetime
+
+import pytest
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 
 # Mock data models for testing (would normally import from SquatchCut.core)
@@ -48,7 +49,7 @@ class ExportSheet:
     width_mm: float
     height_mm: float
     kerf_mm: float
-    parts: List[ExportPartPlacement]
+    parts: list[ExportPartPlacement]
 
 
 @dataclass
@@ -57,8 +58,8 @@ class ExportJob:
 
     measurement_system: str
     timestamp: datetime
-    source_file: Optional[str]
-    sheets: List[ExportSheet]
+    source_file: str | None
+    sheets: list[ExportSheet]
 
 
 # Test data generators
@@ -301,7 +302,7 @@ class TestExportArchitecturePreservation:
             assert os.path.exists(temp_path), "CSV export file was not created"
 
             # Parse CSV and verify data integrity
-            with open(temp_path, "r", encoding="utf-8") as csvfile:
+            with open(temp_path, encoding="utf-8") as csvfile:
                 reader = csv.DictReader(csvfile)
                 rows = list(reader)
 
@@ -421,9 +422,9 @@ class TestExportArchitecturePreservation:
             mock_export_cutlist(export_job, temp_path2)
 
             # Read both files
-            with open(temp_path1, "r", encoding="utf-8") as f:
+            with open(temp_path1, encoding="utf-8") as f:
                 content1 = f.read()
-            with open(temp_path2, "r", encoding="utf-8") as f:
+            with open(temp_path2, encoding="utf-8") as f:
                 content2 = f.read()
 
             # Verify identical output
@@ -475,7 +476,7 @@ class TestExportArchitecturePreservation:
             mock_export_cutlist(export_job, temp_path)
 
             # Parse exported data
-            with open(temp_path, "r", encoding="utf-8") as csvfile:
+            with open(temp_path, encoding="utf-8") as csvfile:
                 reader = csv.DictReader(csvfile)
                 exported_data = list(reader)
 
@@ -533,7 +534,7 @@ class TestExportArchitecturePreservation:
             mock_export_cutlist(export_job, temp_path)
 
             # Parse exported data
-            with open(temp_path, "r", encoding="utf-8") as csvfile:
+            with open(temp_path, encoding="utf-8") as csvfile:
                 reader = csv.DictReader(csvfile)
                 exported_data = list(reader)
 

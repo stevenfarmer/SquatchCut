@@ -1,0 +1,2029 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+
+        <meta name="description" content="A cryptid-powered nesting workbench for FreeCAD.">
+
+
+
+        <link rel="canonical" href="https://stevenfarmer.github.io/SquatchCut/Project_Guide_v3.3/">
+
+
+        <link rel="prev" href="../release-notes/">
+
+
+        <link rel="next" href="../Project_Guide_v3.2/">
+
+
+
+
+
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+
+
+
+        <title>Project Guide v3.3 - SquatchCut</title>
+
+
+
+      <link rel="stylesheet" href="../assets/stylesheets/main.618322db.min.css">
+
+
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+
+
+
+
+
+
+
+
+
+
+
+
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+
+
+
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+
+
+
+
+
+  </head>
+
+
+
+
+
+
+
+
+
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="orange">
+
+
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+
+
+        <a href="#squatchcut-project-guide-v33-ai-worker-edition" class="md-skip">
+          Skip to content
+        </a>
+
+    </div>
+    <div data-md-component="announce">
+
+    </div>
+
+
+
+
+
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="SquatchCut" class="md-header__button md-logo" aria-label="SquatchCut" data-md-component="logo">
+
+
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SquatchCut
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+
+              Project Guide v3.3
+
+          </span>
+        </div>
+      </div>
+    </div>
+
+
+        <form class="md-header__option" data-md-component="palette">
+
+
+
+
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="orange"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+
+
+</form>
+
+
+
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+
+
+
+
+
+        <label class="md-header__button md-icon" for="__search">
+
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+      <div class="md-header__source">
+        <a href="https://github.com/stevenfarmer/SquatchCut" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    SquatchCut
+  </div>
+</a>
+      </div>
+
+  </nav>
+
+</header>
+
+    <div class="md-container" data-md-component="container">
+
+
+
+
+
+
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+
+
+
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="SquatchCut" class="md-nav__button md-logo" aria-label="SquatchCut" data-md-component="logo">
+
+
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    SquatchCut
+  </label>
+
+    <div class="md-nav__source">
+      <a href="https://github.com/stevenfarmer/SquatchCut" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    SquatchCut
+  </div>
+</a>
+    </div>
+
+  <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Home
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../release-notes/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Release Notes
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--active">
+
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+
+
+
+
+
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Project Guide v3.3
+
+
+
+  </span>
+
+
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+
+      <a href="./" class="md-nav__link md-nav__link--active">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Project Guide v3.3
+
+
+
+  </span>
+
+
+
+      </a>
+
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+
+
+
+
+
+
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+
+        <li class="md-nav__item">
+  <a href="#0-meta-goals-of-v33" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        0. Meta Goals of v3.3
+
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="0. Meta Goals of v3.3">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#a-eliminating-ambiguity-in-ai-worker-instructions" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        A. Eliminating ambiguity in AI worker instructions
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#b-making-you-faster-and-making-me-the-user-more-consistent" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        B. Making YOU faster and making ME (The User) more consistent
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#c-forcing-ai-workers-to-conform-to-squatchcuts-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        C. Forcing AI workers to conform to SquatchCut’s architecture
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#v33-change-note" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        v3.3 Change Note
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#ai-tooling-workspace-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        AI Tooling &amp; Workspace Layout
+
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+    </ul>
+
+</nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../Project_Guide_v3.2/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Project Guide v3.2 (Historical)
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+
+
+
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+
+
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Getting Started
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    Getting Started
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../getting-started/installation/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Installation
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../getting-started/workflow/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Basic Workflow
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+
+
+
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+
+
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+
+
+
+  <span class="md-ellipsis">
+
+
+    User Guide
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    User Guide
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../user_guide/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    User Guide
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../user/commands/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Commands & Tools
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../user/csv_and_ts_tools/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    CSV & TS Tools
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+
+
+
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+
+
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Developer Guide
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    Developer Guide
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Architecture Overview
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../mvp/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    MVP Scope
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../ai_workflows/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    AI Worker Workflows
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../Development_Environment/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Development Environment
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../developer_guide/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Developer Guide
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../TESTING/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Testing Guide
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../quality_and_performance/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Quality and Performance
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Quickstart
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+
+
+
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+
+
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Blog
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    Blog
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../blog/squatchcut_lessons_from_the_machine_seo/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Teaching a FreeCAD Plugin to Behave
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+
+
+
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+
+
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+
+
+
+  <span class="md-ellipsis">
+
+
+    SquatchCut
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    SquatchCut
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../lessons/squatchcut_lessons_learned/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Lessons Learned
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+
+
+
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+
+
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Project Management
+
+
+
+  </span>
+
+
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+
+
+    Project Management
+
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../roadmap/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Roadmap
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../UAT_Checklist/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    UAT Checklist
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../UAT_Prep_Instructions/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    UAT Prep Instructions
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../backlog_archive_v3.2/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Backlog Archive v3.2
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+          </ul>
+        </nav>
+
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../reporting_bugs/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Reporting Bugs
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+
+
+
+
+
+
+    <li class="md-nav__item">
+      <a href="../dev/testing/" class="md-nav__link">
+
+
+
+  <span class="md-ellipsis">
+
+
+    Testing
+
+
+
+  </span>
+
+
+
+      </a>
+    </li>
+
+
+
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+
+
+
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+
+
+
+
+
+
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+
+        <li class="md-nav__item">
+  <a href="#0-meta-goals-of-v33" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        0. Meta Goals of v3.3
+
+    </span>
+  </a>
+
+    <nav class="md-nav" aria-label="0. Meta Goals of v3.3">
+      <ul class="md-nav__list">
+
+          <li class="md-nav__item">
+  <a href="#a-eliminating-ambiguity-in-ai-worker-instructions" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        A. Eliminating ambiguity in AI worker instructions
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#b-making-you-faster-and-making-me-the-user-more-consistent" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        B. Making YOU faster and making ME (The User) more consistent
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#c-forcing-ai-workers-to-conform-to-squatchcuts-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        C. Forcing AI workers to conform to SquatchCut’s architecture
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#v33-change-note" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        v3.3 Change Note
+
+    </span>
+  </a>
+
+</li>
+
+          <li class="md-nav__item">
+  <a href="#ai-tooling-workspace-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+
+        AI Tooling &amp; Workspace Layout
+
+    </span>
+  </a>
+
+</li>
+
+      </ul>
+    </nav>
+
+</li>
+
+    </ul>
+
+</nav>
+                  </div>
+                </div>
+              </div>
+
+
+
+            <div class="md-content" data-md-component="content">
+
+              <article class="md-content__inner md-typeset">
+
+
+
+
+
+
+
+
+<h1 id="squatchcut-project-guide-v33-ai-worker-edition">SquatchCut Project Guide (v3.3 – AI Worker Edition)<a class="headerlink" href="#squatchcut-project-guide-v33-ai-worker-edition" title="Permanent link">&para;</a></h1>
+<h2 id="0-meta-goals-of-v33">0. Meta Goals of v3.3<a class="headerlink" href="#0-meta-goals-of-v33" title="Permanent link">&para;</a></h2>
+<p>This updated guide focuses specifically on:</p>
+<h3 id="a-eliminating-ambiguity-in-ai-worker-instructions"><strong>A. Eliminating ambiguity in AI worker instructions</strong><a class="headerlink" href="#a-eliminating-ambiguity-in-ai-worker-instructions" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Instruction blocks now have strict, enforceable structure</li>
+<li>No markdown, no commentary inside blocks  </li>
+<li>Reasoning level declarations mandatory  </li>
+<li>File paths and expected patterns must be explicit  </li>
+<li>UI behavior described unambiguously  </li>
+<li>Persistent behavior safeguarded from accidental overwrites  </li>
+</ul>
+<h3 id="b-making-you-faster-and-making-me-the-user-more-consistent"><strong>B. Making YOU faster and making ME (The User) more consistent</strong><a class="headerlink" href="#b-making-you-faster-and-making-me-the-user-more-consistent" title="Permanent link">&para;</a></h3>
+<ul>
+<li>You describe requirements  </li>
+<li>I translate them into clear directives  </li>
+<li>The AI worker executes</li>
+</ul>
+<h3 id="c-forcing-ai-workers-to-conform-to-squatchcuts-architecture"><strong>C. Forcing AI workers to conform to SquatchCut’s architecture</strong><a class="headerlink" href="#c-forcing-ai-workers-to-conform-to-squatchcuts-architecture" title="Permanent link">&para;</a></h3>
+<p>AI workers should never reinvent the repo or introduce new patterns.</p>
+<h3 id="v33-change-note"><strong>v3.3 Change Note</strong><a class="headerlink" href="#v33-change-note" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Introduces an AI-tool-agnostic worker model (Architect + AI workers), clarifies AI workflow, and refreshes backlog guidance.</li>
+</ul>
+<h3 id="ai-tooling-workspace-layout">AI Tooling &amp; Workspace Layout<a class="headerlink" href="#ai-tooling-workspace-layout" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Developers clone SquatchCut on the host and open <code>squatchcut.code-workspace</code>; this host-visible workspace is what AI tools discover.</li>
+<li>When “Reopen in Container” is used, VS Code bind-mounts the host repo at <code>/workspaces/SquatchCut</code>, so the container simply provides tooling while the canonical code stays on the host.</li>
+<li>See <code>docs/Development_Environment.md</code> for full AI-forward workflow details.</li>
+<li><strong>See also <code>AGENTS.md</code> in the root directory for strict behavioral rules.</strong></li>
+</ul>
+<hr />
+<h1 id="1-project-purpose">1. Project Purpose<a class="headerlink" href="#1-project-purpose" title="Permanent link">&para;</a></h1>
+<p>SquatchCut is a FreeCAD add-on that takes CSV part lists and generates optimized sheet nests for woodworking, cabinetry, and general sheet-material workflows.</p>
+<h3 id="core-objectives">Core Objectives<a class="headerlink" href="#core-objectives" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Fast, predictable, simple  </li>
+<li>Minimal UI friction  </li>
+<li>Always mm internally, fractions if imperial  </li>
+<li>Stable hydration/initialization  </li>
+<li>Simple CSV → sheet → nest → export workflow  </li>
+</ul>
+<hr />
+<h1 id="2-roles">2. Roles<a class="headerlink" href="#2-roles" title="Permanent link">&para;</a></h1>
+<h2 id="user-steven"><strong>User (Steven)</strong><a class="headerlink" href="#user-steven" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Product Owner  </li>
+<li>Scrum-ish Master  </li>
+<li>UAT wrangler  </li>
+<li>Requirements authority  </li>
+</ul>
+<h2 id="architect-planner"><strong>Architect (Planner)</strong><a class="headerlink" href="#architect-planner" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Writes requirements and task specs (job cards / instruction blocks)  </li>
+<li>Coordinates branches and scope; keeps guardrails and backlog aligned  </li>
+<li>Maintains documentation and reviews incoming work  </li>
+</ul>
+<h2 id="ai-workers-codedocs-agents"><strong>AI Workers (Code/Docs Agents)</strong><a class="headerlink" href="#ai-workers-codedocs-agents" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Implement code or documentation tasks from Architect specs  </li>
+<li>May be local editor assistants, hosted coding agents, or other tools (e.g., Codex, Jules, or future equivalents)  </li>
+<li>Work from dedicated branches per worker/task; no overlapping edits on the same core files in parallel  </li>
+<li>Must obey patterns, reasoning levels, and testing rules described in this guide and <code>AGENTS.md</code></li>
+</ul>
+<h2 id="human-contributors"><strong>Human Contributors</strong><a class="headerlink" href="#human-contributors" title="Permanent link">&para;</a></h2>
+<ul>
+<li>May implement tasks directly but must follow the same architecture, hydration, and measurement rules as AI workers</li>
+</ul>
+<hr />
+<h1 id="3-core-principles">3. Core Principles<a class="headerlink" href="#3-core-principles" title="Permanent link">&para;</a></h1>
+<ol>
+<li><strong>Internal units = millimeters</strong>  </li>
+<li><strong>Imperial = fractional inches only</strong>  </li>
+<li><strong>Defaults never change unless Settings says so</strong>  </li>
+<li><strong>Presets never override defaults</strong>  </li>
+<li><strong>TaskPanel never auto-selects presets</strong>  </li>
+<li><strong>hydrate_from_params() ALWAYS runs before UI widgets</strong>  </li>
+<li><strong>AI workers must use reasoning level declarations</strong></li>
+<li><strong>Every logic change must include tests</strong>  </li>
+<li><strong>UI must not overflow or fail to load</strong>  </li>
+<li><strong>Settings panel must always open</strong>  </li>
+<li><strong>No relative imports</strong>  </li>
+<li><strong>No pattern drift</strong>  </li>
+<li><strong>No silent behavior changes</strong>  </li>
+</ol>
+<hr />
+<h1 id="4-ai-workflow-communication-updated-hardened">4. AI Workflow &amp; Communication (Updated + Hardened)<a class="headerlink" href="#4-ai-workflow-communication-updated-hardened" title="Permanent link">&para;</a></h1>
+<h2 id="41-instruction-block-format">4.1 Instruction Block Format<a class="headerlink" href="#41-instruction-block-format" title="Permanent link">&para;</a></h2>
+<p>Every instruction block MUST begin with:</p>
+<div class="codehilite"><pre><span></span><code>Recommended reasoning level: &lt;LEVEL&gt;
+</code></pre></div>
+
+<p>Followed by:</p>
+<div class="codehilite"><pre><span></span><code>AI worker, this task requires &lt;LEVEL&gt; reasoning.
+
+&lt;instructions&gt;
+</code></pre></div>
+
+<ul>
+<li>No markdown  </li>
+<li>No language tag  </li>
+<li>No commentary  </li>
+<li>Only instructions  </li>
+<li>Must be safe to paste directly into the AI worker interface</li>
+</ul>
+<h2 id="42-required-elements-inside-each-block">4.2 Required Elements Inside Each Block<a class="headerlink" href="#42-required-elements-inside-each-block" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Full file paths  </li>
+<li>Explicit operation lists  </li>
+<li>Expected behavior  </li>
+<li>Acceptance criteria  </li>
+<li>Guardrails  </li>
+</ul>
+<h2 id="43-when-to-use-levels">4.3 When to Use Levels<a class="headerlink" href="#43-when-to-use-levels" title="Permanent link">&para;</a></h2>
+<ul>
+<li>LOW: trivial  </li>
+<li>MEDIUM: single-file  </li>
+<li>HIGH: multi-file + UI or settings  </li>
+<li>EXTRA-HIGH: architectural or algorithm refactor</li>
+</ul>
+<h2 id="44-ai-workflow-v33">4.4 AI Workflow (v3.3)<a class="headerlink" href="#44-ai-workflow-v33" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Architect authors job cards/task specs that define scope, files, guardrails, and acceptance criteria.  </li>
+<li>Any AI worker (Codex, Jules, editor-based assistant, hosted agent) consumes the same spec format.  </li>
+<li>Each AI worker uses its own branch to avoid parallel edits on the same core files; merge sequencing is coordinated by the Architect.  </li>
+<li>CI, linting, and review gates are tool-agnostic and run regardless of who or what produced the change.</li>
+</ul>
+<hr />
+<h1 id="5-hydration-rules-hard-requirements">5. Hydration Rules (Hard Requirements)<a class="headerlink" href="#5-hydration-rules-hard-requirements" title="Permanent link">&para;</a></h1>
+<p>Hydration has caused repeated issues. These rules are absolute:</p>
+<h3 id="51-hydrate_from_params-must"><strong>5.1 hydrate_from_params() must:</strong><a class="headerlink" href="#51-hydrate_from_params-must" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Load all persistent values  </li>
+<li>Guarantee type consistency  </li>
+<li>Normalize internal units  </li>
+<li>Never access GUI  </li>
+<li>Never import GUI modules  </li>
+<li>Never modify defaults except on Settings save  </li>
+</ul>
+<h3 id="52-taskpanel-initialization-order"><strong>5.2 TaskPanel Initialization Order</strong><a class="headerlink" href="#52-taskpanel-initialization-order" title="Permanent link">&para;</a></h3>
+<p>This order is non-negotiable:</p>
+<ol>
+<li>Load session_state  </li>
+<li>Call hydrate_from_params()  </li>
+<li>Create all UI widgets  </li>
+<li>Populate UI values from hydrated state  </li>
+<li>Apply measurement formatting  </li>
+<li>Connect signals  </li>
+<li>Render panel  </li>
+</ol>
+<p>No exceptions.</p>
+<hr />
+<h1 id="6-measurement-system-architecture">6. Measurement System Architecture<a class="headerlink" href="#6-measurement-system-architecture" title="Permanent link">&para;</a></h1>
+<h3 id="61-internal-storage">6.1 Internal Storage<a class="headerlink" href="#61-internal-storage" title="Permanent link">&para;</a></h3>
+<p>Always millimeters.</p>
+<h3 id="62-display-modes">6.2 Display Modes<a class="headerlink" href="#62-display-modes" title="Permanent link">&para;</a></h3>
+<ul>
+<li>metric → mm  </li>
+<li>imperial → fractional inches  </li>
+</ul>
+<h3 id="63-ui-reformatting-rules">6.3 UI Reformatting Rules<a class="headerlink" href="#63-ui-reformatting-rules" title="Permanent link">&para;</a></h3>
+<p>Switching measurement system requires full reformatting of all numeric UI fields.</p>
+<h3 id="65-split-defaults-new">6.5 Split Defaults (New)<a class="headerlink" href="#65-split-defaults-new" title="Permanent link">&para;</a></h3>
+<p>To prevent drift from rounding errors:
+- User-configurable defaults (Sheet size, Kerf, Gap) must be stored separately for Metric and Imperial.
+- Switching systems in Settings swaps the loaded default, it does not convert/overwrite the existing one.</p>
+<h3 id="64-fraction-logic">6.4 Fraction Logic<a class="headerlink" href="#64-fraction-logic" title="Permanent link">&para;</a></h3>
+<p>Must support:
+- whole<br />
+- fraction<br />
+- mixed<br />
+- hyphenated<br />
+Must round-trip without drift.</p>
+<hr />
+<h1 id="7-preset-default-logic-fortified">7. Preset &amp; Default Logic (Fortified)<a class="headerlink" href="#7-preset-default-logic-fortified" title="Permanent link">&para;</a></h1>
+<h3 id="defaults"><strong>Defaults</strong><a class="headerlink" href="#defaults" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Set only via Settings panel  </li>
+<li>Never altered by TaskPanel  </li>
+<li>Hydrate_from_params loads them  </li>
+</ul>
+<h3 id="presets"><strong>Presets</strong><a class="headerlink" href="#presets" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Always start blank  </li>
+<li>Only modify sheet width/height  </li>
+<li>Never modify defaults  </li>
+<li>Never auto-selected  </li>
+</ul>
+<h3 id="imperial-default-sheet"><strong>Imperial Default Sheet</strong><a class="headerlink" href="#imperial-default-sheet" title="Permanent link">&para;</a></h3>
+<p>Exactly <strong>48 × 96 inches</strong>.</p>
+<hr />
+<h1 id="8-ui-behavior-rules">8. UI Behavior Rules<a class="headerlink" href="#8-ui-behavior-rules" title="Permanent link">&para;</a></h1>
+<h3 id="81-settings-panel">8.1 Settings Panel<a class="headerlink" href="#81-settings-panel" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Must always open  </li>
+<li>Must use TaskPanel_Settings  </li>
+<li>Must call hydrate_from_params() before building widgets  </li>
+</ul>
+<h3 id="82-main-taskpanel">8.2 Main TaskPanel<a class="headerlink" href="#82-main-taskpanel" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Acts as a Controller for sub-widgets (<code>Input</code>, <code>Sheet</code>, <code>Nesting</code>).</li>
+<li>Must reflect hydrated defaults.</li>
+<li>Must not override defaults.</li>
+<li>Must not infer presets.</li>
+<li>Must not open multiple instances.</li>
+</ul>
+<h3 id="83-sheetsourcenesting-view-rules">8.3 Sheet/Source/Nesting View Rules<a class="headerlink" href="#83-sheetsourcenesting-view-rules" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Clear groups before redraw  </li>
+<li>Never leave orphans  </li>
+<li>Auto-zoom after draw  </li>
+<li>Maintain consistent naming:</li>
+<li>SquatchCut_Sheet  </li>
+<li>SquatchCut_SourceParts  </li>
+<li>SquatchCut_NestedParts  </li>
+</ul>
+<hr />
+<h1 id="9-tests">9. Tests<a class="headerlink" href="#9-tests" title="Permanent link">&para;</a></h1>
+<h3 id="91-must-test">9.1 Must Test<a class="headerlink" href="#91-must-test" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Fraction parsing  </li>
+<li>Fraction formatting  </li>
+<li>CSV parsing  </li>
+<li>Default initialization  </li>
+<li>Hydration logic  </li>
+<li>Preset behavior  </li>
+<li>TaskPanel load behavior  </li>
+<li>Measurement-system conversions  </li>
+</ul>
+<h3 id="92-should-test">9.2 Should Test<a class="headerlink" href="#92-should-test" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Sheet object creation  </li>
+<li>Group clearing  </li>
+<li>UI stability (when possible)  </li>
+</ul>
+<hr />
+<h1 id="10-add-on-manager-rules">10. Add-On Manager Rules<a class="headerlink" href="#10-add-on-manager-rules" title="Permanent link">&para;</a></h1>
+<p>AI workers must ensure:</p>
+<ul>
+<li>Correct zip structure  </li>
+<li>Correct metadata  </li>
+<li>No relative imports  </li>
+<li>All icons exist  </li>
+<li>Version increments  </li>
+</ul>
+<hr />
+<h1 id="11-export-architecture-v33-preparation">11. Export Architecture (v3.3 preparation)<a class="headerlink" href="#11-export-architecture-v33-preparation" title="Permanent link">&para;</a></h1>
+<h2 id="111-canonical-export-data-model">11.1 Canonical Export Data Model<a class="headerlink" href="#111-canonical-export-data-model" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>freecad/SquatchCut/core/exporter.py</code> defines the only valid export model:</li>
+<li><code>ExportJob</code> – job-wide metadata + sheets, measurement system, job name.</li>
+<li><code>ExportSheet</code> – sheet index, width/height in mm, list of part placements.</li>
+<li><code>ExportPartPlacement</code> – per-part geometry (x_mm, y_mm, width_mm, height_mm, rotation_deg) and part_id.</li>
+<li>ExportJob is built from the latest nesting layout + sheet config via <code>build_export_job_from_current_nesting</code>.</li>
+<li><strong>All geometry is stored in millimeters.</strong> Measurement system only affects formatted strings.</li>
+</ul>
+<h2 id="112-deterministic-export-behavior">11.2 Deterministic Export Behavior<a class="headerlink" href="#112-deterministic-export-behavior" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>CSV export (<code>export_cutlist</code>)</strong></li>
+<li>Emits stable header columns (sheet_index, mm geometry, formatted strings).</li>
+<li>Raw mm values are untouched. <code>width_display/height_display</code> respect ExportJob.measurement_system.</li>
+<li>Tests cover both metric and imperial output.</li>
+<li><strong>SVG export (<code>export_nesting_to_svg</code>)</strong></li>
+<li>Generates one 2D SVG per sheet; filenames include <code>_S{n}</code> suffix.</li>
+<li>Draws sheet border, stroke-only part rectangles, deterministic labels (ID + dimensions), and header “Sheet i of N – WxH units”.</li>
+<li>No FreeCAD 3D/export calls; everything is generated from ExportJob data.</li>
+<li><strong>Design Principle:</strong> Export behavior must be deterministic and driven solely by ExportJob. FreeCAD document geometry is never a source of truth for exported artifacts.</li>
+</ul>
+<h2 id="113-out-of-scope">11.3 Out-of-scope<a class="headerlink" href="#113-out-of-scope" title="Permanent link">&para;</a></h2>
+<ul>
+<li>DXF export remains deferred. Implementing DXF is explicitly out of scope for the current release cycle and cannot block delivery.</li>
+</ul>
+<h1 id="12-status-backlog-addendum-dec-2025">12. Status &amp; Backlog Addendum (Dec 2025)<a class="headerlink" href="#12-status-backlog-addendum-dec-2025" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>NOTE</strong><br />
+This addendum does <strong>not</strong> change any core architectural rules.<br />
+It supersedes the older backlog-alignment section that followed the post-nesting fixes, providing a reconciled, status-aware view.<br />
+The information below reflects the current codebase (CSV ingestion, session-state hydration, multi-sheet helpers, guillotine engine, TaskPanel warning banner, and existing tests/backlog files).</p>
+</blockquote>
+<hr />
+<h2 id="a-status-snapshot-dec-2025">A. STATUS SNAPSHOT (DEC 2025)<a class="headerlink" href="#a-status-snapshot-dec-2025" title="Permanent link">&para;</a></h2>
+<h3 id="1-features-stability">1. Features &amp; Stability<a class="headerlink" href="#1-features-stability" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Core CSV ingestion and session-state hydration flows remain stable and predictable.</li>
+<li>All four nesting strategies (default optimized, shelf, cut-friendly, guillotine) operate reliably under normal conditions.</li>
+<li>The normalized job-sheet helper in <code>freecad/SquatchCut/core/nesting.py</code> (~115–210) is the unified source of truth consumed by every strategy.</li>
+<li>The TaskPanel warning banner in <code>freecad/SquatchCut/gui/taskpanel_main.py</code> (~323–354) alerts users when cut-oriented modes may ignore additional sheets.</li>
+<li>Overall CSV → session → sheet normalization → nesting pipelines are cohesive and predictable.</li>
+</ul>
+<h3 id="2-recently-refactored-fragile-areas">2. Recently Refactored / Fragile Areas<a class="headerlink" href="#2-recently-refactored-fragile-areas" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Multi-sheet heuristics (<code>freecad/SquatchCut/core/nesting.py</code> ~524–779) iterate sheet sizes but still lack per-sheet utilization metrics and user-visible exhaustion handling.</li>
+<li>The guillotine runner (<code>freecad/SquatchCut/core/cut_optimization.py</code> ~34–151) honors multi-sheet jobs yet has no per-sheet stats and can behave unexpectedly under aggressive exhaustion.</li>
+<li>Hydration/UI wiring integrated <code>_sheet_warning_active</code> via <code>_build_nesting_group</code> and <code>_update_cut_mode_sheet_warning</code>; changes must respect the hydration order.</li>
+</ul>
+<h3 id="3-known-or-likely-regressions">3. Known or Likely Regressions<a class="headerlink" href="#3-known-or-likely-regressions" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Preview vs Apply</strong> (<code>freecad/SquatchCut/gui/taskpanel_main.py</code> ~840–869): Preview and Apply share the same destructive command path. Preview can mutate the document; TODO already notes need for a non-destructive channel.</li>
+<li><strong>CSV Export</strong> (<code>freecad/SquatchCut/gui/commands/cmd_run_nesting.py</code> ~585–614): Export remains a stub. Menu items exist without producing real artifacts, potentially misleading users.</li>
+</ul>
+<h3 id="4-ui-ux-issues">4. UI / UX Issues<a class="headerlink" href="#4-ui-ux-issues" title="Permanent link">&para;</a></h3>
+<ul>
+<li>TaskPanel layout is crowded (Preview/Run/Show Source row + checkbox clusters, <code>freecad/SquatchCut/gui/taskpanel_main.py</code> ~333–353) causing clipping on narrow docks.</li>
+<li>The warning banner consumes full width with no adaptive fallback, increasing overflow risk in constrained layouts.</li>
+</ul>
+<h3 id="5-testing-coverage-gaps">5. Testing Coverage &amp; Gaps<a class="headerlink" href="#5-testing-coverage-gaps" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Full <code>pytest</code> sweeps collect ~171 tests but can time out (~120 s) in limited environments.</li>
+<li>Critical suites (<code>tests/test_nesting.py</code>, <code>tests/test_taskpanel_hydration.py</code>) pass, covering baseline nesting correctness and hydration behavior.</li>
+<li>Gaps remain for preview lifecycle vs apply, imperial formatting drift, sheet exhaustion behavior, warning-banner state transitions across permutations, and deep multi-sheet exhaustion edge cases.</li>
+</ul>
+<h3 id="6-technical-debt-documentation">6. Technical Debt &amp; Documentation<a class="headerlink" href="#6-technical-debt-documentation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>CSV export requires a complete implementation and deterministic cutlist output.</li>
+<li>Preview determinism needs a non-destructive workflow and clear cleanup of <code>SquatchCut_*</code> groups.</li>
+<li>Per-sheet visualization needs better labeling, spacing, and navigation aids.</li>
+<li>Documentation: v3.3 guide and <code>docs/Backlog.md</code> track status/backlog with AI-agnostic workflow notes; v3.2 remains as a historical snapshot.</li>
+</ul>
+<hr />
+<h2 id="b-backlog-alignment-supersedes-old-section-11">B. BACKLOG ALIGNMENT (SUPERSEDES OLD SECTION 11)<a class="headerlink" href="#b-backlog-alignment-supersedes-old-section-11" title="Permanent link">&para;</a></h2>
+<h3 id="1-completed-since-v32">1. Completed Since v3.2<a class="headerlink" href="#1-completed-since-v32" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Settings Panel Behavior</strong> – Opens reliably, hydrates before widget construction, leaves defaults untouched until explicit save.</li>
+<li><strong>Unified Job-Sheet Normalization</strong> – <code>_normalize_sheet_definition</code> feeds every nesting strategy with the same sheet list.</li>
+<li><strong>Multi-Sheet Support Baseline</strong> – Standard, cut-friendly, and guillotine strategies honor advanced job sheets with correct <code>sheet_index</code> tracking.</li>
+<li><strong>Warning Banner Infrastructure</strong> – TaskPanel warning banner with <code>_sheet_warning_active</code> surfaces when cut-oriented modes ignore additional sheets.</li>
+<li><strong>Documentation &amp; Backlog Files</strong> – v3.3 guide and <code>docs/Backlog.md</code> are aligned to reflect the unified pipeline, AI-agnostic workflow, and current backlog structure.</li>
+</ul>
+<h3 id="2-active-backlog-high-priority-first">2. Active Backlog (High Priority First)<a class="headerlink" href="#2-active-backlog-high-priority-first" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p><strong>P1 – Preview Determinism &amp; Cleanup</strong><br />
+  Separate preview from apply so preview is non-destructive; ensure <code>SquatchCut_Sheet_*</code>, <code>SquatchCut_SourceParts_*</code>, and <code>SquatchCut_NestedParts_*</code> stay consistent and cleaned up.<br />
+<em>Scope</em>: <code>freecad/SquatchCut/gui/taskpanel_main.py</code>, preview helpers/tests.</p>
+</li>
+<li>
+<p><strong>P1 – TaskPanel Overflow &amp; Ergonomics</strong><br />
+  Restructure crowded button/checkbox rows to prevent clipping on narrow docks, ensuring the warning banner coexists without overflow.<br />
+<em>Scope</em>: <code>freecad/SquatchCut/gui/taskpanel_main.py</code>.</p>
+</li>
+<li>
+<p><strong>P1 – Multi-Sheet Visualization Polish</strong><br />
+  Improve per-sheet labeling, spacing, and navigation within the viewer; keep sheet/source/nested groups synchronized without ghosts.<br />
+<em>Scope</em>: <code>freecad/SquatchCut/gui/nesting_view.py</code>, <code>freecad/SquatchCut/core/view_controller.py</code>.</p>
+</li>
+<li>
+<p><strong>P1 – Cut-Friendly Multi-Sheet Heuristics</strong><br />
+  Refine lane/guillotine behavior so sheet order, exhaustion, and spacing are predictable.<br />
+<em>Scope</em>: <code>freecad/SquatchCut/core/nesting.py</code>, <code>freecad/SquatchCut/core/cut_optimization.py</code>.</p>
+</li>
+<li>
+<p><strong>P1 – Test Suite Expansion (Hydration, Units, Preview)</strong><br />
+  Add tests for measurement toggles, fractional-inch formatting, preview lifecycle, sheet_index propagation, and basic exhaustion scenarios.<br />
+<em>Scope</em>: <code>tests/test_taskpanel_hydration.py</code>, new multi-sheet/preview suites.</p>
+</li>
+<li>
+<p><strong>P2 – CSV Export &amp; Cutlist Determinism</strong><br />
+  Replace the export stub with real cutlist generation and document the format.<br />
+<em>Scope</em>: <code>freecad/SquatchCut/gui/commands/cmd_run_nesting.py</code> + helpers.</p>
+</li>
+<li>
+<p><strong>P2 – Warning Banner Lifecycle Tests</strong><br />
+  Ensure banner visibility/text reacts to nesting-mode, job-sheet, and unit-system changes.<br />
+<em>Scope</em>: <code>freecad/SquatchCut/gui/taskpanel_main.py</code>, UI tests.</p>
+</li>
+<li>
+<p><strong>P2 – Sheet Exhaustion Metrics &amp; Feedback</strong><br />
+  Surface when sheet quantities run out (logs/UI) and avoid silent truncation.<br />
+<em>Scope</em>: nesting core + TaskPanel feedback.</p>
+</li>
+</ul>
+<h3 id="3-future-longer-term">3. Future / Longer-Term<a class="headerlink" href="#3-future-longer-term" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Per-Sheet Cut-Order Visualization</strong> – Visual guide for rip/crosscut sequences per sheet.</li>
+<li><strong>Enhanced Sheet Exhaustion Metrics</strong> – Utilization percentages and unused vs used counts.</li>
+<li><strong>Multi-Sheet Presets</strong> – Configurable sheet stacks as presets compatible with measurement rules.</li>
+<li><strong>Kerf Simulation</strong> – Saw-specific kerf modeling tied into both packing and cut-friendly heuristics.</li>
+</ul>
+<hr />
+<h2 id="c-how-to-use-this-addendum">C. HOW TO USE THIS ADDENDUM<a class="headerlink" href="#c-how-to-use-this-addendum" title="Permanent link">&para;</a></h2>
+<ul>
+<li>The core architectural rules remain authoritative; v3.2 is preserved for historical reference.</li>
+<li>This addendum synchronizes the v3.3 guide and <code>docs/Backlog.md</code> with real status/backlog data.</li>
+<li>Future architectural or backlog changes must update both the main guide (or successor) and this alignment layer, keeping architecture, status, and backlog clearly separated.</li>
+</ul>
+<hr />
+<h2 id="d-developer-tooling-documentation">D. Developer Tooling &amp; Documentation<a class="headerlink" href="#d-developer-tooling-documentation" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Documentation hygiene</strong> – Update both this guide and <code>docs/Backlog.md</code> whenever the backlog or architectural narratives change; <code>tests/test_docs_backlog_structure.py</code> enforces the presence of required sections and key phrases inside the backlog to keep the narrative aligned.</li>
+<li><strong>Developer GUI test suite</strong> – <code>gui/taskpanel_settings.py</code> surfaces a “Run GUI Test Suite” button that delegates to <code>core/gui_tests.py</code>. The suite seeds a small panel set, imports CSVs, runs nesting, and logs <code>[GUI TEST]</code>‑prefixed status to the Report view for clarity.</li>
+<li><strong>Runner environment</strong> – <code>docs/Development_Environment.md</code> and <code>docs/TESTING.md</code> describe how to build the <code>squatchcut-dev</code> Docker/devcontainer image, install <code>pip install -e .[dev]</code>, and run both pure-Python and FreeCAD-aware <code>pytest</code> runs (prepend <code>PYTHONPATH=/usr/lib/freecad-python3/lib</code> when needed or use <code>FreeCADCmd -c "import run_freecad_tests"</code>).</li>
+<li><strong>Architecture reference</strong> – Keep <code>docs/architecture.md</code> in sync with the actual <code>freecad/SquatchCut/*</code> tree; it is the single source of truth for module responsibilities when onboarding new agents or contributors.</li>
+<li><strong>AI worker conduct</strong> – The root <code>AGENTS.md</code> governs measurement rules, hydration order, interaction protocol, and reasoning-level expectations; it complements this guide rather than replacing it.</li>
+<li><strong>Export rules reminder</strong> – All exports (CSV, SVG, future DXF) must flow through <code>freecad/SquatchCut/core/exporter.py</code> and rely on <code>ExportJob</code>/<code>ExportSheet</code>/<code>ExportPartPlacement</code> data for deterministic outputs.</li>
+</ul>
+<h1 id="13-development-rules-summary">13. Development Rules Summary<a class="headerlink" href="#13-development-rules-summary" title="Permanent link">&para;</a></h1>
+<ol>
+<li>Internal unit = mm  </li>
+<li>Imperial UI = fractions only  </li>
+<li>Defaults remain unchanged except in Settings  </li>
+<li>Presets never overwrite defaults  </li>
+<li>TaskPanel never auto-selects presets  </li>
+<li>Hydration before UI  </li>
+<li>AI workers must use reasoning levels</li>
+<li>Tests accompany logic changes  </li>
+<li>UI must never overflow  </li>
+<li>Settings panel must open  </li>
+<li>No relative imports  </li>
+<li>No silent assumptions  </li>
+<li>No redesigns without explicit instructions  </li>
+</ol>
+<hr />
+<h1 id="14-changelog-strategy-for-v33">14. Changelog Strategy for v3.3<a class="headerlink" href="#14-changelog-strategy-for-v33" title="Permanent link">&para;</a></h1>
+<ul>
+<li>Add v3.3 section.</li>
+<li>Note AI worker model updates (Architect + AI workers), clarified workflow, and refreshed backlog guidance.</li>
+<li>Keep v3.2 documentation intact as a historical reference point.</li>
+<li>Record that backlog/status alignment was refreshed for v3.3 and mirrored into <code>docs/Backlog.md</code>.</li>
+<li>Document the AI-forward development workflow (host-cloned repo, bind-mounted dev container, canonical <code>.code-workspace</code>).</li>
+<li>Preserve the v3.3 roadmap section describing required deliverables for FreeCAD Add-On Manager readiness and release planning.</li>
+</ul>
+<hr />
+<h1 id="15-roadmap-for-v33-freecad-add-on-release-candidate">15. Roadmap for v3.3 – FreeCAD Add-On Release Candidate<a class="headerlink" href="#15-roadmap-for-v33-freecad-add-on-release-candidate" title="Permanent link">&para;</a></h1>
+<p>v3.3 is a stabilization and polish release aimed at making SquatchCut ready for the FreeCAD Add-On Manager.
+No new “hero features” are allowed unless they directly support stability, usability, or Add-On compliance.</p>
+<h2 id="141-v33-goals">14.1 v3.3 Goals<a class="headerlink" href="#141-v33-goals" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Deliver a non-destructive, deterministic nesting workflow.</li>
+<li>Eliminate UI overflow issues in the TaskPanel.</li>
+<li>Polish multi-sheet visualization and eliminate ghost objects.</li>
+<li>Implement a fully functional CSV export path.</li>
+<li>Surface sheet-exhaustion metrics and warnings.</li>
+<li>Achieve full Add-On Manager compliance.</li>
+<li>Update user docs and include example CSVs.</li>
+</ul>
+<h2 id="142-phase-1-critical-completion-release-blockers">14.2 Phase 1 – Critical Completion (Release Blockers)<a class="headerlink" href="#142-phase-1-critical-completion-release-blockers" title="Permanent link">&para;</a></h2>
+<p>[INSERT ALL SUBSECTIONS EXACTLY AS PROVIDED BY ARCHITECT AI]</p>
+<h2 id="143-phase-2-core-features-required-for-release">14.3 Phase 2 – Core Features Required for Release<a class="headerlink" href="#143-phase-2-core-features-required-for-release" title="Permanent link">&para;</a></h2>
+<p>[INSERT ALL SUBSECTIONS EXACTLY AS PROVIDED BY ARCHITECT AI]</p>
+<h2 id="144-phase-3-add-on-manager-readiness">14.4 Phase 3 – Add-On Manager Readiness<a class="headerlink" href="#144-phase-3-add-on-manager-readiness" title="Permanent link">&para;</a></h2>
+<p>[INSERT ALL SUBSECTIONS EXACTLY AS PROVIDED BY ARCHITECT AI]</p>
+<h2 id="145-phase-4-optional-items-candidates-for-v34">14.5 Phase 4 – Optional Items (Candidates for v3.4)<a class="headerlink" href="#145-phase-4-optional-items-candidates-for-v34" title="Permanent link">&para;</a></h2>
+<p>[INSERT ALL SUBSECTIONS EXACTLY AS PROVIDED BY ARCHITECT AI]</p>
+<h2 id="146-v33-exit-criteria">14.6 v3.3 Exit Criteria<a class="headerlink" href="#146-v33-exit-criteria" title="Permanent link">&para;</a></h2>
+<p>[INSERT ALL SUBSECTIONS EXACTLY AS PROVIDED BY ARCHITECT AI]</p>
+<h1 id="end-of-squatchcut-project-guide-v33">END OF SquatchCut Project Guide v3.3<a class="headerlink" href="#end-of-squatchcut-project-guide-v33" title="Permanent link">&para;</a></h1>
+
+
+
+
+
+
+
+
+
+
+
+
+
+              </article>
+            </div>
+
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+
+      </main>
+
+        <footer class="md-footer">
+
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+
+
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+
+</div>
+
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+
+
+
+
+
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.instant", "content.code.copy"], "search": "../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+
+
+      <script src="../assets/javascripts/bundle.e71a0d61.min.js"></script>
+
+
+  </body>
+</html>
