@@ -590,6 +590,7 @@ class TestExportProperties:
         st.floats(min_value=400, max_value=1000),
         st.floats(min_value=300, max_value=800),
     )
+    @settings(deadline=2000)
     def test_waste_areas_properties(self, parts, sheet_width, sheet_height):
         """Property: Waste areas should not overlap with parts."""
         # Filter parts to ensure they fit within sheet

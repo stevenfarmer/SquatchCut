@@ -158,7 +158,7 @@ def valid_export_job(draw):
         num_parts = draw(st.integers(min_value=0, max_value=20))
         parts = []
 
-        for part_index in range(num_parts):
+        for _part_index in range(num_parts):
             part = ExportPartPlacement(
                 part_id=f"part_{global_part_counter}",  # Globally unique part IDs
                 label=draw(
@@ -536,7 +536,7 @@ class TestExportArchitecturePreservation:
             # Parse exported data
             with open(temp_path, encoding="utf-8") as csvfile:
                 reader = csv.DictReader(csvfile)
-                exported_data = list(reader)
+                list(reader)
 
             # Verify internal values are always in mm
             for sheet in export_job.sheets:

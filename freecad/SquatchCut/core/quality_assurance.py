@@ -160,7 +160,7 @@ class QualityAssuranceChecker:
         issues = []
 
         for i, part1 in enumerate(placed_parts):
-            for j, part2 in enumerate(placed_parts[i + 1 :], i + 1):
+            for _j, part2 in enumerate(placed_parts[i + 1 :], i + 1):
                 # Only check parts on the same sheet
                 if part1.sheet_index != part2.sheet_index:
                     continue

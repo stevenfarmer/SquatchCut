@@ -455,7 +455,7 @@ class TestTestingCoverageEnforcement:
 
         # 100% coverage should mean compliance
         if validation_result["coverage_percentage"] == 100.0:
-            assert validation_result["is_compliant"] == True
+            assert validation_result["is_compliant"]
 
     def test_empty_requirements_handling(self):
         """
@@ -465,14 +465,14 @@ class TestTestingCoverageEnforcement:
         # Test with no requirements
         validation_result = self.enforcer.validate_test_coverage(set(), {"unit_tests"})
 
-        assert validation_result["is_compliant"] == True
+        assert validation_result["is_compliant"]
         assert validation_result["coverage_percentage"] == 100.0
         assert len(validation_result["missing_tests"]) == 0
 
         # Test with no actual tests
         validation_result = self.enforcer.validate_test_coverage({"unit_tests"}, set())
 
-        assert validation_result["is_compliant"] == False
+        assert not validation_result["is_compliant"]
         assert validation_result["coverage_percentage"] == 0.0
         assert "unit_tests" in validation_result["missing_tests"]
 

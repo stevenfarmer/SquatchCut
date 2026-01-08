@@ -270,11 +270,12 @@ class InputGroupWidget(QtWidgets.QGroupBox):
 
             with SimpleProgressContext(
                 message="Extracting shape geometries...", title="Processing Shapes"
-            ):
+            ) as progress:
 
                 for i, obj in enumerate(shape_objects):
-                    progress.set_value(i)
-                    progress.set_text(f"Processing {obj.Label}...")
+                    if progress:
+                        progress.set_value(i)
+                        progress.set_text(f"Processing {obj.Label}...")
 
                     # Allow UI updates
                     QtWidgets.QApplication.processEvents()
@@ -314,8 +315,9 @@ class InputGroupWidget(QtWidgets.QGroupBox):
                         logger.warning(f"Failed to process object {obj.Label}: {e}")
                         continue
 
-                progress.set_value(len(shape_objects))
-                progress.set_text("Shape processing complete")
+                if progress:
+                    progress.set_value(len(shape_objects))
+                    progress.set_text("Shape processing complete")
 
             if not detected_shapes:
                 show_error(

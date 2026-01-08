@@ -65,6 +65,9 @@ def test_main_taskpanel_hydration_order():
 
 
 def test_settings_panel_hydration_and_persistence():
+    # Ensure clean state for this test
+    session_state.clear_job_allow_rotate()
+
     prefs = SquatchCutPreferences()
     snap = _snapshot_prefs(prefs)
     try:
