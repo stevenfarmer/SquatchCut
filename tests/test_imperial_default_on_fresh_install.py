@@ -56,23 +56,33 @@ class TestImperialDefaultOnFreshInstall:
 
     def test_existing_metric_preference_preserved(self):
         """Test that existing metric preferences are preserved."""
-        # Mock FreeCAD parameter group with existing metric setting
-        mock_grp = MagicMock()
-        mock_grp.GetString.return_value = "metric"
+        # Backup and clear shared state to ensure clean test
+        backup = dict(SquatchCutPreferences._local_shared)
+        SquatchCutPreferences._local_shared.clear()
 
-        with patch("SquatchCut.core.preferences.App") as mock_app:
-            mock_app.ParamGet.return_value = mock_grp
+        try:
+            # Mock FreeCAD parameter group with existing metric setting
+            mock_grp = MagicMock()
+            mock_grp.GetString.return_value = "metric"
 
-            prefs = SquatchCutPreferences()
-            measurement_system = prefs.get_measurement_system()
+            with patch("SquatchCut.core.preferences.App") as mock_app:
+                mock_app.ParamGet.return_value = mock_grp
 
-            # Should preserve existing metric setting
-            assert measurement_system == "metric"
+                prefs = SquatchCutPreferences()
+                measurement_system = prefs.get_measurement_system()
+
+                # Should preserve existing metric setting
+                assert measurement_system == "metric"
+        finally:
+            # Restore original state
+            SquatchCutPreferences._local_shared.clear()
+            SquatchCutPreferences._local_shared.update(backup)
 
     def test_existing_imperial_preference_preserved(self):
         """Test that existing imperial preferences are preserved."""
-        # Backup and restore shared state to ensure clean test
+        # Backup and clear shared state to ensure clean test
         backup = dict(SquatchCutPreferences._local_shared)
+        SquatchCutPreferences._local_shared.clear()
 
         try:
             # Mock FreeCAD parameter group with existing imperial setting
