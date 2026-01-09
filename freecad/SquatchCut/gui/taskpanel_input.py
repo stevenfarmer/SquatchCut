@@ -270,7 +270,7 @@ class InputGroupWidget(QtWidgets.QGroupBox):
 
             with SimpleProgressContext(
                 message="Extracting shape geometries...", title="Processing Shapes"
-            ):
+            ) as progress:
 
                 for i, obj in enumerate(shape_objects):
                     progress.set_value(i)

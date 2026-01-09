@@ -166,7 +166,7 @@ class TestNestingCache:
             ]
 
             # Put and get multiple times
-            for i in range(10):
+            for _i in range(10):
                 self.cache.put(parts, 300, 200, result)
                 cached = self.cache.get(parts, 300, 200)
                 results.append(cached is not None)
@@ -233,10 +233,10 @@ class TestCachedNestingDecorator:
     def test_cached_nesting_different_parameters(self):
         """Test different parameters don't use cache."""
         # First call
-        result1 = self.mock_function(self.parts, 300, 200)
+        self.mock_function(self.parts, 300, 200)
 
         # Second call with different parameters
-        result2 = self.mock_function(self.parts, 400, 250)
+        self.mock_function(self.parts, 400, 250)
 
         # Function should be called twice
         assert self.call_count == 2
@@ -596,7 +596,7 @@ class TestPerformanceIntegration:
             return []
 
         with patch("SquatchCut.core.performance_utils.logger") as mock_logger:
-            result = monitored_function(self.parts, 400, 300)
+            monitored_function(self.parts, 400, 300)
 
         # Should log slow operation warning
         mock_logger.warning.assert_called()
@@ -605,7 +605,7 @@ class TestPerformanceIntegration:
         mock_logger.reset_mock()
 
         with patch("SquatchCut.core.performance_utils.logger") as mock_logger:
-            result2 = monitored_function(self.parts, 400, 300)
+            monitored_function(self.parts, 400, 300)
 
         # Should only log debug message for fast operation
         mock_logger.debug.assert_called()
@@ -625,11 +625,11 @@ class TestPerformanceIntegration:
 
         # Multiple calls with same parameters
         for _ in range(5):
-            result = counting_function(self.parts, 400, 300)
+            counting_function(self.parts, 400, 300)
 
         # Function should only be called once
         assert call_count == 1
 
         # Different parameters should trigger new call
-        result = counting_function(self.parts, 500, 350)
+        counting_function(self.parts, 500, 350)
         assert call_count == 2

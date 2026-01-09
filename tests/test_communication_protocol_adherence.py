@@ -44,7 +44,7 @@ def test_communication_protocol_language_present(required_phrase: str) -> None:
     """
     assert (
         required_phrase in DOC_CONTENT
-    ), "Missing required communication guidance phrase: %s" % required_phrase
+    ), f"Missing required communication guidance phrase: {required_phrase}"
 
 
 def test_communication_constraints_defined() -> None:
@@ -70,4 +70,4 @@ def test_communication_constraints_defined() -> None:
     for expected_id in expected_ids:
         assert (
             expected_id in communication_ids
-        ), "Expected communication constraint %s to be defined" % expected_id
+        ), f"Expected communication constraint {expected_id} to be defined"

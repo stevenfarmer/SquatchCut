@@ -1,8 +1,15 @@
 """Performance utilities for SquatchCut operations."""
 
+import hashlib
+import multiprocessing
+import pickle
+import tempfile
+import threading
 import time
 from collections.abc import Callable
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from functools import wraps
+from pathlib import Path
 from typing import Any, TypeVar
 
 from SquatchCut.core import logger
@@ -164,17 +171,6 @@ def optimize_for_large_datasets(func: Callable[..., T]) -> Callable[..., T]:
         return func(*args, **kwargs)
 
     return wrapper
-
-
-# Multi-threading and caching enhancements
-
-import hashlib
-import multiprocessing
-import pickle
-import tempfile
-import threading
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-from pathlib import Path
 
 
 class NestingCache:

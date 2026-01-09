@@ -43,7 +43,7 @@ def test_collaboration_workflow_language_present(required_phrase: str) -> None:
     """
     assert (
         required_phrase in DOC_CONTENT
-    ), "Missing required collaboration workflow phrase: %s" % required_phrase
+    ), f"Missing required collaboration workflow phrase: {required_phrase}"
 
 
 def test_collaboration_constraints_present() -> None:
@@ -66,4 +66,4 @@ def test_collaboration_constraints_present() -> None:
     for expected_id in expected_ids:
         assert (
             expected_id in communication_ids
-        ), "Expected collaboration constraint %s to be defined" % expected_id
+        ), f"Expected collaboration constraint {expected_id} to be defined"

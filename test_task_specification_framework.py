@@ -143,7 +143,7 @@ class TestTaskSpecificationFramework:
         result = self.validator.validate_task_specification(task_spec)
 
         # Complete specs should be valid
-        assert result["is_valid"] == True
+        assert result["is_valid"]
         assert len(result["violations"]) == 0
 
         # Should have a reasonable compliance score
@@ -164,7 +164,7 @@ class TestTaskSpecificationFramework:
         result = self.validator.validate_task_specification(task_spec)
 
         # Incomplete specs should be invalid
-        assert result["is_valid"] == False
+        assert not result["is_valid"]
         assert len(result["violations"]) > 0
 
         # Should have lower compliance score
@@ -312,7 +312,7 @@ class TestTaskSpecificationFramework:
         empty_spec = {}
         result = self.validator.validate_task_specification(empty_spec)
 
-        assert result["is_valid"] == False
+        assert not result["is_valid"]
         assert (
             len(result["violations"]) >= 5
         )  # Should catch all missing required fields
