@@ -284,6 +284,7 @@ Since the user is not reviewing code line-by-line, you must be self-reliant on q
 * **Destructive Actions:** NEVER delete large chunks of code or drop database tables (or critical files) without explicitly explaining the consequences to the user and asking for confirmation.
 * **Secrets:** Never commit API keys.
 * **Style:** Ensure all new UI components match the existing design system (FreeCAD TaskPanel style).
+* **Lint/CI Discipline:** Run `ruff check .` and required tests before pushing. We intentionally keep `Optional[...]` (no `| None`) for Python <3.10 compatibility; `ruff.toml` ignores UP007/UP045—do not re-enable them.
 
 ### Technical Constraints (Binding)
 * **Internal Units:** Always millimeters. Imperial UI uses fractional inches only for display/input.
