@@ -3,7 +3,7 @@
 ## CSV Panel Format
 - Required columns: `id`, `width`, `height`
 - Optional: `grain_direction` (or `grainDirection`)
-- Units: millimeters
+- Units: metric or imperial (the importer/ts-tools normalize to millimeters internally)
 
 ## Validation with ts-tools
 - The `ts-tools` package validates and normalizes panel CSVs.

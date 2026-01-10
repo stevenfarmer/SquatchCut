@@ -2,6 +2,8 @@
 
 This document describes the advanced features implemented in SquatchCut for enhanced nesting optimization, export capabilities, cut planning, quality assurance, and performance.
 
+These features live in the 0.3.x codebase and are aimed at advanced or experimental workflows. Not every toggle is surfaced in the UI; some require enabling settings or calling helpers directly. Exports (CSV/SVG/DXF) are produced via `freecad/SquatchCut/core/exporter.py`, and performance characteristics depend on your dataset—treat the numbers here as guidance, not guarantees.
+
 ## Overview
 
 The advanced features system provides five major enhancements to SquatchCut's core functionality:

@@ -1,3 +1,5 @@
+> Versioning note: The codebase is currently on the 0.3.x line (see `freecad/SquatchCut/version.py`). The entry below was previously labeled `v3.2`; treat it as `v0.3.2` for alignment with the package version.
+
 ## v3.2 (Codex-Fortified Edition)
 - Updated full project guide with clarified Codex interaction patterns
 - Added strict reasoning-level requirements for all AI-generated patches

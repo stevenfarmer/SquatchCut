@@ -1,8 +1,6 @@
 # SquatchCut User Guide
 
-Version: v3.4+ (Shape-Based Nesting)
-Applies to: FreeCAD 1.0+ and the SquatchCut add-on
-Refer to [`docs/Project_Guide_v3.3.md`](Project_Guide_v3.3.md) for the authoritative AI worker, UI, and hydration principles (v3.2 retained for history).
+Applies to SquatchCut **0.3.x** on **FreeCAD 0.21+**. The CSV/rectangular workflow is production-ready; the shape-based workflow is an **experimental preview**. For AI/worker rules, see [`docs/Project_Guide_v3.3.md`](Project_Guide_v3.3.md).
 
 ---
 
@@ -10,578 +8,113 @@ Refer to [`docs/Project_Guide_v3.3.md`](Project_Guide_v3.3.md) for the authorita
 
 SquatchCut is a FreeCAD add-on that helps you:
 
-- Import a rectangular parts list (from CSV)
-- Define your sheet / panel size
+- Import a rectangular parts list from CSV
+- Define your sheet/panel size
 - Automatically nest those parts on the sheet
-- Visualize the layout so you can cut it in the shop
-
-It’s designed for:
-
-- Woodworkers
-- Cabinet shops
-- Makers
-- Anyone who hates wasting plywood
-
-You do **not** need to know how to code or use GitHub to use SquatchCut.
-
----
-
-## 1.1 Shape-Based Nesting (NEW in v3.4+)
-
-SquatchCut now supports **shape-based nesting** - a revolutionary approach that considers the actual geometry of your parts rather than just rectangular approximations.
-
-### Key Benefits
-
-**Maximum Material Utilization:**
-- Nest curved, angled, and complex shapes efficiently
-- Account for actual part areas, not just bounding boxes
-- Achieve 10-20% better material usage for complex parts
-
-**True Geometric Accuracy:**
-- Precise overlap detection between actual shape contours
-- Accurate kerf compensation for non-rectangular geometry
-- Export files with exact cutting paths
-
-**FreeCAD Integration:**
-- Design parts directly in FreeCAD Part Design workbench
-- Automatic shape detection and classification
-- Seamless workflow from design to cutting layout
-
-### When to Use Shape-Based Nesting
-
-**Ideal for:**
-- Raised panel cabinet doors
-- Curved furniture components
-- Parts with cutouts or complex profiles
-- Expensive materials where waste matters
-- Custom one-off projects
-
-**Traditional CSV Still Best for:**
-- Simple rectangular parts
-- Large production runs
-- Standard cabinet components
-- When speed is more important than optimization
-
-### Getting Started with Shape-Based Nesting
-
-1. **Design Your Parts in FreeCAD**
-   - Use Part Design workbench to create solid bodies
-   - Give parts descriptive names
-   - Ensure consistent thickness for similar parts
-
-2. **Select Shapes in SquatchCut**
-   - Click "Select Shapes" instead of "Load CSV"
-   - Review detected shapes and their complexity
-   - Choose which parts to include in nesting
-
-3. **Configure and Nest**
-   - Set sheet size and cutting parameters
-   - SquatchCut automatically chooses optimal nesting mode
-   - Review results and export cutting guides
-
-For detailed instructions, see the [Cabinet Maker Workflow Guide](user/cabinet-maker-workflow.md).
+- Visualize and export the layout for the shop
 
 ---
 
 ## 2. Requirements
 
-To use SquatchCut, you’ll need:
-
-- **FreeCAD 1.0+** installed
-- The **SquatchCut add-on ZIP** file provided to you
-- (Optional) A basic understanding of:
-  - Sheet goods (plywood, MDF, etc.)
-  - Width/height measurements
-  - Metric (mm) or Imperial (inches)
+- FreeCAD **0.21+** installed
+- SquatchCut 0.3.x ZIP installed via Add-on Manager (see `docs/getting-started/installation.md`)
+- Basic familiarity with sheet goods and measurements (mm or fractional inches)
 
 ---
 
-## 3. Installing SquatchCut
+## 3. Core Concepts
 
-1. Open **FreeCAD**.
-2. Go to **Tools → Add-on Manager**.
-3. Click **Install from ZIP**.
-4. Browse to and select the SquatchCut ZIP you were given.
-5. Wait for the installation to complete.
-6. Restart FreeCAD.
-
-After restart, you should see a **SquatchCut** toolbar or menu with:
-
-- A main **SquatchCut** button
-- A **Settings** button
-
-If you do not see these, make sure the add-on is enabled in the Add-on Manager.
+- **Measurement system**: Choose metric (mm) or imperial (fractional inches). Internally everything is stored in millimeters.
+- **Sheet defaults & presets**: Defaults are set in **Settings** and only change when you save them there. The preset dropdown starts at `None / Custom`; choosing a preset updates the sheet fields but does not overwrite your defaults.
+- **Document objects**: One sheet object plus two groups:
+  - `SquatchCut_SourceParts` – originals from CSV or selected shapes
+  - `SquatchCut_NestedParts` – the latest layout
 
 ---
 
-## 4. Basic Concepts
+## 4. Install (quick reminder)
 
-There are three main things SquatchCut manages:
+1. Open **FreeCAD** → **Tools → Add-on Manager → Install from ZIP**.
+2. Pick the SquatchCut ZIP.
+3. Restart FreeCAD; ensure the **SquatchCut** toolbar/menu appears.
 
-1. **Sheet**
-   - The panel or plywood sheet you are cutting from.
-   - Example: 4′ × 8′ (1220 × 2440 mm).
-
-2. **Source Parts**
-   - Rectangular parts defined in your CSV file.
-   - These are the requested pieces you want to cut.
-
-3. **Nested Parts**
-   - The placed parts on the sheet after you run nesting.
-   - This is the layout you’ll actually cut.
-
-SquatchCut keeps these organized in the FreeCAD document as:
-
-- One sheet object (e.g. `SquatchCut_Sheet`)
-- One group containing **source parts**
-- One group containing **nested parts**
+Full details: `docs/getting-started/installation.md`.
 
 ---
 
-## 5. CSV Format
+## 5. Production Workflow (CSV / Rectangular Parts)
 
-SquatchCut expects your CSV to have at least the following columns:
+1. **Open the panel**
+   - Click **SquatchCut** on the toolbar.
 
-- `width`   – numeric value (either mm or inches)
-- `height`  – numeric value (either mm or inches)
-- `id`      – an identifier (part name or ID)
+2. **Import parts from CSV**
+   - In **Input**, click **Import CSV** and select your file.
+   - CSV units follow your active measurement system; some builds auto-detect units and update the selector.
+   - A `SquatchCut_SourceParts` group should appear with one entry per row.
+   - Required columns: `width`, `height`, `id`; optional: `quantity`, `label`, `allow_rotate`.
 
-Optional columns:
+3. **Set sheet size & presets**
+   - Confirm sheet width/height fields match your panel.
+   - Use the preset dropdown if you want `4′×8′`, `2′×4′`, or `5′×10′`.
+   - Manual edits return the preset to `None / Custom`.
 
-- `quantity` – how many of that part (defaults to 1 if missing)
-- `label`    – text label for display
+4. **Kerf & gap**
+   - Kerf = blade/bit thickness; gap = spacing around parts. Set in Settings or in-panel fields (when present). Larger values reduce how many parts fit.
 
-### Units
+5. **Run nesting**
+   - Click **Run Nesting**.
+   - SquatchCut hides sources, builds `SquatchCut_NestedParts`, and clears previous layouts.
 
-The **CSV units** are controlled in the SquatchCut UI:
+6. **Inspect**
+   - Toggle source vs nested groups to compare.
+   - Use **Show Source View** to focus on originals or **Reset View** to refit.
 
-- If set to **Metric**, CSV values are treated as **millimeters**.
-- If set to **Imperial**, CSV values are treated as **inches**.
-
-Imperial values may support fractional notation depending on your current build (e.g., `48`, `48.5`, `48 3/4`).
-
----
-
-## 6. First-Time Setup (Settings Panel)
-
-Before your first real nesting session, configure SquatchCut:
-
-1. Click the **Settings** button on the SquatchCut toolbar.
-2. Choose your **Measurement System**:
-   - **Metric** → all sheet and gap values in mm
-   - **Imperial** → sheet and gap values in inches (often fractional)
-3. Set your **default sheet size**, for example:
-   - 1220 × 2440 mm
-   - or 48 × 96 in
-4. Set:
-   - **Kerf width** – thickness of your saw blade (e.g. 3 mm or ~1/8")
-   - **Gap** – spacing between parts (e.g. 2 mm or 1/16")
-5. Click the **Save / Apply** button in the settings.
-
-These defaults will be used when you open the main SquatchCut panel.
-
-You can change them later at any time.
+7. **Export**
+   - Use SquatchCut commands: **Export Report** (PDF+CSV) or **Export Cutlist** (shop-friendly CSV). These use the canonical exporter.
+   - Geometry is standard FreeCAD geometry, so **File → Export** (DXF/SVG/PDF) also works if you need raw geometry.
 
 ---
 
-## 7. Typical Workflow
+## 6. Shape-Based Workflow (Experimental Preview)
 
-### Step 1 – Open the SquatchCut Panel
+Use this when you have curved/non-rectangular parts modeled in FreeCAD. Expect longer runs; start with a small set of parts.
 
-1. Click the **SquatchCut** button in the toolbar.
-2. The main Task Panel will appear (usually on the left side).
+1. **Model parts as solids** in Part Design (bodies with valid Shapes).
+2. **Open SquatchCut** and click **Select Shapes** in **Input**.
+3. **Choose parts** in the shape selection dialog. Complexity labels help you start small.
+4. **Set sheet + kerf/gap**, then click **Run Nesting**. The engine chooses a mode (rectangular/hybrid/geometric) based on detected complexity.
+5. **Review results & export** using the same commands as the CSV workflow.
 
-You’ll see sections for:
-
-- CSV Import
-- Sheet & Presets
-- Nesting / Results
-
----
-
-### Step 2 – Set CSV Units & Import Parts
-
-1. In the **CSV Import** section:
-   - Select **CSV Units** (Metric or Imperial) to match your file.
-2. Choose your CSV file:
-   - Use the **Browse** or **Select File** button (exact label may vary).
-   - Confirm that the file path appears in the UI.
-3. Click **Import Parts**.
-
-What should happen:
-
-- The CSV is parsed.
-- A **Source Parts** group is created or rebuilt in the FreeCAD document.
-- Rectangles are created for each part.
-- The 3D view updates to show the parts (depending on your current camera).
-
-If anything fails, check the on-screen status message and the FreeCAD report view.
+For deeper guidance, see the [Cabinet Maker Workflow Guide](user/cabinet-maker-workflow.md) and [Shape-Based Reference](user/shape-based-nesting-reference.md).
 
 ---
 
-### Step 3 – Check Parts in the Model
+## 7. Shortcuts & Progress
 
-After import:
+- **Ctrl+I** Import CSV
+- **Ctrl+R / F5** Run nesting
+- **Ctrl+E** Export cutlist (CSV)
+- **Ctrl+Shift+S** Open SquatchCut settings
+- **Ctrl+T** Toggle source panels visibility
+- **Ctrl+Shift+R** Reset view
 
-- Look for a group called something like `SquatchCut_SourceParts`.
-- Expand it in the **Model** tree to see individual part rectangles.
-- Optionally, select a few parts and check their **Data** properties to confirm:
-  - width
-  - height
-  - label or id
-
-If widths/heights look wrong, double-check:
-
-- CSV units (Metric vs Imperial)
-- The CSV columns and formatting
+Use the **Keyboard Shortcuts** command in the toolbar to view them in FreeCAD. Long-running CSV imports, nesting, and exports show progress dialogs in the UI.
 
 ---
 
-### Step 4 – Set Sheet Size & Presets
+## 8. Troubleshooting
 
-In the **Sheet & Presets** section:
-
-1. Check that the **Sheet Width** and **Sheet Height** fields match your panel size.
-   - On first run, these may come from your saved defaults (e.g. 4′ × 8′).
-2. Use the **Preset** combo box if desired:
-   - `None / Custom`
-   - `4′ x 8′`
-   - `2′ x 4′`
-   - `5′ x 10′`
-3. Behavior:
-   - When you pick a preset:
-     - The sheet width/height fields update to that preset.
-     - Defaults in settings **do not** change.
-   - When you manually edit width/height:
-     - The preset selection resets to `None / Custom`.
-
-After changing sheet size, the sheet object in the 3D view should resize accordingly.
+- **Toolbar missing:** Check Add-on Manager, restart FreeCAD, then enable **View → Toolbars → SquatchCut**.
+- **CSV import looks wrong:** Confirm `width/height/id` headers, measurement system, and that the file has no extra header rows.
+- **Duplicate sheets/groups:** Only one sheet + one source + one nested group should exist. If you see extras, note the steps and share a sample file when reporting.
+- **Nesting produces nothing:** Ensure parts are loaded, sheet size > 0, and check the FreeCAD report view for errors. Try a small CSV to isolate the issue.
 
 ---
 
-### Step 5 – Adjust Kerf & Gaps (if available in UI)
+## 9. Getting Help / Reporting Issues
 
-If the main panel exposes **kerf** and **gap** fields:
-
-- **Kerf** – saw blade thickness:
-  - Larger kerf means fewer parts may fit on a sheet.
-- **Gap** – spacing between parts:
-  - Prevents paper-thin slivers between cuts.
-
-Set these according to your tool and comfort level.
-
----
-
-### Step 6 – Run Nesting
-
-1. In the **Nesting** section, click **Run Nesting**.
-2. SquatchCut will:
-   - Read your sheet size and all source parts.
-   - Run the nesting algorithm.
-   - Place rectangles onto the sheet as **nested parts**.
-
-In the FreeCAD document:
-
-- A `SquatchCut_NestedParts` group should appear or be rebuilt.
-- Only the **most recent** nesting run should be visible in that group:
-  - Old nested layouts are cleared each run.
-
----
-
-### Step 7 – Inspect the Layout
-
-Use the 3D view to verify:
-
-- Parts are all inside the sheet.
-- No obvious overlaps (rectangles shouldn’t be on top of each other).
-- Orientation and sizing look correct.
-
-You can:
-
-- Toggle visibility of the **Source Parts** group to see just the nested layout.
-- Select individual nested parts to inspect their properties.
-
----
-
-### Step 8 – Save / Export
-
-SquatchCut uses ordinary FreeCAD geometry, so you can:
-
-- Save the entire FreeCAD document as usual:
-  **File → Save**
-- Export to DXF/SVG/PDF using:
-  **File → Export**
-
-Recommended workflow:
-
-- Save a “layout copy” of your file before heavy editing.
-- Use **File → Export** to create:
-  - DXF for CAD/CAM
-  - SVG or PDF for printing and shop drawings
-
----
-
-## 7B. Shape-Based Nesting Workflow (Complex Parts)
-
-**Best for:** Curved parts, raised panels, complex shapes, maximum material utilization
-
-### Step 1 – Design Parts in FreeCAD
-
-1. **Create Your Parts**
-   - Use FreeCAD's Part Design workbench
-   - Create solid bodies (not sketches)
-   - Give parts descriptive names
-   - Ensure consistent thickness for similar parts
-
-2. **Design Considerations**
-   - Consider grain direction and cutting access
-   - Design with your cutting tools in mind
-   - Group related parts in the same document
-
-### Step 2 – Open SquatchCut and Select Shapes
-
-1. **Launch SquatchCut**
-   - Click the **SquatchCut** button in the toolbar
-   - The main Task Panel opens
-
-2. **Select Shapes**
-   - In the Input section, click **"Select Shapes"**
-   - SquatchCut scans your document for valid shapes
-   - Review the Shape Selection Dialog
-
-### Step 3 – Review and Select Parts
-
-1. **Shape Classification**
-   - **Rectangular - Low Complexity**: Fast processing
-   - **Complex Geometry - Medium/High**: Geometric nesting
-   - Review dimensions and complexity levels
-
-2. **Make Your Selection**
-   - Use checkboxes to select parts for nesting
-   - Start with 5-10 parts for your first attempt
-   - Click "OK" to proceed
-
-### Step 4 – Configure Nesting Parameters
-
-1. **Sheet Settings**
-   - Set sheet width and height for your material
-   - SquatchCut uses your document's measurement system
-
-2. **Cutting Parameters**
-   - **Kerf Width**: Your saw blade thickness
-   - **Margin**: Minimum spacing between parts
-   - Consider your cutting method and tool access
-
-### Step 5 – Run Shape-Based Nesting
-
-1. **Automatic Mode Selection**
-   - SquatchCut automatically chooses the best nesting mode:
-     - **Rectangular Mode**: For simple shapes (fastest)
-     - **Geometric Mode**: For complex shapes (most accurate)
-     - **Hybrid Mode**: Mixed complexity (balanced)
-
-2. **Processing**
-   - Complex shapes take longer to process
-   - Progress feedback shows current operation
-   - Processing time varies with part complexity
-
-### Step 6 – Review Results
-
-1. **Layout Validation**
-   - Check for overlapping parts (should be none)
-   - Verify all parts fit within sheet boundaries
-   - Review material utilization percentage
-
-2. **Quality Metrics**
-   - **Utilization**: Target 70-85% for complex shapes
-   - **Parts Placed**: How many parts fit
-   - **Processing Time**: Performance indicator
-
-### Step 7 – Export for Production
-
-1. **Choose Export Format**
-   - **SVG**: Visual cutting templates with accurate shapes
-   - **DXF**: CAD-compatible for CNC cutting
-   - **Enhanced Cutlist**: Production documentation
-
-2. **Export Settings**
-   - Include kerf compensation for accurate cutting
-   - Add part labels and dimensions
-   - Choose appropriate precision for your tools
-
-### Troubleshooting Shape-Based Nesting
-
-**Common Issues:**
-
-- **Parts not detected**: Ensure objects are solid bodies, not sketches
-- **Slow processing**: Try simplified nesting mode or reduce part complexity
-- **Poor utilization**: Adjust margins, try different sheet sizes, or group similar parts
-
-For detailed guidance, see the [Cabinet Maker Workflow Guide](user/cabinet-maker-workflow.md) and [Technical Reference](user/shape-based-nesting-reference.md).
-
----
-
-## 8. New UI Features & Keyboard Shortcuts
-
-### Keyboard Shortcuts
-
-SquatchCut now includes keyboard shortcuts for faster workflow:
-
-- **Ctrl+I** - Import CSV file
-- **Ctrl+R** or **F5** - Run nesting algorithm
-- **Ctrl+E** - Export cutlist to CSV
-- **Ctrl+Shift+S** - Open SquatchCut settings
-- **Ctrl+T** - Toggle source panels visibility
-- **Ctrl+Shift+R** - Reset view to fit all objects
-
-To see all available shortcuts, use the **Help → Keyboard Shortcuts** menu in SquatchCut.
-
-### Progress Indicators
-
-Long-running operations now show progress indicators:
-
-- **CSV Import** - Shows progress while reading and validating large files
-- **Nesting Operations** - Displays progress during complex nesting calculations
-- **Shape Creation** - Progress bar when creating many panel shapes
-- **Export Operations** - Progress feedback during file exports
-
-These indicators help you understand when operations are working and provide estimated completion times for large datasets.
-
-## Advanced Features
-
-SquatchCut includes several advanced features for professional workflows:
-
-### Genetic Algorithm Optimization
-For complex layouts requiring maximum material utilization:
-- **Intelligent Evolution**: Uses genetic algorithms to find optimal part arrangements
-- **Grain Direction Support**: Respects wood grain orientation for structural integrity
-- **Configurable Parameters**: Adjust population size, generations, and optimization time
-- **Automatic Activation**: Enabled through settings for challenging layouts
-
-### Enhanced Export Capabilities
-Professional export options for various workflows:
-- **SVG with Cut Lines**: Visual cutting guides for manual operations
-- **DXF Export**: CAD-compatible format for CNC and automated cutting
-- **Waste Area Highlighting**: Identify unused material for future projects
-- **Multi-Sheet Layouts**: Organized output for complex projects
-
-### Smart Cut Optimization
-Automated cutting sequence planning:
-- **Optimal Cut Order**: Minimizes material handling and setup time
-- **Rip and Crosscut Planning**: Follows woodworking best practices
-- **Time Estimation**: Realistic cutting time predictions
-- **Cut Length Optimization**: Reduces unnecessary cuts
-
-### Quality Assurance
-Comprehensive layout validation:
-- **Overlap Detection**: Identifies conflicting part placements
-- **Bounds Checking**: Ensures all parts fit within sheet boundaries
-- **Spacing Validation**: Verifies minimum spacing requirements
-- **Quality Scoring**: Overall layout quality assessment (0-100)
-- **Detailed Reports**: Actionable feedback for improvements
-
-### Performance Enhancements
-Optimizations for large datasets:
-- **Intelligent Caching**: Avoids redundant calculations
-- **Multi-threading**: Parallel processing for complex operations
-- **Memory Optimization**: Efficient handling of large part lists
-- **Progress Tracking**: Real-time feedback for long operations
-
-### Accessing Advanced Features
-Most advanced features are automatically enabled when beneficial:
-- **Genetic Algorithm**: Enable in Settings → Advanced → Use Genetic Optimization
-- **Cut Sequences**: Enable in Settings → Advanced → Generate Cut Sequences
-- **Quality Reports**: Automatically generated after nesting operations
-- **Enhanced Exports**: Available through standard export commands
-
-For detailed information about advanced features, see the [Advanced Features Guide](advanced_features.md).
-
-### Enhanced Error Messages
-
-SquatchCut now provides clearer, more helpful error messages:
-
-- **Validation Errors** - Specific guidance on fixing input problems
-- **File Errors** - Clear explanations of file format or path issues
-- **Nesting Errors** - Detailed information about why nesting failed
-- **Recovery Actions** - Step-by-step instructions to resolve problems
-
-When errors occur, look for:
-- A clear description of what went wrong
-- Specific details about the problem
-- Actionable steps to fix the issue
-
-### Performance Improvements
-
-For large datasets (1000+ parts), SquatchCut now includes:
-
-- **Memory Optimization** - Efficient handling of large CSV files
-- **Performance Monitoring** - Automatic detection of slow operations
-- **Resource Warnings** - Alerts when working with very large datasets
-- **Batch Processing** - Improved handling of complex nesting jobs
-
-You'll see performance information in the FreeCAD Report View for operations that take longer than expected.
-
-### Enhanced Nesting View
-
-The nesting visualization has been improved with:
-
-- **Color Schemes** - Multiple color palettes including high-contrast options
-- **Display Options** - Choose between transparent, wireframe, or solid part display
-- **Sheet Layouts** - Options for side-by-side or stacked sheet arrangements
-- **Part Labels** - Optional display of part IDs and names on nested pieces
-- **Quick Toggles** - Easy controls for common view adjustments
-
-Access these options through the nesting view preferences in the Settings panel.
-
----
-
-## 9. Troubleshooting
-
-### I don’t see the SquatchCut toolbar
-
-- Make sure the add-on is installed via the Add-on Manager.
-- Restart FreeCAD after installation.
-- Check **View → Toolbars** and ensure **SquatchCut** is enabled.
-
-### CSV import fails or parts look wrong
-
-- Confirm the CSV has `width`, `height`, and `id` columns.
-- Check that you selected the correct **CSV Units** (Metric vs Imperial).
-- Make sure there are no extra header rows or strange formatting.
-
-### I get multiple sheets or random junk in the tree
-
-- In a current UAT build, there should only be:
-  - One sheet object,
-  - One Source group,
-  - One Nested group.
-- If you see duplicates, note:
-  - The steps that caused it,
-  - FreeCAD version, OS, and CSV file,
-  - Then report it back using the UAT Feedback instructions.
-
-### Nesting runs but nothing appears
-
-- Verify that there are:
-  - Imported source parts,
-  - A non-zero sheet size.
-- Check the FreeCAD report view for error messages.
-- Try with a small, simple CSV (e.g. a few parts) to isolate issues.
-
----
-
-## 10. Getting Help / Reporting Issues
-
-If you’re part of a UAT or volunteer test group:
-
-- Follow the instructions in `UAT_Prep_Instructions.md` and `UAT_Checklist.md`.
-- Use the provided **feedback form or instructions** from your test coordinator.
-- Include:
-  - What you were trying to do
-  - What you expected
-  - What actually happened
-  - Screenshots if possible
-
----
+- For UAT/volunteer testing, follow `docs/UAT_Prep_Instructions.md` and `docs/UAT_Checklist.md`.
+- When reporting issues, include: what you tried, what you expected, what happened, your OS + FreeCAD version, and a small CSV (or FCStd) if possible.
 
 Thanks for helping test SquatchCut!

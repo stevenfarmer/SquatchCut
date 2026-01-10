@@ -2,9 +2,10 @@
 
 **Shape-Based Nesting with FreeCAD and SquatchCut**
 
-Version: v3.4+
+Version: 0.3.x (experimental preview)
 Feature: Shape-Based Nesting
-Applies to: FreeCAD 1.0+ with SquatchCut v3.4+
+Applies to: FreeCAD 0.21+ with SquatchCut 0.3.x
+Note: Shape-based nesting is still evolving; workflows and UI labels may change.
 
 ---
 
@@ -25,7 +26,7 @@ This guide walks cabinet makers through the complete workflow of designing furni
 
 Before starting, ensure you have:
 
-- **FreeCAD 1.0+** installed
+- **FreeCAD 0.21+** installed
 - **SquatchCut v3.4+** add-on installed
 - Basic familiarity with FreeCAD's Part Design workbench
 - Understanding of cabinet construction and sheet goods

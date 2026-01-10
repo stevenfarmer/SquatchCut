@@ -1,6 +1,6 @@
 # SquatchCut Quick Start
 
-> TL;DR for people who don’t want a novel.
+> TL;DR for people who don’t want a novel. Applies to SquatchCut 0.3.x on FreeCAD 0.21+. Shape-based nesting is available as an **experimental** flow; use the CSV/rectangular workflow for production jobs.
 
 ---
 
@@ -33,17 +33,16 @@ You should now see a **SquatchCut** toolbar with:
 
 SquatchCut supports two main workflows:
 
-### 3A. Traditional CSV Workflow (Rectangular Parts)
+### 3A. Traditional CSV Workflow (Rectangular Parts – recommended)
 
 1. **Open the panel**
    - Click **SquatchCut**.
 
 2. **Import parts from CSV**
    - In the **Input** section:
-     - Set **CSV Units** to **Metric** or **Imperial**.
-     - Click **Load CSV** and pick your CSV file.
-     - Click **Import Parts**.
-   - Check that a **Source Parts** group appears in the model tree.
+     - Confirm **CSV Units** matches your file (follows your measurement system).
+     - Click **Import CSV** and pick your CSV file.
+   - Check that a **Source Parts** group appears in the model tree after the file loads.
 
 3. **Set sheet size and run nesting**
    - Confirm sheet width/height fields match your panel.
@@ -55,7 +54,7 @@ SquatchCut supports two main workflows:
    - Save your file (**File → Save**).
    - Export as needed (**File → Export**, DXF/SVG/PDF).
 
-### 3B. Shape-Based Nesting (Complex Parts) - NEW!
+### 3B. Shape-Based Nesting (Complex Parts – experimental)
 
 1. **Design parts in FreeCAD**
    - Use Part Design workbench to create solid bodies.
@@ -69,12 +68,11 @@ SquatchCut supports two main workflows:
 3. **Configure and nest**
    - Set sheet size and cutting parameters.
    - Click **Run Nesting**.
-   - SquatchCut automatically uses the best nesting mode.
+   - SquatchCut automatically chooses a nesting mode; complex shapes take longer.
 
 4. **Export for production**
-   - Export SVG for cutting templates.
-   - Export DXF for CNC cutting.
-   - Export enhanced cutlist for production planning.
+   - Use **Export Report** (PDF/CSV) or **Export Cutlist** from the SquatchCut toolbar.
+   - Geometry is standard FreeCAD geometry; you can also use **File → Export** if needed.
 
 **For detailed shape-based workflows, see the [Cabinet Maker Guide](user/cabinet-maker-workflow.md).**
 

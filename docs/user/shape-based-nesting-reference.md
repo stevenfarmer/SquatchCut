@@ -2,9 +2,10 @@
 
 **API Documentation and Configuration Guide**
 
-Version: v3.4+
+Version: 0.3.x (experimental preview)
 Feature: Shape-Based Nesting
 Target Audience: Advanced users, developers, system integrators
+Note: Earlier drafts labeled this as "v3.4+"; the 0.3.x line is the current experimental build.
 
 ---
 
@@ -29,7 +30,7 @@ Shape-based nesting extends SquatchCut's core architecture with new components f
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    SquatchCut v3.4+                     │
+│           SquatchCut 0.3.x (Shape-Based Preview)        │
 ├─────────────────────────────────────────────────────────┤
 │  GUI Layer                                              │
 │  ├── EnhancedShapeSelectionDialog                       │
@@ -732,7 +733,7 @@ DEBUG: Final utilization: 82.3%
 
 ## Version History
 
-### v3.4.0 - Initial Shape-Based Nesting Release
+### 0.3.x Preview - Initial Shape-Based Nesting
 - ComplexGeometry data model
 - GeometryNestingEngine implementation
 - Enhanced shape selection UI
@@ -740,10 +741,10 @@ DEBUG: Final utilization: 82.3%
 - Performance optimization system
 
 ### Future Enhancements (Planned)
-- **v3.5**: Advanced curve handling, spline support
-- **v3.6**: 3D nesting for thick materials
-- **v3.7**: AI-powered nesting optimization
-- **v3.8**: Real-time collaborative nesting
+- Advanced curve handling and spline support
+- 3D nesting for thick materials
+- AI-assisted optimization
+- Real-time collaborative nesting
 
 ---
 
@@ -766,4 +767,4 @@ DEBUG: Final utilization: 82.3%
 
 ---
 
-*This technical reference covers SquatchCut v3.4+ shape-based nesting features. For general SquatchCut documentation, see the main [User Guide](../user_guide.md).*
+*This technical reference covers the SquatchCut 0.3.x shape-based nesting preview. For general SquatchCut documentation, see the main [User Guide](../user_guide.md).*

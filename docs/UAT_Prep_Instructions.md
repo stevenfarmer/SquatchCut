@@ -14,8 +14,8 @@ Before you start:
 
 - A computer with:
   - Windows, macOS, or Linux
-- **FreeCAD 1.0+** installed
-- The **SquatchCut add-on ZIP** file
+- **FreeCAD 0.21+** installed
+- The **SquatchCut 0.3.x add-on ZIP** file
 - Test files provided to you:
   - `test_parts.csv`
   - `UAT_Checklist.md` (this file may be bundled or referenced)

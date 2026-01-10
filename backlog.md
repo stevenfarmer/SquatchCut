@@ -2,6 +2,7 @@
 
 **Status:** v3.3 Complete - Moving to v3.4 Shape-Based Nesting
 **Focus:** Enhanced FreeCAD Integration, Non-Rectangular Nesting, and Cabinet Maker Workflows.
+**Versioning note:** The codebase is on the 0.3.x line (see `freecad/SquatchCut/version.py`); backlog labels keep the historical v3.x naming for roadmap grouping.
 
 ---
 
@@ -15,6 +16,9 @@
   - Non-rectangular nesting with true geometric accuracy
   - Cabinet maker workflow from FreeCAD design to cutting layouts
   - *Status:* Ready for implementation - see tasks.md for execution plan
+- `[AI]` **Reduce Hypothesis Filtering in Shape-Based Tests**
+  - Refine `valid_complex_geometry` strategy to lower discard rate instead of suppressing health checks.
+  - Goal: Keep property coverage while satisfying Hypothesis filtering thresholds.
 
 ---
 
@@ -59,6 +63,10 @@
 - `[AI]` **Warning Banner Lifecycle**
   - Ensure the warning banner updates correctly when modes/units change.
   - *Goal:* Banner never gets stuck "on".
+
+- `[HUMAN]` **Surface Build Version & Experimental Labels**
+  - Users see mixed version numbers (0.3.x vs v3.x) and no in-product indicator that shape-based nesting is preview-only.
+  - *Goal:* Show the installed build version in the UI (toolbar/settings) and mark shape-based flows as **Experimental** to set expectations.
 
 ## 4. Exports (CSV/SVG/DXF)
 

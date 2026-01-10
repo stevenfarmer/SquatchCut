@@ -4,6 +4,8 @@ SquatchCut is a FreeCAD add-on for laying out rectangular parts on sheet goods (
 
 The goal is to give woodworkers, cabinet shops, and makers a fast way to get from “parts list” to “cuttable layout” without needing to learn a CAM package or write code.
 
+**Status:** SquatchCut 0.3.x focuses on the CSV/rectangular workflow. Shape-based nesting is available as an **experimental preview** via the Select Shapes flow; expect slower runs and please share feedback.
+
 ---
 
 ## Features
@@ -12,11 +14,10 @@ The goal is to give woodworkers, cabinet shops, and makers a fast way to get fro
   - Import a simple CSV with `width`, `height`, and `id` (plus optional `quantity` and `label`).
   - Supports metric (mm) and imperial (inches) CSV units.
 
-- **Shape-based nesting** *(v3.4+ - In Development)*
+- **Shape-based nesting** *(experimental preview in 0.3.x)*
   - Design cabinet parts directly in FreeCAD
-  - Automatic detection and selection of FreeCAD objects
-  - Non-rectangular nesting with true geometric accuracy
-  - Complete cabinet maker workflow from design to cutting layout
+  - Detect and select FreeCAD objects from the active document
+  - Non-rectangular nesting with geometric overlap checks
 
 - **Sheet & presets**
   - Configure default sheet size in a Settings panel.
@@ -32,13 +33,13 @@ The goal is to give woodworkers, cabinet shops, and makers a fast way to get fro
 - **FreeCAD-native geometry**
   - Uses ordinary FreeCAD objects, so you can:
     - Save the file as usual.
-    - Export layouts to DXF/SVG/PDF using FreeCAD’s export tools.
+- Export layouts to DXF/SVG/PDF using FreeCAD’s export tools.
 
 ---
 
 ## Requirements
 
-- **FreeCAD**: version 1.0+
+- **FreeCAD**: version 0.21+ (tested on current stable releases)
 - **OS**: Windows, macOS, or Linux
 - **Input data**: CSV file with at least:
   - `width`
@@ -178,11 +179,10 @@ You can hide/show:
 Because SquatchCut uses standard FreeCAD geometry, you can:
 
 - Save the document with **File → Save**.
-- Export layouts using **File → Export** to:
-  - DXF
-  - SVG
-  - PDF
-  - Other formats supported by FreeCAD.
+- Export nesting results using the SquatchCut toolbar commands:
+  - **Export Report** (PDF/CSV)
+  - **Export Cutlist** (shop-friendly CSV)
+- Geometry is standard FreeCAD geometry, so you can also use **File → Export** (DXF/SVG/PDF) if needed.
 
 Recommended workflow:
 
