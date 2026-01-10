@@ -45,6 +45,15 @@ class SquatchCutMainUICommand:
         global _main_panel_instance
         if _main_panel_instance is not None:
             try:
+                # Close any other active TaskPanel before reusing this one
+                try:
+                    active_dialog = getattr(Gui.Control, "activeDialog", lambda: None)()
+                    if active_dialog and active_dialog is not _main_panel_instance:
+                        close_fn = getattr(Gui.Control, "closeDialog", None)
+                        if callable(close_fn):
+                            close_fn()
+                except Exception:
+                    pass
                 Gui.Control.showDialog(_main_panel_instance)
                 logger.info("Reusing existing main task panel.")
             except Exception:
@@ -59,6 +68,15 @@ class SquatchCutMainUICommand:
         _main_panel_instance = panel
         try:
             logger.info("Opening main task panel.")
+        except Exception:
+            pass
+        # Close any existing TaskPanel to avoid FreeCAD "Active task dialog" errors
+        try:
+            active_dialog = getattr(Gui.Control, "activeDialog", lambda: None)()
+            if active_dialog and active_dialog is not panel:
+                close_fn = getattr(Gui.Control, "closeDialog", None)
+                if callable(close_fn):
+                    close_fn()
         except Exception:
             pass
         Gui.Control.showDialog(panel)
