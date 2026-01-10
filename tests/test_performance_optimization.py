@@ -148,7 +148,7 @@ class TestPerformanceMonitor:
         )
 
         # Should trigger fallback due to complexity
-        assert monitor.should_trigger_fallback(op_id) == True
+        assert monitor.should_trigger_fallback(op_id)
 
         # Start operation with low complexity
         op_id2 = monitor.start_operation(
@@ -156,13 +156,13 @@ class TestPerformanceMonitor:
         )
 
         # Should not trigger fallback immediately
-        assert monitor.should_trigger_fallback(op_id2) == False
+        assert not monitor.should_trigger_fallback(op_id2)
 
         # Wait for timeout
         time.sleep(0.15)
 
         # Should trigger fallback due to timeout
-        assert monitor.should_trigger_fallback(op_id2) == True
+        assert monitor.should_trigger_fallback(op_id2)
 
     def test_performance_summary(self):
         """Test performance summary generation."""
@@ -422,7 +422,7 @@ class TestProgressFeedback:
         result = tracker.update_progress(
             current_item=2, description="Processing item 2"
         )
-        assert result == True  # Should continue
+        assert result  # Should continue
         assert tracker.current_item == 2
 
         # Should have called callback multiple times
@@ -442,8 +442,8 @@ class TestProgressFeedback:
 
         # Update should return False when cancelled
         result = tracker.update_progress(current_item=1)
-        assert result == False
-        assert tracker.cancelled == True
+        assert not result
+        assert tracker.cancelled
 
     def test_progress_manager(self):
         """Test progress manager functionality."""
@@ -478,10 +478,10 @@ class TestProgressFeedback:
 
         # Cancel operation
         success = manager.cancel_operation(op_id)
-        assert success == True
+        assert success
 
         tracker = manager.get_tracker(op_id)
-        assert tracker.cancelled == True
+        assert tracker.cancelled
 
     def test_progress_manager_summary(self):
         """Test progress manager summary generation."""

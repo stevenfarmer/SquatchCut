@@ -1,9 +1,10 @@
+# ruff: noqa: E402
 import csv
 
 import pytest
 
-pytest.importorskip("FreeCAD")
-import FreeCAD  # type: ignore
+FreeCAD = pytest.importorskip("FreeCAD")  # type: ignore
+
 from SquatchCut.core.sheet_model import SHEET_OBJECT_NAME, ensure_sheet_object
 from SquatchCut.gui.commands.cmd_import_csv import run_csv_import
 from SquatchCut.gui.nesting_view import rebuild_nested_geometry

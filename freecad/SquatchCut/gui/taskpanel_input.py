@@ -266,15 +266,15 @@ class InputGroupWidget(QtWidgets.QGroupBox):
                 return
 
             # Create progress dialog for shape processing
-            from SquatchCut.ui.progress import SimpleProgressContext
+            from SquatchCut.ui.progress import ProgressDialog
 
-            with SimpleProgressContext(
-                message="Extracting shape geometries...", title="Processing Shapes"
-            ):
+            with ProgressDialog(title="Processing Shapes", parent=self) as progress:
+                progress.set_range(0, len(shape_objects))
+                progress.set_label("Extracting shape geometries...")
 
                 for i, obj in enumerate(shape_objects):
                     progress.set_value(i)
-                    progress.set_text(f"Processing {obj.Label}...")
+                    progress.set_label(f"Processing {obj.Label}...")
 
                     # Allow UI updates
                     QtWidgets.QApplication.processEvents()
@@ -315,7 +315,7 @@ class InputGroupWidget(QtWidgets.QGroupBox):
                         continue
 
                 progress.set_value(len(shape_objects))
-                progress.set_text("Shape processing complete")
+                progress.set_label("Shape processing complete")
 
             if not detected_shapes:
                 show_error(
@@ -335,17 +335,17 @@ class InputGroupWidget(QtWidgets.QGroupBox):
 
                     # Show progress for shape conversion if there are many shapes
                     if len(selected_shapes) > 5:
-                        from SquatchCut.ui.progress import SimpleProgressContext
+                        from SquatchCut.ui.progress import ProgressDialog
 
-                        with SimpleProgressContext(
+                        with ProgressDialog(
                             title="Converting Shapes", parent=self
                         ) as progress:
                             progress.set_range(0, len(selected_shapes))
-                            progress.set_text("Converting shapes to panels...")
+                            progress.set_label("Converting shapes to panels...")
 
                             for i, shape_info in enumerate(selected_shapes):
                                 progress.set_value(i)
-                                progress.set_text(f"Converting {shape_info.label}...")
+                                progress.set_label(f"Converting {shape_info.label}...")
                                 QtWidgets.QApplication.processEvents()
 
                                 width_mm, height_mm, _ = shape_info.dimensions

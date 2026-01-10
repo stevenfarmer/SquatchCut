@@ -95,7 +95,7 @@ def test_progress_dialog_with_parent():
         mock_qt.QProgressDialog.return_value = mock_dialog
         mock_parent = MagicMock()
 
-        progress = ProgressDialog("Test", parent=mock_parent)
+        ProgressDialog("Test", parent=mock_parent)
 
         mock_qt.QProgressDialog.assert_called_once_with(mock_parent)
 

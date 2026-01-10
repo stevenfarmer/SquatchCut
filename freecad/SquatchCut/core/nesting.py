@@ -491,7 +491,8 @@ def _nest_rectangular_default(
 
                 warnings.warn(
                     f"Sheet exhaustion: trying to use sheet {new_sheet_index + 1} "
-                    f"but only {len(sheet_sizes)} sheet(s) available."
+                    f"but only {len(sheet_sizes)} sheet(s) available.",
+                    stacklevel=2,
                 )
 
         new_rows: list[dict] = []

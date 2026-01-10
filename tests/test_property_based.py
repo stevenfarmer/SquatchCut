@@ -18,6 +18,7 @@ from SquatchCut.core.grain_direction import (
     parse_grain_direction,
 )
 from SquatchCut.core.nesting import (
+    NestingValidationError,
     Part,
     PlacedPart,
     compute_utilization,
@@ -214,7 +215,7 @@ class TestUnitConversionProperties:
             # Should be reasonably close to original value (within formatting precision)
             assert abs(parsed_value - mm_value) < max(0.001, mm_value * 0.01)
         except ValueError:
-            assert False, f"Formatted value '{formatted}' is not a valid number"
+            pytest.fail(f"Formatted value '{formatted}' is not a valid number")
 
     @given(
         st.floats(
@@ -523,7 +524,7 @@ class TestQualityAssuranceProperties:
         # Ensure parts don't overlap by spacing them out
         spaced_parts = []
         x_offset = 0
-        for i, part in enumerate(placed_parts[:5]):  # Limit to 5 parts
+        for _i, part in enumerate(placed_parts[:5]):  # Limit to 5 parts
             new_part = PlacedPart(
                 id=part.id,
                 x=x_offset,
@@ -598,10 +599,10 @@ class TestPartFittingProperties:
                 # Should not raise exception
             except Exception:
                 # If it raises, our prediction was wrong - this is a test failure
-                assert False, "Validation failed when individual parts should fit"
+                pytest.fail("Validation failed when individual parts should fit")
         else:
             # Should raise exception
-            with pytest.raises(Exception):
+            with pytest.raises(NestingValidationError):
                 validate_parts_fit_sheet(parts, usable_width, usable_height)
 
 

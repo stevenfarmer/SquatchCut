@@ -1,8 +1,9 @@
 """Test file to improve coverage for core logic in session_state and nesting."""
 
-from SquatchCut.core import session_state, nesting
-from SquatchCut.core.nesting import Part, PlacedPart, NestingConfig, NestingValidationError
 import pytest
+from SquatchCut.core import nesting, session_state
+from SquatchCut.core.nesting import NestingValidationError, Part, PlacedPart
+
 
 class TestSessionStateCoverage:
     """Tests for session_state.py coverage gaps."""

@@ -1,13 +1,13 @@
+# ruff: noqa: E402
 """Integration tests covering multi-sheet nesting workflows."""
 
 from pathlib import Path
 
 import pytest
 
-pytest.importorskip("FreeCAD")
+FreeCAD = pytest.importorskip("FreeCAD")  # type: ignore
 pytest.importorskip("FreeCADGui")
 
-import FreeCAD  # type: ignore
 from SquatchCut import settings
 from SquatchCut.core import session, session_state
 from SquatchCut.core.cutlist import generate_cutops_from_session

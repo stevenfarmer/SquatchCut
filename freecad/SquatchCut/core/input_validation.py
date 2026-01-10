@@ -12,12 +12,12 @@ def validate_positive_number(
     """Validate that a value is a positive number."""
     try:
         num_value = float(value) if isinstance(value, str) else float(value)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError) as err:
         raise ValidationError(
             f"Invalid {field_name}",
             f"'{value}' is not a valid number",
             f"Please enter a valid number for {field_name}",
-        )
+        ) from err
 
     if allow_zero and num_value < 0:
         raise ValidationError(
@@ -48,7 +48,7 @@ def validate_sheet_dimensions(
                 "Invalid Sheet Width",
                 str(e),
                 "Please enter a valid width (e.g., '48' or '48 1/2' for imperial, '1220' for metric)",
-            )
+            ) from e
     else:
         width_mm = validate_positive_number(width, "sheet width")
         if units_system == "imperial":
@@ -63,7 +63,7 @@ def validate_sheet_dimensions(
                 "Invalid Sheet Height",
                 str(e),
                 "Please enter a valid height (e.g., '96' or '96 1/4' for imperial, '2440' for metric)",
-            )
+            ) from e
     else:
         height_mm = validate_positive_number(height, "sheet height")
         if units_system == "imperial":
@@ -103,7 +103,7 @@ def validate_kerf_and_spacing(
                 "Invalid Kerf Width",
                 str(e),
                 "Please enter a valid kerf width (e.g., '1/8' for imperial, '3' for metric)",
-            )
+            ) from e
     else:
         kerf_mm = validate_positive_number(kerf, "kerf width", allow_zero=True)
         if units_system == "imperial":
@@ -118,7 +118,7 @@ def validate_kerf_and_spacing(
                 "Invalid Spacing",
                 str(e),
                 "Please enter a valid spacing value (e.g., '0' or '1/16' for imperial, '0' or '1' for metric)",
-            )
+            ) from e
     else:
         spacing_mm = validate_positive_number(spacing, "spacing", allow_zero=True)
         if units_system == "imperial":
@@ -192,17 +192,17 @@ def validate_panel_data(
         # Re-raise with panel context
         raise ValidationError(
             f"Invalid Panel Dimensions (ID: {panel_id})", e.details, e.user_action
-        )
+        ) from e
 
     # Validate quantity
     try:
         qty = int(quantity) if quantity is not None else 1
-    except (ValueError, TypeError):
+    except (ValueError, TypeError) as err:
         raise ValidationError(
             f"Invalid Quantity (ID: {panel_id})",
             f"'{quantity}' is not a valid quantity",
             "Please enter a positive integer for quantity",
-        )
+        ) from err
 
     if qty <= 0:
         raise ValidationError(

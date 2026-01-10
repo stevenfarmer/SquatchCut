@@ -1,7 +1,8 @@
+# ruff: noqa: E402
 import pytest
 
-pytest.importorskip("FreeCAD")
-import FreeCAD  # type: ignore
+FreeCAD = pytest.importorskip("FreeCAD")  # type: ignore
+
 from SquatchCut.core.sheet_model import SHEET_OBJECT_NAME, ensure_sheet_object
 
 

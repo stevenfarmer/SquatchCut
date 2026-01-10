@@ -1,10 +1,11 @@
+# ruff: noqa: E402
 import uuid
 
 import pytest
 
-pytest.importorskip("FreeCAD")
-pytest.importorskip("Part")
-import FreeCAD  # type: ignore
+FreeCAD = pytest.importorskip("FreeCAD")  # type: ignore
+Part = pytest.importorskip("Part")  # type: ignore
+
 from SquatchCut.core import session, session_state, view_controller
 from SquatchCut.core.sheet_model import ensure_sheet_object
 

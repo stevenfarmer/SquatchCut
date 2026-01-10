@@ -127,7 +127,7 @@ class TestConstraintFramework:
         **Feature: ai-agent-documentation, Property 1: Constraint Enforcement**
         """
         # Define the constraint
-        constraint = self.framework.define_constraint(**constraint_data)
+        self.framework.define_constraint(**constraint_data)
 
         # Retrieve the constraint
         retrieved = self.framework.get_constraint(constraint_data["constraint_id"])

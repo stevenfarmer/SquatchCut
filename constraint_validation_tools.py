@@ -169,8 +169,6 @@ class CodeAnalyzer:
                 else method.lineno + 20
             )
         ]
-        method_content = "\n".join(method_lines)
-
         # Look for widget creation before hydration
         hydrate_pattern = r"hydrate_from_params"
         widget_patterns = [
