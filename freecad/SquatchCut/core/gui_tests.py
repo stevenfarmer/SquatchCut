@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import tempfile
 from pathlib import Path
 from typing import Optional
+from uuid import uuid4
 
 from SquatchCut import settings
 from SquatchCut.core import cutlist, logger, session, session_state
@@ -11,8 +13,10 @@ from SquatchCut.core import units as sc_units
 from SquatchCut.core.geometry_sync import sync_source_panels_to_document
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.freecad_integration import App, Gui
-from SquatchCut.gui import taskpanel_main, taskpanel_settings
+from SquatchCut.gui import taskpanel_input, taskpanel_main, taskpanel_settings
 from SquatchCut.gui.commands import cmd_import_csv, cmd_run_nesting
+from SquatchCut.gui.commands.cmd_export_cutlist import ExportCutlistCommand
+from SquatchCut.gui.qt_compat import QtWidgets
 
 GUI_TEST_PREFIX = ">>> [SquatchCut] [GUI TEST]"
 
@@ -64,6 +68,46 @@ def _close_doc(doc):
             App.closeDocument(doc.Name)
     except Exception:
         pass
+
+
+def _create_shape_test_document(name: str = "SquatchCut_GUI_Shapes"):
+    """
+    Create a temporary document populated with simple rectangles for shape-based tests.
+    """
+    doc = None
+    try:
+        from SquatchCut.testing.helpers.generate_test_documents import (
+            create_basic_rectangles_doc,
+        )
+
+        doc = create_basic_rectangles_doc()
+        if doc is not None:
+            return doc
+    except Exception:
+        pass
+
+    doc = _new_temp_doc(name)
+    try:
+        from Draft import makeRectangle  # type: ignore
+
+        specs = [
+            ("P1", 600, 400, (0, 0, 0)),
+            ("P2", 800, 500, (800, 0, 0)),
+            ("P3", 400, 300, (0, 700, 0)),
+        ]
+        for label, width, height, (x, y, z) in specs:
+            rect = makeRectangle(length=width, height=height)
+            rect.Label = label
+            rect.Placement.Base = App.Vector(x, y, z)
+        doc.recompute()
+    except Exception:
+        pass
+    try:
+        if Gui:
+            Gui.ActiveDocument = Gui.getDocument(doc.Name)
+    except Exception:
+        pass
+    return doc
 
 
 def _ensure_default_panels():
@@ -443,6 +487,139 @@ def test_cutlist_generated_after_nesting():
     return result
 
 
+def test_shape_selection_and_nesting_workflow():
+    """GUI test: shape selection workflow should populate panels and nest them."""
+    result = TestResult("Shape workflow: select shapes and preview nesting")
+    doc = None
+    original_dialog = taskpanel_input.EnhancedShapeSelectionDialog
+    try:
+        doc = _create_shape_test_document("SquatchCut_GUI_Shapes")
+        if doc is None:
+            raise RuntimeError("Could not create shape test document.")
+
+        session.clear_all_geometry()
+        session.set_panels([])
+
+        prefs = SquatchCutPreferences()
+        widget = taskpanel_input.InputGroupWidget(prefs)
+
+        class _AutoSelectDialog:
+            def __init__(self, detected_shapes=None, parent=None):
+                self._shapes = detected_shapes or []
+
+            def exec_(self):
+                return QtWidgets.QDialog.Accepted
+
+            def exec(self):
+                return QtWidgets.QDialog.Accepted
+
+            def get_data(self):
+                return {"selected_shapes": self._shapes}
+
+        taskpanel_input.EnhancedShapeSelectionDialog = _AutoSelectDialog
+
+        widget._select_shapes()
+
+        panels = session.get_panels()
+        if not panels:
+            raise RuntimeError("Shape selection did not populate panels.")
+
+        if not any(part.get("source") == "freecad_shape" for part in panels):
+            raise RuntimeError("Expected freecad_shape source panels after selection.")
+
+        run_cmd = cmd_run_nesting.RunNestingCommand()
+        run_cmd.Activated()
+
+        nested_group = doc.getObject("SquatchCut_NestedParts")
+        if nested_group is None or not getattr(nested_group, "Group", []):
+            raise RuntimeError("Shape-based nesting produced no nested parts.")
+
+        result.set_pass()
+    except Exception as exc:
+        result.set_fail(exc)
+    finally:
+        taskpanel_input.EnhancedShapeSelectionDialog = original_dialog
+        if doc:
+            _close_doc(doc)
+    return result
+
+
+def test_export_cutlist_command_auto_save():
+    """GUI test: Export Cutlist command writes a file without user interaction."""
+    result = TestResult("Export command: auto-save cutlist")
+    doc = None
+    export_path = Path(tempfile.gettempdir()) / f"SquatchCut_GUI_export_{uuid4().hex}.csv"
+    dialog_backup = QtWidgets.QFileDialog
+    info_backup = QtWidgets.QMessageBox.information
+
+    try:
+        doc = _new_temp_doc("SquatchCut_GUI_Export")
+
+        session.clear_all_geometry()
+        session.set_panels([])
+
+        csv_path = _get_test_csv_path()
+        if not csv_path:
+            raise RuntimeError("Test CSV path could not be resolved.")
+
+        import_cmd = cmd_import_csv.ImportCsvCommand()
+        import_cmd.import_from_path(csv_path, units="mm")
+
+        sync_source_panels_to_document()
+
+        run_cmd = cmd_run_nesting.RunNestingCommand()
+        run_cmd.Activated()
+
+        class _AutoSaveDialog:
+            def __init__(self, *args, **kwargs):
+                self._files = []
+
+            def setAcceptMode(self, mode):
+                pass
+
+            def setNameFilter(self, _):
+                pass
+
+            def setDefaultSuffix(self, _):
+                pass
+
+            def setWindowTitle(self, _):
+                pass
+
+            def exec_(self):
+                return QtWidgets.QDialog.Accepted
+
+            def selectedFiles(self):
+                return [str(export_path)]
+
+        QtWidgets.QFileDialog = _AutoSaveDialog
+        QtWidgets.QMessageBox.information = lambda *_, **__: None
+
+        export_cmd = ExportCutlistCommand()
+        export_cmd.Activated()
+
+        if not export_path.is_file():
+            raise RuntimeError("Cutlist export file was not created.")
+        if export_path.stat().st_size == 0:
+            raise RuntimeError("Exported cutlist file is empty.")
+
+        result.set_pass()
+    except Exception as exc:
+        result.set_fail(exc)
+    finally:
+        QtWidgets.QFileDialog = dialog_backup
+        QtWidgets.QMessageBox.information = info_backup
+        try:
+            if export_path.is_file():
+                export_path.unlink()
+        except Exception:
+            pass
+        if doc:
+            _close_doc(doc)
+
+    return result
+
+
 def run_all_tests():
     """
     Entry point for the "Run GUI Tests" button in SquatchCut Settings.
@@ -453,12 +630,14 @@ def run_all_tests():
     tests = [
         test_import_small_metric_csv,
         test_nesting_preview_basic,
+        test_shape_selection_and_nesting_workflow,
         test_units_settings_metric,
         test_units_settings_imperial,
         test_units_toggle_updates_pref,
         test_sheet_size_suffix_tracks_units,
         test_import_imperial_csv_uses_units,
         test_cutlist_generated_after_nesting,
+        test_export_cutlist_command_auto_save,
     ]
 
     results = []

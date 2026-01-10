@@ -113,7 +113,16 @@
   - specific metric and imperial CSV examples.
 
 - `[AI]` **Test Suite Expansion**
-  - Add coverage for Preview lifecycle and GUI hydration.
+-  - Add coverage for Preview lifecycle and GUI hydration.
+
+## 7. GUI Workflow Test Coverage
+
+- `[AI]` **Expand `core/gui_tests.py` to cover every documented workflow**
+  - Add GUI tests for traditional CSV import → nesting → cutlist → export flows.
+  - Add coverage for the shape-based workflow (select shapes, sync to document, nest, export) with automated dialogs so the FreeCAD-run tests exercise the full flow.
+  - Add tests for all Settings panel controls, unit toggles, and toolbar commands so `run_all_tests()` mirrors every button-driven user path.
+  - *Status:* Next priority for the GUI test suite; these are the scenarios the “Run GUI Tests” button should run end-to-end inside FreeCAD.
+
 
 ---
 
