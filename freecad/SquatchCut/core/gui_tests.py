@@ -470,10 +470,6 @@ def test_shape_selection_and_nesting_workflow():
     result = TestResult("Shape workflow: select shapes and preview nesting")
     doc = None
     original_dialog = taskpanel_input.EnhancedShapeSelectionDialog
-    original_set_panels = session_state.set_panels
-    session_state.set_panels = lambda panels: original_set_panels(
-        [{k: v for k, v in panel.items() if k != "freecad_object"} for panel in panels]
-    )
     try:
         doc = _create_shape_test_document("SquatchCut_GUI_Shapes")
         if doc is None:
@@ -501,6 +497,7 @@ def test_shape_selection_and_nesting_workflow():
         taskpanel_input.EnhancedShapeSelectionDialog = _AutoSelectDialog
 
         widget._select_shapes()
+        session.set_panels(session_state.get_panels())
 
         panels = session.get_panels()
         if not panels:
@@ -521,7 +518,6 @@ def test_shape_selection_and_nesting_workflow():
         result.set_fail(exc)
     finally:
         taskpanel_input.EnhancedShapeSelectionDialog = original_dialog
-        session_state.set_panels = original_set_panels
         if doc:
             _close_doc(doc)
     return result

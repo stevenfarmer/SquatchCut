@@ -6,6 +6,7 @@ This module intentionally does NOT import FreeCAD so that:
 - Integration with FreeCAD happens inside session.py instead.
 """
 
+import pickle
 from copy import deepcopy
 from typing import Optional
 
@@ -387,7 +388,16 @@ def add_panels(panels_list) -> None:
 
 def get_panels():
     """Return a copy of the current panels list."""
-    return deepcopy(_panels)
+    try:
+        return deepcopy(_panels)
+    except (TypeError, pickle.PicklingError):  # user-level failure guard
+        sanitized = []
+        for panel in _panels:
+            try:
+                sanitized.append({k: v for k, v in panel.items() if k != "freecad_object"})
+            except Exception:
+                sanitized.append(dict(panel))
+        return sanitized
 
 
 def clear_panels() -> None:
