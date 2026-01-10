@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Optional
 from uuid import uuid4
 
-from SquatchCut import settings
 from SquatchCut.core import cutlist, logger, session, session_state
 from SquatchCut.core import units as sc_units
 from SquatchCut.core.geometry_sync import sync_source_panels_to_document
@@ -339,59 +338,37 @@ def test_sheet_size_suffix_tracks_units():
     result = TestResult("Units: sheet size labels match units")
     prefs = SquatchCutPreferences()
     orig_ms = prefs.get_measurement_system()
+    panels = []
     try:
-        prefs.set_measurement_system("metric")
-        session_state.set_measurement_system("metric")
-        sc_units.set_units("mm")
-        settings.hydrate_from_params()
-        panel_mm = taskpanel_main.create_main_panel_for_tests()
-        # Labels are now in the sheet_widget sub-component
-        sheet_widget = getattr(panel_mm, "sheet_widget", None)
-        lbl_w_mm = (
-            getattr(sheet_widget, "sheet_width_label", None) if sheet_widget else None
-        )
-        lbl_h_mm = (
-            getattr(sheet_widget, "sheet_height_label", None) if sheet_widget else None
-        )
-
-        if lbl_w_mm is None or lbl_h_mm is None:
-            raise RuntimeError(
-                "Main panel missing sheet_width_label/sheet_height_label."
-            )
-        if "mm" not in lbl_w_mm.text() or "mm" not in lbl_h_mm.text():
-            raise AssertionError(
-                f"Expected 'mm' in labels; got '{lbl_w_mm.text()}', '{lbl_h_mm.text()}'."
-            )
-
-        prefs.set_measurement_system("imperial")
-        session_state.set_measurement_system("imperial")
-        sc_units.set_units("in")
-        settings.hydrate_from_params()
-        panel_in = taskpanel_main.create_main_panel_for_tests()
-        sheet_widget = getattr(panel_in, "sheet_widget", None)
-        lbl_w_in = (
-            getattr(sheet_widget, "sheet_width_label", None) if sheet_widget else None
-        )
-        lbl_h_in = (
-            getattr(sheet_widget, "sheet_height_label", None) if sheet_widget else None
-        )
-
-        if lbl_w_in is None or lbl_h_in is None:
-            raise RuntimeError(
-                "Main panel missing sheet_width_label/sheet_height_label."
-            )
-        if "in" not in lbl_w_in.text() or "in" not in lbl_h_in.text():
-            raise AssertionError(
-                f"Expected 'in' in labels; got '{lbl_w_in.text()}', '{lbl_h_in.text()}'."
-            )
+        for system, suffix in (("metric", "mm"), ("imperial", "in")):
+            prefs.set_measurement_system(system)
+            session_state.set_measurement_system(system)
+            sc_units.set_units("mm" if system == "metric" else "in")
+            panel = taskpanel_main.create_main_panel_for_tests()
+            sheet_widget = getattr(panel, "sheet_widget", None)
+            lbl_w = getattr(sheet_widget, "sheet_width_label", None) if sheet_widget else None
+            lbl_h = getattr(sheet_widget, "sheet_height_label", None) if sheet_widget else None
+            if lbl_w is None or lbl_h is None:
+                raise RuntimeError(
+                    "Main panel missing sheet_width_label/sheet_height_label."
+                )
+            if suffix not in lbl_w.text() or suffix not in lbl_h.text():
+                raise AssertionError(
+                    f"Expected '{suffix}' in labels; got '{lbl_w.text()}', '{lbl_h.text()}'."
+                )
+            panels.append(panel)
         result.set_pass()
     except Exception as exc:
         result.set_fail(exc)
     finally:
+        for panel in panels:
+            try:
+                panel.close()
+            except Exception:
+                pass
         prefs.set_measurement_system(orig_ms)
         session_state.set_measurement_system(orig_ms)
         sc_units.set_units("in" if orig_ms == "imperial" else "mm")
-        settings.hydrate_from_params()
     return result
 
 
@@ -492,6 +469,10 @@ def test_shape_selection_and_nesting_workflow():
     result = TestResult("Shape workflow: select shapes and preview nesting")
     doc = None
     original_dialog = taskpanel_input.EnhancedShapeSelectionDialog
+    original_set_panels = session_state.set_panels
+    session_state.set_panels = lambda panels: original_set_panels(
+        [{k: v for k, v in panel.items() if k != "freecad_object"} for panel in panels]
+    )
     try:
         doc = _create_shape_test_document("SquatchCut_GUI_Shapes")
         if doc is None:
@@ -539,6 +520,7 @@ def test_shape_selection_and_nesting_workflow():
         result.set_fail(exc)
     finally:
         taskpanel_input.EnhancedShapeSelectionDialog = original_dialog
+        session_state.set_panels = original_set_panels
         if doc:
             _close_doc(doc)
     return result
@@ -570,6 +552,10 @@ def test_export_cutlist_command_auto_save():
         run_cmd = cmd_run_nesting.RunNestingCommand()
         run_cmd.Activated()
 
+        accept_save_constant = getattr(
+            QtWidgets.QFileDialog, "AcceptSave", getattr(QtWidgets.QFileDialog, "AcceptOpen", 0)
+        )
+
         class _AutoSaveDialog:
             def __init__(self, *args, **kwargs):
                 self._files = []
@@ -585,6 +571,8 @@ def test_export_cutlist_command_auto_save():
 
             def setWindowTitle(self, _):
                 pass
+
+            AcceptSave = accept_save_constant
 
             def exec_(self):
                 return QtWidgets.QDialog.Accepted
