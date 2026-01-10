@@ -2044,7 +2044,7 @@
 <ul>
 <li>Loads panel data from a CSV file.</li>
 <li>Use when panel dimensions are defined externally.</li>
-<li>Caveats: Ensure required columns (id, width, height; optional grain_direction; optional allow_rotate). Missing <code>allow_rotate</code> defaults to no rotation. Invalid rows are skipped with warnings. CSV units can be set per import (metric/imperial); internally everything is stored in mm.</li>
+<li>Caveats: Ensure required columns (id, width, height; optional grain_direction; optional allow_rotate). Missing <code>allow_rotate</code> defaults to no rotation. Invalid rows are skipped with warnings. CSV units follow your measurement system (some builds auto-detect and update it); adjust measurement system in Settings before importing. Internally everything is stored in mm.</li>
 </ul>
 <h2 id="run-nesting">Run Nesting<a class="headerlink" href="#run-nesting" title="Permanent link">&para;</a></h2>
 <ul>

@@ -479,10 +479,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#installing-the-squatchcut-workbench" class="md-nav__link">
+  <a href="#install-via-freecad-add-on-manager-recommended" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Installing the SquatchCut workbench
+        Install via FreeCAD Add-on Manager (recommended)
       
     </span>
   </a>
@@ -490,10 +490,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#installing-ts-tools" class="md-nav__link">
+  <a href="#developer-checkout-optional" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Installing ts-tools
+        Developer checkout (optional)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installing-ts-tools-optional-helper-for-csv-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing ts-tools (optional helper for CSV validation)
       
     </span>
   </a>
@@ -1860,10 +1871,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#installing-the-squatchcut-workbench" class="md-nav__link">
+  <a href="#install-via-freecad-add-on-manager-recommended" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Installing the SquatchCut workbench
+        Install via FreeCAD Add-on Manager (recommended)
       
     </span>
   </a>
@@ -1871,10 +1882,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#installing-ts-tools" class="md-nav__link">
+  <a href="#developer-checkout-optional" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Installing ts-tools
+        Developer checkout (optional)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#installing-ts-tools-optional-helper-for-csv-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installing ts-tools (optional helper for CSV validation)
       
     </span>
   </a>
@@ -1904,19 +1926,26 @@
 <h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h1>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
 <ul>
-<li>FreeCAD (recent stable release)</li>
-<li>Python (for running tests inside FreeCAD environment)</li>
-<li>Node.js and npm (for ts-tools)</li>
+<li>FreeCAD 0.21+ (current stable release)</li>
+<li>Python (only if you plan to run the pytest suite)</li>
+<li>Node.js and npm (only if you want to build/use ts-tools)</li>
 </ul>
-<h2 id="installing-the-squatchcut-workbench">Installing the SquatchCut workbench<a class="headerlink" href="#installing-the-squatchcut-workbench" title="Permanent link">&para;</a></h2>
+<h2 id="install-via-freecad-add-on-manager-recommended">Install via FreeCAD Add-on Manager (recommended)<a class="headerlink" href="#install-via-freecad-add-on-manager-recommended" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Clone this repository into FreeCAD's Mod directory:</li>
-<li>Linux/macOS: <code>~/.local/share/FreeCAD/Mod/</code></li>
-<li>Windows: <code>%APPDATA%\FreeCAD\Mod\</code></li>
+<li>Open <strong>FreeCAD</strong>.</li>
+<li>Go to <strong>Tools → Add-on Manager → Install from ZIP</strong>.</li>
+<li>Select the SquatchCut ZIP you received or downloaded.</li>
 <li>Restart FreeCAD.</li>
 <li>Choose <strong>SquatchCut</strong> from the Workbench dropdown.</li>
 </ol>
-<h2 id="installing-ts-tools">Installing ts-tools<a class="headerlink" href="#installing-ts-tools" title="Permanent link">&para;</a></h2>
+<h2 id="developer-checkout-optional">Developer checkout (optional)<a class="headerlink" href="#developer-checkout-optional" title="Permanent link">&para;</a></h2>
+<p>If you need a live checkout instead of a ZIP:
+1. Clone this repository into FreeCAD's Mod directory:
+   - Linux/macOS: <code>~/.local/share/FreeCAD/Mod/</code>
+   - Windows: <code>%APPDATA%\\FreeCAD\\Mod\\</code>
+2. Restart FreeCAD.
+3. Choose <strong>SquatchCut</strong> from the Workbench dropdown.</p>
+<h2 id="installing-ts-tools-optional-helper-for-csv-validation">Installing ts-tools (optional helper for CSV validation)<a class="headerlink" href="#installing-ts-tools-optional-helper-for-csv-validation" title="Permanent link">&para;</a></h2>
 <div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>ts-tools
 npm<span class="w"> </span>install
 npm<span class="w"> </span>run<span class="w"> </span>build

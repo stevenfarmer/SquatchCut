@@ -327,10 +327,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#shape-based-nesting-new-in-v34" class="md-nav__link">
+  <a href="#shape-based-nesting-experimental-preview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Shape-Based Nesting (NEW in v3.4+)
+        Shape-Based Nesting (Experimental Preview)
       
     </span>
   </a>
@@ -1957,10 +1957,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#shape-based-nesting-new-in-v34" class="md-nav__link">
+  <a href="#shape-based-nesting-experimental-preview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Shape-Based Nesting (NEW in v3.4+)
+        Shape-Based Nesting (Experimental Preview)
       
     </span>
   </a>
@@ -2077,6 +2077,7 @@
 
 <h1 id="squatchcut-logo-placeholder">SquatchCut (logo placeholder)<a class="headerlink" href="#squatchcut-logo-placeholder" title="Permanent link">&para;</a></h1>
 <p>SquatchCut is a cryptid-powered nesting workbench for FreeCAD that extracts panels, nests them, and exports reports.</p>
+<p><strong>Status:</strong> 0.3.x release line focuses on CSV/rectangular nesting. Shape-based nesting is available as an experimental preview (longer runs, feedback welcome). Tested on FreeCAD 0.21+.</p>
 <h2 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h2>
 <h3 id="traditional-csv-workflow">Traditional CSV Workflow<a class="headerlink" href="#traditional-csv-workflow" title="Permanent link">&para;</a></h3>
 <ul>
@@ -2085,26 +2086,26 @@
 <li>Multi-sheet rectangular nesting with kerf/gap controls and per-part 0°/90° rotation</li>
 <li>Fast processing for production runs and standard rectangular parts</li>
 </ul>
-<h3 id="shape-based-nesting-new-in-v34">Shape-Based Nesting (NEW in v3.4+)<a class="headerlink" href="#shape-based-nesting-new-in-v34" title="Permanent link">&para;</a></h3>
+<h3 id="shape-based-nesting-experimental-preview">Shape-Based Nesting (Experimental Preview)<a class="headerlink" href="#shape-based-nesting-experimental-preview" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>True Geometric Nesting</strong>: Design complex parts directly in FreeCAD</li>
 <li><strong>Maximum Material Utilization</strong>: Nest curved, angled, and detailed shapes efficiently</li>
 <li><strong>Accurate Shape Processing</strong>: Considers actual part geometry, not just bounding boxes</li>
 <li><strong>Intelligent Mode Selection</strong>: Automatically chooses optimal nesting algorithm</li>
-<li><strong>Advanced Export Options</strong>: DXF with complex shapes, enhanced cutlists</li>
+<li><strong>Export Support</strong>: CSV/SVG/DXF exports generated through the SquatchCut exporter</li>
 </ul>
 <h3 id="common-features">Common Features<a class="headerlink" href="#common-features" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Units preference (metric/imperial) and CSV units selector; sheet size fields reflect the chosen units</li>
 <li>Geometry generation, PDF/CSV reporting, and cutlist CSV export from nested layouts</li>
-<li>Performance optimization with automatic simplification for complex shapes</li>
+<li>Performance helpers for complex shapes and large datasets</li>
 <li>Embedded AI worker workflows (Codex-style prompts) for guided development</li>
 </ul>
 <h2 id="workflow-notes">Workflow Notes<a class="headerlink" href="#workflow-notes" title="Permanent link">&para;</a></h2>
 <ul>
 <li>CSV import shows source panel rectangles in the XY plane and fits the view automatically.</li>
 <li>Preview/Apply nesting hides source panels and builds fresh sheets + nested clones each run (older sheets are cleared first).</li>
-<li>Use the “Show Source Panels” button in the task panel to hide sheets and reveal sources again at any time.</li>
+<li>Use the <strong>Show Source View</strong> button in the task panel to hide sheets and reveal sources again at any time.</li>
 <li>Cutlist export derives rip/crosscut lines from the nested layout and now merges near-duplicate edges while ignoring cuts that don’t cross any panel, keeping the cutlist shop-friendly.</li>
 </ul>
 <h2 id="explore">Explore<a class="headerlink" href="#explore" title="Permanent link">&para;</a></h2>
