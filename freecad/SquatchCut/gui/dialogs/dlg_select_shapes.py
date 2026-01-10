@@ -8,7 +8,7 @@ shape information display.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Optional
 
 from SquatchCut.core import session_state
 from SquatchCut.core import units as sc_units
@@ -29,9 +29,9 @@ class ShapeInfo:
     dimensions: tuple[float, float, float]  # width, height, depth in mm
     geometry_type: GeometryType
     complexity_score: float
-    preview_data: str | None = None
+    preview_data: Optional[str] = None
     extraction_method: str = "bounding_box"
-    area_mm2: float | None = None
+    area_mm2: Optional[float] = None
 
 
 class PreviewWidget(QtWidgets.QWidget):
@@ -106,7 +106,7 @@ class EnhancedShapeSelectionDialog(QtWidgets.QDialog):
     - Bulk selection controls
     """
 
-    def __init__(self, detected_shapes: list[ShapeInfo] | None = None, parent=None):
+    def __init__(self, detected_shapes: Optional[list[ShapeInfo]] = None, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Select Shapes for Nesting")
         self.setMinimumSize(600, 400)

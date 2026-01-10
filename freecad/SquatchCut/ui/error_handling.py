@@ -2,6 +2,8 @@
 
 import traceback
 
+from typing import Optional
+
 from SquatchCut.core import logger
 from SquatchCut.freecad_integration import Gui
 from SquatchCut.gui.qt_compat import QtWidgets
@@ -13,8 +15,8 @@ class SquatchCutError(Exception):
     def __init__(
         self,
         message: str,
-        details: str | None = None,
-        user_action: str | None = None,
+        details: Optional[str] = None,
+        user_action: Optional[str] = None,
     ):
         super().__init__(message)
         self.message = message
@@ -43,9 +45,9 @@ class ConfigurationError(SquatchCutError):
 def show_error_dialog(
     title: str,
     message: str,
-    details: str | None = None,
-    user_action: str | None = None,
-    parent: QtWidgets.QWidget | None = None,
+    details: Optional[str] = None,
+    user_action: Optional[str] = None,
+    parent: Optional[QtWidgets.QWidget] = None,
 ) -> None:
     """Show a standardized error dialog."""
     if parent is None and Gui is not None:
@@ -77,9 +79,9 @@ def show_error_dialog(
 def show_warning_dialog(
     title: str,
     message: str,
-    details: str | None = None,
-    user_action: str | None = None,
-    parent: QtWidgets.QWidget | None = None,
+    details: Optional[str] = None,
+    user_action: Optional[str] = None,
+    parent: Optional[QtWidgets.QWidget] = None,
 ) -> None:
     """Show a standardized warning dialog."""
     if parent is None and Gui is not None:
@@ -111,8 +113,8 @@ def show_warning_dialog(
 def show_info_dialog(
     title: str,
     message: str,
-    details: str | None = None,
-    parent: QtWidgets.QWidget | None = None,
+    details: Optional[str] = None,
+    parent: Optional[QtWidgets.QWidget] = None,
 ) -> None:
     """Show a standardized information dialog."""
     if parent is None and Gui is not None:
@@ -136,8 +138,8 @@ def show_info_dialog(
 def handle_command_error(
     command_name: str,
     error: Exception,
-    user_message: str | None = None,
-    user_action: str | None = None,
+    user_message: Optional[str] = None,
+    user_action: Optional[str] = None,
 ) -> None:
     """Standardized error handling for FreeCAD commands."""
     # Log the full error with traceback
@@ -163,7 +165,7 @@ def handle_command_error(
 
 
 def handle_validation_error(
-    field_name: str, value: str, expected: str, user_action: str | None = None
+    field_name: str, value: str, expected: str, user_action: Optional[str] = None
 ) -> None:
     """Handle validation errors with standardized messaging."""
     message = f"Invalid value for {field_name}: '{value}'"
@@ -176,8 +178,8 @@ def handle_validation_error(
 def confirm_destructive_action(
     title: str,
     message: str,
-    details: str | None = None,
-    parent: QtWidgets.QWidget | None = None,
+    details: Optional[str] = None,
+    parent: Optional[QtWidgets.QWidget] = None,
 ) -> bool:
     """Show a confirmation dialog for destructive actions."""
     if parent is None and Gui is not None:

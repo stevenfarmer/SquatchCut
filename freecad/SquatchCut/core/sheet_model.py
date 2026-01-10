@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 from SquatchCut.core import logger, session
 from SquatchCut.freecad_integration import App, Gui, Part
 
@@ -217,7 +219,7 @@ def build_sheet_boundaries(doc, sheet_sizes, spacing):
     return boundaries, offsets
 
 
-def compute_sheet_spacing(sheet_sizes, gap_mm: float | None):
+def compute_sheet_spacing(sheet_sizes, gap_mm: Optional[float]):
     """Determine spacing between sheets based on gap or a proportion of the widest sheet."""
     max_width = 0.0
     for width, _ in sheet_sizes:

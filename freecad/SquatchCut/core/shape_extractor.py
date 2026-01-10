@@ -8,6 +8,8 @@ Note: Update incrementally; do not overwrite this module when adding logic.
 
 from __future__ import annotations
 
+from typing import Optional
+
 from SquatchCut.core.complex_geometry import (
     BoundingBox,
     ComplexGeometry,
@@ -118,7 +120,7 @@ class ShapeExtractor:
             "rotation_allowed": True,
         }
 
-    def extract_complex_geometry(self, shape_or_obj) -> ComplexGeometry | None:
+    def extract_complex_geometry(self, shape_or_obj) -> Optional[ComplexGeometry]:
         """Extract complex geometry from a FreeCAD object with full contour support.
 
         This method attempts to extract the actual geometric contour of the shape
@@ -180,7 +182,7 @@ class ShapeExtractor:
             geometry, _, _ = self.extract_with_fallback(shape_or_obj)
             return geometry
 
-    def extract_contour_points(self, shape_or_obj) -> list[Point2D] | None:
+    def extract_contour_points(self, shape_or_obj) -> Optional[list[Point2D]]:
         """Extract detailed contour points from a FreeCAD shape.
 
         This method attempts to extract the actual boundary points of the shape

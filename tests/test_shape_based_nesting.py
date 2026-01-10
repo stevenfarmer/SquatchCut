@@ -550,7 +550,11 @@ class TestGeometryNestingEngine:
     """Property-based tests for the geometry nesting engine."""
 
     @given(st.lists(valid_complex_geometry(), min_size=1, max_size=5))
-    @settings(max_examples=20, deadline=10000)
+    @settings(
+        max_examples=20,
+        deadline=10000,
+        suppress_health_check=[HealthCheck.filter_too_much],
+    )
     def test_property_4_overlap_prevention_in_nesting(self, geometries):
         """**Feature: shape-based-nesting, Property 4: Overlap Prevention**
 

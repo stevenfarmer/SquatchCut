@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
+from typing import Any, Optional
 
 from SquatchCut.core.nesting import Part, PlacedPart
 
@@ -166,7 +166,7 @@ def optimize_rotation_for_grain(
 
 
 def add_grain_info_to_parts(
-    parts: list[Part], grain_data: dict[str, Any] | None = None
+    parts: list[Part], grain_data: Optional[dict[str, Any]] = None
 ) -> list[GrainAwarePart]:
     """Convert regular parts to grain-aware parts."""
     grain_aware_parts = []

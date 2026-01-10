@@ -7,6 +7,7 @@ Note: Update incrementally; do not overwrite this module when adding logic.
 
 from __future__ import annotations
 
+from typing import Optional
 
 class NestingEngine:
     """Places panels on a single sheet using rectangular nesting."""
@@ -62,7 +63,7 @@ class NestingEngine:
 
         return placements, remaining
 
-    def place_panel(self, panel: dict, free_rectangles: list[dict]) -> dict | None:
+    def place_panel(self, panel: dict, free_rectangles: list[dict]) -> Optional[dict]:
         """Place a panel into the first fitting rectangle, updating free space."""
         width = float(panel.get("width", 0))
         height = float(panel.get("height", 0))
@@ -111,7 +112,7 @@ class NestingEngine:
 
     def find_position_for_panel(
         self, width: float, height: float, free_rectangles: list[dict]
-    ) -> tuple[float, float, int] | None:
+    ) -> Optional[tuple[float, float, int]]:
         """Find the first rectangle that fits the panel; return (x, y, index)."""
         best_index = None
         best = None

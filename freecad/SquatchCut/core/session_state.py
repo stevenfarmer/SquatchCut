@@ -7,6 +7,7 @@ This module intentionally does NOT import FreeCAD so that:
 """
 
 from copy import deepcopy
+from typing import Optional
 
 # @codex
 # Pure in-memory session state for SquatchCut (no FreeCAD deps).
@@ -133,7 +134,10 @@ def get_job_sheets():
 
 
 def add_job_sheet(
-    width_mm: float, height_mm: float, quantity: int = 1, label: str | None = None
+    width_mm: float,
+    height_mm: float,
+    quantity: int = 1,
+    label: Optional[str] = None,
 ):
     """Append a new sheet definition."""
     global _job_sheets
@@ -186,7 +190,7 @@ def clear_job_sheets():
 # --------------------------
 
 
-def set_sheet_mode(mode: str | None) -> None:
+def set_sheet_mode(mode: Optional[str]) -> None:
     """Set how sheets are provided: 'simple' (default) or 'job_sheets'."""
     global _sheet_mode
     if mode == SHEET_MODE_JOB_SHEETS:
@@ -248,13 +252,13 @@ def get_default_allow_rotate() -> bool:
     return bool(_default_allow_rotate)
 
 
-def set_job_allow_rotate(value: bool | None) -> None:
+def set_job_allow_rotate(value: Optional[bool]) -> None:
     """Set job-specific allow-rotate flag (used for the current nesting session)."""
     global _job_allow_rotate
     _job_allow_rotate = bool(value) if value is not None else None
 
 
-def get_job_allow_rotate() -> bool | None:
+def get_job_allow_rotate() -> Optional[bool]:
     """Return job-specific allow-rotate preference, or None if unset."""
     return _job_allow_rotate
 
@@ -341,9 +345,9 @@ def get_last_layout():
 
 
 def set_nesting_stats(
-    sheets_used: int | None = None,
-    cut_complexity: float | None = None,
-    overlaps_count: int | None = None,
+    sheets_used: Optional[int] = None,
+    cut_complexity: Optional[float] = None,
+    overlaps_count: Optional[int] = None,
 ) -> None:
     """Store summary stats from the last nesting run."""
     global _nesting_stats

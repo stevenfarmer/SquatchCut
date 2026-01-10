@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 from SquatchCut import settings
 from SquatchCut.core import gui_tests, logger, sheet_presets
 from SquatchCut.core import units as sc_units
@@ -239,7 +241,7 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         is_dev = self.developer_mode_check.isChecked()
         self.developer_group_box.setVisible(is_dev)
 
-    def _determine_measurement_system(self, preferred: str | None = None) -> str:
+    def _determine_measurement_system(self, preferred: Optional[str] = None) -> str:
         if preferred in ("metric", "imperial"):
             return preferred
         ms_from_units = "imperial" if sc_units.get_units() == "in" else "metric"
@@ -348,14 +350,14 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         )
 
     def _set_length_text(
-        self, widget: QtWidgets.QLineEdit, value_mm: float | None
+        self, widget: QtWidgets.QLineEdit, value_mm: Optional[float]
     ) -> None:
         if value_mm is None:
             widget.clear()
             return
         widget.setText(sc_units.format_length(value_mm, self.measurement_system))
 
-    def _parse_length(self, widget: QtWidgets.QLineEdit, name: str) -> float | None:
+    def _parse_length(self, widget: QtWidgets.QLineEdit, name: str) -> Optional[float]:
         text = widget.text().strip()
         if not text:
             return None

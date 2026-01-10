@@ -10,7 +10,7 @@ from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from functools import wraps
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any, Optional, TypeVar
 
 from SquatchCut.core import logger
 
@@ -45,7 +45,7 @@ def performance_monitor(operation_name: str, threshold_seconds: float = 1.0):
 def batch_process(
     items: list,
     batch_size: int = 100,
-    progress_callback: Callable[[int, int], None] | None = None,
+    progress_callback: Optional[Callable[[int, int], None]] = None,
 ):
     """Process items in batches to avoid memory issues with large datasets."""
     total = len(items)
@@ -176,7 +176,7 @@ def optimize_for_large_datasets(func: Callable[..., T]) -> Callable[..., T]:
 class NestingCache:
     """Cache for nesting results to avoid recomputation."""
 
-    def __init__(self, cache_dir: str | None = None, max_cache_size: int = 100):
+    def __init__(self, cache_dir: Optional[str] = None, max_cache_size: int = 100):
         self.cache_dir = (
             Path(cache_dir)
             if cache_dir
@@ -218,7 +218,7 @@ class NestingCache:
 
     def get(
         self, parts: list, sheet_width: float, sheet_height: float, config: Any = None
-    ) -> Any | None:
+    ) -> Optional[Any]:
         """Get cached nesting result if available."""
         cache_key = self._generate_cache_key(parts, sheet_width, sheet_height, config)
 
@@ -336,7 +336,7 @@ def cached_nesting(func: Callable) -> Callable:
 class ParallelNestingProcessor:
     """Process nesting operations in parallel for improved performance."""
 
-    def __init__(self, max_workers: int | None = None, use_processes: bool = False):
+    def __init__(self, max_workers: Optional[int] = None, use_processes: bool = False):
         self.max_workers = max_workers or min(4, multiprocessing.cpu_count())
         self.use_processes = use_processes
 
@@ -404,7 +404,7 @@ class ParallelNestingProcessor:
             return [r for r in results if r is not None]
 
 
-def parallel_nesting(max_workers: int | None = None, use_processes: bool = False):
+def parallel_nesting(max_workers: Optional[int] = None, use_processes: bool = False):
     """Decorator to enable parallel processing for nesting operations."""
 
     def decorator(func: Callable) -> Callable:
@@ -533,7 +533,7 @@ def get_cache_stats() -> dict[str, Any]:
     return _global_cache.get_cache_stats()
 
 
-def configure_cache(cache_dir: str | None = None, max_cache_size: int = 100) -> None:
+def configure_cache(cache_dir: Optional[str] = None, max_cache_size: int = 100) -> None:
     """Configure the global nesting cache."""
     global _global_cache
     _global_cache = NestingCache(cache_dir, max_cache_size)

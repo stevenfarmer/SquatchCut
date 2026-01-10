@@ -10,6 +10,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from enum import Enum
+from typing import Optional
 
 from SquatchCut.core.complex_geometry import (
     ComplexGeometry,
@@ -54,7 +55,7 @@ class GeometrySimplifier:
     def simplify_geometry(
         self,
         geometry: ComplexGeometry,
-        target_level: SimplificationLevel | None = None,
+        target_level: Optional[SimplificationLevel] = None,
     ) -> SimplificationResult:
         """Simplify a complex geometry based on performance requirements.
 

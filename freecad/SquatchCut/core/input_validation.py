@@ -1,13 +1,14 @@
 """Input validation utilities for SquatchCut."""
 
 import re
+from typing import Union
 
 from SquatchCut.core import units
 from SquatchCut.ui.error_handling import ValidationError
 
 
 def validate_positive_number(
-    value: str | float | int, field_name: str, allow_zero: bool = False
+    value: Union[str, float, int], field_name: str, allow_zero: bool = False
 ) -> float:
     """Validate that a value is a positive number."""
     try:
@@ -36,7 +37,7 @@ def validate_positive_number(
 
 
 def validate_sheet_dimensions(
-    width: str | float, height: str | float, units_system: str = "metric"
+    width: Union[str, float], height: Union[str, float], units_system: str = "metric"
 ) -> tuple[float, float]:
     """Validate sheet width and height dimensions."""
     # Validate width
@@ -91,7 +92,7 @@ def validate_sheet_dimensions(
 
 
 def validate_kerf_and_spacing(
-    kerf: str | float, spacing: str | float, units_system: str = "metric"
+    kerf: Union[str, float], spacing: Union[str, float], units_system: str = "metric"
 ) -> tuple[float, float]:
     """Validate kerf and spacing values."""
     # Validate kerf
@@ -169,9 +170,9 @@ def validate_csv_file_path(file_path: str) -> str:
 
 def validate_panel_data(
     panel_id: str,
-    width: str | float,
-    height: str | float,
-    quantity: str | int = 1,
+    width: Union[str, float],
+    height: Union[str, float],
+    quantity: Union[str, int] = 1,
     units_system: str = "metric",
 ) -> dict:
     """Validate individual panel data from CSV."""

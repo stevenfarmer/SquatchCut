@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 from SquatchCut.core.units import inches_to_mm
 
 DEFAULT_MATCH_TOLERANCE_MM = 1e-3
@@ -79,8 +81,8 @@ def get_factory_default_sheet_size(system: str) -> tuple[float, float]:
 
 def get_initial_sheet_size(
     system: str,
-    session_size: tuple[float | None, float | None],
-    user_default_size: tuple[float | None, float | None],
+    session_size: tuple[Optional[float], Optional[float]],
+    user_default_size: tuple[Optional[float], Optional[float]],
 ) -> tuple[float, float]:
     """
     Choose the size to show when the tasks panel loads, preferring existing session data,
@@ -97,10 +99,10 @@ def get_initial_sheet_size(
 
 def find_matching_preset(
     system: str,
-    width_mm: float | None,
-    height_mm: float | None,
+    width_mm: Optional[float],
+    height_mm: Optional[float],
     tolerance_mm: float = DEFAULT_MATCH_TOLERANCE_MM,
-) -> dict[str, object] | None:
+) -> Optional[dict[str, object]]:
     """Return the matching preset for the system if the dimensions match within tolerance."""
     if width_mm is None or height_mm is None:
         return None
@@ -115,7 +117,7 @@ def find_matching_preset(
     return None
 
 
-def apply_preset(system: str, preset_id: str) -> tuple[float, float] | None:
+def apply_preset(system: str, preset_id: str) -> Optional[tuple[float, float]]:
     """Return the width/height for the preset identified by `preset_id` in the given system."""
     normalized = _normalize_measurement_system(system)
     presets = PRESETS_BY_SYSTEM.get(normalized, PRESETS_BY_SYSTEM["metric"])
@@ -130,7 +132,7 @@ class PresetSelectionState:
 
     def __init__(self):
         self.current_index = 0
-        self.current_id: str | None = None
+        self.current_id: Optional[str] = None
 
     def set_index(self, index: int, entries: list[dict[str, object]]) -> int:
         if not entries:

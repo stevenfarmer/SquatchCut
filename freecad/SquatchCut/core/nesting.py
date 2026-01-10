@@ -12,7 +12,7 @@ Pure logic module: no FreeCAD or GUI dependencies.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Optional, Union
 
 __all__ = [
     "run_shelf_nesting",
@@ -133,7 +133,7 @@ def _get_sheet_entry_field(entry: Any, *keys: str):
     return None
 
 
-def _normalize_sheet_definition(entry: Any) -> dict | None:
+def _normalize_sheet_definition(entry: Any) -> Optional[dict]:
     """Return normalized sheet definition dict or None if invalid."""
     width_raw = _get_sheet_entry_field(entry, "width_mm", "width")
     height_raw = _get_sheet_entry_field(entry, "height_mm", "height")
@@ -182,9 +182,9 @@ def expand_sheet_sizes(sheet_entries: list[dict]) -> list[tuple[float, float]]:
 
 def derive_sheet_definitions_for_mode(
     sheet_mode: str,
-    job_sheets: list[dict] | None,
-    default_width: float | None,
-    default_height: float | None,
+    job_sheets: Optional[list[dict]],
+    default_width: Optional[float],
+    default_height: Optional[float],
 ) -> list[dict]:
     """
     Return sheet definitions honoring sheet mode.
@@ -200,7 +200,7 @@ def derive_sheet_definitions_for_mode(
 
 def get_effective_job_sheets_for_nesting(
     sheet_mode: str,
-    job_sheets: list[dict] | None,
+    job_sheets: Optional[list[dict]],
 ) -> list[dict]:
     """
     Normalize and filter the explicit job sheets to be used for nesting.
@@ -219,10 +219,10 @@ def get_effective_job_sheets_for_nesting(
 
 def derive_sheet_sizes_for_layout(
     sheet_mode: str,
-    job_sheets: list[dict] | None,
-    default_width: float | None,
-    default_height: float | None,
-    placements: list[PlacedPart] | None = None,
+    job_sheets: Optional[list[dict]],
+    default_width: Optional[float],
+    default_height: Optional[float],
+    placements: Optional[list[PlacedPart]] = None,
 ) -> list[tuple[float, float]]:
     """
     Determine concrete sheet sizes to render layout geometry for the current mode.
@@ -319,8 +319,8 @@ def _nest_rectangular_default(
     parts: list[Part],
     sheet_width: float,
     sheet_height: float,
-    config: NestingConfig | None = None,
-    sheet_sizes: list[tuple[float, float]] | None = None,
+    config: Optional[NestingConfig] = None,
+    sheet_sizes: Optional[list[tuple[float, float]]] = None,
 ) -> list[PlacedPart]:
     """
     Shelf-based rectangle packing across multiple sheets with optional 90° rotation.
@@ -537,8 +537,8 @@ def nest_on_multiple_sheets(
     parts: list[Part],
     sheet_width: float,
     sheet_height: float,
-    config: NestingConfig | None = None,
-    sheet_definitions: list[dict] | None = None,
+    config: Optional[NestingConfig] = None,
+    sheet_definitions: Optional[list[dict]] = None,
 ) -> list[PlacedPart]:
     """
     Entry that runs the default shelf-based nesting across the supplied sheet definitions.
@@ -562,7 +562,7 @@ def nest_cut_optimized(
     sheet_height: float,
     kerf: float = 0.0,
     margin: float = 0.0,
-    sheet_sizes: list[tuple[float, float]] | None = None,
+    sheet_sizes: Optional[list[tuple[float, float]]] = None,
 ) -> list[PlacedPart]:
     """
     Row/column oriented heuristic intended to reduce distinct cut lines.
@@ -710,8 +710,8 @@ def _nest_cut_friendly(
     parts: list[Part],
     sheet_width: float,
     sheet_height: float,
-    config: NestingConfig | None = None,
-    sheet_sizes: list[tuple[float, float]] | None = None,
+    config: Optional[NestingConfig] = None,
+    sheet_sizes: Optional[list[tuple[float, float]]] = None,
 ) -> list[PlacedPart]:
     """
     Lane-based heuristic aimed at woodshop-style rips/crosscuts.
@@ -838,8 +838,8 @@ def nest_parts(
     parts: list[Part],
     sheet_width: float,
     sheet_height: float,
-    config: NestingConfig | None = None,
-    sheet_sizes: list[tuple[float, float]] | None = None,
+    config: Optional[NestingConfig] = None,
+    sheet_sizes: Optional[list[tuple[float, float]]] = None,
 ) -> list[PlacedPart]:
     """
     Strategy selector for nesting.
@@ -868,8 +868,8 @@ def nest_parts(
 
 def estimate_cut_counts(
     placements: list[PlacedPart],
-    sheet_width: float | None = None,
-    sheet_height: float | None = None,
+    sheet_width: Optional[float] = None,
+    sheet_height: Optional[float] = None,
 ) -> dict:
     """
     Approximate saw cut counts by collecting unique vertical and horizontal cut lines.
@@ -994,8 +994,8 @@ def compute_utilization_for_sheets(
 
 def analyze_sheet_exhaustion(
     placements: list[PlacedPart],
-    sheet_sizes: list[tuple[float, float]] | None = None,
-) -> dict[str, int | bool]:
+    sheet_sizes: Optional[list[tuple[float, float]]] = None,
+) -> dict[str, Union[int, bool]]:
     """
     Analyze whether sheet quantities were exhausted during nesting.
 

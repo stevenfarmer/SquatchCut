@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
+from typing import Any, Optional
 
 from SquatchCut.core.complex_geometry import (
     BoundingBox,
@@ -49,7 +49,7 @@ class SheetGeometry:
     width: float
     height: float
     margin: float = 0.0
-    usable_area: float | None = None
+    usable_area: Optional[float] = None
 
     def __post_init__(self):
         if self.usable_area is None:
@@ -122,16 +122,16 @@ class GeometryNestingEngine:
         self.placement_tolerance = 0.1  # mm
         self.performance_monitor = get_performance_monitor()
         self.progress_manager = get_progress_manager()
-        self._current_operation_id: str | None = None
-        self._current_progress_tracker: ProgressTracker | None = None
+        self._current_operation_id: Optional[str] = None
+        self._current_progress_tracker: Optional[ProgressTracker] = None
 
     def nest_complex_shapes(
         self,
         shapes: list[ComplexGeometry],
         sheet: SheetGeometry,
         nesting_mode: NestingMode = NestingMode.HYBRID,
-        progress_callback: Any | None = None,
-        cancellation_check: Any | None = None,
+        progress_callback: Optional[Any] = None,
+        cancellation_check: Optional[Any] = None,
     ) -> NestingResult:
         """Nest complex shapes on a sheet using geometric algorithms.
 
@@ -411,7 +411,7 @@ class GeometryNestingEngine:
         shape: ComplexGeometry,
         sheet: SheetGeometry,
         occupied_regions: list[dict[str, Any]],
-    ) -> PlacedGeometry | None:
+    ) -> Optional[PlacedGeometry]:
         """Place a shape using geometric nesting algorithms."""
         # Try different positions and rotations
         positions = self._generate_placement_positions(sheet, shape)
@@ -449,7 +449,7 @@ class GeometryNestingEngine:
         shape: ComplexGeometry,
         sheet: SheetGeometry,
         occupied_regions: list[dict[str, Any]],
-    ) -> PlacedGeometry | None:
+    ) -> Optional[PlacedGeometry]:
         """Place a shape using rectangular (bounding box) nesting algorithms."""
         # Use bounding box for placement
         width = shape.get_width()

@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 from SquatchCut.core import logger
 from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.gui.icons import get_icon
 from SquatchCut.gui.taskpanel_main import SquatchCutTaskPanel
 
-_main_panel_instance: SquatchCutTaskPanel | None = None
+_main_panel_instance: Optional[SquatchCutTaskPanel] = None
 
 def _clear_main_panel():
     global _main_panel_instance

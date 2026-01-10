@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
+from typing import Optional
 
 from SquatchCut.core import logger
 from SquatchCut.core.nesting import PlacedPart
@@ -36,8 +37,8 @@ class QualityIssue:
     sheet_index: int
     description: str
     suggested_fix: str = ""
-    coordinates: tuple[float, float] | None = None
-    affected_area: tuple[float, float, float, float] | None = (
+    coordinates: Optional[tuple[float, float]] = None
+    affected_area: Optional[tuple[float, float, float, float]] = (
         None  # x, y, width, height
     )
 
@@ -74,7 +75,7 @@ class QualityAssuranceChecker:
         self,
         placed_parts: list[PlacedPart],
         sheet_sizes: list[tuple[float, float]],
-        original_parts: list | None = None,
+        original_parts: Optional[list] = None,
     ) -> QualityReport:
         """Perform comprehensive quality checks on the layout."""
         import datetime
@@ -569,7 +570,7 @@ def check_nesting_quality(
     placed_parts: list[PlacedPart],
     sheet_sizes: list[tuple[float, float]],
     min_spacing: float = 3.0,
-    original_parts: list | None = None,
+    original_parts: Optional[list] = None,
 ) -> QualityReport:
     """High-level function to check nesting quality."""
     checker = QualityAssuranceChecker(min_spacing=min_spacing)

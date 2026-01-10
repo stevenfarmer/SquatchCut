@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 from dataclasses import dataclass
+from typing import Optional
 
 try:
     from SquatchCut.core import session_state
@@ -16,7 +17,7 @@ REQUIRED_COLUMNS = {"id", "width", "height"}
 
 @dataclass
 class CsvValidationError:
-    row: int | None
+    row: Optional[int]
     message: str
 
 
@@ -104,7 +105,7 @@ def _is_empty_row(normalized: dict) -> bool:
 
 def _validate_panel_row(
     row: dict, row_number: int, units: str
-) -> tuple[dict | None, CsvValidationError | None]:
+) -> tuple[Optional[dict], Optional[CsvValidationError]]:
     missing = [field for field in REQUIRED_COLUMNS if not row.get(field)]
     if missing:
         return None, CsvValidationError(
@@ -152,7 +153,7 @@ def _validate_panel_row(
 
 def _parse_positive_float(
     value: str, row_number: int, label: str
-) -> tuple[float | None, CsvValidationError | None]:
+) -> tuple[Optional[float], Optional[CsvValidationError]]:
     text = (value or "").strip()
     if not text:
         return None, CsvValidationError(row_number, f"{label} is missing.")
@@ -180,7 +181,7 @@ def _parse_positive_float(
 
 def _parse_positive_int(
     value: str, row_number: int, label: str
-) -> tuple[int, CsvValidationError | None]:
+) -> tuple[int, Optional[CsvValidationError]]:
     text = (value or "").strip()
     if not text:
         return 1, None

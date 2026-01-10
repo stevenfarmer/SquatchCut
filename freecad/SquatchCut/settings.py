@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 from SquatchCut.core import session_state
 from SquatchCut.core import sheet_presets as sc_sheet_presets
 from SquatchCut.core import units as sc_units
 from SquatchCut.core.preferences import SquatchCutPreferences
 
 
-def hydrate_from_params(measurement_override: str | None = None) -> None:
+def hydrate_from_params(measurement_override: Optional[str] = None) -> None:
     """
     Load persisted preferences from FreeCAD ParamGet into in-memory session_state.
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from typing import Optional
 
 from SquatchCut.core import logger, session_state
 from SquatchCut.core import units as sc_units
@@ -33,7 +34,7 @@ class InputGroupWidget(QtWidgets.QGroupBox):
     def __init__(self, prefs, parent=None):
         super().__init__("Input", parent)
         self._prefs = prefs
-        self._last_csv_path: str | None = None
+        self._last_csv_path: Optional[str] = None
         self._build_ui()
         if hasattr(self, "setObjectName"):
             self.setObjectName("input_group_box")
@@ -116,7 +117,7 @@ class InputGroupWidget(QtWidgets.QGroupBox):
             return data
         return "metric"
 
-    def _sync_csv_units_display(self, system: str | None) -> None:
+    def _sync_csv_units_display(self, system: Optional[str]) -> None:
         normalized = "imperial" if system == "imperial" else "metric"
         idx = self.csv_units_combo.findData(normalized)
         if idx >= 0:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from typing import Optional
 
 from SquatchCut.core.units import inches_to_mm, mm_to_inches
 from SquatchCut.freecad_integration import App
@@ -181,7 +182,7 @@ class SquatchCutPreferences:
         flag_key = self._default_flag_key(system)
         self._set_bool(flag_key, True)
 
-    def get_default_sheet_width_mm(self, fallback: float | None = None) -> float:
+    def get_default_sheet_width_mm(self, fallback: Optional[float] = None) -> float:
         if fallback is None:
             fallback = self.METRIC_DEFAULT_WIDTH_MM
         return self._float(self.METRIC_WIDTH_KEY, fallback)
@@ -190,7 +191,7 @@ class SquatchCutPreferences:
         self._set_float(self.METRIC_WIDTH_KEY, value)
         self._mark_sheet_defaults("metric")
 
-    def get_default_sheet_height_mm(self, fallback: float | None = None) -> float:
+    def get_default_sheet_height_mm(self, fallback: Optional[float] = None) -> float:
         if fallback is None:
             fallback = self.METRIC_DEFAULT_HEIGHT_MM
         return self._float(self.METRIC_HEIGHT_KEY, fallback)
@@ -199,7 +200,7 @@ class SquatchCutPreferences:
         self._set_float(self.METRIC_HEIGHT_KEY, value)
         self._mark_sheet_defaults("metric")
 
-    def get_default_sheet_width_in(self, fallback: float | None = None) -> float:
+    def get_default_sheet_width_in(self, fallback: Optional[float] = None) -> float:
         if fallback is None:
             fallback = self.IMPERIAL_DEFAULT_WIDTH_IN
         has_value, value = self._get_float_entry(self.IMPERIAL_WIDTH_KEY)
@@ -211,7 +212,7 @@ class SquatchCutPreferences:
         self._set_float(self.IMPERIAL_WIDTH_KEY, value)
         self._mark_sheet_defaults("imperial")
 
-    def get_default_sheet_height_in(self, fallback: float | None = None) -> float:
+    def get_default_sheet_height_in(self, fallback: Optional[float] = None) -> float:
         if fallback is None:
             fallback = self.IMPERIAL_DEFAULT_HEIGHT_IN
         has_value, value = self._get_float_entry(self.IMPERIAL_HEIGHT_KEY)
@@ -284,7 +285,7 @@ class SquatchCutPreferences:
         return mm_to_inches(width_mm), mm_to_inches(height_mm)
 
     def get_default_spacing_mm(
-        self, fallback: float = 0.0, system: str | None = None
+        self, fallback: float = 0.0, system: Optional[str] = None
     ) -> float:
         """
         Return default spacing in mm.
@@ -300,7 +301,7 @@ class SquatchCutPreferences:
             self.METRIC_SPACING_KEY, fallback or self.METRIC_DEFAULT_SPACING_MM
         )
 
-    def set_default_spacing_mm(self, value: float, system: str | None = None) -> None:
+    def set_default_spacing_mm(self, value: float, system: Optional[str] = None) -> None:
         """
         Set default spacing from mm input.
         If system is Imperial, converts mm -> inches and stores in Imperial key.

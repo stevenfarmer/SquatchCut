@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from typing import Optional
 
 from SquatchCut.freecad_integration import App  # Centralized FreeCAD import
 
@@ -228,7 +229,7 @@ def format_preset_label(
     width_mm: float,
     height_mm: float,
     measurement_system: str,
-    nickname: str | None = None,
+    nickname: Optional[str] = None,
     max_denominator: int = 16,
     decimals: int = 3,
 ) -> str:

@@ -11,7 +11,7 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
+from typing import Any, Optional
 
 from SquatchCut.core import logger
 
@@ -49,7 +49,7 @@ class ProgressUpdate:
     total_items: int
     current_description: str
     elapsed_time: float
-    estimated_remaining: float | None = None
+    estimated_remaining: Optional[float] = None
     can_cancel: bool = True
     warnings: list[str] = field(default_factory=list)
 
@@ -64,10 +64,10 @@ class OperationResult:
 
     operation_id: str
     status: OperationStatus
-    result_data: Any | None = None
-    error_message: str | None = None
+    result_data: Optional[Any] = None
+    error_message: Optional[str] = None
     total_time: float = 0.0
-    final_progress: ProgressUpdate | None = None
+    final_progress: Optional[ProgressUpdate] = None
 
 
 # Type alias for progress callback function
@@ -82,8 +82,8 @@ class ProgressTracker:
         self,
         operation_id: str,
         total_items: int,
-        progress_callback: ProgressCallback | None = None,
-        cancellation_check: CancellationCheck | None = None,
+        progress_callback: Optional[ProgressCallback] = None,
+        cancellation_check: Optional[CancellationCheck] = None,
     ):
         """Initialize progress tracker.
 
@@ -139,9 +139,9 @@ class ProgressTracker:
 
     def update_progress(
         self,
-        current_item: int | None = None,
-        stage_progress: float | None = None,
-        description: str | None = None,
+        current_item: Optional[int] = None,
+        stage_progress: Optional[float] = None,
+        description: Optional[str] = None,
     ) -> bool:
         """Update progress within the current stage.
 
@@ -180,7 +180,7 @@ class ProgressTracker:
         logger.warning(f"[Progress] {self.operation_id}: {warning}")
         self._send_progress_update()
 
-    def finish(self, success: bool = True, error_message: str | None = None) -> None:
+    def finish(self, success: bool = True, error_message: Optional[str] = None) -> None:
         """Mark the operation as finished."""
         if success and not self.cancelled:
             self.set_stage(ProgressStage.FINALIZING, "Operation completed successfully")
@@ -212,7 +212,7 @@ class ProgressTracker:
 
         return (completed_weight / total_weight) * 100.0
 
-    def _estimate_remaining_time(self) -> float | None:
+    def _estimate_remaining_time(self) -> Optional[float]:
         """Estimate remaining time based on current progress."""
         elapsed = time.time() - self.start_time
         progress_percent = self._calculate_overall_progress()
@@ -266,8 +266,8 @@ class ProgressManager:
         self,
         operation_name: str,
         total_items: int,
-        progress_callback: ProgressCallback | None = None,
-        cancellation_check: CancellationCheck | None = None,
+        progress_callback: Optional[ProgressCallback] = None,
+        cancellation_check: Optional[CancellationCheck] = None,
     ) -> str:
         """Start tracking a new operation.
 
@@ -298,7 +298,7 @@ class ProgressManager:
             )
             return operation_id
 
-    def get_tracker(self, operation_id: str) -> ProgressTracker | None:
+    def get_tracker(self, operation_id: str) -> Optional[ProgressTracker]:
         """Get the progress tracker for an operation."""
         with self._lock:
             return self.active_operations.get(operation_id)
@@ -307,8 +307,8 @@ class ProgressManager:
         self,
         operation_id: str,
         success: bool = True,
-        result_data: Any | None = None,
-        error_message: str | None = None,
+        result_data: Optional[Any] = None,
+        error_message: Optional[str] = None,
     ) -> OperationResult:
         """Finish tracking an operation.
 
@@ -442,7 +442,7 @@ class ProgressManager:
 
 
 # Global progress manager instance
-_global_progress_manager: ProgressManager | None = None
+_global_progress_manager: Optional[ProgressManager] = None
 
 
 def get_progress_manager() -> ProgressManager:
@@ -456,8 +456,8 @@ def get_progress_manager() -> ProgressManager:
 def with_progress_tracking(
     operation_name: str,
     total_items: int,
-    progress_callback: ProgressCallback | None = None,
-    cancellation_check: CancellationCheck | None = None,
+    progress_callback: Optional[ProgressCallback] = None,
+    cancellation_check: Optional[CancellationCheck] = None,
 ):
     """Decorator for adding progress tracking to functions.
 

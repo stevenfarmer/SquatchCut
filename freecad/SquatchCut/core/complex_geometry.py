@@ -10,6 +10,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from enum import Enum
+from typing import Optional
 
 # Type aliases for clarity
 Point2D = tuple[float, float]
@@ -56,7 +57,7 @@ class ComplexGeometry:
     area: float
     complexity_level: ComplexityLevel
     rotation_allowed: bool
-    kerf_compensation: float | None = None
+    kerf_compensation: Optional[float] = None
     geometry_type: GeometryType = GeometryType.COMPLEX
     extraction_method: ExtractionMethod = ExtractionMethod.CONTOUR
 
@@ -125,7 +126,7 @@ class ComplexGeometry:
         )
 
     def rotate(
-        self, angle_degrees: float, center: Point2D | None = None
+        self, angle_degrees: float, center: Optional[Point2D] = None
     ) -> ComplexGeometry:
         """Rotate the geometry by the specified angle around a center point.
 

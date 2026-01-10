@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import webbrowser
 from collections.abc import Callable
+from typing import Optional
 
 from SquatchCut import settings
 from SquatchCut.core import exporter, logger, session, session_state, view_controller
@@ -26,7 +27,7 @@ class SquatchCutTaskPanel:
 
     FALLBACK_SHEET_SIZE_MM = (1220.0, 2440.0)
     FALLBACK_MATCH_TOLERANCE_MM = 2.0
-    _test_force_measurement_system: str | None = None
+    _test_force_measurement_system: Optional[str] = None
 
     def __init__(self, doc=None):
         self._prefs = SquatchCutPreferences()
@@ -40,7 +41,7 @@ class SquatchCutTaskPanel:
         )
 
         self.doc = effective_doc
-        self._close_callback: Callable[[], None] | None = None
+        self._close_callback: Optional[Callable[[], None]] = None
 
         self.has_csv_data = False
         self.is_sheet_valid = False
@@ -299,7 +300,7 @@ class SquatchCutTaskPanel:
         return group
 
     def _compute_initial_state(
-        self, doc, doc_measurement_system: str | None = None
+        self, doc, doc_measurement_system: Optional[str] = None
     ) -> dict:
         override = (
             doc_measurement_system

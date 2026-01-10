@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import csv
 import re
+from typing import Optional
 
 from SquatchCut.freecad_integration import App
 
@@ -107,7 +108,7 @@ class CsvLoader:
         return rows
 
     def validate_row(
-        self, row: dict, row_number: int | None = None, csv_units: str = "metric"
+        self, row: dict, row_number: Optional[int] = None, csv_units: str = "metric"
     ) -> dict:
         """Validate a single CSV row, ensuring required fields exist."""
         missing = [key for key in ("id", "width", "height") if not row.get(key)]

@@ -4,6 +4,7 @@ import random
 import time
 from copy import deepcopy
 from dataclasses import dataclass
+from typing import Optional
 
 from SquatchCut.core import logger
 from SquatchCut.core.nesting import Part, PlacedPart
@@ -20,7 +21,7 @@ class GeneticConfig:
     crossover_rate: float = 0.8
     elite_size: int = 5
     tournament_size: int = 3
-    max_time_seconds: float | None = 300  # 5 minutes max
+    max_time_seconds: Optional[float] = 300  # 5 minutes max
     target_utilization: float = 0.95  # Stop if we reach 95% utilization
 
 
@@ -39,7 +40,7 @@ class Individual:
 class GeneticNestingOptimizer:
     """Genetic algorithm optimizer for nesting layouts."""
 
-    def __init__(self, config: GeneticConfig = None):
+    def __init__(self, config: Optional[GeneticConfig] = None):
         self.config = config or GeneticConfig()
         self.parts: list[Part] = []
         self.sheet_width: float = 0
@@ -278,7 +279,7 @@ class GeneticNestingOptimizer:
         width: float,
         height: float,
         occupied_rects: list[tuple[float, float, float, float]],
-    ) -> tuple[float, float] | None:
+    ) -> Optional[tuple[float, float]]:
         """Find a position for a rectangle using bottom-left fill."""
         # Try positions starting from bottom-left
         candidates = [(0, 0)]  # Start with origin
@@ -343,7 +344,7 @@ class GeneticNestingOptimizer:
 
     def _should_terminate(
         self,
-        best_individual: Individual | None,
+        best_individual: Optional[Individual],
         generation: int,
         start_time: float,
         generations_without_improvement: int,
@@ -489,7 +490,7 @@ def genetic_nest_parts(
     sheet_height: float,
     kerf_mm: float = 0,
     spacing_mm: float = 0,
-    config: GeneticConfig | None = None,
+    config: Optional[GeneticConfig] = None,
 ) -> list[PlacedPart]:
     """High-level function to run genetic algorithm nesting."""
     optimizer = GeneticNestingOptimizer(config)

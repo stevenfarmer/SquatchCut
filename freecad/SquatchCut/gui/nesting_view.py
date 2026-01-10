@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 from SquatchCut.core import logger
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.core.sheet_model import clear_group_children, get_or_create_group
@@ -44,7 +46,7 @@ def create_sheet_boundary(
     width: float,
     height: float,
     x_offset: float = 0.0,
-    prefs: SquatchCutPreferences | None = None,
+    prefs: Optional[SquatchCutPreferences] = None,
 ):
     """Create a sheet boundary object with user-configured appearance."""
     if App is None or Part is None:
@@ -104,8 +106,8 @@ def create_sheet_label(
     width: float,
     height: float,
     x_offset: float = 0.0,
-    label_text: str | None = None,
-    prefs: SquatchCutPreferences | None = None,
+    label_text: Optional[str] = None,
+    prefs: Optional[SquatchCutPreferences] = None,
 ):
     """Create a text label for the sheet."""
     if App is None:
@@ -186,7 +188,7 @@ def create_part_label(
     y: float,
     width: float,
     height: float,
-    prefs: SquatchCutPreferences | None = None,
+    prefs: Optional[SquatchCutPreferences] = None,
 ):
     """Create a text label for a nested part."""
     if App is None:

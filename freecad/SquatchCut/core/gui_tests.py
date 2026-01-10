@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Optional
 
 from SquatchCut import settings
 from SquatchCut.core import cutlist, logger, session, session_state
@@ -32,7 +33,7 @@ class TestResult:
     def __init__(self, name: str):
         self.name = name
         self.passed = False
-        self.error: Exception | None = None
+        self.error: Optional[Exception] = None
 
     def set_pass(self):
         self.passed = True

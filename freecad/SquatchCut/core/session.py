@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from typing import Optional
 
 from SquatchCut.core import session_state, sheet_presets
 from SquatchCut.core.preferences import SquatchCutPreferences
@@ -199,7 +200,7 @@ def clear_nested_layout(doc=None):
         pass
 
 
-def detect_document_measurement_system(doc) -> str | None:
+def detect_document_measurement_system(doc) -> Optional[str]:
     """Best-effort detection of a FreeCAD document's measurement system."""
     if doc is None:
         prefs = SquatchCutPreferences()
@@ -295,8 +296,8 @@ def set_sheet_properties(doc, width, height, units="mm"):
 
 def ensure_doc_settings(
     doc,
-    measurement_system: str | None = None,
-    default_sheet_mm: tuple[float | None, float | None] | None = None,
+    measurement_system: Optional[str] = None,
+    default_sheet_mm: Optional[tuple[Optional[float], Optional[float]]] = None,
 ):
     """
     Ensure the active document has the SquatchCut settings properties.
@@ -402,8 +403,8 @@ def ensure_doc_settings(
 
 def sync_state_from_doc(
     doc,
-    measurement_system: str | None = None,
-    default_sheet_mm: tuple[float | None, float | None] | None = None,
+    measurement_system: Optional[str] = None,
+    default_sheet_mm: Optional[tuple[Optional[float], Optional[float]]] = None,
 ):
     """
     Read settings from the FreeCAD document and push them into session_state.
@@ -426,7 +427,7 @@ def sync_state_from_doc(
         session_state.set_measurement_system(normalized)
 
 
-def sync_doc_from_state(doc, measurement_system: str | None = None):
+def sync_doc_from_state(doc, measurement_system: Optional[str] = None):
     """
     Write current session_state values back into the document properties.
     Useful if state was changed directly.

@@ -20,6 +20,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from html import escape
 from pathlib import Path
+from typing import Optional, Union
 
 from SquatchCut.core import logger, session_state
 from SquatchCut.core import units as unit_utils
@@ -68,8 +69,8 @@ class ExportPartPlacement:
     height_mm: float
     rotation_deg: int = 0
     # Enhanced fields for complex geometry support
-    complex_geometry: ComplexGeometry | None = None
-    kerf_compensation: float | None = None
+    complex_geometry: Optional[ComplexGeometry] = None
+    kerf_compensation: Optional[float] = None
     geometry_type: str = "rectangular"  # "rectangular", "curved", "complex"
 
 
@@ -130,7 +131,7 @@ def _base_name_for_document(doc, suffix: str) -> tuple[Path, str]:
 
 
 def _resolve_export_path(
-    file_path: str | os.PathLike | None,
+    file_path: Optional[Union[str, os.PathLike]],
     doc,
     extension: str,
     ensure_dir: bool = True,
@@ -315,7 +316,7 @@ def export_cutlist_map_to_csv(
 def export_cutlist_to_text(
     cutlist_by_sheet: dict[int, list],
     file_path: str,
-    export_job: ExportJob | None = None,
+    export_job: Optional[ExportJob] = None,
 ) -> None:
     """Write human-friendly cutting instructions to text file."""
 
@@ -430,7 +431,7 @@ def export_layout_to_svg(
     *,
     measurement_system: str,
     sheet_mode: str,
-    job_sheets: Sequence[dict] | None,
+    job_sheets: Optional[Sequence[dict]],
     include_labels: bool = True,
     include_dimensions: bool = False,
 ) -> list[Path]:
@@ -863,7 +864,7 @@ def _render_sheet_svg(
     return "\n".join(body)
 
 
-def build_export_job_from_current_nesting(doc=None) -> ExportJob | None:
+def build_export_job_from_current_nesting(doc=None) -> Optional[ExportJob]:
     """
     Adapt the latest nesting layout stored in session_state to the ExportJob model.
 

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 # Qt bindings (FreeCAD ships PySide / PySide2, not PySide6)
 from SquatchCut.core import units as sc_units
 
@@ -16,7 +18,13 @@ from SquatchCut.gui.qt_compat import QtWidgets
 class SC_SheetSizeDialog(QtWidgets.QDialog):
     """Allow user to enter sheet width, height, and kerf/spacing."""
 
-    def __init__(self, width: float | None = None, height: float | None = None, kerf: float | None = None, parent=None):
+    def __init__(
+        self,
+        width: Optional[float] = None,
+        height: Optional[float] = None,
+        kerf: Optional[float] = None,
+        parent=None,
+    ):
         super().__init__(parent)
         self.setWindowTitle("Sheet Size")
         self.resize(320, 200)

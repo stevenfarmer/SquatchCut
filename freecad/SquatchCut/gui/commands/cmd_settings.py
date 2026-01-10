@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import traceback
 
+from typing import Optional
+
 from SquatchCut.core import logger
 from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.gui.icons import get_icon
 from SquatchCut.gui.taskpanel_settings import TaskPanel_Settings
 
-_settings_panel_instance: TaskPanel_Settings | None = None
+_settings_panel_instance: Optional[TaskPanel_Settings] = None
 
 
 def _clear_settings_panel() -> None:
@@ -15,7 +17,7 @@ def _clear_settings_panel() -> None:
     _settings_panel_instance = None
 
 
-def _current_settings_panel() -> TaskPanel_Settings | None:
+def _current_settings_panel() -> Optional[TaskPanel_Settings]:
     return _settings_panel_instance
 
 

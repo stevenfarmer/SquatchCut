@@ -10,7 +10,7 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
+from typing import Any, Optional
 
 from SquatchCut.core import logger
 
@@ -38,9 +38,9 @@ class PerformanceMetrics:
 
     operation_name: str
     start_time: float
-    end_time: float | None = None
-    duration_seconds: float | None = None
-    memory_usage_mb: float | None = None
+    end_time: Optional[float] = None
+    duration_seconds: Optional[float] = None
+    memory_usage_mb: Optional[float] = None
     shapes_processed: int = 0
     complexity_score: float = 0.0
     mode_used: PerformanceMode = PerformanceMode.BALANCED
@@ -91,7 +91,7 @@ class PerformanceThresholds:
 class PerformanceMonitor:
     """Monitor and optimize performance for shape-based nesting operations."""
 
-    def __init__(self, thresholds: PerformanceThresholds | None = None):
+    def __init__(self, thresholds: Optional[PerformanceThresholds] = None):
         """Initialize performance monitor with configurable thresholds."""
         self.thresholds = thresholds or PerformanceThresholds()
         self.active_operations: dict[str, PerformanceMetrics] = {}
@@ -137,7 +137,7 @@ class PerformanceMonitor:
         self,
         operation_id: str,
         success: bool = True,
-        additional_metrics: dict[str, Any] | None = None,
+        additional_metrics: Optional[dict[str, Any]] = None,
     ) -> PerformanceMetrics:
         """Finish monitoring an operation and return metrics.
 
@@ -357,7 +357,7 @@ class PerformanceMonitor:
 
 
 # Global performance monitor instance
-_global_monitor: PerformanceMonitor | None = None
+_global_monitor: Optional[PerformanceMonitor] = None
 
 
 def get_performance_monitor() -> PerformanceMonitor:

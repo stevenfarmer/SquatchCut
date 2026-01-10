@@ -1,5 +1,7 @@
 """FreeCAD command to import panel definitions from CSV."""
 
+from typing import Optional
+
 from SquatchCut.core import logger, session
 
 # @codex
@@ -204,7 +206,7 @@ class ImportCSVCommand:
 
     # Programmatic import helper to bypass dialogs (used by GUI tests)
     def import_from_path(
-        self, csv_path: str, units: str | None = None, csv_units: str | None = None
+        self, csv_path: str, units: Optional[str] = None, csv_units: Optional[str] = None
     ):
         if App is None:
             raise RuntimeError("FreeCAD App module not available for import_from_path.")
