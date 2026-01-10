@@ -74,3 +74,45 @@ def test_settings_command_reuses_panel(monkeypatch):
     assert len(dummy_control.shown) == 2
     assert dummy_control.shown[0] is dummy_control.shown[1]
     assert cmd_settings._current_settings_panel() is dummy_control.shown[-1]
+
+
+def test_settings_command_closes_existing_dialog(monkeypatch):
+    """Ensure Settings closes any active TaskPanel before opening."""
+    dummy_control = _DummyControl()
+    dummy_control.active = True
+    dummy_control.closed = 0
+
+    def _active_dialog():
+        return object() if dummy_control.active else None
+
+    def _close_dialog():
+        dummy_control.closed += 1
+        dummy_control.active = False
+
+    dummy_control.activeDialog = _active_dialog
+    dummy_control.closeDialog = _close_dialog
+
+    dummy_gui = _DummyGui(dummy_control)
+    dummy_app = SimpleNamespace(
+        Console=SimpleNamespace(PrintError=lambda *args, **kwargs: None)
+    )
+
+    monkeypatch.setattr(cmd_settings, "Gui", dummy_gui)
+    monkeypatch.setattr(cmd_settings, "App", dummy_app)
+
+    class DummyPanel:
+        def __init__(self):
+            self._callback = None
+
+        def set_close_callback(self, callback):
+            self._callback = callback
+
+    monkeypatch.setattr(cmd_settings, "TaskPanel_Settings", DummyPanel)
+
+    cmd_settings._clear_settings_panel()
+    command = cmd_settings.SquatchCutSettingsCommand()
+    command.Activated()
+
+    # Existing dialog should be closed once, and a new panel shown
+    assert dummy_control.closed == 1
+    assert len(dummy_control.shown) == 1

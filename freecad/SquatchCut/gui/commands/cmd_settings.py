@@ -71,6 +71,16 @@ class SquatchCutSettingsCommand:
                 panel = _settings_panel_instance
                 logger.info("[SquatchCut] >>> Reusing existing settings panel.")
 
+            # FreeCAD only allows one active TaskPanel; close any existing dialog first.
+            try:
+                active_dialog = getattr(Gui.Control, "activeDialog", lambda: None)()
+                if active_dialog and active_dialog is not panel:
+                    close_fn = getattr(Gui.Control, "closeDialog", None)
+                    if callable(close_fn):
+                        close_fn()
+            except Exception:
+                pass
+
             Gui.Control.showDialog(panel)
             logger.info("[SquatchCut] >>> Settings panel opened.")
         except Exception as exc:
