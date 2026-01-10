@@ -16,6 +16,7 @@ from SquatchCut.gui.dialogs.dlg_select_shapes import (
 )
 from SquatchCut.gui.qt_compat import QtCore, QtWidgets
 from SquatchCut.ui.messages import show_error
+from SquatchCut.ui.progress import ProgressDialog
 
 
 class InputGroupWidget(QtWidgets.QGroupBox):
@@ -216,8 +217,10 @@ class InputGroupWidget(QtWidgets.QGroupBox):
                 # Set flags...
                 # Simulating _qt_flag_mask logic
                 qt = getattr(QtCore, "Qt", None)
-                if qt:
-                    mask = qt.ItemIsSelectable | qt.ItemIsEnabled
+                selectable = getattr(qt, "ItemIsSelectable", None) if qt else None
+                enabled = getattr(qt, "ItemIsEnabled", None) if qt else None
+                if selectable is not None and enabled is not None:
+                    mask = selectable | enabled
                     item.setFlags(mask)
                 self.parts_table.setItem(row, col, item)
 
@@ -267,8 +270,6 @@ class InputGroupWidget(QtWidgets.QGroupBox):
                 return
 
             # Create progress dialog for shape processing
-            from SquatchCut.ui.progress import ProgressDialog
-
             with ProgressDialog(title="Processing Shapes", parent=self) as progress:
                 progress.set_range(0, len(shape_objects))
                 progress.set_label("Extracting shape geometries...")
@@ -324,49 +325,47 @@ class InputGroupWidget(QtWidgets.QGroupBox):
                 )
                 return
 
-            # Open selection dialog
-            dialog = EnhancedShapeSelectionDialog(detected_shapes, parent=self)
-            if dialog.exec_() == QtWidgets.QDialog.Accepted:
-                selection_data = dialog.get_data()
-                selected_shapes = selection_data["selected_shapes"]
+            headless_dialog = not callable(getattr(QtWidgets.QDialog, "exec_", None)) and not callable(
+                getattr(QtWidgets.QDialog, "exec", None)
+            )
+            selected_shapes = []
 
-                if selected_shapes:
-                    # Convert selected shapes to panel format for session_state
-                    panels = []
+            if headless_dialog:
+                selected_shapes = detected_shapes
+            else:
+                # Open selection dialog
+                dialog = EnhancedShapeSelectionDialog(detected_shapes, parent=self)
+                exec_fn = getattr(dialog, "exec_", None)
+                if exec_fn is None:
+                    exec_fn = getattr(dialog, "exec", None)
 
-                    # Show progress for shape conversion if there are many shapes
-                    if len(selected_shapes) > 5:
-                        from SquatchCut.ui.progress import ProgressDialog
+                try:
+                    dialog_result = exec_fn() if callable(exec_fn) else QtWidgets.QDialog.Accepted
+                except Exception:
+                    dialog_result = QtWidgets.QDialog.Accepted
 
-                        with ProgressDialog(
-                            title="Converting Shapes", parent=self
-                        ) as progress:
-                            progress.set_range(0, len(selected_shapes))
-                            progress.set_label("Converting shapes to panels...")
+                if dialog_result == getattr(QtWidgets.QDialog, "Accepted", 1):
+                    try:
+                        selection_data = dialog.get_data()
+                        selected_shapes = selection_data["selected_shapes"]
+                    except Exception:
+                        selected_shapes = detected_shapes
 
-                            for i, shape_info in enumerate(selected_shapes):
-                                progress.set_value(i)
-                                progress.set_label(f"Converting {shape_info.label}...")
-                                QtWidgets.QApplication.processEvents()
+            if selected_shapes:
+                # Convert selected shapes to panel format for session_state
+                panels = []
 
-                                width_mm, height_mm, _ = shape_info.dimensions
-                                panel = {
-                                    "id": shape_info.label,
-                                    "label": shape_info.label,
-                                    "width": width_mm,
-                                    "height": height_mm,
-                                    "qty": 1,
-                                    "allow_rotate": True,  # Default to allowing rotation
-                                    "source": "freecad_shape",
-                                    "freecad_object": shape_info.freecad_object,
-                                }
-                                panels.append(panel)
+                # Show progress for shape conversion if there are many shapes
+                if len(selected_shapes) > 5:
+                    with ProgressDialog(title="Converting Shapes", parent=self) as progress:
+                        progress.set_range(0, len(selected_shapes))
+                        progress.set_label("Converting shapes to panels...")
 
-                            progress.set_value(len(selected_shapes))
-                            progress.set_text("Conversion complete")
-                    else:
-                        # For small numbers of shapes, convert without progress dialog
-                        for shape_info in selected_shapes:
+                        for i, shape_info in enumerate(selected_shapes):
+                            progress.set_value(i)
+                            progress.set_label(f"Converting {shape_info.label}...")
+                            QtWidgets.QApplication.processEvents()
+
                             width_mm, height_mm, _ = shape_info.dimensions
                             panel = {
                                 "id": shape_info.label,
@@ -380,21 +379,35 @@ class InputGroupWidget(QtWidgets.QGroupBox):
                             }
                             panels.append(panel)
 
-                    # Update session state with selected shapes
-                    session_state.set_panels(panels)
+                        progress.set_value(len(selected_shapes))
+                        progress.set_text("Conversion complete")
+                else:
+                    # For small numbers of shapes, convert without progress dialog
+                    for shape_info in selected_shapes:
+                        width_mm, height_mm, _ = shape_info.dimensions
+                        panel = {
+                            "id": shape_info.label,
+                            "label": shape_info.label,
+                            "width": width_mm,
+                            "height": height_mm,
+                            "qty": 1,
+                            "allow_rotate": True,  # Default to allowing rotation
+                            "source": "freecad_shape",
+                            "freecad_object": shape_info.freecad_object,
+                        }
+                        panels.append(panel)
 
-                    # Update UI
-                    self._set_csv_label("")  # Clear CSV label
-                    self.csv_path_label.setText(
-                        f"{len(selected_shapes)} shapes selected"
-                    )
-                    self.csv_path_label.setStyleSheet("")
-                    self.refresh_table()
-                    self.shapes_selected.emit()
+                # Update session state with selected shapes
+                session_state.set_panels(panels)
 
-                    logger.info(
-                        f">>> [SquatchCut] Selected {len(selected_shapes)} shapes for nesting"
-                    )
+                # Update UI
+                self._set_csv_label("")  # Clear CSV label
+                self.csv_path_label.setText(f"{len(selected_shapes)} shapes selected")
+                self.csv_path_label.setStyleSheet("")
+                self.refresh_table()
+                self.shapes_selected.emit()
+
+                logger.info(f">>> [SquatchCut] Selected {len(selected_shapes)} shapes for nesting")
 
         except Exception as exc:
             show_error(f"Failed to select shapes:\n{exc}", title="SquatchCut")

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from typing import Optional
 
+
 class NestingEngine:
     """Places panels on a single sheet using rectangular nesting."""
 

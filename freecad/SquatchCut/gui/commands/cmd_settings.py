@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import traceback
-
 from typing import Optional
 
 from SquatchCut.core import logger

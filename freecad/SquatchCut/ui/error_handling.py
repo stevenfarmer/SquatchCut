@@ -1,7 +1,6 @@
 """Standardized error handling and messaging for SquatchCut."""
 
 import traceback
-
 from typing import Optional
 
 from SquatchCut.core import logger
