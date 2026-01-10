@@ -438,13 +438,15 @@ def _nest_rectangular_default(
                 if w > current_sheet_width:
                     continue
 
-                new_total_height = total_height + (spacing if rows else 0.0) + h
+                row_spacing = spacing if rows else 0.0
+                row_y = total_height + row_spacing
+                new_total_height = row_y + h
                 if new_total_height > current_sheet_height:
                     continue
 
                 # Start a new row with fixed height = h
                 new_row = {
-                    "y": total_height + (spacing if rows else 0.0),
+                    "y": row_y,
                     "height": h,
                     "used_width": w + spacing,
                 }
@@ -455,7 +457,7 @@ def _nest_rectangular_default(
                         id=part.id,
                         sheet_index=sheet_index,
                         x=0.0,
-                        y=total_height + (spacing if rows else 0.0),
+                        y=row_y,
                         width=w,
                         height=h,
                         rotation_deg=rot,

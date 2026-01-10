@@ -36,7 +36,14 @@ def hydrate_from_params(measurement_override: str | None = None) -> None:
     session_state.set_gap_mm(prefs.get_default_spacing_mm())
     session_state.set_kerf_width_mm(prefs.get_default_kerf_mm())
     session_state.set_optimize_for_cut_path(prefs.get_default_optimize_for_cut_path())
-    session_state.set_default_allow_rotate(prefs.get_default_allow_rotate())
+    allow_rotate_default = prefs.get_default_allow_rotate()
+    session_state.set_default_allow_rotate(allow_rotate_default)
+    if hasattr(session_state, "clear_job_allow_rotate"):
+        session_state.clear_job_allow_rotate()
+    if hasattr(session_state, "set_allowed_rotations_deg"):
+        session_state.set_allowed_rotations_deg(
+            (0, 90) if allow_rotate_default else (0,)
+        )
 
     # Export defaults
     session_state.set_export_include_labels(prefs.get_export_include_labels())
