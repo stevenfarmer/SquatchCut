@@ -234,6 +234,7 @@ def test_nesting_preview_basic():
 
         sync_source_panels_to_document()
 
+        sync_source_panels_to_document()
         run_cmd = cmd_run_nesting.RunNestingCommand()
         run_cmd.Activated()
 
