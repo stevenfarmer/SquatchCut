@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import Optional
+from typing import Optional, Any
 
 from SquatchCut.core import logger, session_state
 from SquatchCut.core import units as sc_units
@@ -352,8 +352,28 @@ class InputGroupWidget(QtWidgets.QGroupBox):
                         selected_shapes = detected_shapes
 
             if selected_shapes:
-                # Convert selected shapes to panel format for session_state
                 panels = []
+                shape_panel_map: dict[str, Any] = {}
+
+                def _panel_from_shape(shape_info):
+                    shape_obj = shape_info.freecad_object
+                    shape_id = (
+                        getattr(shape_obj, "Name", None)
+                        or shape_info.label
+                        or f"shape_{len(shape_panel_map)}"
+                    )
+                    panel = {
+                        "id": shape_id,
+                        "label": shape_info.label or shape_id,
+                        "width": shape_info.dimensions[0],
+                        "height": shape_info.dimensions[1],
+                        "qty": 1,
+                        "allow_rotate": True,
+                        "source": "freecad_shape",
+                    }
+                    if shape_obj:
+                        shape_panel_map[shape_id] = shape_obj
+                    return panel
 
                 # Show progress for shape conversion if there are many shapes
                 if len(selected_shapes) > 5:
@@ -366,17 +386,7 @@ class InputGroupWidget(QtWidgets.QGroupBox):
                             progress.set_label(f"Converting {shape_info.label}...")
                             QtWidgets.QApplication.processEvents()
 
-                            width_mm, height_mm, _ = shape_info.dimensions
-                            panel = {
-                                "id": shape_info.label,
-                                "label": shape_info.label,
-                                "width": width_mm,
-                                "height": height_mm,
-                                "qty": 1,
-                                "allow_rotate": True,  # Default to allowing rotation
-                                "source": "freecad_shape",
-                                "freecad_object": shape_info.freecad_object,
-                            }
+                            panel = _panel_from_shape(shape_info)
                             panels.append(panel)
 
                         progress.set_value(len(selected_shapes))
@@ -384,21 +394,11 @@ class InputGroupWidget(QtWidgets.QGroupBox):
                 else:
                     # For small numbers of shapes, convert without progress dialog
                     for shape_info in selected_shapes:
-                        width_mm, height_mm, _ = shape_info.dimensions
-                        panel = {
-                            "id": shape_info.label,
-                            "label": shape_info.label,
-                            "width": width_mm,
-                            "height": height_mm,
-                            "qty": 1,
-                            "allow_rotate": True,  # Default to allowing rotation
-                            "source": "freecad_shape",
-                            "freecad_object": shape_info.freecad_object,
-                        }
-                        panels.append(panel)
+                        panels.append(_panel_from_shape(shape_info))
 
                 # Update session state with selected shapes
                 session_state.set_panels(panels)
+                session_state.set_shape_panel_objects(shape_panel_map)
 
                 # Update UI
                 self._set_csv_label("")  # Clear CSV label

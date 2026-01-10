@@ -672,7 +672,7 @@ class RunNestingCommand:
                 has_freecad_shapes = True
 
                 # Check if the FreeCAD object has complex geometry
-                freecad_obj = panel.get("freecad_object")
+                freecad_obj = session_state.get_shape_panel_object(panel.get("id"))
                 if freecad_obj and hasattr(freecad_obj, "Shape"):
                     try:
                         from SquatchCut.core.shape_extractor import ShapeExtractor
@@ -714,7 +714,7 @@ class RunNestingCommand:
             for i, panel in enumerate(panels_data):
                 if panel.get("source") == "freecad_shape":
                     # For FreeCAD shapes, try to extract actual geometry
-                    freecad_obj = panel.get("freecad_object")
+                    freecad_obj = session_state.get_shape_panel_object(panel.get("id"))
                     shape_id = panel.get("id", f"shape_{i}")
 
                     if freecad_obj and hasattr(freecad_obj, "Shape"):

@@ -279,6 +279,8 @@ For developers:
   3. Start FreeCAD with the add-on installed or in dev mode.
   4. Run through a small CSV + sheet scenario to verify behavior.
 
+  - Run `make setup-env` once before relying on `make lint`/`make format`; the targets will then default to `./.venv/bin/python` and the packaged tooling.
+
 Please keep new changes consistent with the existing architecture and patterns, especially around:
 
 - Internal units (mm)

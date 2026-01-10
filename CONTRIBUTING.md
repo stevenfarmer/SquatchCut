@@ -5,10 +5,15 @@ Thanks for helping improve SquatchCut! This is an active beta project—please o
 ## Getting Started
 1. Create a virtualenv and install dev deps:
    ```bash
-   python3 -m venv .venv
-   .venv/bin/pip install -r requirements-dev.txt
+   make setup-env
    ```
-2. Run the core tests:
+   The target creates `./.venv`, upgrades `pip`, and installs the dev dependencies used by the lint/test tooling. After the venv exists, `make lint`/`make format` automatically use it instead of looking for a global `python` executable.
+2. Optionally activate the virtualenv for ad-hoc commands:
+   ```bash
+   source .venv/bin/activate
+   ```
+   Once activated, `python`, `ruff`, and other tooling resolve to the sandboxed interpreter.
+3. Run the core tests:
    ```bash
    PYTHONPATH=freecad .venv/bin/pytest --cov=SquatchCut.core.nesting --cov=SquatchCut.core.session_state --cov-report=term-missing --cov-fail-under=80
    ```

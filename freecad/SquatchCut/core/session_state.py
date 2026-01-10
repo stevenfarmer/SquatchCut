@@ -8,7 +8,7 @@ This module intentionally does NOT import FreeCAD so that:
 
 import pickle
 from copy import deepcopy
-from typing import Optional
+from typing import Optional, Any
 
 # @codex
 # Pure in-memory session state for SquatchCut (no FreeCAD deps).
@@ -39,6 +39,7 @@ _nesting_stats = {"sheets_used": None, "cut_complexity": None, "overlaps_count":
 
 # Panels loaded from CSV (pure data; no FreeCAD objects)
 _panels = []
+_shape_panel_objects: dict[str, Any] = {}
 
 # Optimization mode: "material" (default) or "cuts"
 _optimization_mode = "material"
@@ -47,6 +48,30 @@ _export_include_labels = True
 _export_include_dimensions = False
 _source_panel_objects = []
 _nested_sheet_group = None
+
+def set_shape_panel_objects(mapping) -> None:
+    """Store FreeCAD objects associated with shape-based panels."""
+    global _shape_panel_objects
+    if mapping is None:
+        _shape_panel_objects = {}
+        return
+    try:
+        _shape_panel_objects = dict(mapping)
+    except Exception:
+        _shape_panel_objects = {}
+
+
+def get_shape_panel_object(panel_id):
+    """Return the FreeCAD object tied to the requested panel id."""
+    if not panel_id:
+        return None
+    return _shape_panel_objects.get(panel_id)
+
+
+def clear_shape_panel_objects() -> None:
+    """Clear shape-driven object registry."""
+    global _shape_panel_objects
+    _shape_panel_objects = {}
 
 # Genetic algorithm settings
 _use_genetic_algorithm = False
@@ -376,6 +401,7 @@ def set_panels(panels_list) -> None:
     """Replace panels list."""
     global _panels
     _panels = list(panels_list or [])
+    clear_shape_panel_objects()
 
 
 def add_panels(panels_list) -> None:
@@ -388,22 +414,28 @@ def add_panels(panels_list) -> None:
 
 def get_panels():
     """Return a copy of the current panels list."""
-    try:
-        return deepcopy(_panels)
-    except (TypeError, pickle.PicklingError):  # user-level failure guard
-        sanitized = []
-        for panel in _panels:
+    sanitized = []
+    for panel in _panels:
+        copied = None
+        if hasattr(panel, "copy") and callable(panel.copy):
             try:
-                sanitized.append({k: v for k, v in panel.items() if k != "freecad_object"})
+                copied = panel.copy()
             except Exception:
-                sanitized.append(dict(panel))
-        return sanitized
+                copied = None
+        if copied is None:
+            try:
+                copied = dict(panel)
+            except Exception:
+                copied = panel
+        sanitized.append(copied)
+    return sanitized
 
 
 def clear_panels() -> None:
     """Clear all panels."""
     global _panels
     _panels = []
+    clear_shape_panel_objects()
 
 
 # --------------------------
