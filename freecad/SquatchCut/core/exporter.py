@@ -597,29 +597,26 @@ def _part_font_size(
 ) -> float:
     """Calculate appropriate font size for part labels.
 
+    Font size is based primarily on part dimensions to ensure labels
+    fit within their parts and don't cross into adjacent parts.
+
     Returns a font size that:
-    1. Fits within the part dimensions
+    1. Fits within the part dimensions (most important)
     2. Is readable but not overwhelming
-    3. Scales reasonably with part and sheet size
-    4. Is consistent across similar-sized parts
+    3. Is consistent across parts of similar size
     """
-    min_sheet_dim = max(min(sheet_size), 1.0)
     min_part_dim = min(width_mm, height_mm)
 
-    # Base font size as fraction of smaller part dimension
-    # Use smaller fraction to prevent labels from dominating small parts
-    base_from_part = min_part_dim * 0.12  # Reduced from 0.15 for more consistency
+    # Font size based ONLY on part size, not sheet size
+    # This prevents labels from crossing into adjacent parts
+    # Use 8-10% of the smaller dimension
+    font_size = min_part_dim * 0.08
 
-    # Limit based on sheet size to prevent huge fonts on large sheets
-    max_from_sheet = min_sheet_dim / 20.0  # More conservative limit
+    # Absolute bounds for readability
+    min_readable = 8.0  # Minimum for readability
+    max_reasonable = 16.0  # Maximum to prevent overwhelming
 
-    # Minimum readable size
-    min_readable = 10.0  # Increased for better readability
-
-    # Maximum reasonable size to prevent overwhelming labels
-    max_reasonable = 20.0  # Reduced from 24 for more consistency
-
-    font_size = min(base_from_part, max_from_sheet)
+    # Clamp to bounds
     font_size = max(font_size, min_readable)
     font_size = min(font_size, max_reasonable)
 
@@ -795,12 +792,12 @@ def _render_sheet_svg(
         if not include_labels:
             continue
 
-        # Calculate font size and check if label will fit
+        # Calculate font size based on part dimensions
         part_font = _part_font_size(w, h, (width_mm, height_mm))
 
-        # Skip labels for very small parts where text won't be readable
-        min_part_dim = min(w, h)
-        if min_part_dim < part_font * 2:  # Need at least 2x font size to fit
+        # Skip labels for parts that are too small to fit text
+        # Need at least 3x font size in both dimensions for readable label
+        if w < part_font * 3 or h < part_font * 2:
             continue
 
         center_x = x + w / 2.0
@@ -811,13 +808,15 @@ def _render_sheet_svg(
         lines = []
 
         # Add part ID, but truncate if too long for the part
-        max_chars = max(int(w / (part_font * 0.6)), 3)  # Estimate character width
+        # Estimate character width as 0.6 * font_size
+        max_chars = max(int(w / (part_font * 0.6)), 3)
         if len(ident) > max_chars:
             ident = ident[: max_chars - 2] + ".."
         lines.append(str(ident))
 
         # Add dimensions only if there's space and they're requested
-        if include_dimensions and h > part_font * 3:  # Need space for 2+ lines
+        # Need at least 4x font height for 2 lines
+        if include_dimensions and h > part_font * 4:
             dim_text = _format_dimension_pair(w, h, measurement_system)
             # Truncate dimensions if too long
             if len(dim_text) > max_chars:
@@ -830,16 +829,14 @@ def _render_sheet_svg(
             lines.append(dim_text)
 
         # Calculate vertical positioning to center the text block
-        line_spacing = 1.15  # Tighter spacing for better fit
+        line_spacing = 1.2
         total_height_em = len(lines) * line_spacing
         start_offset = -(total_height_em - 1) / 2.0
 
-        # Ensure the text block fits vertically within the part
-        text_height_mm = (
-            total_height_em * part_font * 0.35
-        )  # Approximate em to mm conversion
-        if text_height_mm > h * 0.75:  # Don't use more than 75% of part height
-            # Reduce to single line if needed
+        # Double-check that text block fits vertically
+        # If not, reduce to single line
+        text_height_mm = total_height_em * part_font * 0.35
+        if text_height_mm > h * 0.7:
             lines = [lines[0]]
             start_offset = 0
 
