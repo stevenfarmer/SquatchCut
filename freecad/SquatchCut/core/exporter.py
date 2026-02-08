@@ -664,17 +664,169 @@ def _complex_geometry_to_svg_path(
         return ""
 
 
+def _add_parts_legend(
+    body: list[str],
+    parts: list,
+    sheet_width: float,
+    sheet_height: float,
+    measurement_system: str,
+    include_dimensions: bool = False,
+) -> None:
+    """Add a parts legend at the bottom of the SVG."""
+    if not parts:
+        return
+
+    # Calculate legend space needed
+    legend_margin = 10.0
+    legend_font_size = 10.0
+    line_height = 12.0
+
+    # Legend starts below the sheet with some padding
+    legend_start_y = sheet_height + 30.0
+
+    # Add legend background for readability
+    legend_height = (len(parts) + 2) * line_height + 10.0
+    body.append(
+        f'<rect x="0" y="{legend_start_y - 15}" '
+        f'width="{sheet_width}" height="{legend_height}" '
+        f'fill="#f9f9f9" stroke="#ccc" stroke-width="0.5"/>'
+    )
+
+    # Add legend title
+    body.append(
+        f'<text font-family="sans-serif" font-size="{legend_font_size + 2}" '
+        f'x="{legend_margin}" y="{legend_start_y}" font-weight="bold" fill="#000">'
+        f"PARTS LIST</text>"
+    )
+
+    # Add parts list
+    current_y = legend_start_y + line_height + 5.0
+    for idx, part in enumerate(parts, 1):
+        part_id = escape(str(part.part_id or f"Part-{idx}"))
+        w = float(part.width_mm or 0.0)
+        h = float(part.height_mm or 0.0)
+
+        # Build the legend entry
+        if include_dimensions:
+            dims = _format_dimension_pair(w, h, measurement_system)
+            legend_text = f"{idx}. {part_id} — {dims}"
+        else:
+            legend_text = f"{idx}. {part_id}"
+
+        body.append(
+            f'<text font-family="sans-serif" font-size="{legend_font_size}" '
+            f'x="{legend_margin}" y="{current_y}" fill="#333">'
+            f"{legend_text}</text>"
+        )
+        current_y += line_height
+
+
+def _add_leader_lines(
+    body: list[str],
+    parts: list,
+    sheet_width: float,
+    sheet_height: float,
+    measurement_system: str,
+    min_label_size: float,
+) -> None:
+    """Add leader lines for parts too small to have internal labels."""
+    if not parts:
+        return
+
+    # Track which parts need leader lines (too small for internal labels)
+    parts_needing_leaders = []
+
+    for idx, part in enumerate(parts, 1):
+        x = float(part.x_mm or 0.0)
+        y = float(part.y_mm or 0.0)
+        w = float(part.width_mm or 0.0)
+        h = float(part.height_mm or 0.0)
+
+        # Check if part is too small for internal label
+        if w < min_label_size * 3 or h < min_label_size * 2:
+            parts_needing_leaders.append(
+                {
+                    "idx": idx,
+                    "part": part,
+                    "x": x,
+                    "y": y,
+                    "w": w,
+                    "h": h,
+                    "center_x": x + w / 2.0,
+                    "center_y": y + h / 2.0,
+                }
+            )
+
+    if not parts_needing_leaders:
+        return
+
+    # Add leader lines
+    label_font_size = 9.0
+    label_offset = 15.0  # Distance from part to label
+
+    for item in parts_needing_leaders:
+        idx = item["idx"]
+        part = item["part"]
+        center_x = item["center_x"]
+        center_y = item["center_y"]
+        w = item["w"]
+        h = item["h"]
+
+        # Determine best position for label (try to avoid overlaps)
+        # Simple strategy: place above if in bottom half, below if in top half
+        if center_y < sheet_height / 2:
+            # Place below
+            label_x = center_x
+            label_y = item["y"] + h + label_offset
+            line_end_y = item["y"] + h
+        else:
+            # Place above
+            label_x = center_x
+            label_y = item["y"] - label_offset
+            line_end_y = item["y"]
+
+        # Draw leader line
+        body.append(
+            f'<line x1="{_fmt_float(center_x)}" y1="{_fmt_float(center_y)}" '
+            f'x2="{_fmt_float(label_x)}" y2="{_fmt_float(line_end_y)}" '
+            f'stroke="#666" stroke-width="0.5" stroke-dasharray="2,2"/>'
+        )
+
+        # Draw label background for readability
+        part_id = escape(str(part.part_id or f"Part-{idx}"))
+        dims = _format_dimension_pair(w, h, measurement_system)
+        label_text = f"{idx}. {part_id}"
+
+        # Estimate text width for background
+        text_width = len(label_text) * label_font_size * 0.6
+
+        body.append(
+            f'<rect x="{_fmt_float(label_x - text_width/2 - 2)}" '
+            f'y="{_fmt_float(label_y - label_font_size)}" '
+            f'width="{_fmt_float(text_width + 4)}" height="{label_font_size + 4}" '
+            f'fill="white" fill-opacity="0.9" stroke="#666" stroke-width="0.3"/>'
+        )
+
+        # Draw label text
+        body.append(
+            f'<text font-family="sans-serif" font-size="{label_font_size}" '
+            f'x="{_fmt_float(label_x)}" y="{_fmt_float(label_y)}" '
+            f'text-anchor="middle" fill="#000">{label_text}</text>'
+        )
+
+
 def _render_sheet_svg(
     sheet_number: int,
     total_sheets: int,
     sheet_dimensions: tuple[float, float],
     sheet: ExportSheet,
     measurement_system: str,
-    include_labels: bool,
-    include_dimensions: bool,
+    include_labels: bool,  # Now controls legend display
+    include_dimensions: bool,  # Now controls dimension display in legend
     include_cut_lines: bool,
     include_waste_areas: bool,
     export_job: ExportJob,
+    include_leader_lines: bool = False,  # New parameter for leader lines
 ) -> str:
     width_mm, height_mm = sheet_dimensions
     width_mm = float(width_mm or 0.0)
@@ -698,9 +850,22 @@ def _render_sheet_svg(
 
     body: list[str] = []
     body.append('<?xml version="1.0" encoding="UTF-8"?>')
+
+    # Sort parts first so we can calculate legend space
+    parts_sorted = sorted(sheet.parts, key=lambda p: (p.y_mm, p.x_mm, p.part_id or ""))
+
+    # Calculate total height including legend space if labels are enabled
+    legend_space = 0.0
+    if include_labels and parts_sorted:
+        # Estimate legend height: title + parts list + padding
+        line_height = 12.0
+        legend_space = (len(parts_sorted) + 2) * line_height + 50.0  # Extra padding
+
+    total_height = height_mm + legend_space
+
     body.append(
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{_fmt_float(width_mm)}mm" '
-        f'height="{_fmt_float(height_mm)}mm" viewBox="0 0 {_fmt_float(width_mm)} {_fmt_float(height_mm)}" '
+        f'height="{_fmt_float(total_height)}mm" viewBox="0 0 {_fmt_float(width_mm)} {_fmt_float(total_height)}" '
         'preserveAspectRatio="xMinYMin meet" version="1.1">'
     )
     body.append(style_block)
@@ -712,8 +877,6 @@ def _render_sheet_svg(
         f'x="{_fmt_float(width_mm / 2.0)}" y="{_fmt_float(header_y)}" dominant-baseline="middle">'
         f"{escape(header_text)}</text>"
     )
-
-    parts_sorted = sorted(sheet.parts, key=lambda p: (p.y_mm, p.x_mm, p.part_id or ""))
 
     # Add cut lines if requested
     if include_cut_lines:
@@ -789,75 +952,23 @@ def _render_sheet_svg(
                 f'width="{_fmt_float(w)}" height="{_fmt_float(h)}" />'
             )
 
-        if not include_labels:
-            continue
+    # Add leader lines if requested (for parts too small for internal labels)
+    if include_labels and include_leader_lines:
+        min_label_size = 10.0  # Minimum size for readable labels
+        _add_leader_lines(
+            body, parts_sorted, width_mm, height_mm, measurement_system, min_label_size
+        )
 
-        # Calculate font size based on part dimensions
-        part_font = _part_font_size(w, h, (width_mm, height_mm))
-
-        # Skip labels for parts that are too small to fit text
-        # Need at least 3x font size in both dimensions for readable label
-        if w < part_font * 3 or h < part_font * 2:
-            continue
-
-        center_x = x + w / 2.0
-        center_y = y + h / 2.0
-        ident = part.part_id or "Part"
-
-        # Prepare label lines
-        lines = []
-
-        # Add part ID, but truncate if too long for the part
-        # Estimate character width as 0.6 * font_size
-        max_chars = max(int(w / (part_font * 0.6)), 3)
-        if len(ident) > max_chars:
-            ident = ident[: max_chars - 2] + ".."
-        lines.append(str(ident))
-
-        # Add dimensions only if there's space and they're requested
-        # Need at least 4x font height for 2 lines
-        if include_dimensions and h > part_font * 4:
-            dim_text = _format_dimension_pair(w, h, measurement_system)
-            # Truncate dimensions if too long
-            if len(dim_text) > max_chars:
-                # Try shorter format without units
-                width_str = unit_utils.format_length(w, measurement_system).split()[0]
-                height_str = unit_utils.format_length(h, measurement_system).split()[0]
-                dim_text = f"{width_str}×{height_str}"
-                if len(dim_text) > max_chars:
-                    dim_text = f"{width_str:.0f}×{height_str:.0f}"
-            lines.append(dim_text)
-
-        # Calculate vertical positioning to center the text block
-        line_spacing = 1.2
-        total_height_em = len(lines) * line_spacing
-        start_offset = -(total_height_em - 1) / 2.0
-
-        # Double-check that text block fits vertically
-        # If not, reduce to single line
-        text_height_mm = total_height_em * part_font * 0.35
-        if text_height_mm > h * 0.7:
-            lines = [lines[0]]
-            start_offset = 0
-
-        label_parts = [
-            f'<text class="part-label" font-size="{_fmt_float(part_font)}" '
-            f'x="{_fmt_float(center_x)}" y="{_fmt_float(center_y)}" '
-            f'dominant-baseline="middle" text-anchor="middle">'
-        ]
-
-        for idx, line in enumerate(lines):
-            if idx == 0 and len(lines) > 1:
-                dy_attr = f' dy="{_fmt_float(start_offset, 2)}em"'
-            elif idx == 0:
-                dy_attr = ""
-            else:
-                dy_attr = f' dy="{_fmt_float(line_spacing, 2)}em"'
-            label_parts.append(
-                f'<tspan x="{_fmt_float(center_x)}"{dy_attr}>{escape(line)}</tspan>'
-            )
-        label_parts.append("</text>")
-        body.append("".join(label_parts))
+    # Add parts legend at bottom of sheet (always shown if include_labels is True)
+    if include_labels:
+        _add_parts_legend(
+            body,
+            parts_sorted,
+            width_mm,
+            height_mm,
+            measurement_system,
+            include_dimensions,
+        )
 
     body.append("</svg>")
     return "\n".join(body)
@@ -1254,6 +1365,7 @@ def export_nesting_to_svg(
     include_dimensions: bool = False,
     include_cut_lines: bool = False,
     include_waste_areas: bool = False,
+    include_leader_lines: bool = False,
 ) -> list[Path]:
     """
     Export one SVG per sheet for the provided ExportJob.
@@ -1287,6 +1399,7 @@ def export_nesting_to_svg(
             include_cut_lines=include_cut_lines,
             include_waste_areas=include_waste_areas,
             export_job=export_job,
+            include_leader_lines=include_leader_lines,
         )
         target_path = _sheet_specific_path(base_target, idx + 1)
         try:

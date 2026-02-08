@@ -83,7 +83,7 @@
   - ~~Labels appear all over shapes instead of centered/organized~~
   - ~~Text sizing is inconsistent (some huge, some tiny)~~
   - ~~Label positioning overlaps with shape geometry~~
-  - *Fixed:* Improved font sizing consistency (10-20pt range), added text-anchor="middle" for proper centering, tighter line spacing
+  - *Fixed:* Removed internal part labels completely. Added legend at bottom of SVG (always shown when labels enabled). Added optional leader lines toggle for small parts. SVG viewBox automatically adjusts to accommodate legend space.
 
 - `[AI]` **Cutlist Script Export Format**
   - Currently exports as .script file instead of .txt

@@ -281,8 +281,12 @@ class SquatchCutTaskPanel:
 
         self.include_labels_check = QtWidgets.QCheckBox("Include part labels")
         self.include_dimensions_check = QtWidgets.QCheckBox("Include dimensions")
+        self.include_leader_lines_check = QtWidgets.QCheckBox("Include leader lines")
         self.include_labels_check.stateChanged.connect(self._on_export_options_changed)
         self.include_dimensions_check.stateChanged.connect(
+            self._on_export_options_changed
+        )
+        self.include_leader_lines_check.stateChanged.connect(
             self._on_export_options_changed
         )
 
@@ -290,6 +294,7 @@ class SquatchCutTaskPanel:
         export_layout.addWidget(self.export_format_combo)
         export_layout.addWidget(self.include_labels_check)
         export_layout.addWidget(self.include_dimensions_check)
+        export_layout.addWidget(self.include_leader_lines_check)
         export_layout.addWidget(self.export_button)
         vbox.addWidget(self.export_controls_container)
 
@@ -360,6 +365,13 @@ class SquatchCutTaskPanel:
 
         self.include_labels_check.setChecked(bool(state["include_labels"]))
         self.include_dimensions_check.setChecked(bool(state["include_dimensions"]))
+
+        # Initialize leader lines from preferences (default to False)
+        try:
+            include_leader_lines = self._prefs.get_export_include_leader_lines()
+        except Exception:
+            include_leader_lines = False
+        self.include_leader_lines_check.setChecked(include_leader_lines)
 
         # Initialize nesting view controls with user preferences
         try:
@@ -590,6 +602,9 @@ class SquatchCutTaskPanel:
         self._prefs.set_export_include_dimensions(
             self.include_dimensions_check.isChecked()
         )
+        self._prefs.set_export_include_leader_lines(
+            self.include_leader_lines_check.isChecked()
+        )
 
     def on_export_clicked(self):
         export_job = exporter.build_export_job_from_current_nesting(
@@ -622,6 +637,7 @@ class SquatchCutTaskPanel:
                     file_path,
                     include_labels=self.include_labels_check.isChecked(),
                     include_dimensions=self.include_dimensions_check.isChecked(),
+                    include_leader_lines=self.include_leader_lines_check.isChecked(),
                 )
             elif fmt == "dxf":
                 exporter.export_nesting_to_dxf(export_job, file_path)

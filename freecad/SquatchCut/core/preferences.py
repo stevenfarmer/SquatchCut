@@ -301,7 +301,9 @@ class SquatchCutPreferences:
             self.METRIC_SPACING_KEY, fallback or self.METRIC_DEFAULT_SPACING_MM
         )
 
-    def set_default_spacing_mm(self, value: float, system: Optional[str] = None) -> None:
+    def set_default_spacing_mm(
+        self, value: float, system: Optional[str] = None
+    ) -> None:
         """
         Set default spacing from mm input.
         If system is Imperial, converts mm -> inches and stores in Imperial key.
@@ -458,6 +460,22 @@ class SquatchCutPreferences:
             except Exception:
                 pass
         self._local["ExportIncludeDimensions"] = bool(value)
+
+    def get_export_include_leader_lines(self, fallback: bool = False) -> bool:
+        if self._grp:
+            try:
+                return bool(self._grp.GetBool("ExportIncludeLeaderLines", fallback))
+            except Exception:
+                pass
+        return bool(self._local.get("ExportIncludeLeaderLines", fallback))
+
+    def set_export_include_leader_lines(self, value: bool) -> None:
+        if self._grp:
+            try:
+                self._grp.SetBool("ExportIncludeLeaderLines", bool(value))
+            except Exception:
+                pass
+        self._local["ExportIncludeLeaderLines"] = bool(value)
 
     def get_report_view_log_level(self, fallback: str = "normal") -> str:
         val = fallback

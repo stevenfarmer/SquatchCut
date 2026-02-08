@@ -1,35 +1,35 @@
-refactor: simplify codebase - remove unused features and consolidate docs
+feat: replace SVG internal labels with legend and optional leader lines
 
-Phase 1: Remove Unused Code (~2,000 lines)
-- Delete genetic algorithm system (genetic_nesting.py, 497 lines)
-- Delete grain direction system (grain_direction.py, ~300 lines)
-- Delete 6 test files for removed features (~1,200 lines)
-- Remove genetic algorithm flags from session_state
-- Clean up references in csv_import, csv_loader, quality_assurance
-- Fix ruff linting issues (import sorting)
+User feedback indicated that internal part labels were problematic:
+- Labels crossed into adjacent parts on small pieces
+- Font sizing was inconsistent
+- Labels cluttered the layout
 
-Phase 3: Consolidate Documentation
-- Create DEVELOPER_GUIDE.md (single source of truth)
-- Archive AGENTS.md and Project_Guide_v3.3.md to docs/archive/
-- Delete meta-documentation (constraints inventory, pain points analysis)
-- Update README.md and test references
-- Simplify from 4+ docs to 1 essential guide
+New approach:
+- NO internal labels on parts (clean layout)
+- Legend at bottom of SVG (always shown when labels enabled)
+- Optional leader lines for small parts (user toggle in export options)
+- SVG viewBox automatically adjusts to accommodate legend space
+- Dimensions can be shown in legend (controlled by include_dimensions)
 
-Impact:
-- Removed 2,500+ lines total (code + docs)
-- All 584 tests passing
-- Clearer architecture and constraints
-- Single source of truth for developers
-- Historical docs preserved in archive
+Changes:
+- freecad/SquatchCut/core/exporter.py:
+  * Removed internal label rendering code (~70 lines)
+  * Added legend rendering with optional dimensions
+  * Added leader lines support for small parts
+  * Adjusted SVG viewBox to include legend space
+  * Updated export_nesting_to_svg() to accept include_leader_lines parameter
 
-The genetic algorithm and grain direction systems were:
-- Not exposed in UI (hidden features)
-- Only accessible via session flags
-- Adding complexity without user value
+- freecad/SquatchCut/gui/taskpanel_main.py:
+  * Added "Include leader lines" checkbox in export options
+  * Wired up leader lines preference save/load
+  * Pass include_leader_lines to export function
 
-Documentation consolidation:
-- Removed constraint framework overhead
-- Extracted essential rules only
-- Improved accessibility and clarity
+- freecad/SquatchCut/core/preferences.py:
+  * Added get_export_include_leader_lines() method
+  * Added set_export_include_leader_lines() method
 
-See SIMPLIFICATION_SUMMARY.md for full details.
+- backlog.md:
+  * Updated SVG label issue status to reflect final solution
+
+All export tests passing (18/18). Total test suite: 557 passed, 13 skipped.
