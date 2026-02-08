@@ -65,11 +65,10 @@ class QualityAssuranceChecker:
         self,
         min_spacing: float = 3.0,
         tolerance: float = 0.1,
-        check_grain_direction: bool = False,
     ):
         self.min_spacing = min_spacing
         self.tolerance = tolerance
-        self.check_grain_direction = check_grain_direction
+        # check_grain_direction removed - was unused feature
 
     def check_layout_quality(
         self,
@@ -127,14 +126,7 @@ class QualityAssuranceChecker:
             else:
                 passed_checks.append("dimension_consistency")
 
-        # 6. Check grain direction (if enabled)
-        if self.check_grain_direction:
-            grain_issues = self._check_grain_direction_compliance(placed_parts)
-            if grain_issues:
-                issues.extend(grain_issues)
-                failed_checks.append("grain_direction")
-            else:
-                passed_checks.append("grain_direction")
+        # Grain direction check removed - was unused feature
 
         # Calculate metrics
         metrics = self._calculate_quality_metrics(placed_parts, sheet_sizes, issues)
@@ -348,12 +340,7 @@ class QualityAssuranceChecker:
 
         return issues
 
-    def _check_grain_direction_compliance(
-        self, placed_parts: list[PlacedPart]
-    ) -> list[QualityIssue]:
-        """Check grain direction compliance (placeholder for future implementation)."""
-        # This would integrate with the grain direction system
-        return []
+    # _check_grain_direction_compliance removed - was unused feature
 
     def _rectangles_overlap(
         self,

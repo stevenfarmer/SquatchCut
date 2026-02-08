@@ -15,14 +15,11 @@ from hypothesis import strategies as st
 from constraint_framework import ConstraintArea, ConstraintFramework
 
 DOC_PATHS = [
-    pathlib.Path(__file__).resolve().parents[1] / "AGENTS.md",
-    pathlib.Path(__file__).resolve().parents[1] / "AI_AGENT_HANDBOOK.md",
+    pathlib.Path(__file__).resolve().parents[1] / "DEVELOPER_GUIDE.md",
 ]
 
 # Load documentation once to keep property iterations fast
-DOC_CONTENT = "\n".join(
-    path.read_text(encoding="utf-8").lower() for path in DOC_PATHS
-)
+DOC_CONTENT = "\n".join(path.read_text(encoding="utf-8").lower() for path in DOC_PATHS)
 
 # Required phrases that must appear across documentation for communication protocols
 REQUIRED_COMMUNICATION_PHRASES = [

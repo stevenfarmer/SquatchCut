@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import Optional, Any
+from typing import Any, Optional
 
 from SquatchCut.core import logger, session_state
 from SquatchCut.core import units as sc_units

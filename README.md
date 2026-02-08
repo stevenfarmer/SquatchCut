@@ -225,8 +225,8 @@ If your parts look the wrong size:
 
 Additional docs live in the `docs/` folder:
 
-- `docs/Project_Guide_v3.3.md`
-  Canonical project guide (v3.3 – AI worker edition) covering AI worker behavior, UI rules, and testing requirements. v3.2 remains available for historical reference.
+- `DEVELOPER_GUIDE.md` (root)
+  **Primary developer guide** covering architecture, constraints, and workflows for contributors.
 
 - `docs/user_guide.md`
   Full user guide, with explanations and troubleshooting.
@@ -240,6 +240,9 @@ Additional docs live in the `docs/` folder:
 - `docs/UAT_Checklist.md`
   Step-by-step test script with Pass/Fail tracking.
 
+- `docs/archive/`
+  Historical documentation versions (AGENTS.md v3.3, Project_Guide v3.2/v3.3)
+
 If you are participating in user testing:
 
 - Follow the UAT prep instructions.
@@ -250,7 +253,7 @@ If you are participating in user testing:
 
 ## Development & Testing
 
-**Workflow:** This project uses a multi-AI system (Architect + AI workers such as Codex, Jules, or other assistants). See `docs/Project_Guide_v3.3.md` and `AGENTS.md` for the full AI worker protocol.
+**Workflow:** See `DEVELOPER_GUIDE.md` for architecture, constraints, and development workflows.
 
 For developers:
 

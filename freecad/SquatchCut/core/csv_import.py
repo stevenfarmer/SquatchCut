@@ -133,7 +133,7 @@ def _validate_panel_row(
 
     label = row.get("label") or ""
     material = row.get("material") or ""
-    grain_direction = row.get("grain_direction")
+    # grain_direction removed - was unused feature
 
     allow_rotate = _parse_allow_rotate(row)
 
@@ -146,8 +146,7 @@ def _validate_panel_row(
         "material": material,
         "allow_rotate": allow_rotate,
     }
-    if grain_direction:
-        panel["grainDirection"] = grain_direction
+    # grain_direction support removed
     return panel, None
 
 

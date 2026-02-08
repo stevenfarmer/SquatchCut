@@ -336,63 +336,8 @@ class RunNestingCommand:
                                 parts, panels_data, sheet_w, sheet_h, gap_mm
                             )
 
-                        # Check if genetic algorithm optimization is enabled
-                        use_genetic = session_state.get_use_genetic_algorithm()
-
-                        if use_genetic:
-                            from SquatchCut.core.genetic_nesting import (
-                                GeneticConfig,
-                                genetic_nest_parts,
-                            )
-                            from SquatchCut.core.grain_direction import (
-                                add_grain_info_to_parts,
-                            )
-
-                            # Convert parts to grain-aware parts
-                            grain_aware_parts = add_grain_info_to_parts(parts)
-
-                            # Configure genetic algorithm
-                            genetic_config = GeneticConfig(
-                                population_size=session_state.get_genetic_population_size()
-                                or 50,
-                                generations=session_state.get_genetic_generations()
-                                or 100,
-                                mutation_rate=session_state.get_genetic_mutation_rate()
-                                or 0.1,
-                                crossover_rate=session_state.get_genetic_crossover_rate()
-                                or 0.8,
-                                max_time_seconds=session_state.get_genetic_max_time()
-                                or 300,
-                            )
-
-                            logger.info(
-                                f">>> [SquatchCut] Using genetic algorithm optimization with {len(grain_aware_parts)} parts"
-                            )
-
-                            # Apply performance optimizations for genetic algorithm
-                            from SquatchCut.core.performance_utils import (
-                                cached_nesting,
-                                memory_optimized,
-                            )
-
-                            @cached_nesting
-                            @memory_optimized
-                            def optimized_genetic_nesting(
-                                parts, width, height, kerf, spacing, config
-                            ):
-                                return genetic_nest_parts(
-                                    parts, width, height, kerf, spacing, config
-                                )
-
-                            return optimized_genetic_nesting(
-                                grain_aware_parts,
-                                sheet_w,
-                                sheet_h,
-                                kerf_mm,
-                                gap_mm,
-                                genetic_config,
-                            )
-                        elif cut_mode:
+                        # Genetic algorithm removed - was unused feature
+                        if cut_mode:
                             cfg = NestingConfig(
                                 optimize_for_cut_path=True,
                                 kerf_width_mm=kerf_width or kerf_mm,

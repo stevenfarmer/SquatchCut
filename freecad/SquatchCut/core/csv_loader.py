@@ -140,8 +140,7 @@ class CsvLoader:
             "width": width,
             "height": height,
         }
-        if row.get("grain_direction"):
-            cleaned["grain_direction"] = str(row["grain_direction"]).strip()
+        # grain_direction removed - was unused feature
         allow_rotate_raw = None
         # Support both exact and case-insensitive allow_rotate
         for key in row.keys():
@@ -167,9 +166,7 @@ class CsvLoader:
             "height": row["height"],
             "allow_rotate": bool(row.get("allow_rotate", False)),
         }
-        grain = row.get("grain_direction")
-        if grain:
-            panel["grainDirection"] = grain
+        # grain_direction support removed
         return panel
 
     # Legacy helper names retained for compatibility

@@ -1,0 +1,35 @@
+refactor: simplify codebase - remove unused features and consolidate docs
+
+Phase 1: Remove Unused Code (~2,000 lines)
+- Delete genetic algorithm system (genetic_nesting.py, 497 lines)
+- Delete grain direction system (grain_direction.py, ~300 lines)
+- Delete 6 test files for removed features (~1,200 lines)
+- Remove genetic algorithm flags from session_state
+- Clean up references in csv_import, csv_loader, quality_assurance
+- Fix ruff linting issues (import sorting)
+
+Phase 3: Consolidate Documentation
+- Create DEVELOPER_GUIDE.md (single source of truth)
+- Archive AGENTS.md and Project_Guide_v3.3.md to docs/archive/
+- Delete meta-documentation (constraints inventory, pain points analysis)
+- Update README.md and test references
+- Simplify from 4+ docs to 1 essential guide
+
+Impact:
+- Removed 2,500+ lines total (code + docs)
+- All 584 tests passing
+- Clearer architecture and constraints
+- Single source of truth for developers
+- Historical docs preserved in archive
+
+The genetic algorithm and grain direction systems were:
+- Not exposed in UI (hidden features)
+- Only accessible via session flags
+- Adding complexity without user value
+
+Documentation consolidation:
+- Removed constraint framework overhead
+- Extracted essential rules only
+- Improved accessibility and clarity
+
+See SIMPLIFICATION_SUMMARY.md for full details.

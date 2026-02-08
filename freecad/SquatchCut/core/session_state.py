@@ -6,9 +6,8 @@ This module intentionally does NOT import FreeCAD so that:
 - Integration with FreeCAD happens inside session.py instead.
 """
 
-import pickle
 from copy import deepcopy
-from typing import Optional, Any
+from typing import Any, Optional
 
 # @codex
 # Pure in-memory session state for SquatchCut (no FreeCAD deps).
@@ -49,6 +48,7 @@ _export_include_dimensions = False
 _source_panel_objects = []
 _nested_sheet_group = None
 
+
 def set_shape_panel_objects(mapping) -> None:
     """Store FreeCAD objects associated with shape-based panels."""
     global _shape_panel_objects
@@ -73,13 +73,8 @@ def clear_shape_panel_objects() -> None:
     global _shape_panel_objects
     _shape_panel_objects = {}
 
-# Genetic algorithm settings
-_use_genetic_algorithm = False
-_genetic_population_size = 50
-_genetic_generations = 100
-_genetic_mutation_rate = 0.1
-_genetic_crossover_rate = 0.8
-_genetic_max_time = 300  # seconds
+
+# Genetic algorithm settings removed - feature was unused
 
 
 # --------------------------
@@ -528,70 +523,7 @@ def get_nested_sheet_group():
 # --------------------------
 
 
-def set_use_genetic_algorithm(enabled: bool) -> None:
-    """Enable or disable genetic algorithm optimization."""
-    global _use_genetic_algorithm
-    _use_genetic_algorithm = bool(enabled)
-
-
-def get_use_genetic_algorithm() -> bool:
-    """Return whether genetic algorithm optimization is enabled."""
-    return _use_genetic_algorithm
-
-
-def set_genetic_population_size(size: int) -> None:
-    """Set genetic algorithm population size."""
-    global _genetic_population_size
-    _genetic_population_size = max(10, int(size))
-
-
-def get_genetic_population_size() -> int:
-    """Return genetic algorithm population size."""
-    return _genetic_population_size
-
-
-def set_genetic_generations(generations: int) -> None:
-    """Set genetic algorithm number of generations."""
-    global _genetic_generations
-    _genetic_generations = max(10, int(generations))
-
-
-def get_genetic_generations() -> int:
-    """Return genetic algorithm number of generations."""
-    return _genetic_generations
-
-
-def set_genetic_mutation_rate(rate: float) -> None:
-    """Set genetic algorithm mutation rate."""
-    global _genetic_mutation_rate
-    _genetic_mutation_rate = max(0.0, min(1.0, float(rate)))
-
-
-def get_genetic_mutation_rate() -> float:
-    """Return genetic algorithm mutation rate."""
-    return _genetic_mutation_rate
-
-
-def set_genetic_crossover_rate(rate: float) -> None:
-    """Set genetic algorithm crossover rate."""
-    global _genetic_crossover_rate
-    _genetic_crossover_rate = max(0.0, min(1.0, float(rate)))
-
-
-def get_genetic_crossover_rate() -> float:
-    """Return genetic algorithm crossover rate."""
-    return _genetic_crossover_rate
-
-
-def set_genetic_max_time(seconds: int) -> None:
-    """Set genetic algorithm maximum time in seconds."""
-    global _genetic_max_time
-    _genetic_max_time = max(30, int(seconds))
-
-
-def get_genetic_max_time() -> int:
-    """Return genetic algorithm maximum time in seconds."""
-    return _genetic_max_time
+# Genetic algorithm functions removed - feature was unused
 
 
 # --------------------------
