@@ -68,9 +68,9 @@
   - Users see mixed version numbers (0.3.x vs v3.x) and no in-product indicator that shape-based nesting is preview-only.
   - *Goal:* Show the installed build version in the UI (toolbar/settings) and mark shape-based flows as **Experimental** to set expectations.
 
-- `[AI]` **Shape Selection Requires Manual Document Prep**
-  - The Select Shapes flow errors out if there is no active FreeCAD document, unlike CSV import which creates one. This stalls new users before they can nest shapes.
-  - *Goal:* Automatically create a document or guide the user to create one when launching Select Shapes with no active doc.
+- ~~`[AI]` **Shape Selection Requires Manual Document Prep**~~ ✅ **FIXED**
+  - ~~The Select Shapes flow errors out if there is no active FreeCAD document, unlike CSV import which creates one.~~
+  - *Fixed:* Shape selection now auto-creates a document like CSV import does, with helpful error message if no shapes exist yet.
 
 ## 4. Exports (CSV/SVG/DXF)
 

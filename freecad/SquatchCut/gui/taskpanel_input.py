@@ -247,9 +247,16 @@ class InputGroupWidget(QtWidgets.QGroupBox):
     def _select_shapes(self) -> None:
         """Open shape selection dialog and process selected shapes."""
         doc = App.ActiveDocument
+        doc_was_created = False
         if doc is None:
-            show_error("Unable to find an active document.", title="SquatchCut")
-            return
+            # Auto-create document like CSV import does
+            try:
+                doc = App.newDocument("SquatchCut")
+                doc_was_created = True
+                logger.info("[SquatchCut] Created new document for shape selection")
+            except Exception as e:
+                show_error(f"Unable to create a new document: {e}", title="SquatchCut")
+                return
 
         try:
             # Extract shapes from the current document
@@ -264,9 +271,17 @@ class InputGroupWidget(QtWidgets.QGroupBox):
             ]
 
             if not shape_objects:
-                show_error(
-                    "No valid shapes found in the current document.", title="SquatchCut"
-                )
+                if doc_was_created:
+                    show_error(
+                        "No shapes found. Please create some shapes in FreeCAD first, "
+                        "then use 'Select Shapes' to nest them.",
+                        title="SquatchCut",
+                    )
+                else:
+                    show_error(
+                        "No valid shapes found in the current document.",
+                        title="SquatchCut",
+                    )
                 return
 
             # Create progress dialog for shape processing
@@ -325,9 +340,9 @@ class InputGroupWidget(QtWidgets.QGroupBox):
                 )
                 return
 
-            headless_dialog = not callable(getattr(QtWidgets.QDialog, "exec_", None)) and not callable(
-                getattr(QtWidgets.QDialog, "exec", None)
-            )
+            headless_dialog = not callable(
+                getattr(QtWidgets.QDialog, "exec_", None)
+            ) and not callable(getattr(QtWidgets.QDialog, "exec", None))
             selected_shapes = []
 
             if headless_dialog:
@@ -340,7 +355,9 @@ class InputGroupWidget(QtWidgets.QGroupBox):
                     exec_fn = getattr(dialog, "exec", None)
 
                 try:
-                    dialog_result = exec_fn() if callable(exec_fn) else QtWidgets.QDialog.Accepted
+                    dialog_result = (
+                        exec_fn() if callable(exec_fn) else QtWidgets.QDialog.Accepted
+                    )
                 except Exception:
                     dialog_result = QtWidgets.QDialog.Accepted
 
@@ -377,7 +394,9 @@ class InputGroupWidget(QtWidgets.QGroupBox):
 
                 # Show progress for shape conversion if there are many shapes
                 if len(selected_shapes) > 5:
-                    with ProgressDialog(title="Converting Shapes", parent=self) as progress:
+                    with ProgressDialog(
+                        title="Converting Shapes", parent=self
+                    ) as progress:
                         progress.set_range(0, len(selected_shapes))
                         progress.set_label("Converting shapes to panels...")
 
@@ -407,7 +426,9 @@ class InputGroupWidget(QtWidgets.QGroupBox):
                 self.refresh_table()
                 self.shapes_selected.emit()
 
-                logger.info(f">>> [SquatchCut] Selected {len(selected_shapes)} shapes for nesting")
+                logger.info(
+                    f">>> [SquatchCut] Selected {len(selected_shapes)} shapes for nesting"
+                )
 
         except Exception as exc:
             show_error(f"Failed to select shapes:\n{exc}", title="SquatchCut")
