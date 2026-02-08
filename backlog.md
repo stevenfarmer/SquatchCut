@@ -79,11 +79,11 @@
   - ~~CSV export ignores project measurement system setting~~
   - *Fixed:* Settings panel now syncs measurement_system to session_state so exports use the correct system
 
-- `[AI]` **CRITICAL: SVG Export Label Issues**
-  - Labels appear all over shapes instead of centered/organized
-  - Text sizing is inconsistent (some huge, some tiny)
-  - Label positioning overlaps with shape geometry
-  - *Goal:* Clean, readable SVG exports with proper label placement
+- ~~`[AI]` **CRITICAL: SVG Export Label Issues**~~ ✅ **FIXED**
+  - ~~Labels appear all over shapes instead of centered/organized~~
+  - ~~Text sizing is inconsistent (some huge, some tiny)~~
+  - ~~Label positioning overlaps with shape geometry~~
+  - *Fixed:* Improved font sizing consistency (10-20pt range), added text-anchor="middle" for proper centering, tighter line spacing
 
 - `[AI]` **Cutlist Script Export Format**
   - Currently exports as .script file instead of .txt

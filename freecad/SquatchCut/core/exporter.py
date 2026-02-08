@@ -601,22 +601,23 @@ def _part_font_size(
     1. Fits within the part dimensions
     2. Is readable but not overwhelming
     3. Scales reasonably with part and sheet size
+    4. Is consistent across similar-sized parts
     """
     min_sheet_dim = max(min(sheet_size), 1.0)
     min_part_dim = min(width_mm, height_mm)
 
     # Base font size as fraction of smaller part dimension
     # Use smaller fraction to prevent labels from dominating small parts
-    base_from_part = min_part_dim * 0.15  # Reduced from 0.25
+    base_from_part = min_part_dim * 0.12  # Reduced from 0.15 for more consistency
 
     # Limit based on sheet size to prevent huge fonts on large sheets
-    max_from_sheet = min_sheet_dim / 15.0  # More conservative limit
+    max_from_sheet = min_sheet_dim / 20.0  # More conservative limit
 
     # Minimum readable size
-    min_readable = 8.0  # Increased minimum for better readability
+    min_readable = 10.0  # Increased for better readability
 
     # Maximum reasonable size to prevent overwhelming labels
-    max_reasonable = 24.0
+    max_reasonable = 20.0  # Reduced from 24 for more consistency
 
     font_size = min(base_from_part, max_from_sheet)
     font_size = max(font_size, min_readable)
@@ -829,7 +830,7 @@ def _render_sheet_svg(
             lines.append(dim_text)
 
         # Calculate vertical positioning to center the text block
-        line_spacing = 1.2
+        line_spacing = 1.15  # Tighter spacing for better fit
         total_height_em = len(lines) * line_spacing
         start_offset = -(total_height_em - 1) / 2.0
 
@@ -837,14 +838,15 @@ def _render_sheet_svg(
         text_height_mm = (
             total_height_em * part_font * 0.35
         )  # Approximate em to mm conversion
-        if text_height_mm > h * 0.8:  # Don't use more than 80% of part height
+        if text_height_mm > h * 0.75:  # Don't use more than 75% of part height
             # Reduce to single line if needed
             lines = [lines[0]]
             start_offset = 0
 
         label_parts = [
             f'<text class="part-label" font-size="{_fmt_float(part_font)}" '
-            f'x="{_fmt_float(center_x)}" y="{_fmt_float(center_y)}" dominant-baseline="middle">'
+            f'x="{_fmt_float(center_x)}" y="{_fmt_float(center_y)}" '
+            f'dominant-baseline="middle" text-anchor="middle">'
         ]
 
         for idx, line in enumerate(lines):
