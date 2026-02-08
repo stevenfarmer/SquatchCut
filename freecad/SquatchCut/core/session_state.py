@@ -34,7 +34,12 @@ _measurement_system = "imperial"
 
 # Last nesting layout: list of PlacedPart objects
 _last_layout = None
-_nesting_stats = {"sheets_used": None, "cut_complexity": None, "overlaps_count": None}
+_nesting_stats = {
+    "sheets_used": None,
+    "cut_complexity": None,
+    "overlaps_count": None,
+    "per_sheet_stats": [],
+}
 
 # Panels loaded from CSV (pure data; no FreeCAD objects)
 _panels = []
@@ -369,6 +374,7 @@ def set_nesting_stats(
     sheets_used: Optional[int] = None,
     cut_complexity: Optional[float] = None,
     overlaps_count: Optional[int] = None,
+    per_sheet_stats: Optional[list[dict[str, Any]]] = None,
 ) -> None:
     """Store summary stats from the last nesting run."""
     global _nesting_stats
@@ -376,6 +382,7 @@ def set_nesting_stats(
         "sheets_used": sheets_used,
         "cut_complexity": cut_complexity,
         "overlaps_count": overlaps_count,
+        "per_sheet_stats": list(per_sheet_stats or []),
     }
 
 
@@ -383,7 +390,12 @@ def get_nesting_stats() -> dict:
     """Return summary stats from the last nesting run."""
     return dict(
         _nesting_stats
-        or {"sheets_used": None, "cut_complexity": None, "overlaps_count": None}
+        or {
+            "sheets_used": None,
+            "cut_complexity": None,
+            "overlaps_count": None,
+            "per_sheet_stats": [],
+        }
     )
 
 

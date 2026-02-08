@@ -524,8 +524,12 @@ class RunNestingCommand:
                 logger.info(
                     f">>> [SquatchCut] Nesting mode={nesting_mode}, parts={len(placed_parts)}, sheets={util.get('sheets_used', 0)}"
                 )
+                per_sheet = util.get("per_sheet_stats") or []
                 set_nesting_stats(
-                    util.get("sheets_used", None), cut_complexity, len(overlaps)
+                    util.get("sheets_used", None),
+                    cut_complexity,
+                    len(overlaps),
+                    per_sheet_stats=per_sheet,
                 )
                 sheet_count = (
                     (max(pp.sheet_index for pp in placed_parts) + 1)
@@ -559,6 +563,12 @@ class RunNestingCommand:
                 logger.info(
                     f"Nested {len(panel_objs)} source panels into {sheet_count} sheet group(s)."
                 )
+                for sheet_stats in per_sheet:
+                    logger.info(
+                        f">>> [SquatchCut] Sheet {sheet_stats['sheet_index']} utilization="
+                        f"{sheet_stats['utilization_percent']:.1f}% "
+                        f"({sheet_stats['parts_placed']} parts, waste={sheet_stats['waste_area']:.0f} mm²)"
+                    )
             try:
                 view_controller.show_nesting_view(
                     doc, active_sheet=sheet_obj, nested_objects=nested_objs

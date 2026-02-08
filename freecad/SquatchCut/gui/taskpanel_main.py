@@ -9,7 +9,11 @@ from typing import Optional
 from SquatchCut import settings
 from SquatchCut.core import exporter, logger, session, session_state, view_controller
 from SquatchCut.core import units as sc_units
-from SquatchCut.core.nesting import compute_utilization, estimate_cut_counts
+from SquatchCut.core.nesting import (
+    compute_utilization_for_sheets,
+    derive_sheet_sizes_for_layout,
+    estimate_cut_counts_for_sheets,
+)
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.gui.commands import cmd_run_nesting
@@ -250,10 +254,15 @@ class SquatchCutTaskPanel:
             "Estimated cut path complexity: –"
         )
         self.overlaps_label = QtWidgets.QLabel("Overlaps: –")
+        self.sheet_utilization_label = QtWidgets.QLabel("Sheet utilization range: –")
 
         stats_layout.addRow("Mode:", self.mode_label)
         stats_layout.addRow("Sheets:", self.sheets_label)
         stats_layout.addRow("Utilization:", self.utilization_label)
+        stats_layout.addRow(
+            "Sheet utilization:",
+            self.sheet_utilization_label,
+        )
         stats_layout.addRow("Estimated cuts:", self.cutcount_label)
         stats_layout.addRow("Unplaced parts:", self.unplaced_label)
         stats_layout.addRow("Sheets used:", self.stats_sheets_label)
@@ -576,17 +585,42 @@ class SquatchCutTaskPanel:
         layout = session_state.get_last_layout() or []
         sheet_w, sheet_h = session_state.get_sheet_size()
 
-        if not layout or not sheet_w or not sheet_h:
+        if not layout:
             return
 
-        util = compute_utilization(layout, float(sheet_w), float(sheet_h))
-        cuts = estimate_cut_counts(layout, float(sheet_w), float(sheet_h))
+        fallback_width, fallback_height = self.FALLBACK_SHEET_SIZE_MM
+        target_width = float(sheet_w) if sheet_w else fallback_width
+        target_height = float(sheet_h) if sheet_h else fallback_height
+
+        sheet_sizes = derive_sheet_sizes_for_layout(
+            session_state.get_sheet_mode(),
+            session_state.get_job_sheets(),
+            target_width,
+            target_height,
+            layout,
+        )
+        if not sheet_sizes:
+            sheet_sizes = [(target_width, target_height)]
+
+        util = compute_utilization_for_sheets(layout, sheet_sizes)
+        cuts = estimate_cut_counts_for_sheets(layout, sheet_sizes)
 
         self.sheets_label.setText(f"Sheets used: {util.get('sheets_used', 0)}")
         self.utilization_label.setText(
             f"Utilization: {util.get('utilization_percent', 0.0):.1f}%"
         )
         self.cutcount_label.setText(f"Estimated cuts: {cuts.get('total', 0)}")
+        per_sheet = util.get("per_sheet_stats") or []
+        if per_sheet:
+            min_util = min(s["utilization_percent"] for s in per_sheet)
+            max_util = max(s["utilization_percent"] for s in per_sheet)
+            if len(per_sheet) == 1:
+                range_text = f"{min_util:.1f}%"
+            else:
+                range_text = f"{min_util:.1f}%–{max_util:.1f}%"
+        else:
+            range_text = "–"
+        self.sheet_utilization_label.setText(range_text)
 
         stats = session_state.get_nesting_stats()
         self.overlaps_count = stats.get("overlaps_count", 0) or 0

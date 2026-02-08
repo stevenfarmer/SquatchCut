@@ -27,6 +27,8 @@
 - `[AI]` **Refine Multi-Sheet Heuristics**
   - Current multi-sheet logic iterates sheet sizes but lacks per-sheet utilization metrics.
   - *Goal:* Improve packing density and surfacing of waste metrics.
+  - *Progress:* `compute_utilization_for_sheets` now produces per-sheet stats, the Task Panel surfaces the min/max utilization range, and the nesting log records each sheet’s utilization/waste so we can inspect bad sheets.
+  - *Next:* Use the recorded metrics to adjust sheet allocation heuristics or surface warnings when utilization drops below thresholds.
 
 - `[AI]` **Guillotine Optimization**
   - The guillotine engine needs better handling of sheet exhaustion edge cases.
@@ -89,6 +91,12 @@
   - Currently exports as .script file instead of .txt
   - Instructions are too technical and difficult for humans to follow
   - *Goal:* Export as .txt with human-friendly cutting instructions
+
+- `[AI]` **Manual Export Regression Testing**
+  - Verify SVG export honors imperial vs metric measurement settings (units, legends, labels)
+  - Confirm CSV export format matches the active measurement system and produces readable cutlists
+  - Check cutlist text export still uses `.txt` extension and the new legend/leader-line layout
+  - *Goal:* Ensure the previously fixed export logic stays stable, and document any remaining issues
 
 - `[AI]` **CSV Export & Cutlist Determinism**
   - Finalize the `export_cutlist` function to produce stable, readable CSVs.

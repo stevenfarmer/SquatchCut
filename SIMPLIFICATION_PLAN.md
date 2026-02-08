@@ -109,10 +109,14 @@
 - [x] **ACTION NEEDED:** Test exports manually to verify if bug still exists
 - [x] **POSSIBLE CAUSE:** Bug may be in how ExportJob is called from GUI, not in exporter.py itself
 
-### 2.2 Fix SVG Label Positioning ⏳ PENDING
-- [ ] Fix label placement (centered, not scattered)
-- [ ] Fix text sizing consistency
-- [ ] Test with various part sizes
+### 2.2 Fix SVG Label Positioning ✅ COMPLETE
+- [x] Fix label placement (centered, not scattered)
+- [x] Fix text sizing consistency
+- [x] Test with various part sizes
+- [x] **FINAL SOLUTION:** Removed internal labels completely, added legend at bottom with optional leader lines
+- [x] **IMPLEMENTATION:** Legend always shown when labels enabled, leader lines toggle in export options
+- [x] **FILES MODIFIED:** exporter.py, taskpanel_main.py, preferences.py
+- [x] **TESTS:** All 18 export tests passing
 
 ### 2.3 Fix Cutlist Export Format ✅ INVESTIGATED
 - [x] Review cutlist export code
@@ -131,10 +135,22 @@
 - [x] **ACTION:** Ran `ruff check . --fix` to auto-fix issues
 - [x] Tests still passing: 584 collected, 7 skipped
 
-### 2.5 Fix Shape Selection Document Creation ⏳ PENDING
-- [ ] Auto-create document when none exists
-- [ ] Match CSV import behavior
-- [ ] Test shape selection flow
+### 2.5 Fix Shape Selection Document Creation ✅ COMPLETE
+- [x] Auto-create document when none exists
+- [x] Match CSV import behavior
+- [x] Test shape selection flow
+- [x] Verified flow now auto-creates a FreeCAD document like CSV import does (see backlog entry under GUI & UX)
+
+### 2.6 Manual Export Regression Testing ⏳ PENDING
+- [ ] Run SVG export with imperial and metric measurement settings to confirm exports honor the project units
+- [ ] Run CSV export for both measurement systems and confirm stable formatting
+- [ ] Export the cutlist as text to verify the `.txt` extension plus the legend/label layout
+
+### 2.7 Refine Multi-Sheet Heuristics ⏳ IN PROGRESS
+- [x] `compute_utilization_for_sheets` now records per-sheet utilization, placed area, waste, and part counts.
+- [x] Task Panel summary displays the min/max sheet utilization and nesting logs report each sheet’s utilization/waste.
+- [x] Session state persists the per-sheet statistics so other UI/exports can inspect them.
+- [ ] Use the surfaced metrics to steer heuristic decisions or warn when utilization falls below acceptable thresholds.
 
 ---
 
@@ -250,12 +266,13 @@ If you need to pick up where we left off:
 2. **Fix Shape Selection** - Auto-create document when none exists
 
 ### Medium Priority (Do Second):
-3. **Documentation Consolidation** - Merge AGENTS.md + Project_Guide into one file
-4. **Remove Meta-Docs** - Delete constraints inventory and pain points analysis
+3. **Refine Multi-Sheet Heuristics** - Use the new per-sheet utilization stats to improve packing decisions or surface low-utilization warnings.
+4. **Documentation Consolidation** - Merge AGENTS.md + Project_Guide into one file
+5. **Remove Meta-Docs** - Delete constraints inventory and pain points analysis
 
 ### Lower Priority (Do Later):
-5. **UI Polish** - Fix TaskPanel overflow, improve multi-sheet viz
-6. **Version Display** - Show version in UI
+6. **UI Polish** - Fix TaskPanel overflow, improve multi-sheet viz
+7. **Version Display** - Show version in UI
 
 ---
 
@@ -298,4 +315,3 @@ If something breaks:
 1. Git history has all deleted code
 2. Tests should catch major issues
 3. Run full test suite after each phase: `pytest`
-

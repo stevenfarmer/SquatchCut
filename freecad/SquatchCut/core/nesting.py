@@ -11,6 +11,7 @@ Pure logic module: no FreeCAD or GUI dependencies.
 
 from __future__ import annotations
 
+from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, Optional, Union
 
@@ -931,6 +932,16 @@ def estimate_cut_counts_for_sheets(
     return {"vertical": v_count, "horizontal": h_count, "total": v_count + h_count}
 
 
+def _group_placements_by_sheet(
+    placements: list[PlacedPart],
+) -> dict[int, list[PlacedPart]]:
+    """Group placements by their sheet index for per-sheet statistics."""
+    grouped: dict[int, list[PlacedPart]] = defaultdict(list)
+    for placement in placements:
+        grouped[placement.sheet_index].append(placement)
+    return grouped
+
+
 def compute_utilization(
     placements: list[PlacedPart],
     sheet_width: float,
@@ -971,15 +982,37 @@ def compute_utilization_for_sheets(
             "sheets_used": 0,
             "placed_area": 0.0,
             "sheet_area": 0.0,
+            "per_sheet_stats": [],
         }
     fallback_width, fallback_height = sheet_sizes[0]
     used_sheet_indices = {pp.sheet_index for pp in placements}
     total_sheet_area = 0.0
-    for sheet_index in used_sheet_indices:
+    per_sheet_stats: list[dict[str, Union[int, float]]] = []
+    placements_by_sheet = _group_placements_by_sheet(placements)
+
+    for sheet_index in sorted(used_sheet_indices):
         sw, sh = resolve_sheet_dimensions(
             sheet_sizes, sheet_index, fallback_width, fallback_height
         )
-        total_sheet_area += sw * sh
+        sheet_area = sw * sh
+        total_sheet_area += sheet_area
+        sheet_parts = placements_by_sheet.get(sheet_index, [])
+        placed_area_for_sheet = sum(pp.width * pp.height for pp in sheet_parts)
+        utilization_percent_for_sheet = (
+            (placed_area_for_sheet / sheet_area) * 100.0 if sheet_area > 0 else 0.0
+        )
+        per_sheet_stats.append(
+            {
+                "sheet_index": sheet_index,
+                "width_mm": sw,
+                "height_mm": sh,
+                "sheet_area": sheet_area,
+                "placed_area": placed_area_for_sheet,
+                "utilization_percent": utilization_percent_for_sheet,
+                "parts_placed": len(sheet_parts),
+                "waste_area": max(sheet_area - placed_area_for_sheet, 0.0),
+            }
+        )
     placed_area = sum(pp.width * pp.height for pp in placements)
     util_percent = (
         (placed_area / total_sheet_area) * 100.0 if total_sheet_area > 0 else 0.0
@@ -989,6 +1022,7 @@ def compute_utilization_for_sheets(
         "sheets_used": len(used_sheet_indices),
         "placed_area": placed_area,
         "sheet_area": total_sheet_area,
+        "per_sheet_stats": per_sheet_stats,
     }
 
 

@@ -223,6 +223,28 @@ class TestNestingCoverage:
         assert nesting.compute_utilization([], 0, 0)["utilization_percent"] == 0
         assert nesting.compute_utilization_for_sheets([], [])["utilization_percent"] == 0
 
+    def test_compute_utilization_for_sheets_details(self):
+        placements = [
+            PlacedPart("p_zero", 0, 0.0, 0.0, 50.0, 50.0),
+            PlacedPart("p_one", 1, 0.0, 0.0, 40.0, 60.0),
+            PlacedPart("p_two", 1, 45.0, 0.0, 10.0, 20.0),
+        ]
+        sheet_sizes = [(100.0, 100.0), (80.0, 120.0)]
+        stats = nesting.compute_utilization_for_sheets(placements, sheet_sizes)
+        per_sheet = stats["per_sheet_stats"]
+        assert stats["sheets_used"] == 2
+        assert len(per_sheet) == 2
+        assert per_sheet[0]["sheet_index"] == 0
+        assert per_sheet[0]["parts_placed"] == 1
+        assert per_sheet[0]["placed_area"] == 2500.0
+        assert per_sheet[0]["waste_area"] == pytest.approx(10000.0 - 2500.0)
+        assert per_sheet[1]["sheet_index"] == 1
+        assert per_sheet[1]["parts_placed"] == 2
+        assert per_sheet[1]["sheet_area"] == pytest.approx(9600.0)
+        assert per_sheet[1]["utilization_percent"] == pytest.approx(
+            2600.0 / 9600.0 * 100.0
+        )
+
     def test_analyze_sheet_exhaustion(self):
         res = nesting.analyze_sheet_exhaustion([], [])
         assert res["sheets_used"] == 0
