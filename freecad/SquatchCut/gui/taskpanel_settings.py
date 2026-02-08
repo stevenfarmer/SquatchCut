@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Optional
 
 from SquatchCut import settings
-from SquatchCut.core import gui_tests, logger, sheet_presets
+from SquatchCut.core import gui_tests, logger, session_state, sheet_presets
 from SquatchCut.core import units as sc_units
 from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.core.units import mm_to_inches
@@ -387,6 +387,10 @@ class SquatchCutSettingsPanel(QtWidgets.QWidget):
         system = self.units_combo.currentData() or "metric"
         system = "imperial" if system == "imperial" else "metric"
         self._prefs.set_measurement_system(system)
+
+        # Sync to session_state so exports use the correct system
+        session_state.set_measurement_system(system)
+
         if system == "imperial":
             width_in = mm_to_inches(width_mm) if width_mm is not None else None
             height_in = mm_to_inches(height_mm) if height_mm is not None else None

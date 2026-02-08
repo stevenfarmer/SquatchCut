@@ -74,10 +74,10 @@
 
 ## 4. Exports (CSV/SVG/DXF)
 
-- `[AI]` **CRITICAL: Export Measurement System Issues**
-  - SVG and CSV exports default to metric even when project is in imperial
-  - CSV export ignores project measurement system setting
-  - *Goal:* All exports respect project measurement system consistently
+- ~~`[AI]` **CRITICAL: Export Measurement System Issues**~~ ✅ **FIXED**
+  - ~~SVG and CSV exports default to metric even when project is in imperial~~
+  - ~~CSV export ignores project measurement system setting~~
+  - *Fixed:* Settings panel now syncs measurement_system to session_state so exports use the correct system
 
 - `[AI]` **CRITICAL: SVG Export Label Issues**
   - Labels appear all over shapes instead of centered/organized
