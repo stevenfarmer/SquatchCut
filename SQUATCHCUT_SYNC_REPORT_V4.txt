@@ -63,8 +63,9 @@ SECTION: MODULE_INVENTORY
   - tests/test_logger.py, test_logging_integration.py – Logging behavior.
   - tests/test_docs_backlog_structure.py – Ensures docs/backlog anchors and required items.
   - tests_integration/test_freecad_nesting.py, test_multi_sheet_nesting.py, test_taskpanel_workflow.py – Higher-level FreeCAD-aware workflows for nesting, multi-sheet behavior, and TaskPanel flows.
-- DOCS
-  - docs/Project_Guide_v3.3.md – Canonical architecture/process guide (AI-agnostic worker model, hydration rules, measurement rules, export architecture).
+-- DOCS
+  - docs/developer_guide.md – Canonical architecture/process guide that consolidates AGENTS.md and the archived `Project_Guide_v3.3.md`. It covers the AI-agnostic worker model, hydration rules, measurement rules, and export architecture.
+  - docs/archive/Project_Guide_v3.3.md – v3.3 AI worker edition archived for historical context.
   - docs/Project_Guide_v3.2.md – Historical reference.
   - docs/Backlog.md – v3.3-aligned backlog with AI/HUMAN/MIXED tags and archived v3.2 backlog.
   - docs/TESTING.md – Testing guidance for core and FreeCAD-aware runs.
@@ -106,8 +107,8 @@ SECTION: TEST_COVERAGE_SUMMARY
 - Integration end-to-end: PARTIALLY-COVERED (multi-sheet and workflow tests; preview determinism, exhaustion, and warning banner transitions are gaps).
 - Docs structure: WELL-COVERED by tests/test_docs_backlog_structure.py for required anchors.
 
-SECTION: DOCS_AND_WORKFLOW_ALIGNMENT
-- docs/Project_Guide_v3.3.md and docs/Backlog.md appear largely aligned with code: measurement rules, hydration order, ExportJob model, and AI-agnostic workflow are consistent. v3.2 retained for history.
+-SECTION: DOCS_AND_WORKFLOW_ALIGNMENT
+- docs/developer_guide.md (with the archived `docs/archive/Project_Guide_v3.3.md` for historical context) and docs/Backlog.md appear largely aligned with code: measurement rules, hydration order, ExportJob model, and AI-agnostic workflow are consistent. v3.2 retained for history.
 - Docs promise non-destructive preview and UI overflow fixes as targets, not current behavior; code still shares preview/apply path and dense layouts, matching backlog gaps.
 - AI worker references are now tool-agnostic (examples include Codex/Jules but not exclusive).
 - Backlog captures pending work (preview determinism, overflow, exhaustion feedback, DXF deferred) consistent with code state.

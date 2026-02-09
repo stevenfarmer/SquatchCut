@@ -300,14 +300,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../Project_Guide_v3.3/" class="md-nav__link">
+      <a href="../../../archive/Project_Guide_v3.3/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Project Guide v3.3
+    Project Guide v3.3 (archived)
   
 
     
@@ -2650,13 +2650,13 @@ drawer_bottom,21,21,3,Drawer Bottom,Birch Plywood,0.25
 </li>
 <li>
 <p><strong>Optimize Sheet Usage</strong>
-   ```</p>
+  ```</p>
 </li>
 <li>Try different sheet sizes (5'×10' vs 4'×8')</li>
 <li>Adjust margins for production cutting methods</li>
 <li>
-<p>Consider grain direction for appearance parts
-   ```</p>
+<p>Consider appearance requirements for visible faces
+  ```</p>
 </li>
 <li>
 <p><strong>Production Planning</strong>
@@ -2684,9 +2684,9 @@ part_002,18,24,1,Side Panel,Birch Plywood
 
 <h3 id="optional-columns">Optional Columns<a class="headerlink" href="#optional-columns" title="Permanent link">&para;</a></h3>
 <p><strong>Extended Format:</strong></p>
-<div class="codehilite"><pre><span></span><code>id,width,height,quantity,label,material,thickness,grain_direction,notes
-door_1,24,30,2,Cabinet Door,Maple,0.75,vertical,Raised panel style
-shelf_1,23,12,4,Shelf,Birch,0.75,horizontal,Adjustable shelf pins
+<div class="codehilite"><pre><span></span><code>id,width,height,quantity,label,material,thickness,allow_rotate,notes
+door_1,24,30,2,Cabinet Door,Maple,0.75,1,Raised panel style
+shelf_1,23,12,4,Shelf,Birch,0.75,0,Adjustable shelf pins
 </code></pre></div>
 
 <p><strong>Column Descriptions:</strong>
@@ -2697,7 +2697,7 @@ shelf_1,23,12,4,Shelf,Birch,0.75,horizontal,Adjustable shelf pins
 - <strong>label</strong>: Descriptive name for shop use
 - <strong>material</strong>: Wood species or material type
 - <strong>thickness</strong>: Material thickness (for reference)
-- <strong>grain_direction</strong>: Preferred grain orientation
+- <strong>allow_rotate</strong>: Use 1/true/yes to allow 90° rotations
 - <strong>notes</strong>: Additional manufacturing notes</p>
 <h3 id="units-and-formatting">Units and Formatting<a class="headerlink" href="#units-and-formatting" title="Permanent link">&para;</a></h3>
 <p><strong>Imperial Format:</strong></p>

@@ -300,14 +300,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../Project_Guide_v3.3/" class="md-nav__link">
+      <a href="../archive/Project_Guide_v3.3/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Project Guide v3.3
+    Project Guide v3.3 (archived)
   
 
     
@@ -1974,7 +1974,7 @@
 <li><code>session.py</code>: mirrors <code>session_state</code> into the active FreeCAD document, tracks FreeCAD objects, and clears/chases Group nodes.</li>
 <li><code>preferences.py</code> &amp; <code>presets.py</code>: wrap FreeCAD preferences, expose defaults per measurement system, and manage preset metadata used by the TaskPanel.</li>
 <li>
-<p><code>settings.py</code>: hydrates defaults, exposes the configuration API, and guards persistence rules described in <code>docs/Project_Guide_v3.3.md</code>.</p>
+<p><code>settings.py</code>: hydrates defaults, exposes the configuration API, and guards persistence rules described in <code>docs/developer_guide.md</code>.</p>
 </li>
 <li>
 <p><strong>Unit conversion &amp; logging</strong></p>
@@ -2064,7 +2064,7 @@
 <hr />
 <h2 id="5-supporting-documentation-tools">5. Supporting Documentation &amp; Tools<a class="headerlink" href="#5-supporting-documentation-tools" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Docs: <code>docs/Project_Guide_v3.3.md</code> (v3.2 preserved historically), <code>docs/Backlog.md</code>, <code>docs/TESTING.md</code>, <code>docs/Development_Environment.md</code>, <code>docs/user_guide.md</code>, and the root <code>AGENTS.md</code> describe policies every change must obey.</li>
+<li>Docs: <code>docs/developer_guide.md</code> (consolidated from the archived <code>Project_Guide_v3.3.md</code>), <code>docs/Backlog.md</code>, <code>docs/TESTING.md</code>, <code>docs/Development_Environment.md</code>, <code>docs/user_guide.md</code>, and the root <code>AGENTS.md</code> describe policies every change must obey.</li>
 <li>Testing: <code>docs/TESTING.md</code> and the Docker/devcontainer instructions explain how to run <code>pytest</code> (pure Python and FreeCAD-aware) plus <code>FreeCADCmd</code> GUI flows.</li>
 <li>Developer tooling: <code>gui/taskpanel_settings.py</code> and <code>core/gui_tests.py</code> surface the GUI test launcher, while <code>docs/TESTING.md</code> explains the Docker workflow for matching CI.</li>
 <li>Markdown assets (roadmap/backlog) live under <code>docs/</code>; they are validated by <code>tests/test_docs_backlog_structure.py</code> so future edits stay aligned with stated priorities.</li>
