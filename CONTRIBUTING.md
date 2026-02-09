@@ -6,6 +6,12 @@ Thanks for helping improve SquatchCut! This is an active beta project—please o
 
 Before pushing code, review `docs/CI_HEALTH.md` for a summary of the GitHub Actions flows, required pre-flight commands, and troubleshooting tips. Running the local lint/test/docs commands listed there eliminates most sources of CI failure.
 
+To automate those checks, install the pre-commit hook once per workspace:
+```bash
+.venv/bin/pre-commit install
+```
+The hook runs `scripts/precommit-check.sh`, which uses the `.venv` to install requirements, run `ruff check .`, and execute the full pytest suite with the same coverage command used in CI. If you prefer manual control, run the script directly whenever you’re unsure.
+
 ## Getting Started
 1. Create a virtualenv and install dev deps:
    ```bash
