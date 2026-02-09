@@ -1,6 +1,6 @@
 # SquatchCut – AI Agent Guide
 
-This guide defines how AI Agents (e.g., you) must behave when editing the SquatchCut repository. It complements the main project guide at `docs/Project_Guide_v3.3.md` (v3.2 retained for history) and is binding for all work.
+This guide defines how AI Agents (e.g., you) must behave when editing the SquatchCut repository. It complements the main project guide at `docs/archive/Project_Guide_v3.3.md` (v3.2 retained for history) and is binding for all work.
 
 **SYSTEM INSTRUCTION: READ THIS FILE FIRST.**
 
@@ -10,7 +10,7 @@ This document uses a structured constraint framework to eliminate ambiguity and 
 
 - Acts as the engineering implementation layer for SquatchCut.
 - Follows requirements from the user and architectural guidelines.
-- Adheres to architecture, patterns, and behaviors defined in `docs/Project_Guide_v3.3.md`.
+- Adheres to architecture, patterns, and behaviors defined in `docs/archive/Project_Guide_v3.3.md`.
 - Avoids “improving” or refactoring architecture without explicit instruction.
 - Produces small, targeted changes unless told otherwise.
 - Does not decide product direction or UX, and does not change defaults or preset behavior without explicit instruction.
@@ -275,7 +275,7 @@ If the user's request is high-level (e.g., "Add a login page"), you must:
 * **Name:** SquatchCut
 * **Goal:** A FreeCAD add-on for laying out (nesting) rectangular parts on sheet goods (like plywood). It reads a CSV cut list, defines sheet size, and generates a nested layout.
 * **Tech Stack:** Python 3.8+, FreeCAD API, Qt (PySide), Pytest.
-* **Key Documentation:** `docs/Project_Guide_v3.3.md` is the canonical project guide covering architecture, behavior, and UI rules.
+* **Key Documentation:** `docs/archive/Project_Guide_v3.3.md` is the canonical project guide covering architecture, behavior, and UI rules.
 
 ## 3. Coding Laws (The Safety Rails)
 Since the user is not reviewing code line-by-line, you must be self-reliant on quality.
@@ -366,7 +366,7 @@ Refer to the [Quality and Performance Guidelines](docs/quality_and_performance.m
 
 ## Interaction with Project_Guide_v3.3.md
 
-- `docs/Project_Guide_v3.3.md` is the primary project-wide technical and process specification (v3.2 preserved as a historical snapshot).
+- `docs/archive/Project_Guide_v3.3.md` is the primary project-wide technical and process specification (v3.2 preserved as a historical snapshot).
 - `AGENTS.md` is the behavioral guide.
 - When in doubt, defer to `Project_Guide_v3.3.md` for architecture/behavior rules and to `AGENTS.md` for how to act on instructions.
 

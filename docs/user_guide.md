@@ -1,6 +1,6 @@
 # SquatchCut User Guide
 
-Applies to SquatchCut **0.3.x** on **FreeCAD 0.21+**. The CSV/rectangular workflow is production-ready; the shape-based workflow is an **experimental preview**. For AI/worker rules, see [`docs/Project_Guide_v3.3.md`](Project_Guide_v3.3.md).
+Applies to SquatchCut **0.3.x** on **FreeCAD 0.21+**. The CSV/rectangular workflow is production-ready; the shape-based workflow is an **experimental preview**. For AI/worker rules, see [`docs/developer_guide.md`](developer_guide.md).
 
 ---
 

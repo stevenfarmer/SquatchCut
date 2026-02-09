@@ -249,7 +249,7 @@ class ConstraintFramework:
                 "Modifying defaults during hydration",
             ],
             validation_method="Check TaskPanel initialization order in all UI code",
-            source_documents=["AGENTS.md", "Project_Guide_v3.3.md"],
+            source_documents=["AGENTS.md", "DEVELOPER_GUIDE.md"],
         )
 
         self.define_constraint(
@@ -267,7 +267,7 @@ class ConstraintFramework:
                 "Changing defaults when presets are selected",
             ],
             validation_method="Verify no default modifications outside Settings save flow",
-            source_documents=["AGENTS.md", "Project_Guide_v3.3.md"],
+            source_documents=["AGENTS.md", "DEVELOPER_GUIDE.md"],
         )
 
         self.define_constraint(
@@ -284,7 +284,7 @@ class ConstraintFramework:
                 "Inferring presets from loaded defaults",
             ],
             validation_method="Check that preset selection always starts as 'None/Custom'",
-            source_documents=["AGENTS.md", "Project_Guide_v3.3.md"],
+            source_documents=["AGENTS.md", "DEVELOPER_GUIDE.md"],
         )
 
         # CRITICAL Measurement Constraints
@@ -303,7 +303,7 @@ class ConstraintFramework:
                 "Mixed unit calculations",
             ],
             validation_method="Verify all internal calculations use mm units",
-            source_documents=["AGENTS.md", "Project_Guide_v3.3.md"],
+            source_documents=["AGENTS.md", "DEVELOPER_GUIDE.md"],
         )
 
         self.define_constraint(
@@ -321,7 +321,7 @@ class ConstraintFramework:
                 "Inconsistent fractional formatting",
             ],
             validation_method="Check all imperial display formatting uses fractions",
-            source_documents=["AGENTS.md", "Project_Guide_v3.3.md"],
+            source_documents=["AGENTS.md", "DEVELOPER_GUIDE.md"],
         )
 
         # CRITICAL Export Constraints
@@ -340,7 +340,7 @@ class ConstraintFramework:
                 "Custom export functions outside exporter.py",
             ],
             validation_method="Verify no direct export implementations outside exporter.py",
-            source_documents=["AGENTS.md", "Project_Guide_v3.3.md"],
+            source_documents=["AGENTS.md", "DEVELOPER_GUIDE.md"],
         )
 
         self.define_constraint(
@@ -358,7 +358,7 @@ class ConstraintFramework:
                 "Bypassing ExportJob data model",
             ],
             validation_method="Check that exports never derive from FreeCAD document objects when ExportJob exists",
-            source_documents=["AGENTS.md", "Project_Guide_v3.3.md"],
+            source_documents=["AGENTS.md", "DEVELOPER_GUIDE.md"],
         )
 
         # CRITICAL Python Constraints
@@ -377,7 +377,7 @@ class ConstraintFramework:
                 "Using Python 3.10+ exclusive features",
             ],
             validation_method="Check for PEP 604 unions and other modern Python features",
-            source_documents=["AGENTS.md", "Project_Guide_v3.3.md"],
+            source_documents=["AGENTS.md", "DEVELOPER_GUIDE.md"],
         )
 
         self.define_constraint(
@@ -395,7 +395,7 @@ class ConstraintFramework:
                 "from ..gui import commands  # Relative import",
             ],
             validation_method="Scan for relative import statements",
-            source_documents=["AGENTS.md", "Project_Guide_v3.3.md"],
+            source_documents=["AGENTS.md", "DEVELOPER_GUIDE.md"],
         )
 
         # CRITICAL UI Constraints
@@ -414,7 +414,7 @@ class ConstraintFramework:
                 "Unhandled Settings initialization errors",
             ],
             validation_method="Test Settings panel opening under all conditions",
-            source_documents=["AGENTS.md", "Project_Guide_v3.3.md"],
+            source_documents=["AGENTS.md", "DEVELOPER_GUIDE.md"],
         )
 
         # CRITICAL Communication and Collaboration Constraints

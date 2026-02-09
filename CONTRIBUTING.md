@@ -33,7 +33,7 @@ Ruff (`ruff check .`) runs in CI and will fail any PR that introduces lint viola
 ## AI Workers & Detailed Architecture
 If you are an AI worker or need detailed architectural/behavioral rules, please refer to:
 - `AGENTS.md` (in the root directory) for strict behavioral guidelines and the AI worker protocol.
-- `docs/Project_Guide_v3.3.md` for the comprehensive project guide and architecture (v3.2 retained for history).
+- `docs/developer_guide.md` for the comprehensive project guide and architecture (v3.2 retained for history).
 
 The workflow involves multiple AI roles (Architect + AI assistants such as Codex, Jules, or future tools); all tasks must originate from Architect specs.
 

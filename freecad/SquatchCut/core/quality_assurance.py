@@ -16,7 +16,6 @@ class QualityIssueType(Enum):
     INSUFFICIENT_SPACING = "insufficient_spacing"
     ROTATION_ERROR = "rotation_error"
     DIMENSION_MISMATCH = "dimension_mismatch"
-    GRAIN_VIOLATION = "grain_violation"
 
 
 class QualitySeverity(Enum):
@@ -61,14 +60,9 @@ class QualityReport:
 class QualityAssuranceChecker:
     """Performs quality assurance checks on nesting layouts."""
 
-    def __init__(
-        self,
-        min_spacing: float = 3.0,
-        tolerance: float = 0.1,
-    ):
+    def __init__(self, min_spacing: float = 3.0, tolerance: float = 0.1):
         self.min_spacing = min_spacing
         self.tolerance = tolerance
-        # check_grain_direction removed - was unused feature
 
     def check_layout_quality(
         self,
@@ -340,7 +334,6 @@ class QualityAssuranceChecker:
 
         return issues
 
-    # _check_grain_direction_compliance removed - was unused feature
 
     def _rectangles_overlap(
         self,

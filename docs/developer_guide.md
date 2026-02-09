@@ -1,6 +1,6 @@
 # SquatchCut Developer Guide
 
-The authoritative developer guidance is the [SquatchCut Project Guide v3.3 – AI worker edition](Project_Guide_v3.3.md). Follow that document for AI worker communication rules, hydration order, UI constraints, and testing mandates (v3.2 retained for history).
+This is the authoritative developer guidance for AI and human contributors. It consolidates `AGENTS.md` and the archived [SquatchCut Project Guide v3.3 – AI worker edition](archive/Project_Guide_v3.3.md), and it defines the AI worker communication rules, hydration order, UI constraints, and testing mandates (v3.2 retained for history).
 
 ## New Developer Utilities
 
@@ -233,6 +233,10 @@ def process_items(items):
 3. **Implement progress indicators** for operations taking >500ms
 4. **Use batch processing** for memory-intensive operations
 
+## Communication Protocol
+
+AI workers must follow the communication protocol directed by the **lead developer & product manager**. Always remember the **user is a non-technical stakeholder**, so stay high level and avoid jargon. When details are fuzzy, **pause, ask 3-4 clarifying questions** before agreeing to a plan. Once the path forward is clear, **explain your plan in plain english** and deliver **stakeholder-ready check-ins** that summarize progress and next steps. If requirements conflict with each other or with existing constraints, **stop and escalate when instructions conflict** rather than guessing.
+
 ### Error Handling Guidelines
 
 1. **Always use ValidationError** for user input problems
@@ -346,26 +350,6 @@ class NestingStateMachine(RuleBasedStateMachine):
 
 ### Advanced Feature Properties (`tests/test_property_based_advanced.py`)
 
-#### Genetic Algorithm Properties
-
-```python
-@given(genetic_configs())
-def test_genetic_config_validity(self, config):
-    """Property: All genetic configurations should be valid."""
-    assert config.population_size > 0
-    assert 0.0 <= config.mutation_rate <= 1.0
-```
-
-#### Grain Direction Properties
-
-```python
-@given(st.floats(min_value=1.0, max_value=1000.0))
-def test_grain_inference_consistency(self, width, height):
-    """Property: Grain inference should be consistent and logical."""
-    grain = infer_grain_direction_from_dimensions(width, height)
-    # Verifies logical grain direction based on aspect ratio
-```
-
 #### Performance Enhancement Properties
 
 ```python
@@ -473,3 +457,13 @@ Property-based tests run automatically in the test suite and help catch:
 - **UI state inconsistencies** in complex workflows
 
 The comprehensive property test suite provides confidence that SquatchCut handles the wide variety of real-world inputs users will provide.
+
+## Collaboration Workflow
+
+- Follow the **one ai per branch** rule so tasks stay isolated per branch.
+- Name branches `ai/<worker-name>/<feature>` to signal who owns the work.
+- Include an **architect/human reviewer** before merging AI-generated changes.
+- Ensure **commit messages summarize scope and constraints** for every change.
+- PRs must use the **stakeholder-facing template** so reviewers can see intent, tests, and risks.
+- **Never force-push over someone else's work**; create a new branch when you need to rebase shared history.
+- **Record the plan and test outcomes** in the PR description or linked notes so stakeholders can trace what happened.

@@ -1,8 +1,8 @@
-id,width,height,grain_direction,allow_rotate
-P1,600,400,none,1
-P2,800,500,none,0
-P3,300,300,vertical,1
-P4,1200,600,horizontal,0
-P5,500,700,vertical,1
-P6,400,200,none,0
-P7,900,400,horizontal,1
+id,width,height,allow_rotate
+P1,600,400,1
+P2,800,500,0
+P3,300,300,1
+P4,1200,600,0
+P5,500,700,1
+P6,400,200,0
+P7,900,400,1

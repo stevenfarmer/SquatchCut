@@ -79,9 +79,6 @@ def clear_shape_panel_objects() -> None:
     _shape_panel_objects = {}
 
 
-# Genetic algorithm settings removed - feature was unused
-
-
 # --------------------------
 # Sheet size accessors
 # --------------------------

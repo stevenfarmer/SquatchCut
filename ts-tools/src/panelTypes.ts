@@ -9,7 +9,6 @@ export interface Panel {
   id: string;
   width: number;
   height: number;
-  grainDirection?: string;
   rotationAllowed?: boolean;
 }
 

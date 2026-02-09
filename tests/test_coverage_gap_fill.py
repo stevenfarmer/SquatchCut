@@ -100,26 +100,6 @@ class TestSessionStateCoverage:
         session_state.set_export_include_dimensions(True)
         assert session_state.get_export_include_dimensions() is True
 
-    def test_genetic_settings(self):
-        """Cover genetic settings."""
-        session_state.set_use_genetic_algorithm(True)
-        assert session_state.get_use_genetic_algorithm() is True
-
-        session_state.set_genetic_population_size(5) # clamps to 10
-        assert session_state.get_genetic_population_size() == 10
-
-        session_state.set_genetic_generations(5) # clamps to 10
-        assert session_state.get_genetic_generations() == 10
-
-        session_state.set_genetic_mutation_rate(1.5) # clamps to 1.0
-        assert session_state.get_genetic_mutation_rate() == 1.0
-
-        session_state.set_genetic_crossover_rate(-0.1) # clamps to 0.0
-        assert session_state.get_genetic_crossover_rate() == 0.0
-
-        session_state.set_genetic_max_time(10) # clamps to 30
-        assert session_state.get_genetic_max_time() == 30
-
     def test_cut_sequence_settings(self):
         """Cover cut sequence settings."""
         session_state.set_generate_cut_sequence(True)

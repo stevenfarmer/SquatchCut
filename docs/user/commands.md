@@ -8,7 +8,7 @@
 ## Import CSV
 - Loads panel data from a CSV file.
 - Use when panel dimensions are defined externally.
-- Caveats: Ensure required columns (id, width, height; optional grain_direction; optional allow_rotate). Missing `allow_rotate` defaults to no rotation. Invalid rows are skipped with warnings. CSV units follow your measurement system (some builds auto-detect and update it); adjust measurement system in Settings before importing. Internally everything is stored in mm.
+- Caveats: Ensure required columns (id, width, height; optional allow_rotate). Missing `allow_rotate` defaults to no rotation. Invalid rows are skipped with warnings. CSV units follow your measurement system (some builds auto-detect and update it); adjust measurement system in Settings before importing. Internally everything is stored in mm.
 
 ## Run Nesting
 - Executes multi-sheet rectangular nesting for current panels.

@@ -16,7 +16,7 @@ theme:
 nav:
   - Home: index.md
   - Release Notes: release-notes.md
-  - Project Guide v3.3: Project_Guide_v3.3.md
+  - Project Guide v3.3 (archived): archive/Project_Guide_v3.3.md
   - Project Guide v3.2 (Historical): Project_Guide_v3.2.md
   - Getting Started:
       - Installation: getting-started/installation.md

@@ -2,7 +2,7 @@
 
 Version: UAT v0.1  
 Audience: Volunteer / UAT testers  
-Refer to [`docs/Project_Guide_v3.3.md`](Project_Guide_v3.3.md) for the authoritative testing, UI, and AI worker expectations (v3.2 retained for history).
+Refer to [`docs/developer_guide.md`](developer_guide.md) for the authoritative testing, UI, and AI worker expectations (v3.2 retained for history).
 
 Instructions:
 

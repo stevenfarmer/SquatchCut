@@ -1,11 +1,11 @@
-id,width,height,grain_direction,extra_col,allow_rotate
-P_good_1,500,300,none,foo,1
-,600,400,vertical,missing_id,0
-P_bad_width,abc,200,none,bad_width,0
-P_bad_height,400,-50,vertical,bad_height,1
-P_good_2,300,300,horizontal,ok,0
+id,width,height,extra_col,allow_rotate
+P_good_1,500,300,foo,1
+,600,400,missing_id,0
+P_bad_width,abc,200,bad_width,0
+P_bad_height,400,-50,bad_height,1
+P_good_2,300,300,ok,0
 ,,,,
-P_good_3,250,200,none,extra,1
-P_missing_height,200,,none,missing_height,0
-P_negative, -100,100,none,negative_width,1
-P_good_4,150,120,vertical,ok,0
+P_good_3,250,200,extra,1
+P_missing_height,200,,missing_height,0
+P_negative,-100,100,negative_width,1
+P_good_4,150,120,ok,0

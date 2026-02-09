@@ -54,7 +54,7 @@ Required fields:
 
 Optional fields:
 
-- grain_direction
+- allow_rotate (1/true/yes to permit 90° rotation)
 
 CSV validation:
 

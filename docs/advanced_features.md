@@ -4,78 +4,18 @@ This document describes the advanced features implemented in SquatchCut for enha
 
 These features live in the 0.3.x codebase and are aimed at advanced or experimental workflows. Not every toggle is surfaced in the UI; some require enabling settings or calling helpers directly. Exports (CSV/SVG/DXF) are produced via `freecad/SquatchCut/core/exporter.py`, and performance characteristics depend on your dataset—treat the numbers here as guidance, not guarantees.
 
+The advanced feature set now centers on the core experiences described below.
+
 ## Overview
 
-The advanced features system provides five major enhancements to SquatchCut's core functionality:
+The advanced features system now centers on four key enhancements to SquatchCut's core functionality:
 
-1. **Advanced Nesting Algorithms** - Genetic algorithm optimization with grain direction support
-2. **Enhanced Export Capabilities** - SVG with cut lines, DXF export, and enhanced CSV exports
-3. **Smart Cut Optimization** - Automated cut sequence planning for efficient material processing
-4. **Quality Assurance** - Comprehensive layout validation and quality reporting
-5. **Performance Enhancements** - Multi-threading, caching, and memory optimization
+1. **Enhanced Export Capabilities** - SVG with cut lines, DXF export, and enhanced CSV exports
+2. **Smart Cut Optimization** - Automated cut sequence planning for efficient material processing
+3. **Quality Assurance** - Comprehensive layout validation and quality reporting
+4. **Performance Enhancements** - Multi-threading, caching, and memory optimization
 
-## Feature 1: Advanced Nesting Algorithms
-
-### Genetic Algorithm Optimization
-
-The genetic algorithm provides superior nesting results for complex layouts by evolving solutions over multiple generations.
-
-**Key Components:**
-- `GeneticNestingOptimizer` - Main optimization engine
-- `GeneticConfig` - Configuration for population size, generations, mutation rates
-- `Individual` - Represents a single nesting solution in the population
-
-**Configuration Options:**
-```python
-config = GeneticConfig(
-    population_size=50,      # Number of solutions per generation
-    generations=100,         # Number of evolution cycles
-    mutation_rate=0.1,       # Probability of random changes
-    crossover_rate=0.8,      # Probability of combining solutions
-    max_time_seconds=300,    # Maximum optimization time
-    target_utilization=0.95  # Stop if this utilization is reached
-)
-```
-
-**Usage:**
-```python
-from SquatchCut.core.genetic_nesting import genetic_nest_parts, GeneticConfig
-
-config = GeneticConfig(population_size=30, generations=50)
-placed_parts = genetic_nest_parts(parts, sheet_width, sheet_height, config=config)
-```
-
-### Grain Direction Support
-
-Wood grain direction awareness ensures parts are oriented correctly for structural integrity and appearance.
-
-**Grain Directions:**
-- `HORIZONTAL` - Grain runs left-right
-- `VERTICAL` - Grain runs up-down
-- `ANY` - No grain preference
-
-**Key Components:**
-- `GrainAwarePart` - Part with grain direction information
-- `GrainConstraints` - Rules for grain compliance
-- Automatic grain inference from part dimensions
-- Grain compatibility checking and penalty calculation
-
-**Usage:**
-```python
-from SquatchCut.core.grain_direction import GrainAwarePart, GrainConstraints
-
-# Create grain-aware part
-part = GrainAwarePart("panel", 200, 50, grain_direction=GrainDirection.HORIZONTAL)
-
-# Set constraints
-constraints = GrainConstraints(
-    sheet_grain=GrainDirection.HORIZONTAL,
-    enforce_part_grain=True,
-    allow_cross_grain=False
-)
-```
-
-## Feature 2: Enhanced Export Capabilities
+## Feature 1: Enhanced Export Capabilities
 
 ### SVG Export with Cut Lines
 
@@ -133,7 +73,7 @@ Improved CSV exports with measurement system formatting and additional metadata.
 - Rotation and position data
 - Export job metadata
 
-## Feature 3: Smart Cut Optimization
+## Feature 2: Smart Cut Optimization
 
 ### Cut Sequence Planning
 
@@ -145,8 +85,8 @@ Automated planning of optimal cutting sequences to minimize material handling an
 - `CutSequence` - Complete sequence for one sheet
 
 **Cut Types:**
-- **Rip cuts** - Vertical cuts along the grain
-- **Crosscuts** - Horizontal cuts across the grain
+- **Rip cuts** - Vertical cuts
+- **Crosscuts** - Horizontal cuts
 - **Trim cuts** - Final sizing operations
 
 **Planning Strategy:**
@@ -175,7 +115,7 @@ for sequence in sequences:
 - **Cut length optimization** - Only cut where necessary
 - **Time estimation** - Realistic cutting time predictions
 
-## Feature 4: Quality Assurance
+## Feature 3: Quality Assurance
 
 ### Comprehensive Layout Validation
 
@@ -187,7 +127,6 @@ Automated quality checks ensure nesting layouts meet production requirements.
 - **Spacing requirements** - Verify minimum spacing between parts
 - **Rotation validation** - Check for valid rotation angles
 - **Dimension consistency** - Compare with original part specifications
-- **Grain direction compliance** - Validate grain requirements
 
 **Issue Severity Levels:**
 - **Critical** - Must be fixed before production
@@ -223,7 +162,7 @@ Detailed quality reports provide actionable feedback for layout improvements.
 - Suggested fixes for each issue
 - Pass/fail status for each check
 
-## Feature 5: Performance Enhancements
+## Feature 4: Performance Enhancements
 
 ### Intelligent Caching
 
@@ -299,11 +238,6 @@ def memory_efficient_nesting(parts, width, height):
 All advanced features integrate with SquatchCut's session state system:
 
 ```python
-# Enable genetic algorithm
-session_state.set_use_genetic_algorithm(True)
-session_state.set_genetic_population_size(50)
-session_state.set_genetic_generations(100)
-
 # Enable cut sequence generation
 session_state.set_generate_cut_sequence(True)
 ```
@@ -312,10 +246,9 @@ session_state.set_generate_cut_sequence(True)
 
 Advanced features are automatically used when enabled in the main nesting command:
 
-1. **Genetic Algorithm** - Activated when `use_genetic_algorithm` is enabled
-2. **Quality Assurance** - Always runs after nesting completion
-3. **Cut Sequence Planning** - Activated when `generate_cut_sequence` is enabled
-4. **Performance Optimizations** - Applied automatically for large datasets
+1. **Quality Assurance** - Always runs after nesting completion
+2. **Cut Sequence Planning** - Activated when `generate_cut_sequence` is enabled
+3. **Performance Optimizations** - Applied automatically for large datasets
 
 ### Export Integration
 
@@ -327,17 +260,6 @@ Enhanced export capabilities are available through the existing export commands:
 
 ## Configuration and Settings
 
-### Genetic Algorithm Settings
-
-```python
-# Population and evolution settings
-session_state.set_genetic_population_size(50)      # 10-200 recommended
-session_state.set_genetic_generations(100)         # 50-500 recommended
-session_state.set_genetic_mutation_rate(0.1)       # 0.05-0.2 recommended
-session_state.set_genetic_crossover_rate(0.8)      # 0.6-0.9 recommended
-session_state.set_genetic_max_time(300)            # Maximum seconds
-```
-
 ### Quality Assurance Settings
 
 ```python
@@ -345,7 +267,6 @@ session_state.set_genetic_max_time(300)            # Maximum seconds
 checker = QualityAssuranceChecker(
     min_spacing=3.0,           # Minimum spacing between parts (mm)
     tolerance=0.1,             # Measurement tolerance (mm)
-    check_grain_direction=True # Enable grain direction checking
 )
 ```
 
@@ -366,13 +287,6 @@ processor = ParallelNestingProcessor(
 ```
 
 ## Best Practices
-
-### When to Use Genetic Algorithm
-
-- **Complex layouts** with many parts
-- **High utilization requirements** (>90%)
-- **Grain direction constraints** are important
-- **Standard algorithms** produce suboptimal results
 
 ### Export Recommendations
 
@@ -430,7 +344,7 @@ processor = ParallelNestingProcessor(
 The advanced features system is designed for extensibility. Planned enhancements include:
 
 - **Machine learning** optimization algorithms
-- **Advanced grain patterns** (diagonal, radial)
+- **Advanced appearance controls** (diagonal, radial pattern matching)
 - **3D nesting** for thick materials
 - **Real-time collaboration** features
 - **Cloud-based optimization** services
@@ -439,8 +353,8 @@ The advanced features system is designed for extensibility. Planned enhancements
 
 For detailed API documentation, see the individual module documentation:
 
-- `freecad/SquatchCut/core/genetic_nesting.py` - Genetic algorithm implementation
-- `freecad/SquatchCut/core/grain_direction.py` - Grain direction support
+- `freecad/SquatchCut/core/exporter.py` - Export helpers (SVG, DXF, CSV)
 - `freecad/SquatchCut/core/cut_sequence.py` - Cut sequence planning
 - `freecad/SquatchCut/core/quality_assurance.py` - Quality assurance system
 - `freecad/SquatchCut/core/performance_utils.py` - Performance enhancements
+- `freecad/SquatchCut/core/performance_monitor.py` - Performance profiling utilities

@@ -1,6 +1,6 @@
 # SquatchCut Backlog (v3.3 – Addon Manager Readiness)
 
-This backlog targets “ready for FreeCAD Addon Manager” status and aligns with Project_Guide_v3.3.md and SQUATCHCUT_SYNC_REPORT_V4.
+This backlog targets “ready for FreeCAD Addon Manager” status and aligns with `docs/developer_guide.md` (which consolidates AGENTS.md and the archived `Project_Guide_v3.3.md`) and SQUATCHCUT_SYNC_REPORT_V4.
 
 **Tag legend:** `[AI]` = AI-worker-friendly, `[HUMAN]` = human-only, `[MIXED]` = AI-assisted with human judgment.
 
@@ -173,5 +173,4 @@ The sections below preserve the v3.2 backlog for historical reference and valida
 - **Kerf Simulation** – Model saw-specific kerf widths in both packing and cut-friendly heuristics, and expose configuration in the UI and documentation.  
   _Scope_: `freecad/SquatchCut/core/nesting.py`, `freecad/SquatchCut/core/cut_optimization.py`, `docs/user_guide.md`
 
-- **Grain Direction & Bookmatching** – Add metadata/constraints for honoring grain orientation or mirrored/bookmatched layouts, with UI toggles and clear export semantics.  
   _Scope_: `freecad/SquatchCut/core/nesting.py`, `freecad/SquatchCut/gui/taskpanel_main.py`

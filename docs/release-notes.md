@@ -96,5 +96,5 @@
 - Documentation and automation: MVP scope, architecture overview, testing guide, and AI worker workflow playbooks published to the MkDocs site.
 
 ### Notes & known gaps
-- Prototype focuses on rectangular panels; curved/grain-aware nesting and richer previews are future work.
+- Prototype focuses on rectangular panels; curved nesting and richer previews are future work.
 - Expect iteration on export formats (DXF/SVG), material-aware optimization, and UI polish in subsequent releases.

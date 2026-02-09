@@ -183,11 +183,11 @@ drawer_bottom,21,21,3,Drawer Bottom,Birch Plywood,0.25
    ```
 
 2. **Optimize Sheet Usage**
-   ```
-   - Try different sheet sizes (5'×10' vs 4'×8')
-   - Adjust margins for production cutting methods
-   - Consider grain direction for appearance parts
-   ```
+  ```
+  - Try different sheet sizes (5'×10' vs 4'×8')
+  - Adjust margins for production cutting methods
+  - Consider appearance requirements for visible faces
+  ```
 
 3. **Production Planning**
    ```
@@ -219,9 +219,9 @@ part_002,18,24,1,Side Panel,Birch Plywood
 
 **Extended Format:**
 ```csv
-id,width,height,quantity,label,material,thickness,grain_direction,notes
-door_1,24,30,2,Cabinet Door,Maple,0.75,vertical,Raised panel style
-shelf_1,23,12,4,Shelf,Birch,0.75,horizontal,Adjustable shelf pins
+id,width,height,quantity,label,material,thickness,allow_rotate,notes
+door_1,24,30,2,Cabinet Door,Maple,0.75,1,Raised panel style
+shelf_1,23,12,4,Shelf,Birch,0.75,0,Adjustable shelf pins
 ```
 
 **Column Descriptions:**
@@ -232,7 +232,7 @@ shelf_1,23,12,4,Shelf,Birch,0.75,horizontal,Adjustable shelf pins
 - **label**: Descriptive name for shop use
 - **material**: Wood species or material type
 - **thickness**: Material thickness (for reference)
-- **grain_direction**: Preferred grain orientation
+- **allow_rotate**: Use 1/true/yes to allow 90° rotations
 - **notes**: Additional manufacturing notes
 
 ### Units and Formatting

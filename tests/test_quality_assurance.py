@@ -24,7 +24,6 @@ class TestQualityEnums:
         assert QualityIssueType.INSUFFICIENT_SPACING.value == "insufficient_spacing"
         assert QualityIssueType.ROTATION_ERROR.value == "rotation_error"
         assert QualityIssueType.DIMENSION_MISMATCH.value == "dimension_mismatch"
-        assert QualityIssueType.GRAIN_VIOLATION.value == "grain_violation"
 
     def test_quality_severity_values(self):
         """Test quality severity enum values."""
@@ -116,9 +115,7 @@ class TestQualityAssuranceChecker:
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.checker = QualityAssuranceChecker(
-            min_spacing=5.0, tolerance=0.1, check_grain_direction=False
-        )
+        self.checker = QualityAssuranceChecker(min_spacing=5.0, tolerance=0.1)
 
         # Create test placed parts with proper spacing (5mm minimum)
         self.placed_parts = [
@@ -135,7 +132,6 @@ class TestQualityAssuranceChecker:
         """Test checker initialization."""
         assert self.checker.min_spacing == 5.0
         assert self.checker.tolerance == 0.1
-        assert self.checker.check_grain_direction is False
 
     def test_check_overlaps_no_overlap(self):
         """Test overlap detection with no overlaps."""

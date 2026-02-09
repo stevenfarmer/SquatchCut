@@ -68,7 +68,7 @@ Before starting, ensure you have:
    Good Practices:
    ✓ Create parts as separate Body objects
    ✓ Use consistent thickness across similar parts
-   ✓ Design with grain direction in mind
+   ✓ Plan part orientation for consistent appearance
    ✓ Consider kerf compensation in your design
 
    Avoid:
@@ -176,7 +176,7 @@ SquatchCut classifies your parts into categories:
 
 **Selection Tips:**
 - Parts with similar thickness nest better together
-- Consider grain direction requirements
+- Consider appearance and orientation requirements
 - Account for your cutting tool capabilities
 - Leave complex parts for separate nesting runs if needed
 
@@ -442,7 +442,7 @@ SquatchCut provides multiple export formats for different workflows:
 ### 8.2 Selection Phase
 - Start with simple parts to learn the workflow
 - Group similar complexity parts together
-- Consider material and grain direction requirements
+- Consider material requirements and orientation
 - Review shape classifications before proceeding
 
 ### 8.3 Nesting Phase

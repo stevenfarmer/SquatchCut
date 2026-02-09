@@ -51,5 +51,5 @@ SquatchCut is a cryptid-powered nesting workbench for FreeCAD that extracts pane
 
 ### Developer Resources
 - [Developer Guide](architecture.md)
-- [Project Guide v3.3](Project_Guide_v3.3.md)
+- [Project Guide v3.3 (archived)](archive/Project_Guide_v3.3.md)
 - [AI Workflows](ai_workflows.md)

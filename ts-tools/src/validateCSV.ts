@@ -7,7 +7,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import { Panel, PanelInputRow, ValidationResult } from "./panelTypes";
+import { Panel, ValidationResult } from "./panelTypes";
 
 /**
  * TODO: Validate CSV input and return normalized panels.
@@ -35,10 +35,6 @@ export async function validateCSV(filePath: string): Promise<ValidationResult> {
     const key = h;
     headerIndex[key] = i;
   });
-
-  const grainKey =
-    ("grain_direction" in headerIndex && "grain_direction") ||
-    ("grainDirection" in headerIndex && "grainDirection");
 
   lines.forEach((line, idx) => {
     const parts = line.split(",");
@@ -75,10 +71,6 @@ export async function validateCSV(filePath: string): Promise<ValidationResult> {
       height,
       rotationAllowed: true,
     };
-
-    if (grainKey && row[grainKey]) {
-      panel.grainDirection = String(row[grainKey]);
-    }
 
     panels.push(panel);
   });

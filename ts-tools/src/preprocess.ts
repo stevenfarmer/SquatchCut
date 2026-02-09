@@ -33,7 +33,6 @@ export function preprocessPanels(panels: Panel[]): Panel[] {
   }
 
   // Future transformations:
-  // - Normalize grain direction values
   // - Apply grouping/tags
   // - Deduplicate panels
   return result;

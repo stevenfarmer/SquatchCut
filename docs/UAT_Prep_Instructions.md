@@ -2,7 +2,7 @@
 
 Audience: **Volunteer testers / UAT participants**  
 Goal: Help you install SquatchCut and run a simple, repeatable test script.  
-Please follow [`docs/Project_Guide_v3.3.md`](Project_Guide_v3.3.md) for the latest AI worker-aligned instructions and UI expectations before running UAT.
+Please follow [`docs/developer_guide.md`](developer_guide.md) for the latest AI worker-aligned instructions and UI expectations before running UAT.
 
 You do **not** need to know how to code. You do **not** need GitHub.
 

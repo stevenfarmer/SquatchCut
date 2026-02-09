@@ -359,7 +359,7 @@ Solutions:
 
 **Different Wood Species:**
 - Adjust kerf for different materials
-- Consider grain direction for hardwoods
+- Consider appearance and orientation for hardwoods
 - Update cost calculations
 
 **Metric Version:**
@@ -367,12 +367,12 @@ Solutions:
 - Use metric sheet sizes (1220×2440mm)
 - Adjust kerf for metric saw blades
 
-### Advanced Features
+### Advanced Considerations
 
-**Grain Direction:**
-- Add grain direction constraints
-- Optimize for wood strength
-- Consider appearance matching
+**Appearance Matching:**
+- Align repeated elements (rails, stiles, centers) for a consistent look
+- Keep orientation consistent across visible faces
+- Plan pattern or figure continuity before nesting
 
 **Multiple Thicknesses:**
 - Separate nesting runs by thickness

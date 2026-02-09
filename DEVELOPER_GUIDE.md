@@ -19,6 +19,22 @@ This is the single source of truth for SquatchCut development. It defines archit
 - Multiple nesting strategies (material-optimized, cut-optimized)
 - Shape-based nesting (v3.4 experimental)
 
+## Collaboration Workflow
+
+- Coordinate with the **lead developer & product manager** to align AI/human communication expectations.
+- Follow the **one ai per branch** rule so tasks stay isolated per branch.
+- Name branches using `ai/<worker-name>/<feature>` so owners are clear and overlaps are minimized.
+- Involve an **architect/human reviewer** before merging any AI-generated changes.
+- Ensure **commit messages summarize scope and constraints** to capture each change's intent.
+- PRs must use the stakeholder-facing template so reviewers and stakeholders see intent, tests, and risks.
+- **Never force-push over someone else's work**; create a new branch before rebasing shared branches.
+- **Record the plan and test outcomes** in the PR description or linked notes so stakeholders can trace what happened.
+- Always remember the **user is a non-technical stakeholder**; keep language high level, avoid jargon, and explain assumptions and risks clearly.
+- When details are fuzzy, **pause, ask 3-4 clarifying questions** before agreeing to a plan to avoid misunderstandings.
+- When summarizing progress or next steps, **explain your plan in plain english** so any stakeholder can understand the reasoning.
+- If instructions conflict, **stop and escalate when instructions conflict** rather than guessing.
+- Deliver **stakeholder-ready check-ins** that recap progress, status, and blockers for every iteration.
+
 ---
 
 ## Repository Structure
@@ -406,4 +422,3 @@ ruff check .             # Lint only (no fix)
 ---
 
 **Questions?** Check `docs/` or ask the maintainer.
-
