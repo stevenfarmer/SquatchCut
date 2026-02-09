@@ -1977,6 +1977,11 @@
 <td>Manual <code>workflow_dispatch</code> to reapply <code>ruff check . --fix</code> and push fixes</td>
 <td>manual trigger</td>
 </tr>
+<tr>
+<td><strong>Pre-commit check</strong> (<code>precommit-check.yml</code>)</td>
+<td>Create <code>.venv</code> and run <code>scripts/precommit-check.sh</code> (installs dev deps, then runs <code>ruff check .</code> and the coverage-aware pytest suite)</td>
+<td>push/pull_request to <code>main</code>/<code>master</code></td>
+</tr>
 </tbody>
 </table>
 <h2 id="general-requirements-to-keep-the-pipeline-green">General requirements to keep the pipeline green<a class="headerlink" href="#general-requirements-to-keep-the-pipeline-green" title="Permanent link">&para;</a></h2>
@@ -1991,6 +1996,11 @@
    <code>bash
    ruff check .</code>
    The tests job runs <code>ruff check .</code> as well; any new violations will fail CI immediately.</li>
+<li><strong>Automate lint + tests via pre-commit</strong>:</li>
+<li>Activate the <code>.venv</code>: <code>source .venv/bin/activate</code>.</li>
+<li>Install the git hook (once per clone): <code>.venv/bin/pre-commit install</code>.</li>
+<li>On every commit the hook runs <code>scripts/precommit-check.sh</code>, which installs dev deps inside the venv, runs <code>ruff check .</code>, and executes the full pytest suite with the CI coverage flags. That way the same errors surface locally before pushing.
+   The <code>precommit-check.yml</code> workflow mirrors <code>scripts/precommit-check.sh</code> inside a CI <code>.venv</code> on pushes/PRs to <code>main</code>/<code>master</code>, so the same pip install + lint/test combo fails early.</li>
 <li><strong>Run the full test suite locally</strong> (or at least the critical slices) before pushing:
    <code>bash
    PYTHONPATH=freecad python -m pytest --cov=SquatchCut.core.nesting --cov=SquatchCut.core.session_state</code>
