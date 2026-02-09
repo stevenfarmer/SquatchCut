@@ -2,6 +2,10 @@
 
 Thanks for helping improve SquatchCut! This is an active beta project—please open an issue to discuss significant changes before submitting a PR.
 
+## CI/CD expectations
+
+Before pushing code, review `docs/CI_HEALTH.md` for a summary of the GitHub Actions flows, required pre-flight commands, and troubleshooting tips. Running the local lint/test/docs commands listed there eliminates most sources of CI failure.
+
 ## Getting Started
 1. Create a virtualenv and install dev deps:
    ```bash

@@ -44,6 +44,7 @@ nav:
       - AI Worker Workflows: ai_workflows.md
       - Development Environment: Development_Environment.md
       - Developer Guide: developer_guide.md
+      - CI Health & Expectations: CI_HEALTH.md
       - Testing Guide: TESTING.md
       - Quality and Performance: quality_and_performance.md
       - Quickstart: quickstart.md
