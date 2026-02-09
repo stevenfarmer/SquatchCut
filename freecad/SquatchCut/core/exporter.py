@@ -708,8 +708,10 @@ def _add_parts_legend(
 
         # Build the legend entry
         if include_dimensions:
-            dims = _format_dimension_pair(w, h, measurement_system)
-            legend_text = f"{idx}. {part_id} — {dims}"
+            legend_text = (
+                f"{idx}. {part_id} — "
+                f"{_format_dimension_pair(w, h, measurement_system)}"
+            )
         else:
             legend_text = f"{idx}. {part_id}"
 

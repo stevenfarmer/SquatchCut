@@ -7,6 +7,7 @@ This project relies on three GitHub Actions flows:
 | **Tests** (`tests.yml`) | Install `requirements-dev.txt`, run `ruff` and the pytest suite under `PYTHONPATH=freecad` with coverage | push/pull_request to `main`/`master` |
 | **Docs** (`docs.yml`) | Build the MkDocs site with `mkdocs-material` and publish the generated `site/` directory to GitHub Pages | push to `main` (PRs build but don’t deploy) |
 | **Ruff autofix** (`ruff-autofix.yml`) | Manual `workflow_dispatch` to reapply `ruff check . --fix` and push fixes | manual trigger |
+| **Pre-commit check** (`precommit-check.yml`) | Create `.venv` and run `scripts/precommit-check.sh` (installs dev deps, then runs `ruff check .` and the coverage-aware pytest suite) | push/pull_request to `main`/`master` |
 
 ## General requirements to keep the pipeline green
 
@@ -22,12 +23,17 @@ This project relies on three GitHub Actions flows:
    ruff check .
    ```
    The tests job runs `ruff check .` as well; any new violations will fail CI immediately.
-4. **Run the full test suite locally** (or at least the critical slices) before pushing:
+4. **Automate lint + tests via pre-commit**:
+   1. Activate the `.venv`: `source .venv/bin/activate`.
+   2. Install the git hook (once per clone): `.venv/bin/pre-commit install`.
+   3. On every commit the hook runs `scripts/precommit-check.sh`, which installs dev deps inside the venv, runs `ruff check .`, and executes the full pytest suite with the CI coverage flags. That way the same errors surface locally before pushing.
+   The `precommit-check.yml` workflow mirrors `scripts/precommit-check.sh` inside a CI `.venv` on pushes/PRs to `main`/`master`, so the same pip install + lint/test combo fails early.
+5. **Run the full test suite locally** (or at least the critical slices) before pushing:
    ```bash
    PYTHONPATH=freecad python -m pytest --cov=SquatchCut.core.nesting --cov=SquatchCut.core.session_state
    ```
    Keep coverage-sensitive files (`SquatchCut/core/nesting.py`, `session_state.py`) exercised so the `--cov-fail-under=80` threshold stays satisfied.
-5. **Rebuild docs if you edit the MkDocs sources**:
+6. **Rebuild docs if you edit the MkDocs sources**:
    ```bash
    python -m pip install mkdocs mkdocs-material
    mkdocs build --strict
