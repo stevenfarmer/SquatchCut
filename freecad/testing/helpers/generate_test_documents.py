@@ -7,7 +7,6 @@ It creates basic rectangle-based documents used for SquatchCut testing.
 from __future__ import annotations
 
 import FreeCADGui as Gui  # type: ignore
-from Draft import makeRectangle  # type: ignore
 
 import FreeCAD as App  # type: ignore
 
@@ -18,6 +17,8 @@ def create_basic_rectangles_doc():
     rectangular shapes (e.g. Draft rectangles) in the XY plane.
     Labels align with the small CSV fixture where possible.
     """
+    from Draft import makeRectangle  # type: ignore
+
     doc = App.newDocument("SquatchCut_BasicRectangles")
     specs = [
         ("P1", 600, 400, (0, 0, 0)),
@@ -42,6 +43,8 @@ def create_multi_sheet_stress_doc():
     Create a document named 'SquatchCut_MultiSheetTest' with many shapes
     that mimic the multi-sheet CSV fixture.
     """
+    from Draft import makeRectangle  # type: ignore
+
     doc = App.newDocument("SquatchCut_MultiSheetTest")
     sizes = [
         ("L1", 1800, 900),
