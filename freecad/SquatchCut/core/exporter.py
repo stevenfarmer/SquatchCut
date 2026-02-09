@@ -794,7 +794,6 @@ def _add_leader_lines(
 
         # Draw label background for readability
         part_id = escape(str(part.part_id or f"Part-{idx}"))
-        dims = _format_dimension_pair(w, h, measurement_system)
         label_text = f"{idx}. {part_id}"
 
         # Estimate text width for background
