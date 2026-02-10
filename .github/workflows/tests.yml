@@ -37,6 +37,12 @@ jobs:
           # Fails on errors, import sorting, or outdated syntax
           ruff check .
 
+      - name: Type-check with mypy
+        env:
+          PYTHONPATH: freecad
+        run: |
+          mypy freecad/SquatchCut
+
       - name: Run tests with coverage
         env:
           PYTHONPATH: freecad

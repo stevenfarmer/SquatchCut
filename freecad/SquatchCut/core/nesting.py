@@ -316,224 +316,6 @@ def get_effective_spacing(config) -> float:
     return max(0.0, base_spacing + kerf)
 
 
-def _nest_rectangular_default(
-    parts: list[Part],
-    sheet_width: float,
-    sheet_height: float,
-    config: Optional[NestingConfig] = None,
-    sheet_sizes: Optional[list[tuple[float, float]]] = None,
-) -> list[PlacedPart]:
-    """
-    Shelf-based rectangle packing across multiple sheets with optional 90° rotation.
-
-    Rules:
-    - Each sheet is divided into horizontal rows (shelves).
-    - Each row has a fixed height determined by the first part placed in it.
-    - Subsequent parts added to a row must have height <= row_height.
-    - Parts may be rotated 90° (if can_rotate=True) to try to fit.
-    - No row "grows" taller after creation, which guarantees no vertical overlap.
-    - New rows are stacked vertically until the sheet is full.
-    - New sheets are created as needed.
-    - Returns a flat list of PlacedPart with sheet_index + x/y + rotation_deg.
-
-    Raises ValueError if any part cannot fit on a sheet in any allowed orientation.
-    """
-
-    cfg = config or NestingConfig()
-    spacing = get_effective_spacing(cfg)
-    configured_sizes = sheet_sizes if sheet_sizes else [(sheet_width, sheet_height)]
-
-    # Early validation: each part must fit on at least one configured sheet.
-    for p in parts:
-        fits_somewhere = False
-        for sw, sh in configured_sizes:
-            if sw <= 0 or sh <= 0:
-                continue
-            can_fit_unrotated = p.width <= sw and p.height <= sh
-            can_fit_rotated = p.can_rotate and p.height <= sw and p.width <= sh
-            if can_fit_unrotated or can_fit_rotated:
-                fits_somewhere = True
-                break
-        if not fits_somewhere:
-            sw, sh = configured_sizes[0]
-            raise ValueError(
-                f"Part {p.id} ({p.width} x {p.height}) does not fit "
-                f"on sheet {sw} x {sh} in any allowed orientation."
-            )
-
-    # Sort by max dimension so bigger parts get placed first.
-    remaining = sorted(
-        parts,
-        key=lambda p: max(p.width, p.height),
-        reverse=True,
-    )
-
-    placed: list[PlacedPart] = []
-
-    # Each sheet is a list of rows.
-    # Each row is a dict: {"y": float, "height": float, "used_width": float}
-    sheets: list[list[dict]] = []
-    sheets.append([])  # first sheet with no rows yet
-
-    def _sheet_dimensions(index: int) -> tuple[float, float]:
-        return resolve_sheet_dimensions(
-            sheet_sizes or [], index, sheet_width, sheet_height
-        )
-
-    def orientations_for_part(p: Part):
-        """Yield (w, h, rot_deg) options, preferring 0° then 90°."""
-        yield p.width, p.height, 0
-        if p.can_rotate and p.width != p.height:
-            yield p.height, p.width, 90
-
-    for part in remaining:
-        placed_on_sheet = False
-
-        # Try to place the part on existing sheets
-        for sheet_index, rows in enumerate(sheets):
-            # Compute current total height for this sheet from its rows + spacing between rows
-            total_height = 0.0
-            for idx, r in enumerate(rows):
-                total_height += r["height"]
-                if idx < len(rows) - 1:
-                    total_height += spacing
-
-            current_sheet_width, current_sheet_height = _sheet_dimensions(sheet_index)
-            # 1) Try to place in existing rows on this sheet
-            for row in rows:
-                for w, h, rot in orientations_for_part(part):
-                    # Must fit within row height and sheet width
-                    if h > row["height"]:
-                        continue
-                    if row["used_width"] + w + spacing > current_sheet_width + 1e-6:
-                        continue
-
-                    # Place in this row
-                    x = row["used_width"]
-                    y = row["y"]
-
-                    placed.append(
-                        PlacedPart(
-                            id=part.id,
-                            sheet_index=sheet_index,
-                            x=x,
-                            y=y,
-                            width=w,
-                            height=h,
-                            rotation_deg=rot,
-                        )
-                    )
-
-                    row["used_width"] += w + spacing
-                    placed_on_sheet = True
-                    break  # out of orientations
-
-                if placed_on_sheet:
-                    break  # out of rows
-
-            if placed_on_sheet:
-                break  # out of sheets
-
-            # 2) Couldn't fit in any existing row; try to open a new row on this sheet.
-            for w, h, rot in orientations_for_part(part):
-                if w > current_sheet_width:
-                    continue
-
-                row_spacing = spacing if rows else 0.0
-                row_y = total_height + row_spacing
-                new_total_height = row_y + h
-                if new_total_height > current_sheet_height:
-                    continue
-
-                # Start a new row with fixed height = h
-                new_row = {
-                    "y": row_y,
-                    "height": h,
-                    "used_width": w + spacing,
-                }
-                rows.append(new_row)
-
-                placed.append(
-                    PlacedPart(
-                        id=part.id,
-                        sheet_index=sheet_index,
-                        x=0.0,
-                        y=row_y,
-                        width=w,
-                        height=h,
-                        rotation_deg=rot,
-                    )
-                )
-                placed_on_sheet = True
-                break  # out of orientations
-
-            if placed_on_sheet:
-                break  # out of sheets
-
-        if placed_on_sheet:
-            continue
-
-        # 3) Could not place on any existing sheet → create a new sheet
-        new_sheet_index = len(sheets)
-
-        # Check if we're exceeding available sheet quantities
-        if sheet_sizes and new_sheet_index >= len(sheet_sizes):
-            try:
-                from SquatchCut.core import logger
-
-                available_sheets = len(sheet_sizes)
-                logger.warning(
-                    f">>> [SquatchCut] Sheet exhaustion: trying to use sheet {new_sheet_index + 1} "
-                    f"but only {available_sheets} sheet(s) available. Using last available sheet type."
-                )
-            except Exception:
-                # Fallback if logger import fails
-                import warnings
-
-                warnings.warn(
-                    f"Sheet exhaustion: trying to use sheet {new_sheet_index + 1} "
-                    f"but only {len(sheet_sizes)} sheet(s) available.",
-                    stacklevel=2,
-                )
-
-        new_rows: list[dict] = []
-        sheets.append(new_rows)
-
-        placed_here = False
-        new_sheet_width, new_sheet_height = _sheet_dimensions(new_sheet_index)
-        for w, h, rot in orientations_for_part(part):
-            if w <= new_sheet_width and h <= new_sheet_height:
-                new_row = {
-                    "y": 0.0,
-                    "height": h,
-                    "used_width": w,
-                }
-                new_rows.append(new_row)
-
-                placed.append(
-                    PlacedPart(
-                        id=part.id,
-                        sheet_index=new_sheet_index,
-                        x=0.0,
-                        y=0.0,
-                        width=w,
-                        height=h,
-                        rotation_deg=rot,
-                    )
-                )
-                placed_here = True
-                break
-
-        if not placed_here:
-            sw, sh = new_sheet_width, new_sheet_height
-            raise ValueError(
-                f"Part {part.id} ({part.width} x {part.height}) unexpectedly "
-                f"cannot be placed on a new sheet {sw} x {sh}."
-            )
-
-    return placed
-
-
 def nest_on_multiple_sheets(
     parts: list[Part],
     sheet_width: float,
@@ -544,16 +326,17 @@ def nest_on_multiple_sheets(
     """
     Entry that runs the default shelf-based nesting across the supplied sheet definitions.
     """
-    # Standard shelf nesting already respects explicit job sheets via sheet_definitions.
-    sheet_sizes = expand_sheet_sizes(sheet_definitions or [])
-    if not sheet_sizes:
-        sheet_sizes = [(sheet_width, sheet_height)]
-    return _nest_rectangular_default(
+    import importlib
+
+    shelf_module = importlib.import_module("SquatchCut.core.strategies.shelf")
+    shelf_nest = shelf_module.nest_on_multiple_sheets
+
+    return shelf_nest(
         parts,
         sheet_width,
         sheet_height,
         config=config,
-        sheet_sizes=sheet_sizes,
+        sheet_definitions=sheet_definitions,
     )
 
 
@@ -567,272 +350,23 @@ def nest_cut_optimized(
 ) -> list[PlacedPart]:
     """
     Row/column oriented heuristic intended to reduce distinct cut lines.
-
-    - Builds rows top-to-bottom.
-    - Places parts left-to-right within a row, keeping aligned edges.
-    - Starts new rows (or sheets) when horizontal space is exhausted.
-    - Respects simple kerf spacing and edge margin.
-    - Heuristic only: trades some yield for more aligned rip/crosscut lines.
     """
-    if sheet_width <= 0 or sheet_height <= 0:
-        return []
 
-    spacing = max(0.0, kerf)
-    margin = max(0.0, margin)
-    configured_sizes = sheet_sizes or [(sheet_width, sheet_height)]
+    import importlib
 
-    def _usable_dims(sw: float, sh: float) -> tuple[float, float]:
-        return max(0.0, sw - 2 * margin), max(0.0, sh - 2 * margin)
-
-    # Validate parts fit in some orientation within usable area
-    for p in parts:
-        fits_somewhere = False
-        for sw, sh in configured_sizes:
-            if sw <= 0 or sh <= 0:
-                continue
-            usable_width, usable_height = _usable_dims(sw, sh)
-            fits_unrotated = p.width <= usable_width and p.height <= usable_height
-            fits_rotated = (
-                p.can_rotate and p.height <= usable_width and p.width <= usable_height
-            )
-            if fits_unrotated or fits_rotated:
-                fits_somewhere = True
-                break
-        if not fits_somewhere:
-            sample_w, sample_h = configured_sizes[0]
-            usable_width, usable_height = _usable_dims(sample_w, sample_h)
-            raise ValueError(
-                f"Part {p.id} ({p.width} x {p.height}) does not fit "
-                f"in usable sheet area {usable_width} x {usable_height}."
-            )
-
-    sizes = sheet_sizes or []
-
-    def _sheet_dimensions(index: int) -> tuple[float, float]:
-        return resolve_sheet_dimensions(sizes, index, sheet_width, sheet_height)
-
-    sheet_index = 0
-    current_sheet_width, current_sheet_height = _sheet_dimensions(sheet_index)
-    if current_sheet_width <= 0 or current_sheet_height <= 0:
-        return []
-    usable_width, usable_height = _usable_dims(
-        current_sheet_width, current_sheet_height
+    cut_optimized_module = importlib.import_module(
+        "SquatchCut.core.strategies.cut_optimized"
     )
+    cut_optimized_nest = cut_optimized_module.nest_cut_optimized
 
-    remaining: list[Part] = sorted(
+    return cut_optimized_nest(
         parts,
-        key=lambda p: (p.height, p.width),
-        reverse=True,
+        sheet_width,
+        sheet_height,
+        kerf=kerf,
+        margin=margin,
+        sheet_sizes=sheet_sizes,
     )
-
-    placements: list[PlacedPart] = []
-    current_y = margin
-
-    def orientation_options(part: Part):
-        yield part.width, part.height, 0
-        if part.can_rotate and part.width != part.height:
-            yield part.height, part.width, 90
-
-    while remaining:
-        current_x = margin
-        row_height = 0.0
-        placed_this_row = False
-
-        while remaining:
-            # Pick the first part in sorted order that fits the current row.
-            candidate_idx = None
-            candidate_orient = None
-
-            for idx, part in enumerate(remaining):
-                for w, h, rot in orientation_options(part):
-                    if w > usable_width or h > usable_height:
-                        continue
-                    if current_x + w + spacing > current_sheet_width - margin + 1e-6:
-                        continue
-                    if (
-                        current_y + max(row_height, h) + spacing
-                        > current_sheet_height - margin + 1e-6
-                    ):
-                        continue
-                    candidate_idx = idx
-                    candidate_orient = (w, h, rot)
-                    break
-                if candidate_idx is not None:
-                    break
-
-            if candidate_idx is None:
-                break
-
-            part = remaining.pop(candidate_idx)
-            w, h, rot = candidate_orient  # type: ignore
-
-            placements.append(
-                PlacedPart(
-                    id=part.id,
-                    sheet_index=sheet_index,
-                    x=current_x,
-                    y=current_y,
-                    width=w,
-                    height=h,
-                    rotation_deg=rot,
-                )
-            )
-
-            placed_this_row = True
-            current_x += w + kerf
-            row_height = max(row_height, h)
-            current_x += spacing
-
-        if not placed_this_row:
-            # No part fit in this row; start a new sheet.
-            sheet_index += 1
-            current_sheet_width, current_sheet_height = _sheet_dimensions(sheet_index)
-            usable_width, usable_height = _usable_dims(
-                current_sheet_width, current_sheet_height
-            )
-            current_y = margin
-            continue
-
-        # Move to next row
-        current_y += row_height + spacing
-        if current_y > current_sheet_height - margin + 1e-6 and remaining:
-            # Start a new sheet
-            sheet_index += 1
-            current_sheet_width, current_sheet_height = _sheet_dimensions(sheet_index)
-            usable_width, usable_height = _usable_dims(
-                current_sheet_width, current_sheet_height
-            )
-            current_y = margin
-
-    return placements
-
-
-def _nest_cut_friendly(
-    parts: list[Part],
-    sheet_width: float,
-    sheet_height: float,
-    config: Optional[NestingConfig] = None,
-    sheet_sizes: Optional[list[tuple[float, float]]] = None,
-) -> list[PlacedPart]:
-    """
-    Lane-based heuristic aimed at woodshop-style rips/crosscuts.
-
-    - Sort parts by width descending (treat X as rip direction).
-    - Build vertical lanes; each lane has thickness = max width of its parts.
-    - Within a lane, stack parts along Y until height is exceeded, then start a new lane.
-    - If a lane won't fit on the current sheet, start a new sheet.
-    """
-    cfg = config or NestingConfig()
-    kerf = cfg.kerf_width_mm
-    spacing = max(cfg.spacing_mm, 0.0)
-    margin = spacing
-
-    sizes = sheet_sizes or []
-
-    def _sheet_dimensions(index: int) -> tuple[float, float]:
-        return resolve_sheet_dimensions(sizes, index, sheet_width, sheet_height)
-
-    configured_sizes = sizes or [(sheet_width, sheet_height)]
-    for part in parts:
-        fits_somewhere = False
-        for sw, sh in configured_sizes:
-            if sw <= 0 or sh <= 0:
-                continue
-            can_fit = (part.width <= sw and part.height <= sh) or (
-                part.can_rotate and part.height <= sw and part.width <= sh
-            )
-            if can_fit:
-                fits_somewhere = True
-                break
-        if not fits_somewhere:
-            sw, sh = configured_sizes[0]
-            raise ValueError(
-                f"Part {part.id} ({part.width} x {part.height}) does not fit "
-                f"on sheet {sw} x {sh} in any allowed orientation."
-            )
-
-    first_width, first_height = _sheet_dimensions(0)
-    if first_width <= 0 or first_height <= 0:
-        return []
-
-    remaining = sorted(parts, key=lambda p: (p.width, p.height), reverse=True)
-    placements: list[PlacedPart] = []
-
-    sheet_index = 0
-    current_sheet_width, current_sheet_height = first_width, first_height
-    lane_origin_x = margin
-
-    while remaining:
-        # Start a new lane with the widest available part
-        seed = remaining.pop(0)
-        lane_width = seed.width
-        lane_parts = [seed]
-
-        # Collect parts that can fit within this lane width (allow rotation if permitted)
-        fitted = []
-        for p in list(remaining):
-            fits = p.width <= lane_width or (p.can_rotate and p.height <= lane_width)
-            if fits:
-                fitted.append(p)
-        for p in fitted:
-            remaining.remove(p)
-            lane_parts.append(p)
-
-        # Sort lane parts by height descending for stacking
-        lane_parts.sort(
-            key=lambda p: max(p.height, p.width if p.can_rotate else p.height),
-            reverse=True,
-        )
-
-        current_y = margin
-        lane_used_height = 0.0
-        for p in lane_parts:
-            w, h = p.width, p.height
-            rot = 0
-            if p.can_rotate and h > lane_width and w <= lane_width:
-                w, h = h, w
-                rot = 90
-            if w > lane_width:
-                # rotate if possible to fit lane
-                if p.can_rotate and h <= lane_width:
-                    w, h = h, w
-                    rot = 90
-                else:
-                    # Doesn't fit this lane; push back for later
-                    remaining.insert(0, p)
-                    continue
-
-            if current_y + h + margin > current_sheet_height:
-                # Lane full; put part back and break to start a new lane
-                remaining.insert(0, p)
-                break
-
-            placements.append(
-                PlacedPart(
-                    id=p.id,
-                    sheet_index=sheet_index,
-                    x=lane_origin_x,
-                    y=current_y,
-                    width=w,
-                    height=h,
-                    rotation_deg=rot,
-                )
-            )
-            current_y += h + kerf + spacing
-            lane_used_height = max(lane_used_height, current_y)
-
-        lane_thickness = lane_width + spacing
-        lane_origin_x += lane_thickness + kerf
-
-        if lane_origin_x > current_sheet_width - margin:
-            # Move to next sheet
-            sheet_index += 1
-            current_sheet_width, current_sheet_height = _sheet_dimensions(sheet_index)
-            lane_origin_x = margin
-            # Reset order by width for remaining parts on the new sheet
-            remaining.sort(key=lambda p: (p.width, p.height), reverse=True)
-
-    return placements
 
 
 def nest_parts(
@@ -859,11 +393,27 @@ def nest_parts(
             sheet_sizes=sizes,
         )
     if getattr(cfg, "nesting_mode", "pack") == "cut_friendly":
-        return _nest_cut_friendly(
-            parts, sheet_width, sheet_height, cfg, sheet_sizes=sizes
+        import importlib
+
+        cut_friendly_module = importlib.import_module(
+            "SquatchCut.core.strategies.cut_friendly"
         )
-    return _nest_rectangular_default(
-        parts, sheet_width, sheet_height, cfg, sheet_sizes=sizes if sizes else None
+        return cut_friendly_module.nest_cut_friendly(
+            parts,
+            sheet_width,
+            sheet_height,
+            cfg,
+            sheet_sizes=sizes,
+        )
+    import importlib
+
+    shelf_module = importlib.import_module("SquatchCut.core.strategies.shelf")
+    return shelf_module.pack_parts(
+        parts,
+        sheet_width,
+        sheet_height,
+        cfg,
+        sheet_sizes=sizes if sizes else None,
     )
 
 

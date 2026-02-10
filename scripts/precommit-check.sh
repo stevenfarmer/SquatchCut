@@ -14,6 +14,7 @@ export PRE_COMMIT_HOME
 .venv/bin/pip install -r requirements-dev.txt
 
 .venv/bin/ruff check .
+PYTHONPATH=freecad .venv/bin/mypy freecad/SquatchCut
 PYTHONPATH=freecad .venv/bin/python -m pytest \
   --cov=SquatchCut.core.nesting \
   --cov=SquatchCut.core.session_state \

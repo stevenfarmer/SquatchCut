@@ -29,6 +29,12 @@ The hook runs `scripts/precommit-check.sh`, which uses the `.venv` to install re
    ```
    **Note**: `PYTHONPATH=freecad` is required because the codebase imports modules as `from SquatchCut...` rather than `from freecad.SquatchCut...`. This ensures compatibility with both the FreeCAD internal module loader and external test runners.
 
+   Additionally, keep the new type checker happy:
+   ```bash
+   PYTHONPATH=freecad .venv/bin/mypy freecad/SquatchCut
+   ```
+   The `pyproject.toml` configuration silences missing FreeCAD stubs and matches the CI workflow so you can catch typing issues before pushing.
+
 3. Optional: run FreeCAD E2E scripts inside FreeCAD (see `freecad/testing/`).
 
 ## Style & Expectations

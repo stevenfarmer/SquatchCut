@@ -20,33 +20,26 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install Ruff
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install ruff
+          if [ -f requirements-dev.txt ]; then
+            pip install -r requirements-dev.txt
+          fi
 
       - name: Run Ruff autofix
         run: |
           # Run ruff fix and capture exit code, but don't fail the workflow
           ruff check . --fix || echo "Ruff found issues that couldn't be auto-fixed"
 
-      - name: Check for changes
-        id: git_status
+      - name: Stage and commit autofix changes
         run: |
-          if git diff --quiet; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No Ruff changes to commit."
           else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git config user.name "${{ github.actor }}"
+            git config user.email "${{ github.actor }}@users.noreply.github.com"
+            git commit -m "chore: apply ruff autofix"
+            git push
           fi
-
-      - name: Commit and push changes
-        if: steps.git_status.outputs.changed == 'true'
-        run: |
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor }}@users.noreply.github.com"
-          git commit -am "chore: apply ruff autofix"
-          git push
-
-      - name: No changes to commit
-        if: steps.git_status.outputs.changed == 'false'
-        run: echo "No Ruff changes to commit."

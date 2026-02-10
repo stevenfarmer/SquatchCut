@@ -18,8 +18,10 @@ from SquatchCut.core.preferences import SquatchCutPreferences
 from SquatchCut.freecad_integration import App, Gui
 from SquatchCut.gui.commands import cmd_run_nesting
 from SquatchCut.gui.qt_compat import QtCore, QtWidgets
+from SquatchCut.gui.taskpanel_banner import SheetWarningBanner
 from SquatchCut.gui.taskpanel_input import InputGroupWidget
 from SquatchCut.gui.taskpanel_nesting import NestingGroupWidget
+from SquatchCut.gui.taskpanel_output import TaskPanelOutputWidget
 from SquatchCut.gui.taskpanel_sheet import SheetConfigWidget
 from SquatchCut.ui.messages import show_error
 
@@ -104,8 +106,8 @@ class SquatchCutTaskPanel:
             layout.setSpacing(8)
 
         # 1. Warning Banner
-        self.sheet_warning_container = self._build_sheet_warning_banner()
-        layout.addWidget(self.sheet_warning_container)
+        self.sheet_warning_widget = SheetWarningBanner()
+        layout.addWidget(self.sheet_warning_widget)
 
         # 2. Input Group
         self.input_widget = InputGroupWidget(self._prefs)
@@ -128,9 +130,33 @@ class SquatchCutTaskPanel:
         self.nesting_widget.settings_changed.connect(self._on_nesting_settings_changed)
         layout.addWidget(self.nesting_widget)
 
-        # 5. Output/Results Group (Kept local for now)
-        self.output_group = self._build_output_group()
-        layout.addWidget(self.output_group)
+        # 5. Output/Results Group
+        self.output_widget = TaskPanelOutputWidget()
+        self.output_widget.btnViewSource.clicked.connect(self._on_view_source_clicked)
+        self.output_widget.btnViewSheets.clicked.connect(self._on_view_sheets_clicked)
+        self.output_widget.show_sheet_check.toggled.connect(self._on_view_toggled)
+        self.output_widget.show_nested_check.toggled.connect(self._on_view_toggled)
+        self.output_widget.show_part_labels_check.toggled.connect(
+            self._on_nesting_view_toggled
+        )
+        self.output_widget.simplified_view_check.toggled.connect(
+            self._on_nesting_view_toggled
+        )
+        self.output_widget.show_source_button.clicked.connect(self.on_show_source_panels)
+        self.output_widget.export_button.clicked.connect(self.on_export_clicked)
+        self.output_widget.include_labels_check.stateChanged.connect(
+            self._on_export_options_changed
+        )
+        self.output_widget.include_dimensions_check.stateChanged.connect(
+            self._on_export_options_changed
+        )
+        self.output_widget.include_leader_lines_check.stateChanged.connect(
+            self._on_export_options_changed
+        )
+        self.output_widget.btnExportCutlist.clicked.connect(
+            self.on_export_cutlist_clicked
+        )
+        layout.addWidget(self.output_widget)
 
         # Report bug link
         report_row = QtWidgets.QHBoxLayout()
@@ -142,176 +168,6 @@ class SquatchCutTaskPanel:
         layout.addLayout(report_row)
 
         layout.addStretch(1)
-
-    def _build_sheet_warning_banner(self) -> QtWidgets.QWidget:
-        container = QtWidgets.QFrame()
-        if hasattr(container, "setObjectName"):
-            container.setObjectName("sheet_warning_banner")
-        if hasattr(container, "setFrameShape"):
-            container.setFrameShape(QtWidgets.QFrame.StyledPanel)
-
-        # Use tighter margins and spacing for narrow docks
-        layout = QtWidgets.QVBoxLayout(container)
-        layout.setContentsMargins(6, 3, 6, 3)
-        layout.setSpacing(2)
-
-        self.sheet_warning_label = QtWidgets.QLabel("")
-        if hasattr(self.sheet_warning_label, "setWordWrap"):
-            self.sheet_warning_label.setWordWrap(True)
-
-        # More compact styling for narrow layouts
-        self.sheet_warning_label.setStyleSheet(
-            "color: #b26b00; font-size: 11px; padding: 2px;"
-        )
-
-        layout.addWidget(self.sheet_warning_label)
-        if hasattr(container, "setVisible"):
-            container.setVisible(False)
-        return container
-
-    def _build_output_group(self) -> QtWidgets.QGroupBox:
-        group = QtWidgets.QGroupBox("Output")
-        if hasattr(group, "setObjectName"):
-            group.setObjectName("output_group_box")
-        vbox = QtWidgets.QVBoxLayout(group)
-
-        # Stacked controls keep narrow docks from clipping text/buttons.
-        self.view_controls_container = QtWidgets.QWidget()
-        view_controls_layout = QtWidgets.QVBoxLayout(self.view_controls_container)
-        view_controls_layout.setContentsMargins(0, 0, 0, 0)
-        view_controls_layout.setSpacing(2)
-        view_controls_layout.addWidget(QtWidgets.QLabel("View:"))
-        self.btnViewSource = QtWidgets.QToolButton()
-        self.btnViewSource.setText("Source")
-        self.btnViewSource.setCheckable(True)
-        self.btnViewSource.setAutoRaise(True)
-        self.btnViewSource.clicked.connect(self._on_view_source_clicked)
-        view_controls_layout.addWidget(self.btnViewSource)
-        self.btnViewSheets = QtWidgets.QToolButton()
-        self.btnViewSheets.setText("Nested")
-        self.btnViewSheets.setCheckable(True)
-        self.btnViewSheets.setAutoRaise(True)
-        self.btnViewSheets.clicked.connect(self._on_view_sheets_clicked)
-        view_controls_layout.addWidget(self.btnViewSheets)
-        vbox.addWidget(self.view_controls_container)
-
-        self.visibility_controls_container = QtWidgets.QWidget()
-        visibility_layout = QtWidgets.QVBoxLayout(self.visibility_controls_container)
-        visibility_layout.setContentsMargins(0, 0, 0, 0)
-        visibility_layout.setSpacing(2)
-        self.show_sheet_check = QtWidgets.QCheckBox("Show sheet boundary")
-        self.show_nested_check = QtWidgets.QCheckBox("Show nested parts")
-        self.show_sheet_check.setChecked(True)
-        self.show_nested_check.setChecked(True)
-        self.show_sheet_check.toggled.connect(self._on_view_toggled)
-        self.show_nested_check.toggled.connect(self._on_view_toggled)
-        visibility_layout.addWidget(self.show_sheet_check)
-        visibility_layout.addWidget(self.show_nested_check)
-        vbox.addWidget(self.visibility_controls_container)
-
-        # Nesting View Controls
-        self.nesting_view_controls_container = QtWidgets.QWidget()
-        nesting_view_layout = QtWidgets.QVBoxLayout(
-            self.nesting_view_controls_container
-        )
-        nesting_view_layout.setContentsMargins(0, 0, 0, 0)
-        nesting_view_layout.setSpacing(2)
-
-        # Quick toggles for common settings
-        nesting_view_layout.addWidget(QtWidgets.QLabel("Nesting View:"))
-
-        nesting_controls_row = QtWidgets.QHBoxLayout()
-        nesting_controls_row.setContentsMargins(0, 0, 0, 0)
-        nesting_controls_row.setSpacing(4)
-
-        self.show_part_labels_check = QtWidgets.QCheckBox("Labels")
-        self.show_part_labels_check.setToolTip("Show part ID labels on nested pieces")
-        self.show_part_labels_check.toggled.connect(self._on_nesting_view_toggled)
-        nesting_controls_row.addWidget(self.show_part_labels_check)
-
-        self.simplified_view_check = QtWidgets.QCheckBox("Simple")
-        self.simplified_view_check.setToolTip("Use simplified view for complex layouts")
-        self.simplified_view_check.toggled.connect(self._on_nesting_view_toggled)
-        nesting_controls_row.addWidget(self.simplified_view_check)
-
-        nesting_controls_row.addStretch()
-        nesting_view_layout.addLayout(nesting_controls_row)
-        vbox.addWidget(self.nesting_view_controls_container)
-
-        self.show_source_button = QtWidgets.QPushButton("Show Source View")
-        self.show_source_button.clicked.connect(self.on_show_source_panels)
-        vbox.addWidget(self.show_source_button)
-
-        stats_frame = QtWidgets.QFrame()
-        stats_layout = QtWidgets.QFormLayout(stats_frame)
-        self.mode_label = QtWidgets.QLabel("Mode: –")
-        self.sheets_label = QtWidgets.QLabel("Sheets used: –")
-        self.utilization_label = QtWidgets.QLabel("Utilization: –")
-        self.cutcount_label = QtWidgets.QLabel("Estimated cuts: –")
-        self.unplaced_label = QtWidgets.QLabel("Unplaced parts: –")
-        self.stats_sheets_label = QtWidgets.QLabel("Number of sheets used: –")
-        self.stats_complexity_label = QtWidgets.QLabel(
-            "Estimated cut path complexity: –"
-        )
-        self.overlaps_label = QtWidgets.QLabel("Overlaps: –")
-        self.sheet_utilization_label = QtWidgets.QLabel("Sheet utilization range: –")
-
-        stats_layout.addRow("Mode:", self.mode_label)
-        stats_layout.addRow("Sheets:", self.sheets_label)
-        stats_layout.addRow("Utilization:", self.utilization_label)
-        stats_layout.addRow(
-            "Sheet utilization:",
-            self.sheet_utilization_label,
-        )
-        stats_layout.addRow("Estimated cuts:", self.cutcount_label)
-        stats_layout.addRow("Unplaced parts:", self.unplaced_label)
-        stats_layout.addRow("Sheets used:", self.stats_sheets_label)
-        stats_layout.addRow("Cut path complexity:", self.stats_complexity_label)
-        stats_layout.addRow("Overlaps:", self.overlaps_label)
-        vbox.addWidget(stats_frame)
-
-        self.status_label = QtWidgets.QLabel("Status: Ready")
-        self.status_label.setStyleSheet("color: gray;")
-        vbox.addWidget(self.status_label)
-
-        self.export_controls_container = QtWidgets.QWidget()
-        export_layout = QtWidgets.QVBoxLayout(self.export_controls_container)
-        export_layout.setContentsMargins(0, 0, 0, 0)
-        export_layout.setSpacing(4)
-
-        self.export_format_combo = QtWidgets.QComboBox()
-        self.export_format_combo.addItem("DXF", "dxf")
-        self.export_format_combo.addItem("SVG", "svg")
-        self.export_format_combo.addItem("Cut list CSV", "cutlist_csv")
-        self.export_format_combo.addItem("Cut list instructions (text)", "cutlist_txt")
-
-        self.export_button = QtWidgets.QPushButton("Export Layout")
-        self.export_button.clicked.connect(self.on_export_clicked)
-
-        self.include_labels_check = QtWidgets.QCheckBox("Include part labels")
-        self.include_dimensions_check = QtWidgets.QCheckBox("Include dimensions")
-        self.include_leader_lines_check = QtWidgets.QCheckBox("Include leader lines")
-        self.include_labels_check.stateChanged.connect(self._on_export_options_changed)
-        self.include_dimensions_check.stateChanged.connect(
-            self._on_export_options_changed
-        )
-        self.include_leader_lines_check.stateChanged.connect(
-            self._on_export_options_changed
-        )
-
-        export_layout.addWidget(QtWidgets.QLabel("Export format:"))
-        export_layout.addWidget(self.export_format_combo)
-        export_layout.addWidget(self.include_labels_check)
-        export_layout.addWidget(self.include_dimensions_check)
-        export_layout.addWidget(self.include_leader_lines_check)
-        export_layout.addWidget(self.export_button)
-        vbox.addWidget(self.export_controls_container)
-
-        self.btnExportCutlist = QtWidgets.QPushButton("Cutlist CSV")
-        self.btnExportCutlist.clicked.connect(self.on_export_cutlist_clicked)
-        vbox.addWidget(self.btnExportCutlist)
-
-        return group
 
     def _compute_initial_state(
         self, doc, doc_measurement_system: Optional[str] = None
@@ -372,22 +228,24 @@ class SquatchCutTaskPanel:
         self.sheet_widget.apply_state(state)
         self.nesting_widget.apply_state(state)
 
-        self.include_labels_check.setChecked(bool(state["include_labels"]))
-        self.include_dimensions_check.setChecked(bool(state["include_dimensions"]))
+        self.output_widget.include_labels_check.setChecked(bool(state["include_labels"]))
+        self.output_widget.include_dimensions_check.setChecked(
+            bool(state["include_dimensions"])
+        )
 
         # Initialize leader lines from preferences (default to False)
         try:
             include_leader_lines = self._prefs.get_export_include_leader_lines()
         except Exception:
             include_leader_lines = False
-        self.include_leader_lines_check.setChecked(include_leader_lines)
+        self.output_widget.include_leader_lines_check.setChecked(include_leader_lines)
 
         # Initialize nesting view controls with user preferences
         try:
-            self.show_part_labels_check.setChecked(
+            self.output_widget.show_part_labels_check.setChecked(
                 self._prefs.get_nesting_show_part_labels()
             )
-            self.simplified_view_check.setChecked(
+            self.output_widget.simplified_view_check.setChecked(
                 self._prefs.get_nesting_simplified_view()
             )
         except Exception as e:
@@ -450,16 +308,12 @@ class SquatchCutTaskPanel:
         )
         show_warning = advanced and sheet_count > 1 and uses_cut_modes
 
-        if hasattr(self.sheet_warning_container, "setVisible"):
-            self.sheet_warning_container.setVisible(show_warning)
-
+        warning_message = (
+            "Advanced job sheets with cut-friendly or guillotine layouts are partially supported. "
+            "Sheets are processed sequentially; review the layout to ensure each configured sheet was used."
+        )
+        self.sheet_warning_widget.update_warning(show_warning, warning_message)
         self._sheet_warning_active = show_warning
-
-        if show_warning:
-            self.sheet_warning_label.setText(
-                "Advanced job sheets with cut-friendly or guillotine layouts are partially supported. "
-                "Sheets are processed sequentially; review the layout to ensure each configured sheet was used."
-            )
 
     def _validate_readiness(self):
         # Update sheet warning state
@@ -479,7 +333,7 @@ class SquatchCutTaskPanel:
             self.set_status("Ready.")
 
     def set_status(self, msg):
-        self.status_label.setText(f"Status: {msg}")
+        self.output_widget.set_status(msg)
 
     def update_run_button_state(self):
         """Legacy alias for _validate_readiness (used by tests)."""
@@ -605,11 +459,15 @@ class SquatchCutTaskPanel:
         util = compute_utilization_for_sheets(layout, sheet_sizes)
         cuts = estimate_cut_counts_for_sheets(layout, sheet_sizes)
 
-        self.sheets_label.setText(f"Sheets used: {util.get('sheets_used', 0)}")
-        self.utilization_label.setText(
+        self.output_widget.sheets_label.setText(
+            f"Sheets used: {util.get('sheets_used', 0)}"
+        )
+        self.output_widget.utilization_label.setText(
             f"Utilization: {util.get('utilization_percent', 0.0):.1f}%"
         )
-        self.cutcount_label.setText(f"Estimated cuts: {cuts.get('total', 0)}")
+        self.output_widget.cutcount_label.setText(
+            f"Estimated cuts: {cuts.get('total', 0)}"
+        )
         per_sheet = util.get("per_sheet_stats") or []
         if per_sheet:
             min_util = min(s["utilization_percent"] for s in per_sheet)
@@ -620,24 +478,28 @@ class SquatchCutTaskPanel:
                 range_text = f"{min_util:.1f}%–{max_util:.1f}%"
         else:
             range_text = "–"
-        self.sheet_utilization_label.setText(range_text)
+        self.output_widget.sheet_utilization_label.setText(range_text)
 
         stats = session_state.get_nesting_stats()
         self.overlaps_count = stats.get("overlaps_count", 0) or 0
         if self.overlaps_count > 0:
-            self.overlaps_label.setText(f"{self.overlaps_count} conflicts!")
-            self.overlaps_label.setStyleSheet("color: red;")
+            self.output_widget.overlaps_label.setText(
+                f"{self.overlaps_count} conflicts!"
+            )
+            self.output_widget.overlaps_label.setStyleSheet("color: red;")
         else:
-            self.overlaps_label.setText("None")
-            self.overlaps_label.setStyleSheet("")
+            self.output_widget.overlaps_label.setText("None")
+            self.output_widget.overlaps_label.setStyleSheet("")
 
     def _on_export_options_changed(self):
-        self._prefs.set_export_include_labels(self.include_labels_check.isChecked())
+        self._prefs.set_export_include_labels(
+            self.output_widget.include_labels_check.isChecked()
+        )
         self._prefs.set_export_include_dimensions(
-            self.include_dimensions_check.isChecked()
+            self.output_widget.include_dimensions_check.isChecked()
         )
         self._prefs.set_export_include_leader_lines(
-            self.include_leader_lines_check.isChecked()
+            self.output_widget.include_leader_lines_check.isChecked()
         )
 
     def on_export_clicked(self):
@@ -648,7 +510,7 @@ class SquatchCutTaskPanel:
             self.set_status("No layout to export.")
             return
 
-        fmt = self.export_format_combo.currentData()
+        fmt = self.output_widget.export_format_combo.currentData()
         # ... logic similar to before, simplified ...
         initial_path = exporter.suggest_export_path(
             self._ensure_document(),
@@ -669,9 +531,9 @@ class SquatchCutTaskPanel:
                 exporter.export_nesting_to_svg(
                     export_job,
                     file_path,
-                    include_labels=self.include_labels_check.isChecked(),
-                    include_dimensions=self.include_dimensions_check.isChecked(),
-                    include_leader_lines=self.include_leader_lines_check.isChecked(),
+                    include_labels=self.output_widget.include_labels_check.isChecked(),
+                    include_dimensions=self.output_widget.include_dimensions_check.isChecked(),
+                    include_leader_lines=self.output_widget.include_leader_lines_check.isChecked(),
                 )
             elif fmt == "dxf":
                 exporter.export_nesting_to_dxf(export_job, file_path)
@@ -683,13 +545,13 @@ class SquatchCutTaskPanel:
 
     # View toggles (simplified)
     def _on_view_source_clicked(self):
-        self.btnViewSource.setChecked(True)
-        self.btnViewSheets.setChecked(False)
+        self.output_widget.btnViewSource.setChecked(True)
+        self.output_widget.btnViewSheets.setChecked(False)
         view_controller.show_source_view(self._ensure_document())
 
     def _on_view_sheets_clicked(self):
-        self.btnViewSource.setChecked(False)
-        self.btnViewSheets.setChecked(True)
+        self.output_widget.btnViewSource.setChecked(False)
+        self.output_widget.btnViewSheets.setChecked(True)
         view_controller.show_nesting_view(self._ensure_document())
 
     def on_show_source_panels(self):
@@ -704,8 +566,12 @@ class SquatchCutTaskPanel:
         try:
             # Update preferences
             prefs = self._prefs
-            prefs.set_nesting_show_part_labels(self.show_part_labels_check.isChecked())
-            prefs.set_nesting_simplified_view(self.simplified_view_check.isChecked())
+            prefs.set_nesting_show_part_labels(
+                self.output_widget.show_part_labels_check.isChecked()
+            )
+            prefs.set_nesting_simplified_view(
+                self.output_widget.simplified_view_check.isChecked()
+            )
 
             # Trigger view refresh if we have nested parts
             if hasattr(self, "_last_nesting_result") and self._last_nesting_result:
