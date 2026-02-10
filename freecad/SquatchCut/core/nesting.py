@@ -316,6 +316,52 @@ def get_effective_spacing(config) -> float:
     return max(0.0, base_spacing + kerf)
 
 
+def _nest_rectangular_default(
+    parts: list[Part],
+    sheet_width: float,
+    sheet_height: float,
+    config: Optional[NestingConfig] = None,
+    sheet_sizes: Optional[list[tuple[float, float]]] = None,
+) -> list[PlacedPart]:
+    """
+    Backwards-compatible entry for the shelf-based packer.
+    """
+    import importlib
+
+    shelf_module = importlib.import_module("SquatchCut.core.strategies.shelf")
+    return shelf_module.pack_parts(
+        parts,
+        sheet_width,
+        sheet_height,
+        config=config,
+        sheet_sizes=sheet_sizes,
+    )
+
+
+def _nest_cut_friendly(
+    parts: list[Part],
+    sheet_width: float,
+    sheet_height: float,
+    config: Optional[NestingConfig] = None,
+    sheet_sizes: Optional[list[tuple[float, float]]] = None,
+) -> list[PlacedPart]:
+    """
+    Backwards-compatible entry for the cut-friendly lane packer.
+    """
+    import importlib
+
+    cut_friendly_module = importlib.import_module(
+        "SquatchCut.core.strategies.cut_friendly"
+    )
+    return cut_friendly_module.nest_cut_friendly(
+        parts,
+        sheet_width,
+        sheet_height,
+        config=config,
+        sheet_sizes=sheet_sizes,
+    )
+
+
 def nest_on_multiple_sheets(
     parts: list[Part],
     sheet_width: float,

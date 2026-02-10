@@ -108,6 +108,9 @@ class SquatchCutTaskPanel:
         # 1. Warning Banner
         self.sheet_warning_widget = SheetWarningBanner()
         layout.addWidget(self.sheet_warning_widget)
+        # Backwards-compatible aliases for tests and older integrations.
+        self.sheet_warning_container = self.sheet_warning_widget
+        self.sheet_warning_label = self.sheet_warning_widget.label
 
         # 2. Input Group
         self.input_widget = InputGroupWidget(self._prefs)
@@ -132,6 +135,28 @@ class SquatchCutTaskPanel:
 
         # 5. Output/Results Group
         self.output_widget = TaskPanelOutputWidget()
+        # Backwards-compatible aliases for tests and older integrations.
+        self.output_group = self.output_widget
+        self.view_controls_container = self.output_widget.view_controls_container
+        self.visibility_controls_container = self.output_widget.visibility_controls_container
+        self.nesting_view_controls_container = (
+            self.output_widget.nesting_view_controls_container
+        )
+        self.export_controls_container = self.output_widget.export_controls_container
+        self.btnViewSource = self.output_widget.btnViewSource
+        self.btnViewSheets = self.output_widget.btnViewSheets
+        self.show_sheet_check = self.output_widget.show_sheet_check
+        self.show_nested_check = self.output_widget.show_nested_check
+        self.show_part_labels_check = self.output_widget.show_part_labels_check
+        self.simplified_view_check = self.output_widget.simplified_view_check
+        self.show_source_button = self.output_widget.show_source_button
+        self.export_button = self.output_widget.export_button
+        self.export_format_combo = self.output_widget.export_format_combo
+        self.include_labels_check = self.output_widget.include_labels_check
+        self.include_dimensions_check = self.output_widget.include_dimensions_check
+        self.include_leader_lines_check = self.output_widget.include_leader_lines_check
+        self.btnExportCutlist = self.output_widget.btnExportCutlist
+        self.status_label = self.output_widget.status_label
         self.output_widget.btnViewSource.clicked.connect(self._on_view_source_clicked)
         self.output_widget.btnViewSheets.clicked.connect(self._on_view_sheets_clicked)
         self.output_widget.show_sheet_check.toggled.connect(self._on_view_toggled)
