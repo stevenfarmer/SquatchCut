@@ -418,6 +418,17 @@ class InputGroupWidget(QtWidgets.QGroupBox):
                 # Update session state with selected shapes
                 session_state.set_panels(panels)
                 session_state.set_shape_panel_objects(shape_panel_map)
+                try:
+                    from SquatchCut.core import session
+
+                    session.set_source_panel_objects(
+                        [obj for obj in shape_panel_map.values() if obj is not None]
+                    )
+                    session_state.set_source_panel_objects(
+                        [obj for obj in shape_panel_map.values() if obj is not None]
+                    )
+                except Exception:
+                    pass
 
                 # Update UI
                 self._set_csv_label("")  # Clear CSV label
