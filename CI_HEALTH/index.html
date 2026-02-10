@@ -1974,7 +1974,7 @@
 </tr>
 <tr>
 <td><strong>Ruff autofix</strong> (<code>ruff-autofix.yml</code>)</td>
-<td>Manual <code>workflow_dispatch</code> to reapply <code>ruff check . --fix</code> and push fixes</td>
+<td>Manual <code>workflow_dispatch</code> that installs <code>requirements-dev.txt</code>, runs <code>ruff check . --fix</code>, stages all files, and pushes the autofix commit</td>
 <td>manual trigger</td>
 </tr>
 <tr>
@@ -1991,15 +1991,19 @@
    <code>bash
    python -m pip install --upgrade pip
    pip install -r requirements-dev.txt</code>
-   Keep <code>requirements-dev.txt</code> up to date whenever you add tools used by CI (pytest, ruff, hypothesis, etc.).</li>
+   Keep <code>requirements-dev.txt</code> up to date whenever you add tools used by CI (pytest, ruff, hypothesis, mypy, etc.).</li>
 <li><strong>Lint locally before pushing</strong>:
    <code>bash
    ruff check .</code>
    The tests job runs <code>ruff check .</code> as well; any new violations will fail CI immediately.</li>
+<li><strong>Type check the core package</strong>:
+   <code>bash
+   PYTHONPATH=freecad mypy freecad/SquatchCut</code>
+   The CI job mirrors this command and relies on the <code>pyproject.toml</code> configuration so you can catch typing issues before opening a PR.</li>
 <li><strong>Automate lint + tests via pre-commit</strong>:</li>
 <li>Activate the <code>.venv</code>: <code>source .venv/bin/activate</code>.</li>
 <li>Install the git hook (once per clone): <code>.venv/bin/pre-commit install</code>.</li>
-<li>On every commit the hook runs <code>scripts/precommit-check.sh</code>, which installs dev deps inside the venv, runs <code>ruff check .</code>, and executes the full pytest suite with the CI coverage flags. That way the same errors surface locally before pushing.
+<li>On every commit the hook runs <code>scripts/precommit-check.sh</code>, which installs dev deps inside the venv, runs <code>ruff check .</code>, runs <code>mypy freecad/SquatchCut</code>, and executes the full pytest suite with the CI coverage flags. That way the same errors surface locally before pushing.
    The <code>precommit-check.yml</code> workflow mirrors <code>scripts/precommit-check.sh</code> inside a CI <code>.venv</code> on pushes/PRs to <code>main</code>/<code>master</code>, so the same pip install + lint/test combo fails early.</li>
 <li><strong>Run the full test suite locally</strong> (or at least the critical slices) before pushing:
    <code>bash
