@@ -186,16 +186,16 @@ class GeometryNestingEngine:
 
         start_time = time.time()
 
-        placed_geometries = []
-        unplaced_geometries = []
-        complexity_warnings = []
+        placed_geometries: list[PlacedGeometry] = []
+        unplaced_geometries: list[ComplexGeometry] = []
+        complexity_warnings: list[str] = []
         fallback_count = 0
 
         # Sort shapes by area (largest first) for better packing
         sorted_shapes = sorted(shapes, key=lambda s: s.area, reverse=True)
 
         # Track occupied regions on the sheet
-        occupied_regions = []
+        occupied_regions: list[dict[str, Any]] = []
 
         # Update progress to placing shapes stage
         if self._current_progress_tracker:
@@ -261,8 +261,9 @@ class GeometryNestingEngine:
 
         # Calculate utilization statistics
         total_area_used = sum(p.geometry.area for p in placed_geometries)
+        usable_area = float(sheet.usable_area or 0.0)
         utilization_percent = (
-            (total_area_used / sheet.usable_area) * 100 if sheet.usable_area > 0 else 0
+            (total_area_used / usable_area) * 100 if usable_area > 0 else 0.0
         )
 
         processing_time = time.time() - start_time
@@ -273,7 +274,7 @@ class GeometryNestingEngine:
             unplaced_geometries=unplaced_geometries,
             sheets_used=1,  # Single sheet for now
             total_area_used=total_area_used,
-            total_area_available=sheet.usable_area,
+            total_area_available=usable_area,
             utilization_percent=utilization_percent,
             processing_time=processing_time,
             complexity_warnings=complexity_warnings,

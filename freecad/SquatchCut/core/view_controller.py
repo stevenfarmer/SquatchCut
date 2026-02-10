@@ -293,7 +293,7 @@ def cleanup_nested_layout(doc=None) -> None:
     if resolved_doc is None:
         return
 
-    removed = []
+    removed: list[str] = []
     legacy = resolved_doc.getObject(LEGACY_SHEET_GROUP_NAME)
     if legacy is not None:
         for child in list(getattr(legacy, "Group", [])):

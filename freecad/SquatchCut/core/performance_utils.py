@@ -192,7 +192,7 @@ class NestingCache:
     ) -> str:
         """Generate a unique cache key for the nesting parameters."""
         # Create a hashable representation of the input
-        parts_data = []
+        parts_data: list[object] = []
         for part in parts:
             if hasattr(part, "__dict__"):
                 parts_data.append(sorted(part.__dict__.items()))

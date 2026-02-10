@@ -9,6 +9,7 @@ from __future__ import annotations
 import inspect
 import os
 from pathlib import Path
+from typing import Any
 
 try:  # FreeCAD core
     import FreeCAD as App  # type: ignore
@@ -160,7 +161,7 @@ def register_commands() -> None:
     Gui.addCommand("SquatchCut_ResetView", cmd_reset_view.ResetViewCommand())
 
 
-_WorkbenchBase = Gui.Workbench if Gui else object
+_WorkbenchBase: type[Any] = Gui.Workbench if Gui else object
 
 
 class SquatchCutWorkbench(_WorkbenchBase):

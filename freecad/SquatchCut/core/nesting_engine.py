@@ -26,6 +26,8 @@ class NestingEngine:
         """Initialize internal structures for skyline/guillotine placement."""
         width = sheet_size.get("width")
         height = sheet_size.get("height")
+        if width is None or height is None:
+            raise ValueError("sheet_size must include width and height")
         free_rectangles = [
             {"x": 0.0, "y": 0.0, "width": float(width), "height": float(height)}
         ]

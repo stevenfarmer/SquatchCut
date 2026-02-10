@@ -36,15 +36,24 @@ from SquatchCut.freecad_integration import App, Part
 # Import for complex geometry support
 try:
     from SquatchCut.core.complex_geometry import ComplexGeometry
-except ImportError:
-    ComplexGeometry = None
+except ImportError:  # pragma: no cover - optional dependency
+    class ComplexGeometry:  # type: ignore[no-redef]
+        pass
 
 try:
     from SquatchCut.core.text_helpers import create_export_shape_text
 except ImportError:  # pragma: no cover - fallback for stripped installs
     _MISSING_TEXT_HELPER_WARNED = False
 
-    def create_export_shape_text(*_args, **_kwargs):
+    def create_export_shape_text(
+        doc,
+        label: str,
+        x: float,
+        y: float,
+        z: float = 0.0,
+        size: Optional[float] = None,
+        tracking: float = 0.0,
+    ):
         global _MISSING_TEXT_HELPER_WARNED
         if not _MISSING_TEXT_HELPER_WARNED:
             logger.warning(
@@ -458,23 +467,65 @@ def export_layout_to_svg(
     placements_by_sheet = _group_placements_by_sheet(placements)
     if not placements_by_sheet:
         raise ValueError("Placements could not be grouped by sheet for SVG export.")
-    max_sheet_index = max(placements_by_sheet.keys())
-    sheet_total = max_sheet_index + 1
 
-    generated_paths: list[Path] = []
+    sheets: list[ExportSheet] = []
     for sheet_index in sorted(placements_by_sheet.keys()):
         width_mm, height_mm = resolve_sheet_dimensions(
             sheet_sizes, sheet_index, sheet_w, sheet_h
         )
+        export_parts: list[ExportPartPlacement] = []
+        for placement in placements_by_sheet[sheet_index]:
+            try:
+                part_id = str(getattr(placement, "id", "") or "")
+                x_mm = float(getattr(placement, "x", 0.0))
+                y_mm = float(getattr(placement, "y", 0.0))
+                width = float(getattr(placement, "width", 0.0))
+                height = float(getattr(placement, "height", 0.0))
+                rotation = int(getattr(placement, "rotation_deg", 0) or 0)
+            except Exception:
+                continue
+            export_parts.append(
+                ExportPartPlacement(
+                    part_id=part_id,
+                    sheet_index=sheet_index,
+                    x_mm=x_mm,
+                    y_mm=y_mm,
+                    width_mm=width,
+                    height_mm=height,
+                    rotation_deg=rotation,
+                )
+            )
+        sheets.append(
+            ExportSheet(
+                sheet_index=sheet_index,
+                width_mm=float(width_mm or 0.0),
+                height_mm=float(height_mm or 0.0),
+                parts=export_parts,
+            )
+        )
+
+    export_job = ExportJob(
+        job_name=_resolve_job_name(doc),
+        measurement_system=measurement_system,
+        sheets=sheets,
+    )
+
+    sheet_total = len(sheets)
+    generated_paths: list[Path] = []
+    for sheet in sheets:
         content = _render_sheet_svg(
-            sheet_number=sheet_index + 1,
+            sheet_number=sheet.sheet_index + 1,
             total_sheets=sheet_total,
-            sheet_dimensions=(width_mm, height_mm),
-            placements=placements_by_sheet[sheet_index],
+            sheet_dimensions=(sheet.width_mm, sheet.height_mm),
+            sheet=sheet,
             measurement_system=measurement_system,
             include_labels=include_labels,
             include_dimensions=include_dimensions,
+            include_cut_lines=False,
+            include_waste_areas=False,
+            export_job=export_job,
         )
+        sheet_index = sheet.sheet_index
         target_path = _sheet_specific_path(base_target, sheet_index + 1)
         try:
             target_path.write_text(content, encoding="utf-8")
@@ -1817,6 +1868,8 @@ def _create_complex_geometry_dxf_objects(
 
     try:
         geometry = part.complex_geometry
+        if geometry is None:
+            return []
 
         # Round coordinates to specified precision
         def round_coord(coord):

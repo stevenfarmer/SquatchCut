@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, TypedDict, cast
 
 from SquatchCut.core.units import inches_to_mm
 
@@ -13,7 +13,21 @@ def _normalize_measurement_system(system: str) -> str:
     return "imperial" if system == "imperial" else "metric"
 
 
-IMPERIAL_PRESETS = [
+class Preset(TypedDict):
+    id: str
+    width_mm: float
+    height_mm: float
+    nickname: Optional[str]
+
+
+class PresetEntry(TypedDict):
+    id: Optional[str]
+    label: str
+    size: Optional[tuple[float, float]]
+    nickname: Optional[str]
+
+
+IMPERIAL_PRESETS: list[Preset] = [
     {
         "id": "4x8",
         "width_mm": inches_to_mm(48.0),
@@ -34,37 +48,41 @@ IMPERIAL_PRESETS = [
     },
 ]
 
-METRIC_PRESETS = [
+METRIC_PRESETS: list[Preset] = [
     {"id": "1220x2440", "width_mm": 1220.0, "height_mm": 2440.0, "nickname": None},
     {"id": "1220x3050", "width_mm": 1220.0, "height_mm": 3050.0, "nickname": None},
     {"id": "1500x3000", "width_mm": 1500.0, "height_mm": 3000.0, "nickname": None},
 ]
 
-PRESETS_BY_SYSTEM = {
+PRESETS_BY_SYSTEM: dict[str, list[Preset]] = {
     "imperial": IMPERIAL_PRESETS,
     "metric": METRIC_PRESETS,
 }
 
-FACTORY_DEFAULTS = {
+FACTORY_DEFAULTS: dict[str, dict[str, float]] = {
     "metric": {"width_mm": 1220.0, "height_mm": 2440.0},
     "imperial": {"width_mm": inches_to_mm(48.0), "height_mm": inches_to_mm(96.0)},
 }
 
 
-def get_presets_for_system(system: str) -> list[dict[str, object]]:
+def get_presets_for_system(system: str) -> list[Preset]:
     """Return editable copies of the presets associated with the requested system."""
     normalized = _normalize_measurement_system(system)
     presets = PRESETS_BY_SYSTEM.get(normalized, PRESETS_BY_SYSTEM["metric"])
-    return [dict(preset) for preset in presets]
+    return [cast(Preset, dict(preset)) for preset in presets]
 
 
-def get_preset_entries(system: str) -> list[dict[str, object]]:
+def get_preset_entries(system: str) -> list[PresetEntry]:
     """Return combo entries that include a leading blank/None selection and preset data."""
-    entries = [{"id": None, "label": "", "size": None, "nickname": None}]
+    entries: list[PresetEntry] = [
+        {"id": None, "label": "", "size": None, "nickname": None}
+    ]
     for preset in get_presets_for_system(system):
+        label = preset.get("nickname") or preset["id"]
         entries.append(
             {
                 "id": preset["id"],
+                "label": label,
                 "size": (preset["width_mm"], preset["height_mm"]),
                 "nickname": preset.get("nickname"),
             }
@@ -102,7 +120,7 @@ def find_matching_preset(
     width_mm: Optional[float],
     height_mm: Optional[float],
     tolerance_mm: float = DEFAULT_MATCH_TOLERANCE_MM,
-) -> Optional[dict[str, object]]:
+) -> Optional[Preset]:
     """Return the matching preset for the system if the dimensions match within tolerance."""
     if width_mm is None or height_mm is None:
         return None
@@ -134,7 +152,7 @@ class PresetSelectionState:
         self.current_index = 0
         self.current_id: Optional[str] = None
 
-    def set_index(self, index: int, entries: list[dict[str, object]]) -> int:
+    def set_index(self, index: int, entries: list[PresetEntry]) -> int:
         if not entries:
             self.current_index = 0
             self.current_id = None

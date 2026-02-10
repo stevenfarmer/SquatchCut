@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import csv
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Optional
 
+session_state: Any
 try:
     from SquatchCut.core import session_state
 except Exception:
@@ -60,6 +61,8 @@ def validate_csv_file(
                 part, error = _validate_panel_row(normalized, idx, normalized_units)
                 if error:
                     errors.append(error)
+                    continue
+                if part is None:
                     continue
                 parts.append(part)
     except FileNotFoundError:
@@ -122,6 +125,8 @@ def _validate_panel_row(
     if height_error:
         return None, height_error
 
+    if width_value is None or height_value is None:
+        return None, CsvValidationError(row_number, "Width/Height is missing.")
     width_value = _convert_units(width_value, units)
     height_value = _convert_units(height_value, units)
 

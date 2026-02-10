@@ -30,15 +30,16 @@ class MultiSheetOptimizer:
             placements, leftovers = engine.nest_panels(
                 panels_remaining, float(width), float(height)
             )
+            sheet_placements: list[dict] = []
             sheet = {
                 "sheet_id": sheet_counter,
                 "width": float(width),
                 "height": float(height),
-                "placements": [],
+                "placements": sheet_placements,
             }
             for placement in placements:
                 placement["sheet_id"] = sheet_counter
-                sheet["placements"].append(placement)
+                sheet_placements.append(placement)
             sheets.append(sheet)
 
             if len(leftovers) == len(panels_remaining):

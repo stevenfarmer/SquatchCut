@@ -8,7 +8,7 @@ Note: Update incrementally; do not overwrite this module when adding logic.
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Any, Optional
 
 from SquatchCut.core.complex_geometry import (
     BoundingBox,
@@ -343,7 +343,7 @@ class ShapeExtractor:
 
     def _extract_points_from_wire(self, wire) -> list[Point2D]:
         """Extract 2D points from a FreeCAD wire object."""
-        points = []
+        points: list[Point2D] = []
         try:
             # This is a simplified implementation
             # In a full version, this would properly discretize the wire
@@ -365,7 +365,7 @@ class ShapeExtractor:
 
     def _extract_points_from_edges(self, edges) -> list[Point2D]:
         """Extract 2D points from a list of FreeCAD edge objects."""
-        points = []
+        points: list[Point2D] = []
         try:
             for edge in edges:
                 if hasattr(edge, "Vertexes"):
@@ -423,9 +423,16 @@ class ShapeExtractor:
         return abs(area) / 2.0
 
     def _classify_geometry_type(
-        self, contour_points: list[Point2D], bounding_box: BoundingBox, area: float
+        self,
+        contour_points_or_obj: Any,
+        bounding_box: Optional[BoundingBox] = None,
+        area: Optional[float] = None,
     ) -> GeometryType:
-        """Classify the geometry type based on contour analysis."""
+        """Classify geometry type from contour analysis or a FreeCAD object."""
+        if bounding_box is None or area is None:
+            return self._classify_geometry_type_from_object(contour_points_or_obj)
+
+        contour_points = contour_points_or_obj
         if len(contour_points) <= 5:  # Rectangle has 5 points (including closure)
             # Check if it's actually rectangular
             bbox_area = (bounding_box[2] - bounding_box[0]) * (
@@ -449,8 +456,8 @@ class ShapeExtractor:
         # A more sophisticated implementation would analyze curvature
         return len(contour_points) > 20
 
-    def _classify_geometry_type(self, freecad_obj) -> GeometryType:
-        """Classify geometry type from a FreeCAD object (overloaded method)."""
+    def _classify_geometry_type_from_object(self, freecad_obj) -> GeometryType:
+        """Classify geometry type from a FreeCAD object."""
         try:
             if not hasattr(freecad_obj, "Shape") or freecad_obj.Shape is None:
                 return GeometryType.RECTANGULAR

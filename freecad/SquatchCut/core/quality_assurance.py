@@ -408,7 +408,7 @@ class QualityAssuranceChecker:
         issues: list[QualityIssue],
     ) -> dict[str, float]:
         """Calculate quality metrics for the layout."""
-        metrics = {}
+        metrics: dict[str, float] = {}
 
         # Count issues by severity
         critical_count = len(
@@ -419,10 +419,10 @@ class QualityAssuranceChecker:
         )
         info_count = len([i for i in issues if i.severity == QualitySeverity.INFO])
 
-        metrics["critical_issues"] = critical_count
-        metrics["warning_issues"] = warning_count
-        metrics["info_issues"] = info_count
-        metrics["total_issues"] = len(issues)
+        metrics["critical_issues"] = float(critical_count)
+        metrics["warning_issues"] = float(warning_count)
+        metrics["info_issues"] = float(info_count)
+        metrics["total_issues"] = float(len(issues))
 
         # Calculate issue density (issues per part)
         metrics["issue_density"] = (
@@ -434,7 +434,7 @@ class QualityAssuranceChecker:
             total_part_area = sum(part.width * part.height for part in placed_parts)
             sheets_used = len(set(part.sheet_index for part in placed_parts))
 
-            total_sheet_area = 0
+            total_sheet_area = 0.0
             for sheet_idx in range(sheets_used):
                 if sheet_idx < len(sheet_sizes):
                     w, h = sheet_sizes[sheet_idx]
@@ -445,10 +445,10 @@ class QualityAssuranceChecker:
             metrics["material_utilization"] = (
                 (total_part_area / total_sheet_area) * 100
                 if total_sheet_area > 0
-                else 0
+                else 0.0
             )
         else:
-            metrics["material_utilization"] = 0
+            metrics["material_utilization"] = 0.0
 
         # Calculate spacing compliance rate
         spacing_violations = len(
@@ -458,7 +458,7 @@ class QualityAssuranceChecker:
         metrics["spacing_compliance_rate"] = (
             ((total_part_pairs - spacing_violations) / total_part_pairs * 100)
             if total_part_pairs > 0
-            else 100
+            else 100.0
         )
 
         return metrics

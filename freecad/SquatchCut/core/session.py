@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Optional
+from typing import Any, Optional
 
 from SquatchCut.core import session_state, sheet_presets
 from SquatchCut.core.preferences import SquatchCutPreferences
@@ -24,10 +24,10 @@ NESTED_PREFIX = "SC_Nested_"
 DEFAULT_MEASUREMENT_SYSTEM = "metric"
 
 # Additional SquatchCut session-related state
-_source_panel_objects = []
-_sheet_objects = []
-_nested_panel_objects = []
-_last_csv_path = None
+_source_panel_objects: list[Any] = []
+_sheet_objects: list[Any] = []
+_nested_panel_objects: list[Any] = []
+_last_csv_path: Optional[str] = None
 
 
 def _normalize_measurement_value(value):

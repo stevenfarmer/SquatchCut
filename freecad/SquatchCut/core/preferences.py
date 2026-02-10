@@ -232,13 +232,13 @@ class SquatchCutPreferences:
             height_key = self.IMPERIAL_HEIGHT_KEY
             default_width = self.IMPERIAL_DEFAULT_WIDTH_IN
             default_height = self.IMPERIAL_DEFAULT_HEIGHT_IN
-            setter = self._set_imperial_defaults
+            setter = "imperial"
         else:
             width_key = self.METRIC_WIDTH_KEY
             height_key = self.METRIC_HEIGHT_KEY
             default_width = self.METRIC_DEFAULT_WIDTH_MM
             default_height = self.METRIC_DEFAULT_HEIGHT_MM
-            setter = self._set_metric_defaults
+            setter = "metric"
 
         for key in (width_key, height_key):
             if key in self._local:
@@ -256,7 +256,10 @@ class SquatchCutPreferences:
                 self._grp.RemFloat(height_key)
             except Exception:
                 pass
-        setter(default_width, default_height)
+        if setter == "imperial":
+            self._set_imperial_defaults(default_width, default_height)
+        else:
+            self._set_metric_defaults(default_width, default_height)
 
     def clear_default_sheet_size(self) -> None:
         """Clear stored sheet defaults so UIs fall back to factory values."""
@@ -314,7 +317,9 @@ class SquatchCutPreferences:
         else:
             self._set_float(self.METRIC_SPACING_KEY, value)
 
-    def get_default_kerf_mm(self, fallback: float = 3.0, system: str = None) -> float:
+    def get_default_kerf_mm(
+        self, fallback: float = 3.0, system: Optional[str] = None
+    ) -> float:
         """
         Return default kerf in mm.
         If system is None, uses the current preferred measurement system.
@@ -330,7 +335,9 @@ class SquatchCutPreferences:
             return val
         return self._float("DefaultKerfMM", fallback or self.METRIC_DEFAULT_KERF_MM)
 
-    def set_default_kerf_mm(self, value: float, system: str = None) -> None:
+    def set_default_kerf_mm(
+        self, value: float, system: Optional[str] = None
+    ) -> None:
         """
         Set default kerf from mm input.
         If system is Imperial, converts mm -> inches and stores in Imperial key.

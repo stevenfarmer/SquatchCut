@@ -14,27 +14,27 @@ from typing import Any, Optional
 # Tracks sheet size, kerf/gap, default rotation flag, last layout, and panel data.
 
 # Sheet size
-_sheet_width = None
-_sheet_height = None
-_job_sheets = []
+_sheet_width: Optional[float] = None
+_sheet_height: Optional[float] = None
+_job_sheets: list[dict[str, Any]] = []
 
 SHEET_MODE_SIMPLE = "simple"
 SHEET_MODE_JOB_SHEETS = "job_sheets"
-_sheet_mode = SHEET_MODE_SIMPLE
+_sheet_mode: str = SHEET_MODE_SIMPLE
 
 # Cutting parameters
-_kerf_mm = 0.0
-_gap_mm = 0.0
-_default_allow_rotate = False
-_job_allow_rotate = None
-_optimize_for_cut_path = False
-_kerf_width_mm = 3.0
-_allowed_rotations_deg = (0, 90)
-_measurement_system = "imperial"
+_kerf_mm: float = 0.0
+_gap_mm: float = 0.0
+_default_allow_rotate: bool = False
+_job_allow_rotate: Optional[bool] = None
+_optimize_for_cut_path: bool = False
+_kerf_width_mm: float = 3.0
+_allowed_rotations_deg: tuple[int, ...] = (0, 90)
+_measurement_system: str = "imperial"
 
 # Last nesting layout: list of PlacedPart objects
-_last_layout = None
-_nesting_stats = {
+_last_layout: Optional[list[Any]] = None
+_nesting_stats: dict[str, Any] = {
     "sheets_used": None,
     "cut_complexity": None,
     "overlaps_count": None,
@@ -42,16 +42,16 @@ _nesting_stats = {
 }
 
 # Panels loaded from CSV (pure data; no FreeCAD objects)
-_panels = []
+_panels: list[dict[str, Any]] = []
 _shape_panel_objects: dict[str, Any] = {}
 
 # Optimization mode: "material" (default) or "cuts"
-_optimization_mode = "material"
-_nesting_mode = "pack"
-_export_include_labels = True
-_export_include_dimensions = False
-_source_panel_objects = []
-_nested_sheet_group = None
+_optimization_mode: str = "material"
+_nesting_mode: str = "pack"
+_export_include_labels: bool = True
+_export_include_dimensions: bool = False
+_source_panel_objects: list[Any] = []
+_nested_sheet_group: Optional[Any] = None
 
 
 def set_shape_panel_objects(mapping) -> None:
@@ -383,7 +383,7 @@ def set_nesting_stats(
     }
 
 
-def get_nesting_stats() -> dict:
+def get_nesting_stats() -> dict[str, Any]:
     """Return summary stats from the last nesting run."""
     return dict(
         _nesting_stats
@@ -539,8 +539,8 @@ def get_nested_sheet_group():
 # Cut Sequence Settings
 # --------------------------
 
-_generate_cut_sequence = False
-_cut_sequences = []
+_generate_cut_sequence: bool = False
+_cut_sequences: list[Any] = []
 
 
 def set_generate_cut_sequence(enabled: bool) -> None:

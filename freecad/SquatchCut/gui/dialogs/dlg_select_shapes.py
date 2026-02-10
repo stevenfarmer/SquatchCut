@@ -113,8 +113,8 @@ class EnhancedShapeSelectionDialog(QtWidgets.QDialog):
         self.resize(700, 500)
 
         self.detected_shapes = detected_shapes or []
-        self.shape_widgets = {}  # Map shape_info to widget
-        self.validation_errors = []
+        self.shape_widgets: dict[ShapeInfo, PreviewWidget] = {}
+        self.validation_errors: list[str] = []
 
         self._build_ui()
         self._populate_shape_list()
@@ -229,17 +229,19 @@ class EnhancedShapeSelectionDialog(QtWidgets.QDialog):
         """Validate the current selection and return validation results."""
         selected_shapes = self.get_selected_shapes()
 
+        errors: list[str] = []
+        warnings: list[str] = []
         validation_result = {
             "is_valid": True,
-            "errors": [],
-            "warnings": [],
+            "errors": errors,
+            "warnings": warnings,
             "selected_count": len(selected_shapes),
         }
 
         # Check if any shapes are selected
         if not selected_shapes:
             validation_result["is_valid"] = False
-            validation_result["errors"].append(
+            errors.append(
                 "No shapes selected. Please select at least one shape to nest."
             )
 
@@ -255,14 +257,14 @@ class EnhancedShapeSelectionDialog(QtWidgets.QDialog):
             if len(complex_shapes) > 3:
                 warning_msg += f" and {len(complex_shapes) - 3} more"
             warning_msg += ". These may require longer processing time."
-            validation_result["warnings"].append(warning_msg)
+            warnings.append(warning_msg)
 
         # Check for very small shapes
         small_shapes = [
             s for s in selected_shapes if min(s.dimensions[:2]) < 10.0
         ]  # Less than 10mm
         if small_shapes:
-            validation_result["warnings"].append(
+            warnings.append(
                 f"{len(small_shapes)} very small shapes detected. Verify dimensions are correct."
             )
 

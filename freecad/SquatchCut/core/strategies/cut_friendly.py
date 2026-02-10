@@ -20,11 +20,11 @@ def nest_cut_friendly(
     import importlib
 
     nesting_module = importlib.import_module("SquatchCut.core.nesting")
-    NestingConfig = nesting_module.NestingConfig
-    PlacedPart = nesting_module.PlacedPart
+    NestingConfigCls = nesting_module.NestingConfig
+    PlacedPartCls = nesting_module.PlacedPart
     resolve_sheet_dimensions = nesting_module.resolve_sheet_dimensions
 
-    cfg = config or NestingConfig()
+    cfg = config or NestingConfigCls()
     kerf = cfg.kerf_width_mm
     spacing = max(cfg.spacing_mm, 0.0)
     margin = spacing
@@ -104,7 +104,7 @@ def nest_cut_friendly(
                 break
 
             placements.append(
-                PlacedPart(
+                PlacedPartCls(
                     id=p.id,
                     sheet_index=sheet_index,
                     x=lane_origin_x,

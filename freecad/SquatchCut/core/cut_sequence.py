@@ -68,10 +68,10 @@ class CutSequencePlanner:
         self, placed_parts: list[PlacedPart], sheet_sizes: list[tuple[float, float]]
     ) -> list[CutSequence]:
         """Plan cutting sequences for all sheets."""
-        sequences = []
+        sequences: list[CutSequence] = []
 
         # Group parts by sheet
-        parts_by_sheet = {}
+        parts_by_sheet: dict[int, list[PlacedPart]] = {}
         for part in placed_parts:
             sheet_idx = part.sheet_index
             if sheet_idx not in parts_by_sheet:

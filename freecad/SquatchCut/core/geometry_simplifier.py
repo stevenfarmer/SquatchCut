@@ -15,6 +15,7 @@ from typing import Optional
 from SquatchCut.core.complex_geometry import (
     ComplexGeometry,
     ComplexityLevel,
+    ExtractionMethod,
     GeometryType,
     create_rectangular_geometry,
 )
@@ -369,7 +370,7 @@ class GeometrySimplifier:
             geometry_type=(
                 GeometryType.COMPLEX if vertex_count > 4 else GeometryType.RECTANGULAR
             ),
-            extraction_method="simplified",
+            extraction_method=ExtractionMethod.CONTOUR,
         )
 
     def _calculate_polygon_area(self, points: list[tuple[float, float]]) -> float:
