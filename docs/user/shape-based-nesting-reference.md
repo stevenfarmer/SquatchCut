@@ -19,6 +19,36 @@ Note: Earlier drafts labeled this as "v3.4+"; the 0.3.x line is the current expe
 6. [API Reference](#api-reference)
 7. [Integration Guide](#integration-guide)
 8. [Advanced Configuration](#advanced-configuration)
+9. [Implementation Status](#implementation-status)
+
+
+## Implementation Status
+
+Tracking the shape-based nesting timeline for v3.4 (see `.kiro/specs/shape-based-nesting/tasks.md`). Completed items are marked with ✅, and the remaining items show what we still plan to ship.
+
+### ✅ Completed
+
+- **Foundation & extraction** (1.1, 1.3, 1.5): The `ComplexGeometry` model, contour extraction, complexity scoring, and fallback logic are live.
+- **Selection UI & TaskPanel** (2.1, 2.2, 2.5, 5.1, 5.2, 5.4): Enhanced shape selection dialog, previews, validation, progress helpers, and the Select Shapes workflow feed clean data into the nesting command.
+- **Nesting engine core** (3.1, 3.3, 3.5): GeometryNestingEngine now places complex contours, rotates parts, compensates for kerf, and reports true utilization metrics.
+- **Exports** (6.1, 6.2, 6.4): SVG/DXF exporters emit accurate contour outlines and cutlists include complexity metadata.
+- **Performance & monitoring** (7.x): Timing/memory instrumentation, automatic simplification, progress callbacks, and simplified modes are implemented.
+- **Documentation & samples** (10.1‑10.4): Cabinet maker guide, technical API notes, and example files describe the shape-based experience end to end.
+
+### ⚪ Remaining
+
+- **Property coverage** (1.2, 1.4, 1.6, 2.3, 2.4, 3.2, 3.4, 3.6): Detection accuracy, geometric accuracy, graceful fallback, selection integrity, UI completeness, overlap prevention, rotation preservation, and kerf boundary tests remain.
+- **Progress/mode tests** (5.3, 5.5): Property tests for progress feedback and simplified/hybrid mode availability are next.
+- **Export accuracy validation** (6.3): SVG/CSV export precision for complex shapes needs targeted regression coverage.
+- **Comprehensive testing** (8.x): Unit, GUI, and end-to-end cabinet maker workflow suites are still being built.
+
+This section is updated alongside the code so readers can track what is done versus what is still in progress.
+
+### Immediate next steps
+
+- Complete the remaining property suites referenced above so the implementation checklist can advance: detection and geometric accuracy, graceful fallback, selection/UI coverage, overlap prevention, rotation preservation, kerf boundaries, and progress/mode availability.
+- Add focused export regression tests for SVG/CSV/cutlist outputs that explicitly cover complex geometry contours and kerf compensation, then mark those tests as done in this section.
+- Build out the unit, GUI, and end-to-end cabinet maker workflows listed under section 8.x of the implementation plan and update this section when each suite is in place so the documentation always reflects the codebase state.
 
 ---
 

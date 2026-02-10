@@ -7,6 +7,7 @@ shape detection, extraction, and nesting algorithms for complex geometries.
 """
 
 import math
+from types import SimpleNamespace
 from unittest.mock import Mock
 
 import pytest
@@ -15,11 +16,17 @@ from hypothesis import strategies as st
 from SquatchCut.core.complex_geometry import (
     ComplexGeometry,
     ComplexityLevel,
+    ExtractionMethod,
     GeometryType,
     assess_geometry_complexity,
     create_rectangular_geometry,
 )
 from SquatchCut.core.shape_extractor import ShapeExtractor
+from SquatchCut.gui.dialogs.dlg_select_shapes import (
+    EnhancedShapeSelectionDialog,
+    ShapeInfo,
+)
+import SquatchCut.gui.dialogs.dlg_select_shapes as selection_dialog
 
 
 # Custom strategies for shape-based nesting domain objects
@@ -668,3 +675,198 @@ class TestGeometryNestingEngine:
         if result.placed_geometries:
             assert stats.area_used_mm2 > 0
             assert stats.utilization_percent > 0
+
+
+class _DummySignal:
+    def connect(self, *args, **kwargs):
+        return None
+
+
+class _DummyButton:
+    def __init__(self):
+        self.clicked = _DummySignal()
+        self._enabled = True
+
+    def setEnabled(self, value: bool):
+        self._enabled = bool(value)
+
+
+class _DummyLabel:
+    def __init__(self):
+        self.text_value = ""
+        self.style = ""
+        self.word_wrap = False
+
+    def setText(self, text: str):
+        self.text_value = text
+
+    def setStyleSheet(self, *_, **__):
+        self.style = " ".join(str(arg) for arg in _)
+
+    def setWordWrap(self, value: bool):
+        self.word_wrap = bool(value)
+
+    def show(self):
+        self.visible = True
+
+    def hide(self):
+        self.visible = False
+
+
+class _DummyLayout:
+    def addWidget(self, *args, **kwargs):
+        return None
+
+    def addLayout(self, *args, **kwargs):
+        return None
+
+    def addStretch(self, *args, **kwargs):
+        return None
+
+
+class _DummyListItem:
+    def __init__(self, shape_info: ShapeInfo):
+        self.shape_info = shape_info
+        self._check_state = selection_dialog.QtCore.Qt.Checked
+
+    def setCheckState(self, value):
+        self._check_state = value
+
+    def checkState(self):
+        return self._check_state
+
+    def data(self, role):
+        if role == selection_dialog.QtCore.Qt.UserRole:
+            return self.shape_info
+        return None
+
+    def setForeground(self, *_):
+        return None
+
+    def setIcon(self, *_):
+        return None
+
+
+class _DummyListWidget:
+    def __init__(self):
+        self._items: list[_DummyListItem] = []
+        self.itemSelectionChanged = _DummySignal()
+
+    def clear(self):
+        self._items.clear()
+
+    def addItem(self, item: _DummyListItem):
+        self._items.append(item)
+
+    def count(self):
+        return len(self._items)
+
+    def item(self, index: int):
+        return self._items[index]
+
+    def currentItem(self):
+        return self._items[0] if self._items else None
+
+    def setSelectionMode(self, *_):
+        return None
+
+    def items(self):
+        return list(self._items)
+
+
+@st.composite
+def shape_info_strategy(draw):
+    label = draw(
+        st.text(
+            min_size=1,
+            max_size=15,
+            alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd")),
+        ).filter(lambda text: text.strip() != "")
+    )
+    width = draw(valid_dimensions())
+    height = draw(valid_dimensions())
+    depth = draw(valid_dimensions())
+    complexity_score = draw(st.floats(min_value=0.0, max_value=10.0))
+    geometry_type = draw(st.sampled_from(list(GeometryType)))
+
+    freecad_object = SimpleNamespace(Label=label, Name=label)
+
+    return ShapeInfo(
+        freecad_object=freecad_object,
+        label=label,
+        dimensions=(width, height, depth),
+        geometry_type=geometry_type,
+        complexity_score=complexity_score,
+        extraction_method=ExtractionMethod.BOUNDING_BOX,
+        area_mm2=width * height,
+    )
+
+
+class HeadlessSelectionDialog(EnhancedShapeSelectionDialog):
+    def _build_ui(self):
+        self.select_all_btn = _DummyButton()
+        self.select_none_btn = _DummyButton()
+        self.shapes_list = _DummyListWidget()
+        self.preview_layout = _DummyLayout()
+        self.summary_label = _DummyLabel()
+        self.validation_label = _DummyLabel()
+        self.ok_button = _DummyButton()
+
+        self.validation_label.show = lambda: None
+        self.validation_label.hide = lambda: None
+
+    def _populate_shape_list(self):
+        self.shapes_list.clear()
+        self.shape_widgets.clear()
+        for shape_info in self.detected_shapes:
+            item = _DummyListItem(shape_info)
+            self.shapes_list.addItem(item)
+            self.shape_widgets[shape_info] = None
+
+
+class TestSelectionWorkflowProperties:
+    """Property-based tests for the selection workflow."""
+
+    @given(
+        st.lists(shape_info_strategy(), min_size=1, max_size=5),
+        st.booleans(),
+    )
+    @settings(max_examples=40, deadline=5000)
+    def test_property_2_selection_workflow_integrity(self, shape_infos, toggle_unchecked):
+        """**Feature: shape-based-nesting, Property 2: Selection Workflow Integrity**
+
+        For any set of detected shapes, the selection interface should allow
+        users to choose shapes and process them while preserving their
+        identification and validation results.
+
+        **Validates: Requirements 1.4, 1.5, 3.1, 3.3, 3.4**
+        """
+        dialog = HeadlessSelectionDialog(detected_shapes=shape_infos)
+        selected_shapes = dialog.get_selected_shapes()
+
+        assert selected_shapes == shape_infos
+        data = dialog.get_data()
+        assert data["selection_count"] == len(shape_infos)
+        assert data["selected_shapes"] == shape_infos
+        assert dialog.validate_selection()["is_valid"]
+
+        warnings = dialog.validate_selection()["warnings"]
+        high_complex = [
+            s for s in shape_infos if s.geometry_type == GeometryType.COMPLEX and s.complexity_score > 8.0
+        ]
+        if high_complex:
+            assert any("Complex shapes" in w for w in warnings)
+        else:
+            assert not any("Complex shapes" in w for w in warnings)
+
+        small_shapes = [s for s in shape_infos if min(s.dimensions[:2]) < 10.0]
+        if small_shapes:
+            assert any("very small" in w.lower() for w in warnings)
+
+        if toggle_unchecked:
+            for item in dialog.shapes_list.items():
+                item.setCheckState(selection_dialog.QtCore.Qt.Unchecked)
+            dialog._update_selection_summary()
+            validation = dialog.validate_selection()
+            assert not validation["is_valid"]
+            assert validation["errors"]
