@@ -31,6 +31,8 @@
 ### [Draftsman] - Lead Developer
 - **Mission:** Implement FreeCAD Python code.
 - **Rule:** No hardcoded dimensions. Code must be modular and commented for a non-dev to read.
+- Unit Logic: Support both decimal (23.5) and fractional (23 1/2) string inputs from CSVs.
+- Parsing: Use FreeCAD.Units.Quantity or a custom string-splitter to ensure "23 1/2" is correctly interpreted as 23.5 inches before running the nesting calculation.
 
 ### [Auditor] - Quality Assurance
 - **Mission:** Geometry and API Stress-testing.
