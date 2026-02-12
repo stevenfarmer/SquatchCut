@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <title>Export Report</title>
-  <g fill="none" stroke="#000" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
-    <path d="M18 8h22l8 8v38H18z"/>
-    <path d="M40 8v8h8"/>
-    <path d="M32 30v18M26 40l6 8 6-8"/>
-  </g>
-</svg>

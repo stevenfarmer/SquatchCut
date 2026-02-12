@@ -1,7 +1,0 @@
-{
-  "input_csv": "valid_panels_small.csv",
-  "expected_min_sheets": 1,
-  "assumed_sheet_width": 2440,
-  "assumed_sheet_height": 1220,
-  "notes": "Small panel set should fit on one standard sheet in most nesting strategies."
-}
