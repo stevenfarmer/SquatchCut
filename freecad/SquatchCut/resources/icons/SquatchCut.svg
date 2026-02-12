@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="8" ry="8" fill="#242424" />
+  <path d="M16 20h32v24H16z" fill="#fcbf20" />
+  <path d="M18 26h28v16H18z" fill="#242424" />
+  <text x="32" y="40" font-size="12" text-anchor="middle" fill="#fcbf20" font-family="sans-serif">SC</text>
+</svg>

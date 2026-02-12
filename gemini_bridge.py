@@ -1,6 +1,6 @@
 import os
 import sys
-from genai import Client
+from google import genai
 from dotenv import load_dotenv
 
 # 1. Load the secret key
@@ -13,7 +13,7 @@ if not api_key:
 
 # 2. Configure the New Client
 # The new 2026 SDK uses a simpler Client structure
-client = Client(api_key=api_key)
+client = genai.Client(api_key=api_key)
 
 
 def consult_architect(problem_description):
